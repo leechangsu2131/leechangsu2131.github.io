@@ -1,202 +1,719 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alert Dialog 예제</title>
-  <style>
-    /* 기본 스타일 및 변수 설정 
-      React 코드의 'bg-background', 'text-muted-foreground' 등과 같은
-      테마 기반 클래스를 시뮬레이션합니다.
-    */
-    :root {
-      --background: #ffffff;
-      --foreground: #020817;
-      --card: #ffffff;
-      --card-foreground: #020817;
-      --popover: #ffffff;
-      --popover-foreground: #020817;
-      --primary: #2563eb;
-      --primary-foreground: #fafafa;
-      --secondary: #f1f5f9;
-      --secondary-foreground: #0f172a;
-      --muted: #f1f5f9;
-      --muted-foreground: #64748b;
-      --accent: #f1f5f9;
-      --accent-foreground: #0f172a;
-      --destructive: #ef4444;
-      --destructive-foreground: #fafafa;
-      --border: #e2e8f0;
-      --input: #e2e8f0;
-      --ring: #94a3b8;
-      --radius: 0.5rem;
-    }
-
-    body {
-      font-family: sans-serif;
-      background-color: var(--background);
-      color: var(--foreground);
-    }
-
-    /*
-      AlertDialogOverlay 스타일
-      (from 'fixed inset-0 z-50 bg-black/50')
-    */
-    .alert-dialog-overlay {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 50;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    /*
-      AlertDialogContent 스타일
-      (from 'bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] ...')
-    */
-    .alert-dialog-content {
-      background-color: var(--background);
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 50;
-      display: grid;
-      width: 100%;
-      max-width: calc(100% - 2rem);
-      gap: 1rem; /* gap-4 */
-      border: 1px solid var(--border);
-      border-radius: var(--radius); /* rounded-lg */
-      padding: 1.5rem; /* p-6 */
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
-    }
-
-    /*
-      AlertDialogHeader 스타일
-      (from 'flex flex-col gap-2 text-center sm:text-left')
-    */
-    .alert-dialog-header {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem; /* gap-2 */
-      text-align: center;
-    }
-
-    /*
-      AlertDialogTitle 스타일
-      (from 'text-lg font-semibold')
-    */
-    .alert-dialog-title {
-      font-size: 1.125rem; /* text-lg */
-      line-height: 1.75rem;
-      font-weight: 600; /* font-semibold */
-      margin: 0;
-    }
-
-    /*
-      AlertDialogDescription 스타일
-      (from 'text-muted-foreground text-sm')
-    */
-    .alert-dialog-description {
-      color: var(--muted-foreground);
-      font-size: 0.875rem; /* text-sm */
-      line-height: 1.25rem;
-      margin: 0;
-    }
-
-    /*
-      AlertDialogFooter 스타일
-      (from 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end')
-    */
-    .alert-dialog-footer {
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 0.5rem; /* gap-2 */
-    }
-
-    /*
-      버튼 공통 스타일
-      (from 'buttonVariants()')
-    */
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-      border-radius: calc(var(--radius) - 2px);
-      font-size: 0.875rem;
-      font-weight: 500;
-      padding: 0.5rem 1rem;
-      transition: all 0.2s;
-      cursor: pointer;
-      border: 1px solid transparent;
-    }
-    .button:focus {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
-    }
-
-    /* 기본 버튼 (Action) */
-    .button-primary {
-      background-color: var(--primary);
-      color: var(--primary-foreground);
-    }
-    .button-primary:hover {
-      background-color: rgba(37, 99, 235, 0.9);
-    }
-
-    /* 아웃라인 버튼 (Cancel) */
-    .button-outline {
-      border: 1px solid var(--input);
-      background-color: var(--background);
-    }
-    .button-outline:hover {
-      background-color: var(--accent);
-      color: var(--accent-foreground);
-    }
-
-    /* 반응형 스타일 */
-    @media (min-width: 640px) { /* sm: breakpoint */
-      .alert-dialog-content {
-        max-width: 32rem; /* sm:max-w-lg */
-      }
-      .alert-dialog-header {
-        text-align: left; /* sm:text-left */
-      }
-      .alert-dialog-footer {
-        flex-direction: row; /* sm:flex-row */
-        justify-content: flex-end; /* sm:justify-end */
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자 지식 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        .tabs {
+            width: 100%;
+        }
+        .tabs-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            background: white;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tab-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .tab-trigger:hover {
+            background: #f8f9fa;
+        }
+        .tab-trigger.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+        .card-header {
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        .card-description {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+        .grid-cols-3 {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        .grid-cols-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+        }
+        .badge-destructive {
+            background: #fee;
+            color: #dc3545;
+            border: 1px solid #f5c6cb;
+        }
+        .badge-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+        .badge-primary {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+        .badge-outline {
+            background: transparent;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        .border-destructive {
+            border-color: #dc3545 !important;
+        }
+        .border-orange {
+            border-color: #fd7e14 !important;
+        }
+        .border-primary {
+            border-color: #667eea !important;
+        }
+        .border-green {
+            border-color: #28a745 !important;
+        }
+        .border-red {
+            border-color: #dc3545 !important;
+        }
+        .border-blue {
+            border-color: #007bff !important;
+        }
+        .text-destructive {
+            color: #dc3545 !important;
+        }
+        .text-orange {
+            color: #fd7e14 !important;
+        }
+        .text-primary {
+            color: #667eea !important;
+        }
+        .text-green {
+            color: #28a745 !important;
+        }
+        .text-red {
+            color: #dc3545 !important;
+        }
+        .text-blue {
+            color: #007bff !important;
+        }
+        .bg-muted {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .bg-blue-50 {
+            background-color: #e3f2fd;
+        }
+        .bg-green-50 {
+            background-color: #e8f5e8;
+        }
+        .bg-red-50 {
+            background-color: #ffebee;
+        }
+        .bg-primary-5 {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            display: inline-block;
+        }
+        .flex {
+            display: flex;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .gap-2 {
+            gap: 0.5rem;
+        }
+        .gap-4 {
+            gap: 1rem;
+        }
+        .p-3 {
+            padding: 0.75rem;
+        }
+        .p-4 {
+            padding: 1rem;
+        }
+        .border {
+            border: 1px solid #dee2e6;
+        }
+        .rounded-lg {
+            border-radius: 8px;
+        }
+        .space-y-2 > * + * {
+            margin-top: 0.5rem;
+        }
+        .space-y-3 > * + * {
+            margin-top: 0.75rem;
+        }
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+        .text-sm {
+            font-size: 0.875rem;
+        }
+        .text-xs {
+            font-size: 0.75rem;
+        }
+        .text-lg {
+            font-size: 1.125rem;
+        }
+        .font-medium {
+            font-weight: 500;
+        }
+        .font-weight-600 {
+            font-weight: 600;
+        }
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        .mb-3 {
+            margin-bottom: 0.75rem;
+        }
+        .mt-3 {
+            margin-top: 0.75rem;
+        }
+        .pb-3 {
+            padding-bottom: 0.75rem;
+        }
+        .separator {
+            height: 1px;
+            background: #dee2e6;
+            margin: 1.5rem 0;
+        }
+        .separator-vertical {
+            width: 1px;
+            background: #dee2e6;
+            height: 1.5rem;
+        }
+        .w-20 {
+            width: 5rem;
+        }
+        blockquote {
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .step-indicator {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        .step-1 { background: #007bff; }
+        .step-2 { background: #28a745; }
+        .step-3 { background: #dc3545; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .tabs-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.25rem;
+            }
+            .tab-trigger {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
+            .grid-cols-3,
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>투자 지식 대시보드</h1>
+            <p>체계적인 투자 전략과 시장 분석 가이드</p>
+        </header>
 
-  <button class="button button-primary">대화상자 열기</button>
+        <div class="tabs">
+            <div class="tabs-list">
+                <button class="tab-trigger active" data-tab="bear-market">
+                    <span>📉</span>
+                    약세장
+                </button>
+                <button class="tab-trigger" data-tab="bull-market">
+                    <span>📈</span>
+                    강세장
+                </button>
+                <button class="tab-trigger" data-tab="portfolio">
+                    <span>📊</span>
+                    포트폴리오
+                </button>
+                <button class="tab-trigger" data-tab="strategies">
+                    <span>🎯</span>
+                    매매전략
+                </button>
+                <button class="tab-trigger" data-tab="wisdom">
+                    <span>📚</span>
+                    투자철학
+                </button>
+            </div>
 
+            <div class="tab-content active" id="bear-market">
+                <div class="space-y-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">약세장의 3가지 유형</div>
+                            <div class="card-description">시장 하락의 원인과 특성에 따른 분류</div>
+                        </div>
+                        <div class="grid grid-cols-3">
+                            <div class="card border-destructive">
+                                <div class="card-header pb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-destructive">⚠️</span>
+                                        <div class="card-title text-lg">구조적 약세장</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <ul class="space-y-2 text-sm">
+                                        <li>• 긴 거품 붕괴</li>
+                                        <li>• 금융시장 구조적 리스크</li>
+                                        <li>• 디플레이션</li>
+                                    </ul>
+                                    <span class="badge badge-destructive mt-3">장기간 지속</span>
+                                </div>
+                            </div>
+                            <div class="card border-orange">
+                                <div class="card-header pb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-orange">📉</span>
+                                        <div class="card-title text-lg">순환적 약세장</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <ul class="space-y-2 text-sm">
+                                        <li>• 경기침체</li>
+                                        <li>• 고금리</li>
+                                        <li>• 이익 둔화</li>
+                                        <li>• 경기 사이클</li>
+                                    </ul>
+                                    <span class="badge badge-secondary mt-3">중기간</span>
+                                </div>
+                            </div>
+                            <div class="card border-primary">
+                                <div class="card-header pb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-primary">💥</span>
+                                        <div class="card-title text-lg">이벤트 약세장</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <ul class="space-y-2 text-sm">
+                                        <li>• 코로나</li>
+                                        <li>• 테러</li>
+                                        <li>• 정책 변화</li>
+                                        <li>• 갑작스런 쇼크</li>
+                                    </ul>
+                                    <span class="badge badge-primary mt-3">빠른 회복</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">VIX 변동성 지수 활용법</div>
+                            <div class="card-description">옵션 프리미엄 역산을 통한 변동성 측정</div>
+                        </div>
+                        <div class="grid grid-cols-2">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between p-3 border rounded-lg">
+                                    <span>VIX 40 이상</span>
+                                    <span class="badge badge-primary">매수 찬스</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 border rounded-lg">
+                                    <span>VIX 80 이상</span>
+                                    <span class="badge" style="background: #28a745; color: white;">레버리지 매수</span>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-muted rounded-lg">
+                                <p class="text-sm">
+                                    변동성이 클수록 옵션 실행 확률이 높아져 프리미엄이 상승합니다.
+                                    VIX 80 이상은 역사적으로 2번만 발생했으며, 극도의 공포 상황을 의미합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-  <div data-slot="alert-dialog-portal">
-    <div class="alert-dialog-overlay" data-slot="alert-dialog-overlay"></div>
-    
-    <div role="alertdialog" aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description" class="alert-dialog-content" data-slot="alert-dialog-content">
-      
-      <div class="alert-dialog-header" data-slot="alert-dialog-header">
-        <h2 id="alert-dialog-title" class="alert-dialog-title" data-slot="alert-dialog-title">
-          정말로 삭제하시겠습니까?
-        </h2>
-        <p id="alert-dialog-description" class="alert-dialog-description" data-slot="alert-dialog-description">
-          이 작업은 되돌릴 수 없습니다. 계정이 영구적으로 삭제되며 서버에서 데이터가 제거됩니다.
-        </p>
-      </div>
+            <div class="tab-content" id="bull-market">
+                <div class="space-y-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">강세장의 3단계</div>
+                            <div class="card-description">하워드 막스의 마켓 사이클 이론</div>
+                        </div>
+                        <div class="grid grid-cols-3">
+                            <div class="card bg-blue-50 border-blue">
+                                <div class="card-header pb-3">
+                                    <div class="card-title text-lg text-blue">1단계</div>
+                                </div>
+                                <div>
+                                    <p class="text-sm">
+                                        대단히 통찰력 있는 소수만이 상황이 좋아질 것이라고 믿을 때
+                                    </p>
+                                    <span class="badge badge-outline mt-3" style="border-color: #007bff; color: #007bff;">
+                                        전문가 진입
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card bg-green-50 border-green">
+                                <div class="card-header pb-3">
+                                    <div class="card-title text-lg text-green">2단계</div>
+                                </div>
+                                <div>
+                                    <p class="text-sm">
+                                        시장이 실제로 좋아지고 있고, 대부분의 사람들이 이를 인지하는 시기
+                                    </p>
+                                    <span class="badge badge-outline mt-3" style="border-color: #28a745; color: #28a745;">
+                                        대중 인식
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card bg-red-50 border-red">
+                                <div class="card-header pb-3">
+                                    <div class="card-title text-lg text-red">3단계</div>
+                                </div>
+                                <div>
+                                    <p class="text-sm">
+                                        모든 사람들이 상황이 영원히 나아질 것이라고 결론지을 때
+                                    </p>
+                                    <span class="badge badge-outline mt-3" style="border-color: #dc3545; color: #dc3545;">
+                                        과열 신호
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">코로나 강세장 패턴</div>
+                            <div class="card-description">과거 위기 상황과의 비교 분석</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-3 border rounded-lg">
+                                <span class="w-20 font-medium">9/11 (2003)</span>
+                                <div class="separator-vertical h-6"></div>
+                                <span class="text-sm" style="color: #6c757d;">사스 위기 극복</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 border rounded-lg">
+                                <span class="w-20 font-medium">2008</span>
+                                <div class="separator-vertical h-6"></div>
+                                <span class="text-sm" style="color: #6c757d;">금융위기 강세장</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 border rounded-lg bg-primary-5">
+                                <span class="w-20 font-medium text-primary">코로나</span>
+                                <div class="separator-vertical h-6"></div>
+                                <span class="text-sm">성장주 → 경기민감주 → 경기소비재 순서</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-      <div class="alert-dialog-footer" data-slot="alert-dialog-footer">
-        <button class="button button-outline">취소</button>
-        <button class="button button-primary" style="background-color: var(--destructive); color: var(--destructive-foreground);">계속</button>
-      </div>
+            <div class="tab-content" id="portfolio">
+                <div class="space-y-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">주식 유형별 투자 전략</div>
+                            <div class="card-description">성장주, 쇠퇴주, 사이클주의 특성과 매매법</div>
+                        </div>
+                        <div class="grid grid-cols-3">
+                            <div class="card border-green">
+                                <div class="card-header pb-3">
+                                    <div class="card-title text-lg text-green flex items-center gap-2">
+                                        <span>📈</span>
+                                        성장주
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="space-y-2">
+                                        <h4 class="text-sm font-medium text-green">매수 전략</h4>
+                                        <ul class="text-xs space-y-1" style="color: #6c757d;">
+                                            <li>• 조금 손해났다고 손절하지 않기</li>
+                                            <li>• 올랐다고 무서워하지 말기</li>
+                                        </ul>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <h4 class="text-sm font-medium text-green">매도 전략</h4>
+                                        <ul class="text-xs space-y-1" style="color: #6c757d;">
+                                            <li>• 조금 이익봤다고 팔지 말기</li>
+                                            <li>• 산업이 꺾이기 전까지 장기보유</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-red">
+                                <div class="card-header pb-3">
+                                    <div class="card-title text-lg text-red flex items-center gap-2">
+                                        <span>📉</span>
+                                        쇠퇴주
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="space-y-2">
+                                        <h4 class="text-sm font-medium text-red">주의사항</h4>
+                                        <ul class="text-xs space-y-1" style="color: #6c757d;">
+                                            <li>• 밸류가 좋다고 사지 않기</li>
+                                            <li>• 쇠퇴하는 산업은 피하기</li>
+                                        </ul>
+                                    </div>
+                                    <span class="badge badge-destructive text-xs">
+                                        투자 금지
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card border-blue">
+                                <div class="card-header pb-3">
+                                    <div class="card-title text-lg text-blue flex items-center gap-2">
+                                        <span>🔄</span>
+                                        사이클주
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="space-y-2">
+                                        <h4 class="text-sm font-medium text-blue">매수 타이밍</h4>
+                                        <ul class="text-xs space-y-1" style="color: #6c757d;">
+                                            <li>• 저평가되어도 기다리기</li>
+                                            <li>• 산업이 좋아질 때 조금 늦게라도</li>
+                                        </ul>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <h4 class="text-sm font-medium text-blue">매도 타이밍</h4>
+                                        <ul class="text-xs space-y-1" style="color: #6c757d;">
+                                            <li>• 좋아진 후 어깨에서 매도</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="strategies">
+                <div class="space-y-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">주도주 매매법</div>
+                            <div class="card-description">시장을 선도하는 기업의 발굴과 매매 전략</div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="mb-3 text-primary">매수 조건</h3>
+                                <div class="grid grid-cols-2">
+                                    <div class="p-3 border rounded-lg">
+                                        <h4 class="mb-2">기업 분석</h4>
+                                        <ul class="text-sm space-y-1" style="color: #6c757d;">
+                                            <li>• 시장을 파괴하며 성장할 기업</li>
+                                            <li>• 실현가능성 검증</li>
+                                            <li>• 마진 검증</li>
+                                            <li>• B2B는 산업분석 필수</li>
+                                        </ul>
+                                    </div>
+                                    <div class="p-3 border rounded-lg">
+                                        <h4 class="mb-2">제외 조건</h4>
+                                        <ul class="text-sm space-y-1" style="color: #6c757d;">
+                                            <li>• 대리인비용 문제</li>
+                                            <li>• 정부헤게모니 리스크</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="separator"></div>
+                            <div>
+                                <h3 class="mb-3 text-destructive">매도 신호 (과열 징후)</h3>
+                                <div class="p-3 border rounded-lg" style="border-color: #dc3545; background: #ffebee;">
+                                    <ul class="text-sm space-y-1">
+                                        <li>• 증권사 커버리지 급증</li>
+                                        <li>• 개인신용이 역사적 고점</li>
+                                        <li>• 애널리스트 다수의 확신</li>
+                                        <li>• 주도 섹터 내 나쁜 주식까지 상승</li>
+                                        <li>• 소형주의 과도한 수익률</li>
+                                        <li>• 전망이 시장의 상식이 될 때</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">주도주 상승 3단계</div>
+                            <div class="card-description">프로와 아마추어의 진입 패턴</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-4 border rounded-lg">
+                                <div class="step-indicator step-1">1</div>
+                                <span class="font-medium text-sm"><strong class="text-blue">선도자 진입:</strong> 프로들이 매수하며 의심의 벽을 오름</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 border rounded-lg">
+                                <div class="step-indicator step-2">2</div>
+                                <span class="font-medium text-sm"><strong class="text-green">추세 형성:</strong> 기관 투자자들이 진입하며 추세가 명확해짐</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 border rounded-lg">
+                                <div class="step-indicator step-3">3</div>
+                                <span class="font-medium text-sm"><strong class="text-red">대중의 광기:</strong> 개인 투자자들이 열광하며 고점을 형성</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="wisdom">
+                <div class="space-y-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">핵심 투자 원칙</div>
+                            <div class="card-description">성공적인 투자를 위한 마음가짐</div>
+                        </div>
+                        <div class="grid grid-cols-2">
+                            <div class="p-4 bg-muted rounded-lg space-y-2">
+                                <h3 class="font-weight-600 text-primary">복리의 마법</h3>
+                                <p class="text-sm">"시간은 훌륭한 기업의 친구이고, 평범한 기업의 적이다." - 워렌 버핏</p>
+                            </div>
+                            <div class="p-4 bg-muted rounded-lg space-y-2">
+                                <h3 class="font-weight-600 text-green">안전 마진</h3>
+                                <p class="text-sm">"가격은 당신이 지불하는 것이고, 가치는 당신이 얻는 것이다." - 벤저민 그레이엄</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">피터 린치의 조언</div>
+                            <div class="card-description">"월가의 영웅"이 전하는 투자 지혜</div>
+                        </div>
+                        <blockquote>
+                            <p class="font-medium">"주식시장이 하락하는 것은 1월에 눈보라가 치는 것과 같이 정상적인 일이다. 대비만 되어 있다면 주가 하락이 당신에게 피해를 줄 수는 없다."</p>
+                        </blockquote>
+                        <blockquote>
+                            <p class="font-medium">"당신이 주식을 소유하고 있다는 사실을 잊어라. 당신은 한 기업의 일부를 소유하고 있다는 것을 명심하라."</p>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
+    <script>
+        // 탭 기능 활성화를 위한 JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabTriggers = document.querySelectorAll('.tab-trigger');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function() {
+                    // 모든 탭과 컨텐츠에서 'active' 클래스 제거
+                    tabTriggers.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // 클릭된 탭과 해당 컨텐츠에 'active' 클래스 추가
+                    this.classList.add('active');
+                    const targetTabId = this.getAttribute('data-tab');
+                    document.getElementById(targetTabId).classList.add('active');
+                });
+            });
+        });
+    </script>
 </body>
 </html>
