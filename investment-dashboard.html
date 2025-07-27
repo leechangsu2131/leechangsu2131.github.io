@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Dialog 예제</title>
+  <style>
+    /* 기본 스타일 및 변수 설정 
+      React 코드의 'bg-background', 'text-muted-foreground' 등과 같은
+      테마 기반 클래스를 시뮬레이션합니다.
+    */
+    :root {
+      --background: #ffffff;
+      --foreground: #020817;
+      --card: #ffffff;
+      --card-foreground: #020817;
+      --popover: #ffffff;
+      --popover-foreground: #020817;
+      --primary: #2563eb;
+      --primary-foreground: #fafafa;
+      --secondary: #f1f5f9;
+      --secondary-foreground: #0f172a;
+      --muted: #f1f5f9;
+      --muted-foreground: #64748b;
+      --accent: #f1f5f9;
+      --accent-foreground: #0f172a;
+      --destructive: #ef4444;
+      --destructive-foreground: #fafafa;
+      --border: #e2e8f0;
+      --input: #e2e8f0;
+      --ring: #94a3b8;
+      --radius: 0.5rem;
+    }
+
+    body {
+      font-family: sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+    }
+
+    /*
+      AlertDialogOverlay 스타일
+      (from 'fixed inset-0 z-50 bg-black/50')
+    */
+    .alert-dialog-overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 50;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    /*
+      AlertDialogContent 스타일
+      (from 'bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] ...')
+    */
+    .alert-dialog-content {
+      background-color: var(--background);
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+      display: grid;
+      width: 100%;
+      max-width: calc(100% - 2rem);
+      gap: 1rem; /* gap-4 */
+      border: 1px solid var(--border);
+      border-radius: var(--radius); /* rounded-lg */
+      padding: 1.5rem; /* p-6 */
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+    }
+
+    /*
+      AlertDialogHeader 스타일
+      (from 'flex flex-col gap-2 text-center sm:text-left')
+    */
+    .alert-dialog-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem; /* gap-2 */
+      text-align: center;
+    }
+
+    /*
+      AlertDialogTitle 스타일
+      (from 'text-lg font-semibold')
+    */
+    .alert-dialog-title {
+      font-size: 1.125rem; /* text-lg */
+      line-height: 1.75rem;
+      font-weight: 600; /* font-semibold */
+      margin: 0;
+    }
+
+    /*
+      AlertDialogDescription 스타일
+      (from 'text-muted-foreground text-sm')
+    */
+    .alert-dialog-description {
+      color: var(--muted-foreground);
+      font-size: 0.875rem; /* text-sm */
+      line-height: 1.25rem;
+      margin: 0;
+    }
+
+    /*
+      AlertDialogFooter 스타일
+      (from 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end')
+    */
+    .alert-dialog-footer {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.5rem; /* gap-2 */
+    }
+
+    /*
+      버튼 공통 스타일
+      (from 'buttonVariants()')
+    */
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      border-radius: calc(var(--radius) - 2px);
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .button:focus {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    /* 기본 버튼 (Action) */
+    .button-primary {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+    }
+    .button-primary:hover {
+      background-color: rgba(37, 99, 235, 0.9);
+    }
+
+    /* 아웃라인 버튼 (Cancel) */
+    .button-outline {
+      border: 1px solid var(--input);
+      background-color: var(--background);
+    }
+    .button-outline:hover {
+      background-color: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    /* 반응형 스타일 */
+    @media (min-width: 640px) { /* sm: breakpoint */
+      .alert-dialog-content {
+        max-width: 32rem; /* sm:max-w-lg */
+      }
+      .alert-dialog-header {
+        text-align: left; /* sm:text-left */
+      }
+      .alert-dialog-footer {
+        flex-direction: row; /* sm:flex-row */
+        justify-content: flex-end; /* sm:justify-end */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="button button-primary">대화상자 열기</button>
+
+
+  <div data-slot="alert-dialog-portal">
+    <div class="alert-dialog-overlay" data-slot="alert-dialog-overlay"></div>
+    
+    <div role="alertdialog" aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description" class="alert-dialog-content" data-slot="alert-dialog-content">
+      
+      <div class="alert-dialog-header" data-slot="alert-dialog-header">
+        <h2 id="alert-dialog-title" class="alert-dialog-title" data-slot="alert-dialog-title">
+          정말로 삭제하시겠습니까?
+        </h2>
+        <p id="alert-dialog-description" class="alert-dialog-description" data-slot="alert-dialog-description">
+          이 작업은 되돌릴 수 없습니다. 계정이 영구적으로 삭제되며 서버에서 데이터가 제거됩니다.
+        </p>
+      </div>
+
+      <div class="alert-dialog-footer" data-slot="alert-dialog-footer">
+        <button class="button button-outline">취소</button>
+        <button class="button button-primary" style="background-color: var(--destructive); color: var(--destructive-foreground);">계속</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
