@@ -44,120 +44,99 @@
             animation: fadeInUp 1s ease-out 0.2s both;
         }
 
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        /* --- 메뉴 스타일 시작 --- */
+        .main-menu {
+            display: flex;
+            justify-content: center;
             gap: 2rem;
             margin-bottom: 3rem;
-        }
-
-        .project-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
             animation: fadeInUp 1s ease-out 0.4s both;
         }
 
-        .project-card::before {
+        .menu-item {
+            position: relative;
+        }
+
+        .menu-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .popup-menu {
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 1rem;
+            width: 250px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, top 0.3s ease, visibility 0.3s;
+            border: 1px solid #eee;
+        }
+
+        .popup-menu.active {
+            opacity: 1;
+            visibility: visible;
+            top: 100%;
+        }
+
+        .popup-menu::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
         }
 
-        .project-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        .popup-menu ul {
+            list-style: none;
         }
 
-        .project-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .project-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2c3e50;
-        }
-
-        .project-description {
-            color: #666;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .project-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .tag {
-            background: #f8f9fa;
-            color: #495057;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            border: 1px solid #e9ecef;
-        }
-
-        .project-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+        .popup-menu li a {
+            display: block;
+            padding: 0.75rem 1rem;
             text-decoration: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
+            color: #333;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
             font-weight: 500;
-            transition: all 0.3s ease;
         }
 
-        .project-link:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .popup-menu li a:hover {
+            background-color: #f4f4f9;
         }
-
-        .coming-soon {
-            opacity: 0.6;
-        }
-
-        .coming-soon .project-link {
-            background: #95a5a6;
-            cursor: not-allowed;
-        }
-
-        .coming-soon .project-link:hover {
-            transform: none;
-            box-shadow: none;
-        }
+        /* --- 메뉴 스타일 끝 --- */
 
         .footer {
             text-align: center;
             color: white;
             opacity: 0.8;
+            margin-top: 3rem;
             animation: fadeInUp 1s ease-out 0.6s both;
         }
-
+        
         .github-link {
             color: white;
             text-decoration: none;
@@ -189,13 +168,15 @@
                 font-size: 2rem;
             }
 
-            .projects-grid {
-                grid-template-columns: 1fr;
+            .main-menu {
+                flex-direction: column;
+                align-items: center;
                 gap: 1.5rem;
             }
-
-            .project-card {
-                padding: 1.5rem;
+            
+            .popup-menu {
+                width: 90vw;
+                max-width: 300px;
             }
         }
     </style>
@@ -207,122 +188,40 @@
             <p>다양한 프로젝트와 지식을 정리한 개인 웹사이트입니다</p>
         </header>
 
-        <div class="projects-grid">
-            <div class="project-card">
-                <div class="project-icon">📈</div>
-                <h2 class="project-title">투자 지식 대시보드</h2>
-                <p class="project-description">
-                    체계적인 투자 전략과 시장 분석 가이드를 제공하는 대시보드입니다. 
-                    약세장/강세장 분석, 포트폴리오 전략, 매매 기법, 투자 철학 등을 
-                    탭 형태로 구성하여 쉽게 탐색할 수 있습니다.
-                </p>
-                <div class="project-tags">
-                    <span class="tag">React</span>
-                    <span class="tag">투자 전략</span>
-                    <span class="tag">대시보드</span>
-                    <span class="tag">UI/UX</span>
+        <nav class="main-menu">
+            <div class="menu-item">
+                <button class="menu-button" data-menu="investment">📈 투자</button>
+                <div id="investment-menu" class="popup-menu">
+                    <ul>
+                        <li><a href="investment-dashboard.html">투자 지식 대시보드</a></li>
+                        <li><a href="#">소메뉴 2</a></li>
+                        <li><a href="#">소메뉴 3</a></li>
+                    </ul>
                 </div>
-                <a href="investment-dashboard.html" class="project-link">
-                    <span>프로젝트 보기</span>
-                    <span>→</span>
-                </a>
             </div>
 
-            <div class="project-card coming-soon">
-                <div class="project-icon">🚀</div>
-                <h2 class="project-title">개발 도구 모음</h2>
-                <p class="project-description">
-                    개발 과정에서 자주 사용하는 유틸리티와 도구들을 모아놓은 페이지입니다. 
-                    코드 변환기, 색상 팔레트, API 테스터 등 개발에 도움이 되는 
-                    다양한 도구들을 제공할 예정입니다.
-                </p>
-                <div class="project-tags">
-                    <span class="tag">JavaScript</span>
-                    <span class="tag">개발 도구</span>
-                    <span class="tag">유틸리티</span>
+            <div class="menu-item">
+                <button class="menu-button" data-menu="education">📚 교육</button>
+                <div id="education-menu" class="popup-menu">
+                    <ul>
+                        <li><a href="#">소메뉴 1</a></li>
+                        <li><a href="#">소메뉴 2</a></li>
+                        <li><a href="#">소메뉴 3</a></li>
+                    </ul>
                 </div>
-                <a href="#" class="project-link">
-                    <span>개발 예정</span>
-                    <span>⏳</span>
-                </a>
             </div>
 
-            <div class="project-card coming-soon">
-                <div class="project-icon">📚</div>
-                <h2 class="project-title">학습 노트</h2>
-                <p class="project-description">
-                    프로그래밍, 기술, 비즈니스 관련 학습 내용을 정리한 개인 위키입니다. 
-                    새로 배운 개념들을 체계적으로 정리하고, 나중에 쉽게 찾아볼 수 있도록 
-                    카테고리별로 구성할 예정입니다.
-                </p>
-                <div class="project-tags">
-                    <span class="tag">지식 관리</span>
-                    <span class="tag">학습</span>
-                    <span class="tag">위키</span>
+            <div class="menu-item">
+                <button class="menu-button" data-menu="diy">🔧 DIY</button>
+                <div id="diy-menu" class="popup-menu">
+                    <ul>
+                        <li><a href="#">소메뉴 1</a></li>
+                        <li><a href="#">소메뉴 2</a></li>
+                        <li><a href="#">소메뉴 3</a></li>
+                    </ul>
                 </div>
-                <a href="#" class="project-link">
-                    <span>개발 예정</span>
-                    <span>⏳</span>
-                </a>
             </div>
-
-            <div class="project-card coming-soon">
-                <div class="project-icon">🎨</div>
-                <h2 class="project-title">미니 게임 컬렉션</h2>
-                <p class="project-description">
-                    HTML5 Canvas와 JavaScript를 활용한 간단한 게임들의 모음입니다. 
-                    테트리스, 스네이크 게임, 퍼즐 게임 등 클래식한 게임들을 
-                    웹 기술로 구현해볼 예정입니다.
-                </p>
-                <div class="project-tags">
-                    <span class="tag">HTML5 Canvas</span>
-                    <span class="tag">게임</span>
-                    <span class="tag">JavaScript</span>
-                </div>
-                <a href="#" class="project-link">
-                    <span>개발 예정</span>
-                    <span>⏳</span>
-                </a>
-            </div>
-
-            <div class="project-card coming-soon">
-                <div class="project-icon">📊</div>
-                <h2 class="project-title">데이터 시각화</h2>
-                <p class="project-description">
-                    다양한 데이터를 시각적으로 표현하는 대시보드입니다. 
-                    Chart.js, D3.js 등을 활용하여 인터랙티브한 차트와 그래프를 
-                    통해 데이터를 효과적으로 전달할 예정입니다.
-                </p>
-                <div class="project-tags">
-                    <span class="tag">D3.js</span>
-                    <span class="tag">Chart.js</span>
-                    <span class="tag">데이터 시각화</span>
-                </div>
-                <a href="#" class="project-link">
-                    <span>개발 예정</span>
-                    <span>⏳</span>
-                </a>
-            </div>
-
-            <div class="project-card coming-soon">
-                <div class="project-icon">🔧</div>
-                <h2 class="project-title">API 프로젝트</h2>
-                <p class="project-description">
-                    다양한 외부 API를 활용한 실용적인 웹 애플리케이션입니다. 
-                    날씨 정보, 뉴스 피드, 주식 정보 등 실시간 데이터를 
-                    활용한 서비스들을 구현할 예정입니다.
-                </p>
-                <div class="project-tags">
-                    <span class="tag">REST API</span>
-                    <span class="tag">실시간 데이터</span>
-                    <span class="tag">웹 서비스</span>
-                </div>
-                <a href="#" class="project-link">
-                    <span>개발 예정</span>
-                    <span>⏳</span>
-                </a>
-            </div>
-        </div>
+        </nav>
 
         <footer class="footer">
             <p>
@@ -333,35 +232,41 @@
     </div>
 
     <script>
-        // 부드러운 스크롤 효과
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButtons = document.querySelectorAll('.menu-button');
+            const popupMenus = document.querySelectorAll('.popup-menu');
+
+            menuButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation(); // 버튼 클릭이 body로 전파되는 것을 막음
+
+                    const menuId = button.dataset.menu + '-menu';
+                    const targetMenu = document.getElementById(menuId);
+                    
+                    // 현재 클릭된 팝업 메뉴를 제외한 모든 팝업 메뉴를 닫음
+                    popupMenus.forEach(menu => {
+                        if (menu.id !== menuId) {
+                            menu.classList.remove('active');
+                        }
+                    });
+
+                    // 현재 클릭된 팝업 메뉴의 상태를 토글
+                    targetMenu.classList.toggle('active');
                 });
             });
-        });
 
-        // 카드 호버 효과 개선
-        document.querySelectorAll('.project-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                if (!this.classList.contains('coming-soon')) {
-                    this.style.transform = 'translateY(-10px) scale(1.02)';
-                }
+            // 문서의 다른 곳을 클릭하면 모든 팝업 메뉴를 닫음
+            document.addEventListener('click', () => {
+                popupMenus.forEach(menu => {
+                    menu.classList.remove('active');
+                });
             });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-            });
-        });
 
-        // Coming soon 카드 클릭 방지
-        document.querySelectorAll('.coming-soon .project-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                // 알림 메시지 (선택사항)
-                // alert('이 프로젝트는 곧 공개될 예정입니다!');
+            // 팝업 메뉴 내부를 클릭했을 때는 닫히지 않도록 함
+            popupMenus.forEach(menu => {
+                menu.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                });
             });
         });
     </script>
