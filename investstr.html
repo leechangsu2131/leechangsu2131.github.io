@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자 지식 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        .tabs {
+            width: 100%;
+        }
+        .tabs-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4개 탭으로 변경 */
+            background: white;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tab-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .tab-trigger:hover {
+            background: #f8f9fa;
+        }
+        .tab-trigger.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+        .card-header {
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        .card-description {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        .grid-cols-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+        ul { list-style-position: inside; padding-left: 0; }
+        li { margin-bottom: 0.5rem; }
+        
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+        .checklist-item svg {
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+        
+        blockquote {
+            border-left: 4px solid #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .tabs-list { grid-template-columns: repeat(2, 1fr); }
+            header h1 { font-size: 2rem; }
+            .grid-cols-2, .grid-cols-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>투자 의사결정 프레임워크</h1>
+            <p>거인들의 지혜를 담은 체계적인 투자 분석 가이드</p>
+        </header>
+
+        <div class="tabs">
+            <div class="tabs-list">
+                <button class="tab-trigger active" data-tab="step1">
+                    <span>🌍</span>
+                    1. 시장 분석
+                </button>
+                <button class="tab-trigger" data-tab="step2">
+                    <span>🏢</span>
+                    2. 종목 분석
+                </button>
+                <button class="tab-trigger" data-tab="step3">
+                    <span>🎯</span>
+                    3. 매매 전략
+                </button>
+                <button class="tab-trigger" data-tab="step4">
+                    <span>🧠</span>
+                    4. 자기 성찰
+                </button>
+            </div>
+
+            <!-- 1단계: 시장 분석 -->
+            <div class="tab-content active" id="step1">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">1단계: 왜 지금 투자를 하려고 하는가?</h2>
+                        <p class="card-description">가장 큰 관점의 가설을 점검합니다. 작은 이론은 더 큰 관점의 가설을 이기지 못합니다.</p>
+                    </div>
+                    <div class="grid grid-cols-2">
+                        <div class="card">
+                            <h3 class="card-title" style="font-size: 1.2rem;">펀더멘탈 & 유동성</h3>
+                            <ul>
+                                <li><b>실적:</b> 기업 이익 전망은 긍정적인가?</li>
+                                <li><b>유동성:</b> 현재는 '돈 푸는 장세'인가? (M2 통화량)</li>
+                                <li><b>투자 심리:</b> 시장은 공포인가, 탐욕인가?</li>
+                                <li><b>B2(신용융자):</b> 시장의 레버리지는 과열 수준인가?</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title" style="font-size: 1.2rem;">시장 위치와 대중 심리</h3>
+                            <ul>
+                                <li><b>강세장 3단계:</b> 지금은 소수만 아는 초기인가, 모두가 환호하는 말기인가?</li>
+                                <li><b>칵테일 파티 이론:</b> 비전문가까지 주식에 열광하고 있는가?</li>
+                                <li><b>컨트래리언:</b> 시장의 지배적 믿음은 무엇이며, 그 믿음이 깨질 가능성은?</li>
+                                <li><b>VIX 지수:</b> 시장의 공포가 극심하여 기회가 되고 있는가?</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2단계: 종목 분석 -->
+            <div class="tab-content" id="step2">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">2단계: 어떤 기업에 투자할 것인가?</h2>
+                        <p class="card-description">기업 애널리스트가 되어 '무엇을' 살 것인지 정의합니다.</p>
+                    </div>
+                    
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <h3 class="card-title" style="font-size: 1.2rem;">Part A/B. 사업의 질 & 가격의 매력도</h3>
+                        <div class="grid grid-cols-2">
+                            <div>
+                                <h4>사업의 질 (Qualitative)</h4>
+                                <ul>
+                                    <li><b>능력 범위:</b> 내가 완벽하게 이해하는 사업인가?</li>
+                                    <li><b>경제적 해자:</b> 지속 가능한 경쟁우위가 있는가?</li>
+                                    <li><b>경영진:</b> 유능하고 정직하며 주주 친화적인가?</li>
+                                    <li><b>"아무나 이겨라":</b> 경쟁의 승자가 아닌, 판 자체에 투자하는가?</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4>가격의 매력도 (Quantitative)</h4>
+                                <ul>
+                                    <li><b>안전 마진:</b> 내재가치 대비 충분히 할인되었는가?</li>
+                                    <li><b>상승 시나리오:</b> 성공 시 기대 수익은 얼마인가?</li>
+                                    <li><b>하락 시나리오:</b> 실패 시 최대 손실은 얼마인가?</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title" style="font-size: 1.2rem;">Part C. 피터 린치의 6가지 유형 분류 (상세판)</h3>
+                        <p class="card-description" style="margin-bottom: 1rem;">유형에 따라 투자 이유, 핵심 지표, 리스크, 매매 전략이 달라져야 합니다.</p>
+                        <div class="grid grid-cols-3">
+                            <!-- 저성장주 -->
+                            <div class="card">
+                                <h4 class="card-title" style="font-size: 1.1rem;">① 저성장주 (Slow Growers)</h4>
+                                <p class="card-description" style="font-size: 0.8rem; margin-bottom: 1rem;"><b>투자 이유:</b> 오직 안정적인 고배당</p>
+                                <ul style="font-size: 0.9rem;">
+                                    <li><b>핵심 체크:</b> 배당 유지/증가 여력, 건전한 배당 성향</li>
+                                    <li><b>주의할 점:</b> 배당 삭감 리스크, 금리 상승기 매력 감소</li>
+                                </ul>
+                            </div>
+                            <!-- 대형우량주 -->
+                            <div class="card">
+                                <h4 class="card-title" style="font-size: 1.1rem;">② 대형우량주 (Stalwarts)</h4>
+                                <p class="card-description" style="font-size: 0.8rem; margin-bottom: 1rem;"><b>투자 이유:</b> 연 10~15% 수익 + 경기 방어</p>
+                                <ul style="font-size: 0.9rem;">
+                                    <li><b>핵심 체크:</b> 과거 불황기 실적, 역사적 PER 밴드 저점</li>
+                                    <li><b>주의할 점:</b> 제한된 수익률, 기관 과포화 리스크</li>
+                                </ul>
+                            </div>
+                            <!-- 고성장주 -->
+                            <div class="card">
+                                <h4 class="card-title" style="font-size: 1.1rem;">③ 고성장주 (Fast Growers)</h4>
+                                <p class="card-description" style="font-size: 0.8rem; margin-bottom: 1rem;"><b>투자 이유:</b> 10루타 이상의 압도적 수익률</p>
+                                <ul style="font-size: 0.9rem;">
+                                    <li><b>핵심 체크:</b> PEG < 1, 확장성, 낮은 기관 비중</li>
+                                    <li><b>주의할 점:</b> 성장 둔화 시 PER 급락, 희망 회로 경계</li>
+                                </ul>
+                            </div>
+                            <!-- 경기순환주 -->
+                            <div class="card">
+                                <h4 class="card-title" style="font-size: 1.1rem;">④ 경기순환주 (Cyclicals)</h4>
+                                <p class="card-description" style="font-size: 0.8rem; margin-bottom: 1rem;"><b>투자 이유:</b> 경기 사이클 레버리지 극대화</p>
+                                <ul style="font-size: 0.9rem;">
+                                    <li><b>핵심 체크:</b> 재고 수준 하락, 산업 가동률 반등</li>
+                                    <li><b>주의할 점:</b> 잘못된 타이밍, 호황 정점의 저PER 착시</li>
+                                </ul>
+                            </div>
+                            <!-- 회생주 -->
+                            <div class="card">
+                                <h4 class="card-title" style="font-size: 1.1rem;">⑤ 회생주 (Turnarounds)</h4>
+                                <p class="card-description" style="font-size: 0.8rem; margin-bottom: 1rem;"><b>투자 이유:</b> 수 배의 주가 회복 가능성</p>
+                                <ul style="font-size: 0.9rem;">
+                                    <li><b>핵심 체크:</b> 부채 구조, 명확한 회생 계획, 실적 바닥 확인</li>
+                                    <li><b>주의할 점:</b> '죽어가는 기업'일 가능성, 기술적 반등 주의</li>
+                                </ul>
+                            </div>
+                            <!-- 자산주 -->
+                            <div class="card">
+                                <h4 class="card-title" style="font-size: 1.1rem;">⑥ 자산주 (Asset Plays)</h4>
+                                <p class="card-description" style="font-size: 0.8rem; margin-bottom: 1rem;"><b>투자 이유:</b> 숨겨진 가치의 재평가 기대</p>
+                                <ul style="font-size: 0.9rem;">
+                                    <li><b>핵심 체크:</b> NAV 대비 할인율, 자산 유동화 가능성</li>
+                                    <li><b>주의할 점:</b> 가치가 영원히 잠금 상태로 남을 리스크</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3단계: 매매 전략 -->
+            <div class="tab-content" id="step3">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">3단계: 어떻게 사고팔 것인가?</h2>
+                        <p class="card-description">감정을 배제하고, 2단계에서 분류한 유형에 맞춰 '어떻게' 행동할지 결정합니다.</p>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                         <h3 class="card-title" style="font-size: 1.2rem;">Part A. 매수 원칙 & 자본 배분</h3>
+                         <ul style="padding-left: 1.25rem;">
+                             <li><b>손익비 계산:</b> 잠재적 이익이 잠재적 손실보다 매력적인가? (최소 3:1 이상 목표)</li>
+                             <li><b>분할 매수:</b> 어떤 확신이 있더라도, 반드시 여러 번에 나누어 살 계획인가?</li>
+                             <li><b>분산 vs 집중:</b> 리스크를 관리하되(최대 손실 < 2%), 정말 좋은 기회에는 크게 베팅할 준비가 되었는가?</li>
+                             <li><b>한국 시장 촉매제:</b> '상법 개정'과 같은 '코리아 디스카운트' 해소 관련 수혜를 볼 수 있는가?</li>
+                         </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="card-title" style="font-size: 1.2rem;">Part B. 유형별 최적 매도 시점</h3>
+                        <div class="grid grid-cols-2">
+                             <div>
+                                 <h4>저성장주</h4>
+                                 <p style="font-size: 0.9rem;">주가가 30~50% 상승했거나, 배당 삭감 가능성이 생길 때.</p>
+                             </div>
+                             <div>
+                                 <h4>대형우량주</h4>
+                                 <p style="font-size: 0.9rem;">PER이 밴드 상단을 초과했거나, 실적 정체가 2분기 이상 지속될 때.</p>
+                             </div>
+                             <div>
+                                 <h4>고성장주</h4>
+                                 <p style="font-size: 0.9rem;">EPS 성장률 둔화가 분명해졌거나, PER이 극단적으로 높아졌을 때.</p>
+                             </div>
+                             <div>
+                                 <h4>경기순환주</h4>
+                                 <p style="font-size: 0.9rem;">산업 고점에서 재고 증가가 시작되고, 역사적 PER 저점 구간일 때.</p>
+                             </div>
+                             <div>
+                                 <h4>회생주</h4>
+                                 <p style="font-size: 0.9rem;">정상화가 마무리되어 시장의 관심을 다시 받기 시작할 때.</p>
+                             </div>
+                             <div>
+                                 <h4>자산주</h4>
+                                 <p style="font-size: 0.9rem;">주가가 NAV에 도달했거나, 자산 매각으로 가치 실현이 이루어졌을 때.</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 4단계: 자기 성찰 -->
+            <div class="tab-content" id="step4">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">4단계: 그리고 나는?</h2>
+                        <p class="card-description">모든 투자는 나 자신을 알아가는 과정입니다. 지혜를 얻는 것은 도덕적 의무입니다.</p>
+                    </div>
+                    <div class="grid grid-cols-2">
+                        <div class="card">
+                             <h3 class="card-title" style="font-size: 1.2rem;">나의 '우위'는 무엇인가?</h3>
+                             <ul style="padding-left: 1.25rem;">
+                                 <li><b>정보 우위:</b> 남들보다 빠른 정보에 의존하는가? (가장 낮은 수준)</li>
+                                 <li><b>분석 우위:</b> 같은 정보를 보고 다른 결론을 내릴 수 있는가?</li>
+                                 <li><b>심리 우위:</b> 남들이 공포에 질릴 때 용기를 낼 수 있는가? (가장 중요)</li>
+                             </ul>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title" style="font-size: 1.2rem;">심리적 편향 점검</h3>
+                            <ul style="padding-left: 1.25rem;">
+                                <li><b>과잉 확신:</b> "내가 맞았어."</li>
+                                <li><b>손실 회피:</b> "본전만 오면..."</li>
+                                <li><b>사회적 증거:</b> "남들이 다 사니까."</li>
+                                <li><b>확증 편향:</b> "내 생각에 유리한 정보만 찾는다."</li>
+                            </ul>
+                        </div>
+                    </div>
+                     <blockquote>
+                        <p>"자금은 욕심이 많은 사람에게서 인내심이 많은 사람에게로 흘러 들어가게 되어있다." - 워렌 버핏</p>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabTriggers = document.querySelectorAll('.tab-trigger');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function() {
+                    tabTriggers.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetTabId = this.getAttribute('data-tab');
+                    document.getElementById(targetTabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
