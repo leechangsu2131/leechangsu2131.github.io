@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고급 DCF 가치평가 계산기 - 다중 확률분포</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            height: fit-content;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+        
+        .input-section:hover {
+            border-color: #3498db;
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .variable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .variable-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        
+        .distribution-select {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            font-size: 0.85rem;
+        }
+        
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+        }
+        
+        .param-item {
+            text-align: center;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #34495e;
+            font-size: 0.85rem;
+        }
+        
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+        
+        .distribution-info {
+            background: #e8f4f8;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #2c3e50;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.3);
+        }
+        
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .results-card {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 15px;
+        }
+        
+        .large-chart {
+            height: 400px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .valuation-summary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .valuation-summary h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .final-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .confidence-interval {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .projection-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            font-size: 0.85rem;
+        }
+        
+        .projection-table th,
+        .projection-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .projection-table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #3498db;
+            font-size: 1.1rem;
+            padding: 20px;
+        }
+        
+        .percentile-table {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .risk-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 고급 DCF 가치평가 계산기</h1>
+            <p>다중 확률분포와 몬테카를로 시뮬레이션을 통한 정교한 가치평가</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">🔢 기본 정보</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="company-name">기업명</label>
+                    <input type="text" id="company-name" placeholder="예: 알리바바">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="base-revenue">기준년도 매출액 (백만원)</label>
+                    <input type="number" id="base-revenue" value="100000">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="shares-outstanding">발행주식수 (백만주)</label>
+                    <input type="number" id="shares-outstanding" value="2650">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="simulations">시뮬레이션 횟수</label>
+                    <input type="number" id="simulations" value="2000" min="500" max="10000">
+                </div>
+
+                <h3 style="color: #2c3e50; margin: 25px 0 15px 0; font-size: 1.2rem;">📊 확률변수 설정</h3>
+                
+                <!-- 매출성장률 -->
+                <div class="input-group">
+                    <div class="variable-header">
+                        <span class="variable-name">📈 매출성장률 (첫 5년, %)</span>
+                        <select class="distribution-select" id="growth-dist" onchange="updateDistributionParams('growth')">
+                            <option value="lognormal">로그정규분포</option>
+                            <option value="normal">정규분포</option>
+                            <option value="uniform">균등분포</option>
+                            <option value="triangular">삼각분포</option>
+                            <option value="beta">베타분포</option>
+                        </select>
+                    </div>
+                    <div class="param-grid" id="growth-params">
+                        <div class="param-item">
+                            <label>μ (로그평균)</label>
+                            <input type="number" id="growth-param1" value="2.94" step="0.01">
+                        </div>
+                        <div class="param-item">
+                            <label>σ (로그표준편차)</label>
+                            <input type="number" id="growth-param2" value="0.25" step="0.01">
+                        </div>
+                    </div>
+                    <div class="distribution-info" id="growth-info">
+                        로그정규분포: 곱셈적 성장 과정에 적합. 평균 ≈ 20%, 변동성 고려
+                    </div>
+                </div>
+                
+                <!-- 영업이익률 -->
+                <div class="input-group">
+                    <div class="variable-header">
+                        <span class="variable-name">💰 영업이익률 (%)</span>
+                        <select class="distribution-select" id="margin-dist" onchange="updateDistributionParams('margin')">
+                            <option value="triangular">삼각분포</option>
+                            <option value="beta">베타분포</option>
+                            <option value="uniform">균등분포</option>
+                            <option value="normal">정규분포</option>
+                        </select>
+                    </div>
+                    <div class="param-grid" id="margin-params">
+                        <div class="param-item">
+                            <label>최솟값</label>
+                            <input type="number" id="margin-param1" value="15" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>최빈값</label>
+                            <input type="number" id="margin-param2" value="25" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>최댓값</label>
+                            <input type="number" id="margin-param3" value="35" step="0.1">
+                        </div>
+                    </div>
+                    <div class="distribution-info" id="margin-info">
+                        삼각분포: 최소/최빈/최대값 추정 가능한 경우에 적합
+                    </div>
+                </div>
+                
+                <!-- 재투자율 -->
+                <div class="input-group">
+                    <div class="variable-header">
+                        <span class="variable-name">🔄 재투자율 (%)</span>
+                        <select class="distribution-select" id="reinvest-dist" onchange="updateDistributionParams('reinvest')">
+                            <option value="beta">베타분포</option>
+                            <option value="triangular">삼각분포</option>
+                            <option value="uniform">균등분포</option>
+                            <option value="normal">정규분포</option>
+                        </select>
+                    </div>
+                    <div class="param-grid" id="reinvest-params">
+                        <div class="param-item">
+                            <label>α (알파)</label>
+                            <input type="number" id="reinvest-param1" value="4" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>β (베타)</label>
+                            <input type="number" id="reinvest-param2" value="6" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>범위(0-100%)</label>
+                            <input type="number" id="reinvest-param3" value="80" step="1">
+                        </div>
+                    </div>
+                    <div class="distribution-info" id="reinvest-info">
+                        베타분포: 0-100% 범위에서 치우침 정도 조절 가능
+                    </div>
+                </div>
+                
+                <!-- 할인율 -->
+                <div class="input-group">
+                    <div class="variable-header">
+                        <span class="variable-name">💹 할인율 (WACC, %)</span>
+                        <select class="distribution-select" id="discount-dist" onchange="updateDistributionParams('discount')">
+                            <option value="normal">정규분포</option>
+                            <option value="triangular">삼각분포</option>
+                            <option value="uniform">균등분포</option>
+                            <option value="gamma">감마분포</option>
+                        </select>
+                    </div>
+                    <div class="param-grid" id="discount-params">
+                        <div class="param-item">
+                            <label>평균</label>
+                            <input type="number" id="discount-param1" value="10" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>표준편차</label>
+                            <input type="number" id="discount-param2" value="1.5" step="0.1">
+                        </div>
+                    </div>
+                    <div class="distribution-info" id="discount-info">
+                        정규분포: 여러 요소의 조합으로 중심극한정리 적용
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="terminal-growth">영구성장률 (%, 고정값)</label>
+                    <input type="number" id="terminal-growth" value="3" step="0.1">
+                </div>
+                
+                <button class="calculate-btn" onclick="runAdvancedSimulation()">🎲 고급 시뮬레이션 실행</button>
+                
+                <div class="loading" id="loading">
+                    <div>⏳ 시뮬레이션 진행 중...</div>
+                    <div id="progress" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <div class="results-card full-width">
+                    <div class="valuation-summary">
+                        <h3>🎯 시뮬레이션 결과</h3>
+                        <div>평균 주당가치: <span class="final-value" id="mean-price">-</span> 원</div>
+                        <div class="confidence-interval">
+                            <div><strong>95% 신뢰구간</strong></div>
+                            <div id="confidence-range">시뮬레이션을 실행해주세요</div>
+                            <div style="margin-top: 10px; font-size: 0.9rem;">
+                                <span id="risk-assessment">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="results-card">
+                    <h3 class="section-title">📊 가치 분포</h3>
+                    <div class="chart-container">
+                        <canvas id="distribution-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="results-card">
+                    <h3 class="section-title">📈 통계 요약</h3>
+                    <div class="stats-grid" id="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="stat-mean">-</div>
+                            <div class="stat-label">평균값</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="stat-median">-</div>
+                            <div class="stat-label">중앙값</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="stat-std">-</div>
+                            <div class="stat-label">표준편차</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="stat-cv">-</div>
+                            <div class="stat-label">변동계수</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="stat-skew">-</div>
+                            <div class="stat-label">왜도</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="stat-downside">-</div>
+                            <div class="stat-label">하방위험(%)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="results-card">
+                    <h3 class="section-title">🎯 민감도 분석</h3>
+                    <div class="chart-container">
+                        <canvas id="sensitivity-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="results-card">
+                    <h3 class="section-title">📈 백분위 분석</h3>
+                    <div class="chart-container">
+                        <canvas id="percentile-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="results-card full-width">
+                    <h3 class="section-title">📋 재무 예측 (기댓값 기준)</h3>
+                    <table class="projection-table" id="projection-table">
+                        <thead>
+                            <tr>
+                                <th>연도</th>
+                                <th>매출액</th>
+                                <th>영업이익</th>
+                                <th>NOPAT</th>
+                                <th>재투자</th>
+                                <th>FCF</th>
+                                <th>현재가치</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projection-body">
+                            <tr><td colspan="7">시뮬레이션을 실행해주세요</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let distributionChart, sensitivityChart, percentileChart;
+        
+        function formatNumber(num) {
+            if (Math.abs(num) >= 1000) {
+                return new Intl.NumberFormat('ko-KR').format(Math.round(num));
+            } else {
+                return num.toFixed(2);
+            }
+        }
+        
+        // 다양한 확률분포 생성 함수들
+        function generateNormal(mean, std) {
+            let u1 = Math.random();
+            let u2 = Math.random();
+            let z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+            return z0 * std + mean;
+        }
+        
+        function generateLogNormal(logMean, logStd) {
+            const normal = generateNormal(logMean, logStd);
+            return Math.exp(normal);
+        }
+        
+        function generateUniform(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        function generateTriangular(min, mode, max) {
+            const u = Math.random();
+            const c = (mode - min) / (max - min);
+            
+            if (u < c) {
+                return min + Math.sqrt(u * (max - min) * (mode - min));
+            } else {
+                return max - Math.sqrt((1 - u) * (max - min) * (max - mode));
+            }
+        }
+        
+        function generateBeta(alpha, beta, min = 0, max = 1) {
+            // Beta 분포 근사 (간단한 구현)
+            let sum = 0;
+            for (let i = 0; i < alpha + beta; i++) {
+                if (i < alpha) sum += Math.random();
+            }
+            const betaValue = sum / alpha;
+            return min + betaValue * (max - min);
+        }
+        
+        function generateGamma(shape, scale) {
+            // Gamma 분포 근사
+            if (shape < 1) {
+                return generateGamma(shape + 1, scale) * Math.pow(Math.random(), 1/shape);
+            }
+            
+            const d = shape - 1/3;
+            const c = 1 / Math.sqrt(9 * d);
+            
+            while (true) {
+                let x, v;
+                do {
+                    x = generateNormal(0, 1);
+                    v = 1 + c * x;
+                } while (v <= 0);
+                
+                v = v * v * v;
+                const u = Math.random();
+                
+                if (u < 1 - 0.0331 * x * x * x * x) {
+                    return d * v * scale;
+                }
+                
+                if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) {
+                    return d * v * scale;
+                }
+            }
+        }
+        
+        function sampleFromDistribution(distType, params) {
+            switch (distType) {
+                case 'normal':
+                    return generateNormal(params[0], params[1]);
+                case 'lognormal':
+                    return generateLogNormal(params[0], params[1]);
+                case 'uniform':
+                    return generateUniform(params[0], params[1]);
+                case 'triangular':
+                    return generateTriangular(params[0], params[1], params[2]);
+                case 'beta':
+                    return generateBeta(params[0], params[1], 0, params[2] || 100);
+                case 'gamma':
+                    return generateGamma(params[0], params[1]);
+                default:
+                    return params[0];
+            }
+        }
+        
+        function updateDistributionParams(variable) {
+            const distType = document.getElementById(`${variable}-dist`).value;
+            const paramsContainer = document.getElementById(`${variable}-params`);
+            const infoContainer = document.getElementById(`${variable}-info`);
+            
+            let paramsHTML = '';
+            let infoText = '';
+            
+            switch (distType) {
+                case 'normal':
+                    paramsHTML = `
+                        <div class="param-item">
+                            <label>평균</label>
+                            <input type="number" id="${variable}-param1" value="20" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>표준편차</label>
+                            <input type="number" id="${variable}-param2" value="5" step="0.1">
+                        </div>
+                    `;
+                    infoText = '정규분포: 여러 요소의 조합, 중심극한정리 적용';
+                    break;
+                    
+                case 'lognormal':
+                    paramsHTML = `
+                        <div class="param-item">
+                            <label>μ (로그평균)</label>
+                            <input type="number" id="${variable}-param1" value="2.94" step="0.01">
+                        </div>
+                        <div class="param-item">
+                            <label>σ (로그표준편차)</label>
+                            <input type="number" id="${variable}-param2" value="0.25" step="0.01">
+                        </div>
+                    `;
+                    infoText = '로그정규분포: 곱셈적 성장 과정, 항상 양수';
+                    break;
+                    
+                case 'uniform':
+                    paramsHTML = `
+                        <div class="param-item">
+                            <label>최솟값</label>
+                            <input type="number" id="${variable}-param1" value="10" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>최댓값</label>
+                            <input type="number" id="${variable}-param2" value="30" step="0.1">
+                        </div>
+                    `;
+                    infoText = '균등분포: 모든 경우가 동등하게 가능, 최대 엔트로피';
+                    break;
+                    
+                case 'triangular':
+                    paramsHTML = `
+                        <div class="param-item">
+                            <label>최솟값</label>
+                            <input type="number" id="${variable}-param1" value="15" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>최빈값</label>
+                            <input type="number" id="${variable}-param2" value="25" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>최댓값</label>
+                            <input type="number" id="${variable}-param3" value="35" step="0.1">
+                        </div>
+                    `;
+                    infoText = '삼각분포: 최소/최빈/최대값 추정 가능한 경우';
+                    break;
+                    
+                case 'beta':
+                    const defaultMax = variable === 'reinvest' ? 80 : (variable === 'margin' ? 50 : 100);
+                    paramsHTML = `
+                        <div class="param-item">
+                            <label>α (알파)</label>
+                            <input type="number" id="${variable}-param1" value="4" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>β (베타)</label>
+                            <input type="number" id="${variable}-param2" value="6" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>최댓값</label>
+                            <input type="number" id="${variable}-param3" value="${defaultMax}" step="1">
+                        </div>
+                    `;
+                    infoText = '베타분포: 유한 구간에서 치우침 정도 조절 가능';
+                    break;
+                    
+                case 'gamma':
+                    paramsHTML = `
+                        <div class="param-item">
+                            <label>형태모수(k)</label>
+                            <input type="number" id="${variable}-param1" value="4" step="0.1">
+                        </div>
+                        <div class="param-item">
+                            <label>척도모수(θ)</label>
+                            <input type="number" id="${variable}-param2" value="2.5" step="0.1">
+                        </div>
+                    `;
+                    infoText = '감마분포: 양의 왜도를 가진 연속분포';
+                    break;
+            }
+            
+            paramsContainer.innerHTML = paramsHTML;
+            infoContainer.textContent = infoText;
+        }
+        
+        function calculateSingleDCF(params) {
+            const {
+                baseRevenue, revenueGrowth, operatingMargin, reinvestmentRate,
+                discountRate, terminalGrowth, sharesOutstanding
+            } = params;
+            
+            const taxRate = 0.25;
+            let projections = [];
+            let totalPV = 0;
+            
+            // 10년 예측
+            for (let year = 1; year <= 10; year++) {
+                let growthRate;
+                if (year <= 5) {
+                    growthRate = revenueGrowth / 100;
+                } else {
+                    // 6년차부터 점진적 감소
+                    const declineRate = (revenueGrowth - terminalGrowth) / 5;
+                    growthRate = Math.max((revenueGrowth - (year - 5) * declineRate) / 100, terminalGrowth / 100);
+                }
+                
+                const revenue = year === 1 ? 
+                    baseRevenue * (1 + growthRate) : 
+                    projections[year-2].revenue * (1 + growthRate);
+                
+                const operatingIncome = revenue * (operatingMargin / 100);
+                const nopat = operatingIncome * (1 - taxRate);
+                const reinvestment = nopat * (reinvestmentRate / 100);
+                const fcf = nopat - reinvestment;
+                
+                const discountFactor = Math.pow(1 + discountRate/100, year);
+                const presentValue = fcf / discountFactor;
+                
+                totalPV += presentValue;
+                
+                projections.push({
+                    year: year,
+                    revenue: revenue,
+                    operatingIncome: operatingIncome,
+                    nopat: nopat,
+                    reinvestment: reinvestment,
+                    fcf: fcf,
+                    presentValue: presentValue
+                });
+            }
+            
+            // 터미널 가치
+            const terminalFCF = projections[9].fcf * (1 + terminalGrowth/100);
+            const terminalValue = terminalFCF / (discountRate/100 - terminalGrowth/100);
+            const terminalPV = terminalValue / Math.pow(1 + discountRate/100, 10);
+            
+            const enterpriseValue = totalPV + terminalPV;
+            const sharePrice = (enterpriseValue * 1000000) / (sharesOutstanding * 1000000);
+            
+            return {
+                sharePrice,
+                enterpriseValue,
+                projections,
+                terminalValue,
+                terminalPV
+            };
+        }
+        
+        async function runAdvancedSimulation() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('progress').textContent = '';
+            
+            const baseRevenue = parseFloat(document.getElementById('base-revenue').value) || 100000;
+            const terminalGrowth = parseFloat(document.getElementById('terminal-growth').value) || 3;
+            const sharesOutstanding = parseFloat(document.getElementById('shares-outstanding').value) || 2650;
+            const simulations = parseInt(document.getElementById('simulations').value) || 2000;
+            
+            let results = [];
+            let sensitivityData = [];
+            
+            // 시뮬레이션 실행
+            for (let i = 0; i < simulations; i++) {
+                // 각 변수별 분포에서 샘플링
+                const revenueGrowth = Math.max(0.1, sampleFromDistribution(
+                    document.getElementById('growth-dist').value,
+                    [
+                        parseFloat(document.getElementById('growth-param1').value),
+                        parseFloat(document.getElementById('growth-param2').value),
+                        parseFloat(document.getElementById('growth-param3')?.value)
+                    ].filter(x => !isNaN(x))
+                ));
+                
+                const operatingMargin = Math.max(0.1, Math.min(100, sampleFromDistribution(
+                    document.getElementById('margin-dist').value,
+                    [
+                        parseFloat(document.getElementById('margin-param1').value),
+                        parseFloat(document.getElementById('margin-param2').value),
+                        parseFloat(document.getElementById('margin-param3')?.value)
+                    ].filter(x => !isNaN(x))
+                )));
+                
+                const reinvestmentRate = Math.max(0, Math.min(100, sampleFromDistribution(
+                    document.getElementById('reinvest-dist').value,
+                    [
+                        parseFloat(document.getElementById('reinvest-param1').value),
+                        parseFloat(document.getElementById('reinvest-param2').value),
+                        parseFloat(document.getElementById('reinvest-param3')?.value)
+                    ].filter(x => !isNaN(x))
+                )));
+                
+                const discountRate = Math.max(1, sampleFromDistribution(
+                    document.getElementById('discount-dist').value,
+                    [
+                        parseFloat(document.getElementById('discount-param1').value),
+                        parseFloat(document.getElementById('discount-param2').value),
+                        parseFloat(document.getElementById('discount-param3')?.value)
+                    ].filter(x => !isNaN(x))
+                ));
+                
+                const params = {
+                    baseRevenue,
+                    revenueGrowth,
+                    operatingMargin,
+                    reinvestmentRate,
+                    discountRate,
+                    terminalGrowth,
+                    sharesOutstanding
+                };
+                
+                const result = calculateSingleDCF(params);
+                results.push(result.sharePrice);
+                
+                // 민감도 분석용 데이터 수집
+                if (i < 100) {
+                    sensitivityData.push({
+                        sharePrice: result.sharePrice,
+                        revenueGrowth,
+                        operatingMargin,
+                        reinvestmentRate,
+                        discountRate
+                    });
+                }
+                
+                // 진행률 표시
+                if (i % 200 === 0) {
+                    const progress = Math.round((i / simulations) * 100);
+                    document.getElementById('progress').textContent = `${progress}% 완료`;
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+            }
+            
+            // 결과 분석
+            results.sort((a, b) => a - b);
+            const stats = calculateAdvancedStats(results);
+            
+            // 기댓값 계산용 평균 파라미터
+            const avgParams = getAverageParams();
+            const baselineResult = calculateSingleDCF(avgParams);
+            
+            // UI 업데이트
+            updateAdvancedResults(stats, results);
+            updateDistributionChart(results);
+            updateAdvancedSensitivityChart(sensitivityData);
+            updatePercentileChart(results);
+            updateProjectionTable(baselineResult.projections, baselineResult.terminalValue, baselineResult.terminalPV);
+            
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function calculateAdvancedStats(results) {
+            const n = results.length;
+            const mean = results.reduce((sum, val) => sum + val, 0) / n;
+            const median = results[Math.floor(n / 2)];
+            
+            const variance = results.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+            const std = Math.sqrt(variance);
+            const cv = (std / mean) * 100; // 변동계수
+            
+            // 왜도 계산
+            const skewness = results.reduce((sum, val) => sum + Math.pow((val - mean) / std, 3), 0) / n;
+            
+            // 하방위험 (평균 이하 확률)
+            const downsideRisk = (results.filter(x => x < mean).length / n) * 100;
+            
+            const p5 = results[Math.floor(n * 0.025)];
+            const p95 = results[Math.floor(n * 0.975)];
+            const p90 = results[Math.floor(n * 0.9)];
+            const min = results[0];
+            const max = results[results.length - 1];
+            
+            return { mean, median, std, cv, skewness, downsideRisk, p5, p95, p90, min, max };
+        }
+        
+        function getAverageParams() {
+            // 각 분포의 기댓값 계산
+            let avgGrowth, avgMargin, avgReinvest, avgDiscount;
+            
+            const growthDist = document.getElementById('growth-dist').value;
+            const growthParams = [
+                parseFloat(document.getElementById('growth-param1').value),
+                parseFloat(document.getElementById('growth-param2').value)
+            ];
+            
+            switch (growthDist) {
+                case 'lognormal':
+                    avgGrowth = Math.exp(growthParams[0] + 0.5 * growthParams[1] * growthParams[1]);
+                    break;
+                case 'uniform':
+                    avgGrowth = (growthParams[0] + growthParams[1]) / 2;
+                    break;
+                case 'triangular':
+                    const growthMax = parseFloat(document.getElementById('growth-param3').value);
+                    avgGrowth = (growthParams[0] + growthParams[1] + growthMax) / 3;
+                    break;
+                default:
+                    avgGrowth = growthParams[0];
+            }
+            
+            // 다른 변수들도 유사하게 계산
+            avgMargin = getDistributionMean('margin');
+            avgReinvest = getDistributionMean('reinvest');
+            avgDiscount = getDistributionMean('discount');
+            
+            return {
+                baseRevenue: parseFloat(document.getElementById('base-revenue').value),
+                revenueGrowth: avgGrowth,
+                operatingMargin: avgMargin,
+                reinvestmentRate: avgReinvest,
+                discountRate: avgDiscount,
+                terminalGrowth: parseFloat(document.getElementById('terminal-growth').value),
+                sharesOutstanding: parseFloat(document.getElementById('shares-outstanding').value)
+            };
+        }
+        
+        function getDistributionMean(variable) {
+            const distType = document.getElementById(`${variable}-dist`).value;
+            const param1 = parseFloat(document.getElementById(`${variable}-param1`).value);
+            const param2 = parseFloat(document.getElementById(`${variable}-param2`).value);
+            const param3 = parseFloat(document.getElementById(`${variable}-param3`)?.value);
+            
+            switch (distType) {
+                case 'normal':
+                    return param1;
+                case 'lognormal':
+                    return Math.exp(param1 + 0.5 * param2 * param2);
+                case 'uniform':
+                    return (param1 + param2) / 2;
+                case 'triangular':
+                    return (param1 + param2 + param3) / 3;
+                case 'beta':
+                    return (param1 / (param1 + param2)) * (param3 || 100);
+                case 'gamma':
+                    return param1 * param2;
+                default:
+                    return param1;
+            }
+        }
+        
+        function updateAdvancedResults(stats, results) {
+            document.getElementById('mean-price').textContent = formatNumber(stats.mean);
+            document.getElementById('confidence-range').innerHTML = 
+                `<strong>${formatNumber(stats.p5)}원 ~ ${formatNumber(stats.p95)}원</strong>`;
+            
+            // 위험 평가
+            let riskLevel, riskColor;
+            if (stats.cv < 20) {
+                riskLevel = "낮음";
+                riskColor = "#27ae60";
+            } else if (stats.cv < 40) {
+                riskLevel = "보통";
+                riskColor = "#f39c12";
+            } else {
+                riskLevel = "높음";
+                riskColor = "#e74c3c";
+            }
+            
+            document.getElementById('risk-assessment').innerHTML = 
+                `<span style="color: ${riskColor};">투자위험: ${riskLevel}</span> (변동계수: ${stats.cv.toFixed(1)}%)`;
+            
+            document.getElementById('stat-mean').textContent = formatNumber(stats.mean) + '원';
+            document.getElementById('stat-median').textContent = formatNumber(stats.median) + '원';
+            document.getElementById('stat-std').textContent = formatNumber(stats.std) + '원';
+            document.getElementById('stat-cv').textContent = stats.cv.toFixed(1) + '%';
+            document.getElementById('stat-skew').textContent = stats.skewness.toFixed(2);
+            document.getElementById('stat-downside').textContent = stats.downsideRisk.toFixed(1) + '%';
+        }
+        
+        function updateDistributionChart(results) {
+            const ctx = document.getElementById('distribution-chart').getContext('2d');
+            
+            // 히스토그램 데이터 생성
+            const bins = 40;
+            const min = Math.min(...results);
+            const max = Math.max(...results);
+            const binWidth = (max - min) / bins;
+            
+            const histogram = new Array(bins).fill(0);
+            const labels = [];
+            
+            for (let i = 0; i < bins; i++) {
+                const binCenter = min + (i + 0.5) * binWidth;
+                labels.push(formatNumber(binCenter));
+            }
+            
+            results.forEach(value => {
+                const binIndex = Math.min(Math.floor((value - min) / binWidth), bins - 1);
+                histogram[binIndex]++;
+            });
+            
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+            
+            distributionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '빈도',
+                        data: histogram,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1,
+                        borderRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return `가치: ${context[0].label}원`;
+                                },
+                                label: function(context) {
+                                    return `빈도: ${context.parsed.y}회`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: '빈도' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateAdvancedSensitivityChart(sensitivityData) {
+            const ctx = document.getElementById('sensitivity-chart').getContext('2d');
+            
+            // 상관관계 분석
+            const variables = ['revenueGrowth', 'operatingMargin', 'reinvestmentRate', 'discountRate'];
+            const names = ['매출성장률', '영업이익률', '재투자율', '할인율'];
+            const correlations = [];
+            
+            variables.forEach((variable, index) => {
+                const prices = sensitivityData.map(d => d.sharePrice);
+                const values = sensitivityData.map(d => d[variable]);
+                
+                const correlation = calculateCorrelation(prices, values);
+                correlations.push(Math.abs(correlation) * 100);
+            });
+            
+            if (sensitivityChart) {
+                sensitivityChart.destroy();
+            }
+            
+            sensitivityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        label: '가치 상관도 (%)',
+                        data: correlations,
+                        backgroundColor: [
+                            'rgba(231, 76, 60, 0.8)',
+                            'rgba(52, 152, 219, 0.8)',
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(155, 89, 182, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(231, 76, 60, 1)',
+                            'rgba(52, 152, 219, 1)',
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(155, 89, 182, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `상관도: ${context.parsed.y.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: '절대 상관도 (%)' }
+                        }
+                    },
+                    animation: { duration: 1500, easing: 'easeOutCubic' }
+                }
+            });
+        }
+        
+        function updatePercentileChart(results) {
+            const ctx = document.getElementById('percentile-chart').getContext('2d');
+            
+            const percentiles = [5, 10, 25, 50, 75, 90, 95];
+            const percentileValues = percentiles.map(p => {
+                const index = Math.floor(results.length * p / 100);
+                return results[Math.min(index, results.length - 1)];
+            });
+            
+            if (percentileChart) {
+                percentileChart.destroy();
+            }
+            
+            percentileChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: percentiles.map(p => `${p}%`),
+                    datasets: [{
+                        label: '백분위 가치',
+                        data: percentileValues,
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label} 백분위: ${formatNumber(context.parsed.y)}원`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: '주당가치 (원)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value) + '원';
+                                }
+                            }
+                        },
+                        x: {
+                            title: { display: true, text: '백분위' }
+                        }
+                    },
+                    animation: { duration: 2000, easing: 'easeOutBounce' }
+                }
+            });
+        }
+        
+        function calculateCorrelation(x, y) {
+            const n = x.length;
+            const meanX = x.reduce((sum, val) => sum + val, 0) / n;
+            const meanY = y.reduce((sum, val) => sum + val, 0) / n;
+            
+            const numerator = x.reduce((sum, val, i) => sum + (val - meanX) * (y[i] - meanY), 0);
+            const denomX = Math.sqrt(x.reduce((sum, val) => sum + Math.pow(val - meanX, 2), 0));
+            const denomY = Math.sqrt(y.reduce((sum, val) => sum + Math.pow(val - meanY, 2), 0));
+            
+            return numerator / (denomX * denomY);
+        }
+        
+        function updateProjectionTable(projections, terminalValue, terminalPV) {
+            const tbody = document.getElementById('projection-body');
+            tbody.innerHTML = '';
+            
+            projections.forEach(proj => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${proj.year}년차</td>
+                    <td>${formatNumber(proj.revenue)}</td>
+                    <td>${formatNumber(proj.operatingIncome)}</td>
+                    <td>${formatNumber(proj.nopat)}</td>
+                    <td>${formatNumber(proj.reinvestment)}</td>
+                    <td>${formatNumber(proj.fcf)}</td>
+                    <td>${formatNumber(proj.presentValue)}</td>
+                `;
+            });
+            
+            // 터미널 가치 행
+            const terminalRow = tbody.insertRow();
+            terminalRow.innerHTML = `
+                <td><strong>터미널</strong></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>${formatNumber(terminalValue)}</td>
+                <td><strong>${formatNumber(terminalPV)}</strong></td>
+            `;
+            terminalRow.style.backgroundColor = '#e8f4f8';
+            terminalRow.style.fontWeight = 'bold';
+        }
+        
+        // 분포별 매개변수 업데이트 함수들
+        function initializeDistributionParams() {
+            updateDistributionParams('growth');
+            updateDistributionParams('margin'); 
+            updateDistributionParams('reinvest');
+            updateDistributionParams('discount');
+        }
+        
+        // 실시간 업데이트 설정
+        function setupRealTimeUpdate() {
+            const inputs = document.querySelectorAll('input[type="number"], select');
+            let timeoutId;
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        if (document.getElementById('mean-price').textContent !== '-') {
+                            runAdvancedSimulation();
+                        }
+                    }, 1500);
+                });
+            });
+        }
+        
+        // 페이지 로드시 초기화
+        window.onload = function() {
+            initializeDistributionParams();
+            setupRealTimeUpdate();
+            runAdvancedSimulation();
+        };
+    </script>
+</body>
+</html>
