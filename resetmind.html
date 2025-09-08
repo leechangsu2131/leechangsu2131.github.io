@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레드 파일 기법 - 신념 변화 워크샵</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(220, 20, 60, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        }
+
+        .title {
+            font-size: 3.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b, #dc143c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 60px 0 20px;
+            text-shadow: 0 0 30px rgba(220, 20, 60, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: #cccccc;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), rgba(139, 0, 0, 0.2));
+            border: 2px solid #dc143c;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(220, 20, 60, 0.3);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 10px 30px rgba(220, 20, 60, 0.3); }
+            to { box-shadow: 0 15px 40px rgba(220, 20, 60, 0.5); }
+        }
+
+        .warning h3 {
+            color: #dc143c;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+
+        .step-container {
+            margin: 40px 0;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .step-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step {
+            background: linear-gradient(135deg, rgba(30, 30, 60, 0.8), rgba(20, 20, 40, 0.8));
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(220, 20, 60, 0.3);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #dc143c, transparent);
+            animation: scan 3s infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #dc143c, #8b0000);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+            box-shadow: 0 5px 15px rgba(220, 20, 60, 0.4);
+        }
+
+        .step-title {
+            font-size: 1.5em;
+            color: #dc143c;
+            margin: 15px 0;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .step-content {
+            margin: 20px 0;
+            line-height: 1.8;
+            color: #e0e0e0;
+        }
+
+        .interactive-area {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(220, 20, 60, 0.2);
+        }
+
+        .text-input, .textarea-input {
+            width: 100%;
+            background: rgba(20, 20, 40, 0.8);
+            border: 2px solid rgba(220, 20, 60, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            color: #ffffff;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .text-input:focus, .textarea-input:focus {
+            outline: none;
+            border-color: #dc143c;
+            box-shadow: 0 0 20px rgba(220, 20, 60, 0.3);
+        }
+
+        .textarea-input {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #dc143c, #8b0000);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(220, 20, 60, 0.3);
+            margin: 10px;
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 20, 60, 0.5);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #dc143c, #ff6b6b);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.8s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .revelation {
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), rgba(139, 0, 0, 0.2));
+            border: 2px solid #dc143c;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            display: none;
+            animation: fadeInScale 0.8s ease;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .revelation.show {
+            display: block;
+        }
+
+        .insight {
+            background: rgba(220, 20, 60, 0.1);
+            border-left: 4px solid #dc143c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 40, 0.9);
+            border: 2px solid #dc143c;
+            border-radius: 15px;
+            padding: 15px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .timer.active {
+            display: block;
+        }
+
+        .timer-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #dc143c;
+            text-align: center;
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #dc143c;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            to { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="timer" id="timer">
+        <div class="timer-display" id="timerDisplay">45:00</div>
+        <div style="text-align: center; margin-top: 10px;">
+            <button class="button" onclick="toggleTimer()" id="timerBtn">시작</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="title">레드 파일 기법</h1>
+            <p class="subtitle">숨겨진 신념의 코드를 해독하고 재작성하세요</p>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ 주의사항</h3>
+            <p>이 과정은 심리적으로 도전적일 수 있습니다. 편안하고 방해받지 않는 환경에서 진행하세요.<br>
+            필요시 전문가의 도움을 받을 준비를 하십시오.</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Step 1: 가면 깨기 -->
+        <div class="step-container" id="step1">
+            <div class="step">
+                <span class="step-number">1</span>
+                <h2 class="step-title">가면 깨기</h2>
+                <div class="step-content">
+                    <p>먼저 당신이 세상에 보여주는 '가면'을 벗어야 합니다. 조용한 공간을 확보하고, 모든 방해 요소를 제거하세요.</p>
+                    
+                    <div class="interactive-area">
+                        <h4>45분 집중 세션을 시작합니다 (우측 상단 타이머 사용)</h4>
+                        <button class="button" onclick="startSession()">세션 시작</button>
+                        
+                        <div style="margin-top: 20px;">
+                            <label><strong>다음 질문에 답하세요:</strong></label>
+                            <p style="margin: 15px 0; color: #dc143c; font-weight: bold;">
+                                "내가 말하기를 피하지만 머릿속에서 계속 반복되는 10가지 상황은?"
+                            </p>
+                            <textarea class="textarea-input" id="situations" placeholder="한 줄에 하나씩 적어주세요. 정당화하지 말고, 다듬지 말고, 그냥 나열하세요..."></textarea>
+                        </div>
+                        
+                        <button class="button" onclick="completeStep1()">1단계 완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: 레드 마커 찾기 -->
+        <div class="step-container" id="step2" style="display: none;">
+            <div class="step">
+                <span class="step-number">2</span>
+                <h2 class="step-title">레드 마커 찾기</h2>
+                <div class="step-content">
+                    <p>모든 기억이 중요한 것은 아닙니다. 레드 파일은 저항 속에 숨어 있습니다.</p>
+                    
+                    <div class="interactive-area">
+                        <h4>위에서 작성한 목록을 다시 보세요. 다음 중 해당하는 것은?</h4>
+                        <ul style="margin: 15px 0; line-height: 2;">
+                            <li>가슴이 조여오는 것</li>
+                            <li>"이건 별거 아니야"라고 느끼는 것</li>
+                            <li>아무것도 느끼지 않는 것 같은 무감각함</li>
+                        </ul>
+                        
+                        <label><strong>가장 강한 저항을 느끼는 상황을 하나 선택하세요:</strong></label>
+                        <textarea class="textarea-input" id="redMarker" placeholder="그 상황을 자세히 설명해주세요..."></textarea>
+                        
+                        <button class="button" onclick="completeStep2()">2단계 완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: 패턴 노출 -->
+        <div class="step-container" id="step3" style="display: none;">
+            <div class="step">
+                <span class="step-number">3</span>
+                <h2 class="step-title">패턴 노출</h2>
+                <div class="step-content">
+                    <p>이제 기억 자체가 아니라, 그 기억이 만들어낸 규칙을 추적해야 합니다.</p>
+                    
+                    <div class="interactive-area">
+                        <label><strong>그 순간에 태어난 생존 규칙은 무엇인가요?</strong></label>
+                        <input type="text" class="text-input" id="survivalRule" placeholder="예: 아무도 믿지 마라, 조용히 해야 안전하다, 성공하면 표적이 된다...">
+                        
+                        <label><strong>이 규칙이 오늘날에도 작동하고 있는 곳은?</strong></label>
+                        <textarea class="textarea-input" id="currentPattern" placeholder="현재 삶에서 이 규칙이 어떻게 나타나는지 구체적으로 적어보세요..."></textarea>
+                        
+                        <label><strong>이 규칙이 당신의 삶에서 만들어내는 모순은 무엇인가요?</strong></label>
+                        <textarea class="textarea-input" id="contradiction" placeholder="이 규칙 때문에 생기는 내적 갈등이나 모순된 행동들..."></textarea>
+                        
+                        <button class="button" onclick="completeStep3()">3단계 완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: 노출 목록 -->
+        <div class="step-container" id="step4" style="display: none;">
+            <div class="step">
+                <span class="step-number">4</span>
+                <h2 class="step-title">노출 목록</h2>
+                <div class="step-content">
+                    <p>규칙을 확인했으면, 그것이 당신을 어떻게 통제하고 있는지 구체적인 증거를 수집하세요.</p>
+                    
+                    <div class="interactive-area">
+                        <h4 style="color: #dc143c;">"이 규칙이 나를 여전히 통제하는 방식들"</h4>
+                        
+                        <label><strong>최소 5가지 현재의 예시를 작성하세요:</strong></label>
+                        <textarea class="textarea-input" id="exposureList" placeholder="1. 관계에서 마음을 닫는 방식
+2. 과로하면서도 무가치함을 느끼는 방식
+3. 작은 일에도 폭발하는 방식
+4. 말해야 할 때 침묵하는 방식
+5. 사랑을 피하고 거부를 추구하는 방식
+..."></textarea>
+                        
+                        <button class="button" onclick="completeStep4()">4단계 완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: 번역과 재작성 -->
+        <div class="step-container" id="step5" style="display: none;">
+            <div class="step">
+                <span class="step-number">5</span>
+                <h2 class="step-title">번역과 재작성</h2>
+                <div class="step-content">
+                    <p>이제 가장 위험한 단계입니다. 발견한 규칙을 뒤집어서 새로운 코드를 작성하세요.</p>
+                    
+                    <div class="interactive-area">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                            <div>
+                                <label><strong>기존 규칙 (Old Code):</strong></label>
+                                <textarea class="textarea-input" id="oldCode" readonly></textarea>
+                            </div>
+                            <div>
+                                <label><strong>새로운 규칙 (New Code):</strong></label>
+                                <textarea class="textarea-input" id="newCode" placeholder="예:
+아무도 믿지 마라 → 나는 신뢰할 만한 사람을 선택할 수 있다
+조용히 해야 안전하다 → 말하는 것이 나의 힘이다
+성공하면 표적이 된다 → 성공은 내 주변의 약한 자들을 드러낼 뿐이다"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="insight">
+                            <strong>중요:</strong> 새로운 코드는 기존 것을 지우는 것이 아니라 도전하기 위한 것입니다. 
+                            무의식적 명령을 의식적 선택으로 대체하는 과정입니다.
+                        </div>
+                        
+                        <button class="button" onclick="completeStep5()">재작성 완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 계시 -->
+        <div class="revelation" id="finalRevelation">
+            <h2 style="color: #dc143c; text-align: center; margin-bottom: 20px;">🔓 파일 해독 완료</h2>
+            <div id="revelationContent"></div>
+            
+            <div class="insight" style="margin-top: 30px;">
+                <h3>다음 단계:</h3>
+                <p>이제 당신은 더 이상 같은 사람이 아닙니다. 혼란스러움을 느끼는 것이 정상입니다. 
+                변명은 작동하지 않을 것이고, 오래된 정체성이 흔들릴 것입니다. 
+                이것은 치유가 아니라 각성입니다.</p>
+                
+                <p style="margin-top: 15px; font-weight: bold; color: #dc143c;">
+                코드를 본 이상, 다시 보지 않은 것처럼 할 수는 없습니다.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="button" onclick="downloadResults()">결과 저장하기</button>
+                <button class="button" onclick="resetSession()">새 세션 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let totalSteps = 5;
+        let timerInterval;
+        let timeLeft = 45 * 60; // 45 minutes in seconds
+        let sessionData = {};
+
+        // Initialize particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentStep - 1) / totalSteps * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showStep(stepNumber) {
+            // Hide all steps
+            for (let i = 1; i <= totalSteps; i++) {
+                document.getElementById('step' + i).style.display = 'none';
+            }
+            
+            // Show current step with animation
+            const stepElement = document.getElementById('step' + stepNumber);
+            stepElement.style.display = 'block';
+            setTimeout(() => {
+                stepElement.classList.add('visible');
+            }, 100);
+            
+            updateProgress();
+        }
+
+        function startSession() {
+            document.getElementById('timer').classList.add('active');
+            alert('45분 집중 세션이 시작됩니다. 모든 방해 요소를 제거하고 집중하세요.');
+        }
+
+        function toggleTimer() {
+            const timerBtn = document.getElementById('timerBtn');
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerBtn.textContent = '시작';
+            } else {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    document.getElementById('timerDisplay').textContent = 
+                        minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert('45분 세션이 완료되었습니다!');
+                        document.getElementById('timer').classList.remove('active');
+                    }
+                }, 1000);
+                timerBtn.textContent = '정지';
+            }
+        }
+
+        function completeStep1() {
+            const situations = document.getElementById('situations').value;
+            if (situations.trim() === '') {
+                alert('상황들을 먼저 작성해주세요.');
+                return;
+            }
+            
+            sessionData.situations = situations;
+            currentStep = 2;
+            showStep(2);
+            
+            // Add dramatic transition effect
+            document.body.style.background = 'linear-gradient(135deg, #1a0000, #2d0000, #1a0000)';
+        }
+
+        function completeStep2() {
+            const redMarker = document.getElementById('redMarker').value;
+            if (redMarker.trim() === '') {
+                alert('레드 마커가 될 상황을 선택하고 설명해주세요.');
+                return;
+            }
+            
+            sessionData.redMarker = redMarker;
+            currentStep = 3;
+            showStep(3);
+        }
+
+        function completeStep3() {
+            const survivalRule = document.getElementById('survivalRule').value;
+            const currentPattern = document.getElementById('currentPattern').value;
+            const contradiction = document.getElementById('contradiction').value;
+            
+            if (survivalRule.trim() === '' || currentPattern.trim() === '') {
+                alert('생존 규칙과 현재 패턴을 모두 작성해주세요.');
+                return;
+            }
+            
+            sessionData.survivalRule = survivalRule;
+            sessionData.currentPattern = currentPattern;
+            sessionData.contradiction = contradiction;
+            
+            currentStep = 4;
+            showStep(4);
+        }
+
+        function completeStep4() {
+            const exposureList = document.getElementById('exposureList').value;
+            if (exposureList.trim() === '') {
+                alert('노출 목록을 작성해주세요.');
+                return;
+            }
+            
+            sessionData.exposureList = exposureList;
+            currentStep = 5;
+            showStep(5);
+            
+            // Pre-fill old code
+            document.getElementById('oldCode').value = sessionData.survivalRule;
+        }
+
+        function completeStep5() {
+            const newCode = document.getElementById('newCode').value;
+            if (newCode.trim() === '') {
+                alert('새로운 코드를 작성해주세요.');
+                return;
+            }
+            
+            sessionData.newCode = newCode;
+            
+            // Show final revelation
+            showFinalRevelation();
+            
+            // Dark dramatic effect
+            document.body.style.background = 'linear-gradient(135deg, #000000, #1a0000, #000000)';
+        }
+
+        function showFinalRevelation() {
+            const revelation = document.getElementById('finalRevelation');
+            const content = document.getElementById('revelationContent');
+            
+            content.innerHTML = `
+                <div style="text-align: left; line-height: 1.8;">
+                    <h3 style="color: #dc143c;">당신의 레드 파일이 해독되었습니다:</h3>
+                    
+                    <div style="margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+                        <strong>발견된 생존 규칙:</strong><br>
+                        <span style="color: #ff6b6b;">"${sessionData.survivalRule}"</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+                        <strong>새로 작성된 코드:</strong><br>
+                        <span style="color: #90EE90;">"${sessionData.newCode}"</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0; padding: 20px; background: rgba(220, 20, 60, 0.1); border-radius: 10px;">
+                        <strong>현재 작동 중인 패턴:</strong><br>
+                        ${sessionData.currentPattern}
+                    </div>
+                    
+                    <p style="margin-top: 25px; font-style: italic; color: #cccccc;">
+                        "${sessionData.redMarker}"
+                        <br><br>
+                        이 순간이 당신의 코드를 만들었습니다. 이제 그 코드를 다시 쓸 수 있습니다.
+                    </p>
+                </div>
+            `;
+            
+            revelation.classList.add('show');
+            updateProgress();
+            
+            // Scroll to revelation
+            revelation.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadResults() {
+            const results = `
+레드 파일 기법 - 세션 결과
+===============================
+
+날짜: ${new Date().toLocaleDateString('ko-KR')}
+
+1. 회피하는 상황들:
+${sessionData.situations}
+
+2. 레드 마커 (핵심 상황):
+${sessionData.redMarker}
+
+3. 발견된 생존 규칙:
+${sessionData.survivalRule}
+
+4. 현재 작동 패턴:
+${sessionData.currentPattern}
+
+5. 내적 모순:
+${sessionData.contradiction || ''}
+
+6. 통제 방식들:
+${sessionData.exposureList}
+
+7. 새로운 코드:
+${sessionData.newCode}
+
+===============================
+주의: 이 과정은 시작일 뿐입니다. 새로운 코드를 실제 삶에 적용하려면 
+지속적인 의식적 노력이 필요합니다.
+===============================
+            `;
+            
+            const blob = new Blob([results], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'red_file_session_' + new Date().toISOString().slice(0,10) + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function resetSession() {
+            if (confirm('정말로 새 세션을 시작하시겠습니까? 현재 진행사항이 모두 지워집니다.')) {
+                sessionData = {};
+                currentStep = 1;
+                timeLeft = 45 * 60;
+                
+                // Clear all inputs
+                document.getElementById('situations').value = '';
+                document.getElementById('redMarker').value = '';
+                document.getElementById('survivalRule').value = '';
+                document.getElementById('currentPattern').value = '';
+                document.getElementById('contradiction').value = '';
+                document.getElementById('exposureList').value = '';
+                document.getElementById('oldCode').value = '';
+                document.getElementById('newCode').value = '';
+                
+                // Hide revelation
+                document.getElementById('finalRevelation').classList.remove('show');
+                
+                // Reset visual effects
+                document.body.style.background = 'linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e)';
+                
+                // Hide timer
+                document.getElementById('timer').classList.remove('active');
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                document.getElementById('timerBtn').textContent = '시작';
+                document.getElementById('timerDisplay').textContent = '45:00';
+                
+                // Show first step
+                showStep(1);
+            }
+        }
+
+        // Emergency exit function
+        function emergencyExit() {
+            if (confirm('세션을 중단하시겠습니까? 지금까지의 진행사항은 저장되지 않습니다.')) {
+                resetSession();
+                alert('세션이 안전하게 종료되었습니다. 필요하시면 언제든 전문가의 도움을 받으세요.');
+            }
+        }
+
+        // Add emergency exit button
+        function addEmergencyButton() {
+            const emergencyBtn = document.createElement('button');
+            emergencyBtn.innerHTML = '🚨 세션 중단';
+            emergencyBtn.className = 'button';
+            emergencyBtn.style.position = 'fixed';
+            emergencyBtn.style.bottom = '20px';
+            emergencyBtn.style.left = '20px';
+            emergencyBtn.style.background = 'linear-gradient(135deg, #8b0000, #4b0000)';
+            emergencyBtn.style.zIndex = '1000';
+            emergencyBtn.onclick = emergencyExit;
+            document.body.appendChild(emergencyBtn);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Escape key for emergency exit
+            if (e.key === 'Escape') {
+                emergencyExit();
+            }
+            // F11 for fullscreen (immersive experience)
+            if (e.key === 'F11') {
+                e.preventDefault();
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Prevent accidental page refresh
+        window.addEventListener('beforeunload', function(e) {
+            if (currentStep > 1 && !document.getElementById('finalRevelation').classList.contains('show')) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '진행 중인 세션이 있습니다. 정말 페이지를 떠나시겠습니까?';
+            }
+        });
+
+        // Auto-save session data to prevent loss
+        function autoSave() {
+            if (Object.keys(sessionData).length > 0) {
+                localStorage.setItem('redFileSession', JSON.stringify({
+                    data: sessionData,
+                    step: currentStep,
+                    timestamp: new Date().toISOString()
+                }));
+            }
+        }
+
+        // Load saved session if exists
+        function loadSavedSession() {
+            const saved = localStorage.getItem('redFileSession');
+            if (saved) {
+                const parsedSaved = JSON.parse(saved);
+                const savedTime = new Date(parsedSaved.timestamp);
+                const now = new Date();
+                const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
+                
+                // Only restore if saved within last 24 hours
+                if (hoursDiff < 24 && confirm('이전에 진행 중이던 세션이 있습니다. 복원하시겠습니까?')) {
+                    sessionData = parsedSaved.data;
+                    currentStep = parsedSaved.step;
+                    
+                    // Restore form fields
+                    Object.keys(sessionData).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            element.value = sessionData[key];
+                        }
+                    });
+                    
+                    showStep(currentStep);
+                } else {
+                    localStorage.removeItem('redFileSession');
+                }
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            createParticles();
+            showStep(1);
+            addEmergencyButton();
+            loadSavedSession();
+            
+            // Auto-save every 30 seconds
+            setInterval(autoSave, 30000);
+            
+            // Add focus enhancement
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                    e.target.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        e.target.style.transform = 'scale(1)';
+                    }, 200);
+                }
+            });
+        });
+
+        // Add typing effect for dramatic text
+        function typeWriter(element, text, speed = 50) {
+            element.innerHTML = '';
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        // Enhanced completion functions with better UX
+        const originalCompleteStep1 = completeStep1;
+        completeStep1 = function() {
+            const situations = document.getElementById('situations').value;
+            if (situations.trim() === '') {
+                alert('상황들을 먼저 작성해주세요.');
+                return;
+            }
+            
+            // Count lines to ensure minimum effort
+            const lines = situations.trim().split('\n').filter(line => line.trim());
+            if (lines.length < 5) {
+                if (!confirm('최소 5개 이상의 상황을 작성하는 것이 권장됩니다. 계속하시겠습니까?')) {
+                    return;
+                }
+            }
+            
+            sessionData.situations = situations;
+            autoSave();
+            
+            // Dramatic transition
+            const step1 = document.getElementById('step1');
+            step1.style.opacity = '0';
+            step1.style.transform = 'translateX(-100px)';
+            
+            setTimeout(() => {
+                currentStep = 2;
+                showStep(2);
+                document.body.style.background = 'linear-gradient(135deg, #1a0000, #2d0000, #1a0000)';
+            }, 500);
+        };
+
+    </script>
+</body>
+</html>
