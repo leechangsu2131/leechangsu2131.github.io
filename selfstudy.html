@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>교사 셀프스터디 지원 플랫폼 - 나만의 수업 연구실</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -130,10 +129,10 @@
             margin-bottom: 15px;
             font-size: 1.3rem;
         }
-        
+
         .card h4 {
             color: #2c3e50;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-size: 1.1rem;
         }
 
@@ -327,23 +326,12 @@
             padding: 12px 20px;
             cursor: pointer;
             border-bottom: 3px solid transparent;
-            font-weight: 600;
-            color: #7f8c8d;
             transition: all 0.3s ease;
         }
 
         .tab.active {
             color: #667eea;
             border-bottom-color: #667eea;
-        }
-
-        .tab-panel {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-
-        .tab-panel.active {
-            display: block;
         }
 
         .quote {
@@ -356,6 +344,45 @@
             margin: 20px 0;
         }
 
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            animation: slideIn 0.5s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .saved-data {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 3px solid #667eea;
+        }
+
+        .portfolio-section {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -365,97 +392,28 @@
             margin: 20px 0;
         }
 
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
         th {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
+            padding: 15px;
+            text-align: left;
         }
 
-        .portfolio-item {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
         }
 
-        .rubric-container {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+        td input, td textarea {
+            width: 100%;
+            border: none;
+            padding: 5px;
+            background: transparent;
         }
 
-        .rubric-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .rubric-item span {
-            flex-grow: 1;
-        }
-
-        .rubric-score {
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .score-btn {
-            padding: 5px 10px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .score-btn.selected {
-            background: #667eea;
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .navigation {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .nav-btn {
-                width: 200px;
-            }
-
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .rubric-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            table {
-                font-size: 0.9rem;
-            }
+        td textarea {
+            resize: vertical;
+            min-height: 50px;
         }
     </style>
 </head>
@@ -470,14 +428,15 @@
         </div>
 
         <div class="navigation">
-            <button class="nav-btn active" onclick="showSection(event, 'intro')">시작하기</button>
-            <button class="nav-btn" onclick="showSection(event, 'planning')">연구 설계</button>
-            <button class="nav-btn" onclick="showSection(event, 'data')">자료 수집</button>
-            <button class="nav-btn" onclick="showSection(event, 'analysis')">분석 도구</button>
-            <button class="nav-btn" onclick="showSection(event, 'portfolio')">성장 포트폴리오</button>
-            <button class="nav-btn" onclick="showSection(event, 'guide')">가이드</button>
+            <button class="nav-btn active" onclick="showSection('intro')">시작하기</button>
+            <button class="nav-btn" onclick="showSection('planning')">연구 설계</button>
+            <button class="nav-btn" onclick="showSection('data')">자료 수집</button>
+            <button class="nav-btn" onclick="showSection('analysis')">분석 도구</button>
+            <button class="nav-btn" onclick="showSection('portfolio')">성장 포트폴리오</button>
+            <button class="nav-btn" onclick="showSection('guide')">가이드</button>
         </div>
 
+        <!-- 시작하기 섹션 -->
         <div class="content-section active" id="intro">
             <h2 class="section-title">셀프스터디란 무엇인가요?</h2>
             
@@ -516,10 +475,11 @@
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <button class="btn" onclick="document.querySelector(`.nav-btn[onclick*='planning']`).click()">연구 설계 시작하기</button>
+                <button class="btn" onclick="showSection('planning')">연구 설계 시작하기</button>
             </div>
         </div>
 
+        <!-- 연구 설계 섹션 -->
         <div class="content-section" id="planning">
             <h2 class="section-title">연구 프로젝트 설계</h2>
             
@@ -528,13 +488,13 @@
             </div>
 
             <div class="tabs">
-                <div class="tab active" onclick="showTab(event, 'question')">연구 질문</div>
-                <div class="tab" onclick="showTab(event, 'plan')">연구 계획서</div>
-                <div class="tab" onclick="showTab(event, 'ethics')">연구 윤리</div>
+                <div class="tab active" onclick="showPlanningTab('question')">연구 질문</div>
+                <div class="tab" onclick="showPlanningTab('plan')">연구 계획서</div>
+                <div class="tab" onclick="showPlanningTab('ethics')">연구 윤리</div>
             </div>
 
             <div class="tab-content">
-                <div id="question-tab" class="tab-panel active">
+                <div id="question-tab" class="tab-panel">
                     <h3>좋은 연구 질문 만들기</h3>
                     
                     <div class="form-group">
@@ -561,7 +521,7 @@
                     <div id="question-feedback"></div>
                 </div>
 
-                <div id="plan-tab" class="tab-panel">
+                <div id="plan-tab" class="tab-panel" style="display: none;">
                     <h3>연구 계획서 작성</h3>
                     
                     <div class="template-box" onclick="fillTemplate()">
@@ -591,10 +551,11 @@
                         <input type="text" id="research-period" placeholder="예: 4월 한 달간, 매주 수요일 3교시 국어 수업">
                     </div>
 
-                    <button class="btn" onclick="saveData(event)">계획서 저장</button>
+                    <button class="btn" onclick="savePlan()">계획서 저장</button>
+                    <div id="plan-saved"></div>
                 </div>
 
-                <div id="ethics-tab" class="tab-panel">
+                <div id="ethics-tab" class="tab-panel" style="display: none;">
                     <h3>연구 윤리 체크리스트</h3>
                     
                     <div class="checklist">
@@ -615,10 +576,14 @@
                             <label for="self-care">자기 성찰 과정에서 과도한 자책을 피하겠습니다</label>
                         </div>
                     </div>
+                    
+                    <button class="btn" onclick="checkEthics()">윤리 체크리스트 확인</button>
+                    <div id="ethics-result"></div>
                 </div>
             </div>
         </div>
 
+        <!-- 자료 수집 섹션 -->
         <div class="content-section" id="data">
             <h2 class="section-title">수업의 증거 수집</h2>
             
@@ -634,7 +599,8 @@
                         <label>오늘의 수업 성찰</label>
                         <textarea id="reflection-log" rows="4" placeholder="수업 전 의도 → 실제 진행 → 수업 후 성찰"></textarea>
                     </div>
-                    <button class="btn btn-secondary" onclick="saveData(event)">저장</button>
+                    <button class="btn btn-secondary" onclick="saveReflection()">저장</button>
+                    <div id="reflection-saved"></div>
                 </div>
 
                 <div class="card">
@@ -645,7 +611,8 @@
                         <textarea id="student-work" rows="4" placeholder="양적 분석: 정답률, 오답 유형
 질적 분석: 사고 과정, 창의성"></textarea>
                     </div>
-                    <button class="btn btn-secondary" onclick="saveData(event)">저장</button>
+                    <button class="btn btn-secondary" onclick="saveAnalysis()">저장</button>
+                    <div id="analysis-saved"></div>
                 </div>
 
                 <div class="card">
@@ -660,7 +627,12 @@
                             <option>제스처와 목소리 톤의 영향</option>
                         </select>
                     </div>
-                    <button class="btn btn-secondary" onclick="saveData(event, '관찰 기록이 저장되었습니다!')">기록 저장</button>
+                    <div class="form-group">
+                        <label>관찰 메모</label>
+                        <textarea id="observation-notes" rows="3" placeholder="관찰한 내용을 기록하세요"></textarea>
+                    </div>
+                    <button class="btn btn-secondary" onclick="saveObservation()">기록 저장</button>
+                    <div id="observation-saved"></div>
                 </div>
             </div>
 
@@ -675,6 +647,7 @@
             </div>
         </div>
 
+        <!-- 분석 도구 섹션 -->
         <div class="content-section" id="analysis">
             <h2 class="section-title">데이터 속에서 의미 찾기</h2>
             
@@ -683,13 +656,13 @@
             </div>
 
             <div class="tabs">
-                <div class="tab active" onclick="showTab(event, 'triangulation')">삼각측량 분석</div>
-                <div class="tab" onclick="showTab(event, 'reflection')">구조화된 성찰</div>
-                <div class="tab" onclick="showTab(event, 'coding')">코딩 분석</div>
+                <div class="tab active" onclick="showAnalysisTab('triangulation')">삼각측량 분석</div>
+                <div class="tab" onclick="showAnalysisTab('reflection')">구조화된 성찰</div>
+                <div class="tab" onclick="showAnalysisTab('coding')">코딩 분석</div>
             </div>
 
             <div class="tab-content">
-                <div id="triangulation-tab" class="tab-panel active">
+                <div id="triangulation-tab" class="tab-panel">
                     <h3>데이터 삼각측량 분석 매트릭스</h3>
                     
                     <div style="overflow-x: auto;">
@@ -705,11 +678,11 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><input type="text" placeholder="예: 핵심 개념 '변수' 설명" style="width: 100%; border: none; padding: 5px;"></td>
-                                    <td><textarea rows="2" placeholder="의도한 바" style="width: 100%; border: none; resize: vertical;"></textarea></td>
-                                    <td><textarea rows="2" placeholder="실제 진행된 모습" style="width: 100%; border: none; resize: vertical;"></textarea></td>
-                                    <td><textarea rows="2" placeholder="학생들의 반응/결과" style="width: 100%; border: none; resize: vertical;"></textarea></td>
-                                    <td><textarea rows="2" placeholder="발견된 간극과 통찰" style="width: 100%; border: none; resize: vertical;"></textarea></td>
+                                    <td><input type="text" placeholder="예: 핵심 개념 '변수' 설명"></td>
+                                    <td><textarea rows="2" placeholder="의도한 바"></textarea></td>
+                                    <td><textarea rows="2" placeholder="실제 진행된 모습"></textarea></td>
+                                    <td><textarea rows="2" placeholder="학생들의 반응/결과"></textarea></td>
+                                    <td><textarea rows="2" placeholder="발견된 간극과 통찰"></textarea></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -721,21 +694,9 @@
                     <div id="triangulation-result"></div>
                 </div>
 
-                <div id="reflection-tab" class="tab-panel">
+                <div id="reflection-tab" class="tab-panel" style="display: none;">
                     <h3>3단계 구조화된 성찰</h3>
                     
-                    <div class="card">
-                        <h4>1단계: 묘사 (What?)</h4>
-                        <div class="reflection-prompt">
-                            <ul>
-                                <li>수업에서 구체적으로 어떤 일이 있었는가?</li>
-                                <li>학생들은 어떤 말과 행동을 보였는가?</li>
-                                <li>나는 어떻게 반응했는가?</li>
-                            </ul>
-                        </div>
-                        <textarea id="step1-description" rows="4" placeholder="가치 판단 없이 사실만 기록하세요"></textarea>
-                    </div>
-
                     <div class="card">
                         <h4>2단계: 해석 (Why?)</h4>
                         <div class="reflection-prompt">
@@ -757,41 +718,37 @@
                                 <li>다음 수업에서는 무엇을 다르게 시도해볼 것인가?</li>
                             </ul>
                         </div>
-                        <textarea id="step3-evaluation" rows="4" placeholder="성과 평가와 개선 방안을 작성하세요"></textarea>
+                        <textarea id="step3-evaluation" rows="4" placeholder="효과성을 판단하고 구체적인 개선 방안을 모색하세요"></textarea>
                     </div>
-
-                    <button class="btn" onclick="generateReflectionSummary()">성찰 요약 생성</button>
+                    
+                    <button class="btn" onclick="generateReflectionSummary()">성찰 종합 분석</button>
                     <div id="reflection-summary"></div>
                 </div>
 
-                <div id="coding-tab" class="tab-panel">
-                    <h3>질적 데이터 코딩 분석</h3>
+                <div id="coding-tab" class="tab-panel" style="display: none;">
+                    <h3>코딩 분석 도구</h3>
                     
-                    <div class="form-group">
-                        <label>분석할 텍스트 (수업 관찰 노트, 학생 면담 등)</label>
-                        <textarea id="coding-text" rows="6" placeholder="예: '학생 A가 수학 문제를 풀 때 계속 연필을 돌리며 주변을 두리번거렸다. 힌트를 주자 갑자기 밝은 표정으로 문제에 집중하기 시작했다.'"></textarea>
-                    </div>
-
-                    <div class="reflection-prompt">
-                        <h4>코딩 가이드</h4>
-                        <p><strong>1차 코딩 (Open Coding):</strong> 텍스트에서 주요 개념과 패턴을 찾아 라벨링</p>
-                        <p><strong>2차 코딩 (Axial Coding):</strong> 관련된 코드들을 범주화하고 연결</p>
-                        <p><strong>3차 코딩 (Selective Coding):</strong> 핵심 테마와 이론 도출</p>
-                    </div>
-
                     <div class="card">
-                        <h4>발견된 코드</h4>
-                        <div id="codes-container">
-                            <button class="btn btn-secondary" onclick="addCode()">새 코드 추가</button>
+                        <h4>데이터 코딩하기</h4>
+                        <div class="form-group">
+                            <label>분석할 텍스트 입력</label>
+                            <textarea id="coding-text" rows="5" placeholder="학생들의 발언, 성찰 일지 내용 등을 입력하세요"></textarea>
                         </div>
+                        
+                        <div class="form-group">
+                            <label>코드 카테고리 설정</label>
+                            <input type="text" id="code-categories" placeholder="예: 개념 질문, 절차 질문, 경험 공유, 친구 의견 반박">
+                        </div>
+                        
+                        <button class="btn" onclick="startCoding()">코딩 시작</button>
                     </div>
-
-                    <button class="btn" onclick="analyzeCoding()">코딩 분석 실행</button>
-                    <div id="coding-result"></div>
+                    
+                    <div id="coding-results"></div>
                 </div>
             </div>
         </div>
 
+        <!-- 성장 포트폴리오 섹션 -->
         <div class="content-section" id="portfolio">
             <h2 class="section-title">나의 성장 포트폴리오</h2>
             
@@ -799,659 +756,522 @@
                 <div class="progress-fill" style="width: 100%;"></div>
             </div>
 
+            <div class="portfolio-section">
+                <h3>📚 티칭 포트폴리오 구성</h3>
+                
+                <div class="card">
+                    <h4>서문: 나의 교육 철학과 연구의 시작</h4>
+                    <textarea id="portfolio-intro" rows="4" placeholder="교사로서 추구하는 가치와 신념, 셀프스터디를 시작하게 된 계기를 작성하세요"></textarea>
+                </div>
+
+                <div class="card">
+                    <h4>1부: 문제 제기와 탐구 계획</h4>
+                    <textarea id="portfolio-problem" rows="4" placeholder="연구 질문과 그 중요성, 수립한 계획과 절차를 기록하세요"></textarea>
+                </div>
+
+                <div class="card">
+                    <h4>2부: 탐구 과정의 증거들</h4>
+                    <textarea id="portfolio-evidence" rows="4" placeholder="핵심적인 데이터 샘플, 성찰 일지 발췌, 학생 결과물 변화 등을 정리하세요"></textarea>
+                </div>
+
+                <div class="card">
+                    <h4>3부: 성찰을 통한 발견</h4>
+                    <textarea id="portfolio-discovery" rows="4" placeholder="데이터 분석을 통해 얻은 핵심 통찰, 기존 가정의 변화를 기록하세요"></textarea>
+                </div>
+
+                <div class="card">
+                    <h4>4부: 실천을 통한 변화와 성장</h4>
+                    <textarea id="portfolio-growth" rows="4" placeholder="개선된 수업 사례, 성공과 실패를 통한 배움을 기록하세요"></textarea>
+                </div>
+
+                <div class="card">
+                    <h4>결론: 성찰의 마침표와 새로운 시작</h4>
+                    <textarea id="portfolio-conclusion" rows="4" placeholder="가장 큰 배움과 성장, 향후 탐구 과제를 작성하세요"></textarea>
+                </div>
+
+                <button class="btn" onclick="savePortfolio()">포트폴리오 저장</button>
+                <button class="btn btn-secondary" onclick="exportPortfolio()">PDF로 내보내기</button>
+                
+                <div id="portfolio-saved"></div>
+            </div>
+
             <div class="data-visual">
                 <div class="metric-card">
-                    <div class="metric-number" id="total-reflections">0</div>
-                    <div class="metric-label">총 성찰 기록</div>
+                    <div class="metric-number" id="reflection-count">0</div>
+                    <div class="metric-label">성찰 일지 작성</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-number" id="completed-cycles">0</div>
-                    <div class="metric-label">완료된 연구 사이클</div>
+                    <div class="metric-number" id="data-count">0</div>
+                    <div class="metric-label">수집된 데이터</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-number" id="improvement-areas">0</div>
-                    <div class="metric-label">개선 영역</div>
+                    <div class="metric-number" id="insight-count">0</div>
+                    <div class="metric-label">도출된 통찰</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-number" id="growth-score">0%</div>
-                    <div class="metric-label">성장 지수</div>
-                </div>
-            </div>
-
-            <div class="tabs">
-                <div class="tab active" onclick="showTab(event, 'timeline')">성장 타임라인</div>
-                <div class="tab" onclick="showTab(event, 'achievements')">성취 기록</div>
-                <div class="tab" onclick="showTab(event, 'rubric')">자기 평가</div>
-                <div class="tab" onclick="showTab(event, 'export')">포트폴리오 내보내기</div>
-            </div>
-
-            <div class="tab-content">
-                <div id="timeline-tab" class="tab-panel active">
-                    <h3>나의 교사 성장 여정</h3>
-                    
-                    <div class="portfolio-item">
-                        <h4>🌱 2024년 3월 - 첫 번째 셀프스터디 시작</h4>
-                        <p><strong>연구 주제:</strong> 학생 참여도 향상을 위한 질문법 개선</p>
-                        <p><strong>주요 발견:</strong> 개방형 질문 비율을 30%에서 60%로 늘렸을 때 학생 발언 시간이 2배 증가</p>
-                        <p><strong>적용한 변화:</strong> 수업 도입부에 '만약 ~라면?' 형태의 가설적 질문 도입</p>
-                    </div>
-
-                    <div class="portfolio-item">
-                        <h4>🌿 2024년 5월 - 두 번째 연구 사이클</h4>
-                        <p><strong>연구 주제:</strong> 피드백의 질적 개선을 통한 학습 동기 증진</p>
-                        <p><strong>주요 발견:</strong> 구체적 행동 중심 피드백이 일반적 칭찬보다 3배 효과적</p>
-                        <p><strong>적용한 변화:</strong> '잘했어' → '네가 예시를 든 방식이 다른 친구들 이해를 도왔어'</p>
-                    </div>
-
-                    <div class="portfolio-item">
-                        <h4>🌳 2024년 7월 - 현재 진행 중</h4>
-                        <p><strong>연구 주제:</strong> 협력학습에서의 역할 분담 최적화</p>
-                        <p><strong>현재 상황:</strong> 데이터 수집 단계, 3주차 관찰 완료</p>
-                        <p><strong>임시 발견:</strong> 역할 순환제 도입 후 소극적 학생의 발언 빈도 증가</p>
-                    </div>
-
-                    <button class="btn" onclick="addTimelineItem()">새 기록 추가</button>
-                </div>
-
-                <div id="achievements-tab" class="tab-panel">
-                    <h3>성취 및 인사이트 모음</h3>
-
-                    <div class="card-grid">
-                        <div class="card">
-                            <h3>🏆 주요 성취</h3>
-                            <ul>
-                                <li>학생 수업 만족도 20% 향상 (4.1 → 4.9)</li>
-                                <li>자기주도학습 시간 평균 15분 증가</li>
-                                <li>동료 교사 3명에게 연구 결과 공유</li>
-                                <li>교내 수업 공개에서 우수 평가 획득</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>💡 핵심 인사이트</h3>
-                            <ul>
-                                <li>"침묵도 하나의 참여 방식이다"</li>
-                                <li>"학생의 오답에서 더 많은 것을 배운다"</li>
-                                <li>"완벽한 수업보다 정직한 반성이 값지다"</li>
-                                <li>"작은 변화가 큰 차이를 만든다"</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>📚 읽은 전문서적</h3>
-                            <ul>
-                                <li>교실 속 실행연구 (사마라스)</li>
-                                <li>수업의 발견 (존 듀이)</li>
-                                <li>성찰적 교사 (도널드 쇤)</li>
-                                <li>교육과정-수업-평가의 일체화</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="rubric-tab" class="tab-panel">
-                    <h3>교사 전문성 자기 평가</h3>
-
-                    <div class="rubric-container">
-                        <div class="rubric-item">
-                            <span><strong>수업 설계 및 계획</strong></span>
-                            <div class="rubric-score">
-                                <button class="score-btn" onclick="selectScore(this, 'design', 1)">1</button>
-                                <button class="score-btn" onclick="selectScore(this, 'design', 2)">2</button>
-                                <button class="score-btn" onclick="selectScore(this, 'design', 3)">3</button>
-                                <button class="score-btn selected" onclick="selectScore(this, 'design', 4)">4</button>
-                                <button class="score-btn" onclick="selectScore(this, 'design', 5)">5</button>
-                            </div>
-                        </div>
-
-                        <div class="rubric-item">
-                            <span><strong>학습자 이해 및 소통</strong></span>
-                            <div class="rubric-score">
-                                <button class="score-btn" onclick="selectScore(this, 'communication', 1)">1</button>
-                                <button class="score-btn" onclick="selectScore(this, 'communication', 2)">2</button>
-                                <button class="score-btn selected" onclick="selectScore(this, 'communication', 3)">3</button>
-                                <button class="score-btn" onclick="selectScore(this, 'communication', 4)">4</button>
-                                <button class="score-btn" onclick="selectScore(this, 'communication', 5)">5</button>
-                            </div>
-                        </div>
-
-                        <div class="rubric-item">
-                            <span><strong>수업 실행 및 관리</strong></span>
-                            <div class="rubric-score">
-                                <button class="score-btn" onclick="selectScore(this, 'execution', 1)">1</button>
-                                <button class="score-btn" onclick="selectScore(this, 'execution', 2)">2</button>
-                                <button class="score-btn" onclick="selectScore(this, 'execution', 3)">3</button>
-                                <button class="score-btn selected" onclick="selectScore(this, 'execution', 4)">4</button>
-                                <button class="score-btn" onclick="selectScore(this, 'execution', 5)">5</button>
-                            </div>
-                        </div>
-
-                        <div class="rubric-item">
-                            <span><strong>평가 및 피드백</strong></span>
-                            <div class="rubric-score">
-                                <button class="score-btn" onclick="selectScore(this, 'assessment', 1)">1</button>
-                                <button class="score-btn" onclick="selectScore(this, 'assessment', 2)">2</button>
-                                <button class="score-btn" onclick="selectScore(this, 'assessment', 3)">3</button>
-                                <button class="score-btn" onclick="selectScore(this, 'assessment', 4)">4</button>
-                                <button class="score-btn selected" onclick="selectScore(this, 'assessment', 5)">5</button>
-                            </div>
-                        </div>
-
-                        <div class="rubric-item">
-                            <span><strong>성찰 및 전문성 개발</strong></span>
-                            <div class="rubric-score">
-                                <button class="score-btn" onclick="selectScore(this, 'reflection', 1)">1</button>
-                                <button class="score-btn" onclick="selectScore(this, 'reflection', 2)">2</button>
-                                <button class="score-btn" onclick="selectScore(this, 'reflection', 3)">3</button>
-                                <button class="score-btn selected" onclick="selectScore(this, 'reflection', 4)">4</button>
-                                <button class="score-btn" onclick="selectScore(this, 'reflection', 5)">5</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>종합 성찰</label>
-                        <textarea id="overall-reflection" rows="4" placeholder="이번 학기 나의 성장을 종합적으로 평가해보세요..."></textarea>
-                    </div>
-
-                    <button class="btn" onclick="saveData(event)">평가 결과 저장</button>
-                </div>
-
-                <div id="export-tab" class="tab-panel">
-                    <h3>포트폴리오 공유 및 내보내기</h3>
-
-                    <div class="card-grid">
-                        <div class="card">
-                            <h3>📄 PDF 리포트 생성</h3>
-                            <p>연구 결과와 성찰 내용을 전문적인 리포트 형태로 생성합니다.</p>
-                            <button class="btn" onclick="generatePDFReport()">PDF 다운로드</button>
-                        </div>
-
-                        <div class="card">
-                            <h3>📊 데이터 시각화</h3>
-                            <p>성장 과정과 주요 지표를 차트와 그래프로 표현합니다.</p>
-                            <button class="btn" onclick="createVisualization()">차트 생성</button>
-                        </div>
-
-                        <div class="card">
-                            <h3>🤝 동료와 공유</h3>
-                            <p>연구 결과를 동료 교사들과 공유하고 피드백을 받습니다.</p>
-                            <button class="btn" onclick="shareWithColleagues()">공유 링크 생성</button>
-                        </div>
-                    </div>
-
-                    <div id="export-result"></div>
+                    <div class="metric-number" id="improvement-count">0</div>
+                    <div class="metric-label">개선 실천</div>
                 </div>
             </div>
         </div>
 
+        <!-- 가이드 섹션 -->
         <div class="content-section" id="guide">
-            <h2 class="section-title">셀프스터디 완전 가이드</h2>
+            <h2 class="section-title">셀프스터디 실천 가이드</h2>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🎯 핵심 원리</h3>
+                    <h4>내적 비평 동료 만들기</h4>
+                    <p>혼자 연구할 때는 다양한 관점을 내면화하는 것이 중요합니다:</p>
+                    <ul>
+                        <li>"비판적인 동료가 이 자료를 본다면?"</li>
+                        <li>"흥미 없는 학생의 입장에서는?"</li>
+                        <li>"학부모가 궁금해할 점은?"</li>
+                    </ul>
+                </div>
 
-            <div class="tabs">
-                <div class="tab active" onclick="showTab(event, 'methodology')">방법론</div>
-                <div class="tab" onclick="showTab(event, 'tips')">실천 팁</div>
-                <div class="tab" onclick="showTab(event, 'resources')">참고 자료</div>
-                <div class="tab" onclick="showTab(event, 'faq')">FAQ</div>
+                <div class="card">
+                    <h3>📝 실천 전략</h3>
+                    <h4>미니 셀프스터디 습관화</h4>
+                    <p>매주 작은 질문 하나씩 탐구하기:</p>
+                    <ul>
+                        <li>월요일: 질문 설정</li>
+                        <li>화-목: 관찰과 기록</li>
+                        <li>금요일: 간단한 분석과 성찰</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🔄 성장의 나선형 모델</h3>
+                    <h4>지속적인 개선 사이클</h4>
+                    <p>하나의 탐구가 다음 탐구로 이어지는 과정:</p>
+                    <ul>
+                        <li>문제 발견 → 탐구 → 해결</li>
+                        <li>새로운 질문 발견 → 심화 탐구</li>
+                        <li>점진적 전문성 향상</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="tab-content">
-                <div id="methodology-tab" class="tab-panel active">
-                    <h3>사마라스의 셀프스터디 5단계</h3>
+            <div class="reflection-prompt">
+                <h4>셀프스터디 성공을 위한 팁</h4>
+                <ol>
+                    <li><strong>작게 시작하기:</strong> 거창한 연구보다 실천 가능한 작은 주제부터</li>
+                    <li><strong>꾸준히 기록하기:</strong> 매일 5분이라도 성찰 일지 작성</li>
+                    <li><strong>증거 중심 사고:</strong> 느낌보다 구체적인 데이터에 기반한 분석</li>
+                    <li><strong>자기 친화적 태도:</strong> 실패도 성장의 기회로 받아들이기</li>
+                    <li><strong>미래 협력 준비:</strong> 언젠가 동료와 나눌 자산 축적하기</li>
+                </ol>
+            </div>
 
-                    <div class="card-grid">
-                        <div class="card">
-                            <h3>1단계: 문제 의식</h3>
-                            <p><strong>핵심 질문:</strong> "내가 정말 알고 싶은 것은 무엇인가?"</p>
-                            <ul>
-                                <li>수업에서 느끼는 불편함이나 궁금증 찾기</li>
-                                <li>학생들의 학습 어려움 관찰</li>
-                                <li>나의 교육 철학과 실제 간의 불일치 점검</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>2단계: 연구 설계</h3>
-                            <p><strong>핵심 질문:</strong> "어떻게 체계적으로 탐구할 것인가?"</p>
-                            <ul>
-                                <li>구체적이고 답할 수 있는 연구 질문 형성</li>
-                                <li>데이터 수집 방법 계획</li>
-                                <li>연구 윤리 고려사항 점검</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>3단계: 실행 및 관찰</h3>
-                            <p><strong>핵심 질문:</strong> "실제로 무엇이 일어나고 있는가?"</p>
-                            <ul>
-                                <li>새로운 교수 전략 시도</li>
-                                <li>체계적인 데이터 수집</li>
-                                <li>예상치 못한 결과에 대한 개방성</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>4단계: 분석 및 해석</h3>
-                            <p><strong>핵심 질문:</strong> "이 데이터가 내게 말하는 바는 무엇인가?"</p>
-                            <ul>
-                                <li>삼각측량을 통한 다각도 분석</li>
-                                <li>패턴과 예외 사례 발견</li>
-                                <li>이론과 실천의 연결</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>5단계: 성찰 및 재계획</h3>
-                            <p><strong>핵심 질문:</strong> "이제 나는 무엇을 다르게 할 것인가?"</p>
-                            <ul>
-                                <li>학습한 내용의 의미 구성</li>
-                                <li>교육 실천의 변화 계획</li>
-                                <li>새로운 연구 질문 발굴</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>순환적 과정</h3>
-                            <p><strong>핵심 개념:</strong> "배움은 끝나지 않는다"</p>
-                            <ul>
-                                <li>한 사이클의 끝은 새로운 시작</li>
-                                <li>점진적이고 누적적인 개선</li>
-                                <li>지속가능한 전문성 개발</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tips-tab" class="tab-panel">
-                    <h3>성공적인 셀프스터디를 위한 실천 팁</h3>
-
-                    <div class="reflection-prompt">
-                        <h4>🎯 연구 질문 작성 팁</h4>
-                        <ul>
-                            <li><strong>구체적으로:</strong> "수업이 지루하다" → "토론 활동에서 일부 학생이 참여하지 않는 이유는 무엇인가?"</li>
-                            <li><strong>실행 가능하게:</strong> 내 교실에서 실제로 시도해볼 수 있는 범위로 한정</li>
-                            <li><strong>측정 가능하게:</strong> 변화를 확인할 수 있는 지표 포함</li>
-                            <li><strong>의미 있게:</strong> 나와 학생들에게 진정으로 중요한 문제</li>
-                        </ul>
-                    </div>
-
-                    <div class="reflection-prompt">
-                        <h4>📊 데이터 수집 팁</h4>
-                        <ul>
-                            <li><strong>다양한 관점:</strong> 내 관찰, 학생 결과물, 동료 의견 등 삼각측량</li>
-                            <li><strong>일상적 통합:</strong> 특별한 도구보다는 수업 중 자연스러운 관찰</li>
-                            <li><strong>지속가능성:</strong> 너무 복잡하면 오래가지 못함</li>
-                            <li><strong>익명성 보장:</strong> 학생들의 사생활과 평가 분리</li>
-                        </ul>
-                    </div>
-
-                    <div class="reflection-prompt">
-                        <h4>🧠 분석 및 성찰 팁</h4>
-                        <ul>
-                            <li><strong>비판적 거리두기:</strong> 자책보다는 객관적 관찰</li>
-                            <li><strong>패턴 찾기:</strong> 개별 사건보다 반복되는 경향성 주목</li>
-                            <li><strong>예외 탐구:</strong> 예상과 다른 결과에서 더 많이 배우기</li>
-                            <li><strong>이론과 연결:</strong> 경험을 교육학적 지식과 연결</li>
-                        </ul>
-                    </div>
-
-                    <div class="reflection-prompt">
-                        <h4>⏰ 시간 관리 팁</h4>
-                        <ul>
-                            <li><strong>작게 시작:</strong> 한 번에 하나의 작은 변화</li>
-                            <li><strong>루틴화:</strong> 매일 10분씩 성찰 시간 확보</li>
-                            <li><strong>기록 습관:</strong> 간단한 메모라도 꾸준히</li>
-                            <li><strong>완벽주의 금물:</strong> 70% 완성도로도 충분한 가치</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div id="resources-tab" class="tab-panel">
-                    <h3>추천 도서 및 자료</h3>
-
-                    <div class="card-grid">
-                        <div class="card">
-                            <h3>📚 필독 도서</h3>
-                            <ul>
-                                <li><strong>Self-Study Teacher Research</strong> (Samaras, 2011)</li>
-                                <li><strong>교실 속 실행연구</strong> (사마라스, 한국어판)</li>
-                                <li><strong>성찰적 실천가</strong> (도널드 쇤)</li>
-                                <li><strong>교사, 수업에서 나를 만나다</strong> (파커 팔머)</li>
-                                <li><strong>가르칠 수 있는 용기</strong> (파커 팔머)</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>🌐 온라인 자료</h3>
-                            <ul>
-                                <li><a href="#" onclick="return false;">Self-Study of Teacher Education Practices (S-STEP)</a></li>
-                                <li><a href="#" onclick="return false;">Action Research International Journal</a></li>
-                                <li><a href="#" onclick="return false;">교육부 교원연수 지원센터</a></li>
-                                <li><a href="#" onclick="return false;">한국교원대학교 교육연구원</a></li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>🎥 추천 영상</h3>
-                            <ul>
-                                <li>"What is Self-Study?" (Samaras, YouTube)</li>
-                                <li>"Reflective Teaching Practices" (Edutopia)</li>
-                                <li>"Action Research in Education" (온라인 강의)</li>
-                                <li>"교실 속 작은 실험" (EBS 교육 다큐)</li>
-                            </ul>
-                        </div>
-
-                        <div class="card">
-                            <h3>🔧 유용한 도구</h3>
-                            <ul>
-                                <li><strong>Evernote/Notion:</strong> 성찰 일지 작성</li>
-                                <li><strong>Google Forms:</strong> 간단한 학생 설문</li>
-                                <li><strong>OBS Studio:</strong> 수업 녹화 (무료)</li>
-                                <li><strong>Mendeley:</strong> 연구 자료 관리</li>
-                                <li><strong>Canva:</strong> 데이터 시각화</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="faq-tab" class="tab-panel">
-                    <h3>자주 묻는 질문</h3>
-
-                    <div class="card">
-                        <h4>Q: 셀프스터디와 일반적인 수업 성찰의 차이점은 무엇인가요?</h4>
-                        <p>A: 일반적인 성찰은 주관적 느낌에 의존하지만, 셀프스터디는 체계적으로 수집된 데이터를 바탕으로 합니다. 또한 단순한 문제 해결을 넘어 교사의 전문성 개발과 이론 형성을 목표로 합니다.</p>
-                    </div>
-
-                    <div class="card">
-                        <h4>Q: 바쁜 일상 속에서 언제 셀프스터디를 할 수 있나요?</h4>
-                        <p>A: 별도의 시간을 내기보다는 일상적인 수업 활동에 통합하는 것이 중요합니다. 수업 후 5분간의 간단한 메모, 점심시간을 이용한 학생 관찰, 퇴근길 음성 녹음 등을 활용해보세요.</p>
-                    </div>
-
-                    <div class="card">
-                        <h4>Q: 연구 결과가 기대와 다르거나 실패했다면 어떻게 해야 하나요?</h4>
-                        <p>A: '실패'는 셀프스터디에서 가장 귀중한 학습의 기회입니다. 예상과 다른 결과야말로 새로운 통찰의 원천이며, 이를 통해 더 깊은 자기 이해에 도달할 수 있습니다.</p>
-                    </div>
-
-                    <div class="card">
-                        <h4>Q: 학생들의 동의 없이 수업을 관찰하고 기록해도 되나요?</h4>
-                        <p>A: 개인정보가 식별되지 않는 일반적인 수업 관찰은 가능하지만, 녹음/녹화나 개별 학생에 대한 구체적인 기록은 사전 동의가 필요합니다. 항상 연구 윤리를 우선시해야 합니다.</p>
-                    </div>
-
-                    <div class="card">
-                        <h4>Q: 동료 교사들과 연구 결과를 공유하는 것이 부담스럽습니다.</h4>
-                        <p>A: 처음에는 가까운 동료 한두 명과의 비공식적 대화로 시작해보세요. 완벽한 결과를 보여주려 하지 말고, 함께 고민하고 배우는 과정으로 접근하면 됩니다.</p>
-                    </div>
-
-                    <div class="card">
-                        <h4>Q: 몇 번의 사이클을 거쳐야 의미 있는 변화를 볼 수 있나요?</h4>
-                        <p>A: 개인차가 있지만, 보통 3-4번의 완전한 사이클을 거치면 패턴을 발견하고 지속가능한 변화를 만들어낼 수 있습니다. 중요한 것은 횟수보다 각 사이클에서의 깊이 있는 성찰입니다.</p>
-                    </div>
-
-                    <div class="card">
-                        <h4>Q: 관리자나 장학사의 평가와 셀프스터디 결과가 다르다면?</h4>
-                        <p>A: 이는 자연스러운 현상입니다. 외부 평가는 일시적 관찰에 기반하지만, 셀프스터디는 지속적인 자기 관찰의 결과입니다. 두 관점을 모두 성장의 자료로 활용하되, 자신의 전문적 판단을 신뢰하세요.</p>
-                    </div>
-                </div>
+            <div class="quote">
+                "혼자 하는 셀프스터디는 고립이 아닌, 가장 깊이 있는 자기 대화의 시작입니다.<br>
+                이 과정을 거친 교사는 미래의 학습 공동체에서 핵심적인 전문가로 기여할 수 있습니다."
             </div>
         </div>
     </div>
 
     <script>
-        let currentSection = 'intro';
-        let triangulationRowCount = 1;
-        let codeCount = 0;
-        let growthChartInstance = null;
+        // 데이터 저장소
+        let studyData = {
+            reflections: [],
+            analyses: [],
+            observations: [],
+            plan: {},
+            portfolio: {},
+            triangulation: []
+        };
 
-        // 범용 탭 전환 함수
-        function showTab(event, tabId) {
-            const parentSection = event.target.closest('.content-section');
-            parentSection.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            parentSection.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-            event.target.classList.add('active');
-            parentSection.querySelector(`#${tabId}-tab`).classList.add('active');
+        // 네비게이션 함수
+        function showSection(sectionId) {
+            // 모든 섹션 숨기기
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 선택된 섹션 보이기
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.classList.add('active');
+            }
+            
+            // 네비게이션 버튼 활성화 상태 변경
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === getSectionName(sectionId)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // 진행 상태 업데이트
+            updateProgress(sectionId);
         }
 
-        // 섹션 전환 함수
-        function showSection(event, sectionId) {
-            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(sectionId).classList.add('active');
-            event.target.classList.add('active');
-            
-            currentSection = sectionId;
-            updateProgress();
+        function getSectionName(sectionId) {
+            const names = {
+                'intro': '시작하기',
+                'planning': '연구 설계',
+                'data': '자료 수집',
+                'analysis': '분석 도구',
+                'portfolio': '성장 포트폴리오',
+                'guide': '가이드'
+            };
+            return names[sectionId] || '';
+        }
 
-            if (sectionId === 'portfolio') {
-                animateNumbers();
+        function updateProgress(sectionId) {
+            const steps = document.querySelectorAll('.step');
+            const progressMap = {
+                'intro': 0,
+                'planning': 1,
+                'data': 2,
+                'analysis': 3,
+                'portfolio': 4
+            };
+            
+            const currentStep = progressMap[sectionId];
+            if (currentStep !== undefined) {
+                steps.forEach((step, index) => {
+                    step.classList.remove('active', 'completed');
+                    if (index < currentStep) {
+                        step.classList.add('completed');
+                    } else if (index === currentStep) {
+                        step.classList.add('active');
+                    }
+                });
             }
         }
 
-        // 진행 상황 업데이트
-        function updateProgress() {
-            const steps = document.querySelectorAll('.step');
-            const sections = ['intro', 'planning', 'data', 'analysis', 'portfolio', 'guide'];
-            const currentStep = sections.indexOf(currentSection) + 1;
+        // 탭 전환 함수들
+        function showPlanningTab(tabName) {
+            const tabs = document.querySelectorAll('#planning .tab');
+            const panels = ['question-tab', 'plan-tab', 'ethics-tab'];
             
-            steps.forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                if (index + 1 < currentStep) {
-                    step.classList.add('completed');
-                } else if (index + 1 === currentStep) {
-                    step.classList.add('active');
+            tabs.forEach((tab, index) => {
+                tab.classList.remove('active');
+                if (tab.textContent.includes(getTabText(tabName))) {
+                    tab.classList.add('active');
                 }
             });
-
-            const progressFills = document.querySelectorAll('.progress-fill');
-            progressFills.forEach(fill => {
-                let width = 0;
-                if (currentSection === 'planning') width = 20;
-                else if (currentSection === 'data') width = 40;
-                else if (currentSection === 'analysis') width = 60;
-                else if (currentSection === 'portfolio') width = 80;
-                if (currentSection !== 'intro' && currentSection !== 'guide') {
-                    fill.style.width = width + '%';
+            
+            panels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = panelId === `${tabName}-tab` ? 'block' : 'none';
                 }
             });
         }
 
-        // 연구 질문 검증
+        function showAnalysisTab(tabName) {
+            const tabs = document.querySelectorAll('#analysis .tab');
+            const panels = ['triangulation-tab', 'reflection-tab', 'coding-tab'];
+            
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            panels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = panelId === `${tabName}-tab` ? 'block' : 'none';
+                }
+            });
+        }
+
+        function getTabText(tabName) {
+            const texts = {
+                'question': '연구 질문',
+                'plan': '연구 계획서',
+                'ethics': '연구 윤리'
+            };
+            return texts[tabName] || '';
+        }
+
+        // 연구 설계 함수들
         function validateQuestion() {
-            const concern = document.getElementById('current-concern').value;
             const question = document.getElementById('research-question').value;
             const feedback = document.getElementById('question-feedback');
             
-            if (!question.trim()) {
-                feedback.innerHTML = '<div class="analysis-result" style="border-left-color: #e74c3c;"><h4>⚠️ 연구 질문을 입력해주세요</h4></div>';
+            if (!question) {
+                feedback.innerHTML = '<div class="alert alert-info">연구 질문을 입력해주세요.</div>';
                 return;
             }
             
-            let score = 0;
-            let suggestions = [];
+            const criteria = {
+                answerable: question.includes('어떻게') || question.includes('무엇') || question.includes('왜'),
+                specific: question.length > 20 && question.length < 200,
+                meaningful: question.includes('학생') || question.includes('수업') || question.includes('학습')
+            };
             
-            if (question.length > 20 && (question.includes('어떻게') || question.includes('무엇'))) score += 25; else suggestions.push('더 구체적인 질문으로 다듬어보세요. "어떻게", "무엇을", "왜" 등을 활용해보세요.');
-            if (question.includes('향상') || question.includes('개선') || question.includes('증진') || question.includes('해결')) score += 25; else suggestions.push('변화를 측정할 수 있는 표현을 포함해보세요.');
-            if (question.length < 200) score += 25; else suggestions.push('연구 범위를 좀 더 구체적으로 한정해보세요.');
-            if (concern.trim() && question.toLowerCase().includes(concern.trim().toLowerCase().split(' ')[0])) score += 25; else suggestions.push('처음 고민과 연구 질문이 연결되도록 해보세요.');
+            let score = Object.values(criteria).filter(v => v).length;
+            let message = '';
             
-            let color = '#e74c3c', grade = 'D';
-            if (score >= 75) { color = '#27ae60'; grade = 'A'; }
-            else if (score >= 50) { color = '#f39c12'; grade = 'B'; }
-            else if (score >= 25) { color = '#e67e22'; grade = 'C'; }
+            if (score === 3) {
+                message = '<div class="alert alert-success">✅ 훌륭한 연구 질문입니다! 구체적이고 탐구 가능합니다.</div>';
+            } else if (score === 2) {
+                message = '<div class="alert alert-info">📝 좋은 시작입니다. 조금 더 구체화하면 더 좋을 것 같습니다.</div>';
+            } else {
+                message = '<div class="alert alert-info">💡 연구 질문을 더 명확하고 구체적으로 다듬어보세요.</div>';
+            }
             
-            feedback.innerHTML = `<div class="analysis-result" style="border-left-color: ${color};"><h4>📊 연구 질문 평가 결과: ${grade}등급 (${score}점)</h4>${suggestions.length > 0 ? '<h5>개선 제안:</h5><ul>' + suggestions.map(s => '<li>' + s + '</li>').join('') + '</ul>' : '<p>✅ 훌륭한 연구 질문입니다!</p>'}</div>`;
+            feedback.innerHTML = message;
         }
 
-        // 템플릿 채우기
         function fillTemplate() {
             document.getElementById('research-topic').value = '상호작용적 피드백을 통한 학생의 서술형 답안 개선';
             document.getElementById('research-goal').value = '동료 피드백 활동 후, 학생들이 작성한 서술형 답안에서 주장-근거-상술의 논리 구조를 갖춘 비율을 50% 이상으로 높인다.';
-            document.getElementById('success-criteria').value = `1. 사전/사후 평가 답안의 루브릭 점수 평균 변화\n2. 피드백 활동에 대한 학생들의 설문조사 결과\n3. 수업 성찰 일지에 기록된 학생들의 참여도 변화`;
+            document.getElementById('success-criteria').value = '1. 사전/사후 평가 답안의 루브릭 점수 평균 변화\n2. 피드백 활동에 대한 학생들의 설문조사 결과\n3. 수업 성찰 일지에 기록된 학생들의 참여도 변화';
             document.getElementById('research-period').value = '4월 한 달간, 매주 수요일 3교시 국어 수업';
         }
 
-        // 데이터 저장 피드백
-        function saveData(event, message = '저장되었습니다!') {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '저장됨!';
-            btn.disabled = true;
+        function savePlan() {
+            const plan = {
+                topic: document.getElementById('research-topic').value,
+                goal: document.getElementById('research-goal').value,
+                criteria: document.getElementById('success-criteria').value,
+                period: document.getElementById('research-period').value,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            studyData.plan = plan;
+            
+            const savedDiv = document.getElementById('plan-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 연구 계획서가 저장되었습니다!</div>';
+            
             setTimeout(() => {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }, 1500);
+                savedDiv.innerHTML = '';
+            }, 3000);
         }
 
-        // 삼각측량 행 추가
+        function checkEthics() {
+            const checkboxes = ['privacy', 'purpose', 'evaluation', 'self-care'];
+            const checked = checkboxes.filter(id => document.getElementById(id).checked);
+            const result = document.getElementById('ethics-result');
+            
+            if (checked.length === 4) {
+                result.innerHTML = '<div class="alert alert-success">✅ 모든 윤리 기준을 충족했습니다. 연구를 진행할 준비가 되었습니다!</div>';
+            } else {
+                result.innerHTML = `<div class="alert alert-info">📋 ${checked.length}/4 항목 체크됨. 모든 항목을 확인해주세요.</div>`;
+            }
+        }
+
+        // 자료 수집 함수들
+        function saveReflection() {
+            const reflection = document.getElementById('reflection-log').value;
+            if (!reflection) return;
+            
+            studyData.reflections.push({
+                content: reflection,
+                timestamp: new Date().toLocaleString()
+            });
+            
+            const savedDiv = document.getElementById('reflection-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 성찰 일지가 저장되었습니다!</div>';
+            document.getElementById('reflection-log').value = '';
+            
+            updateMetrics();
+            
+            setTimeout(() => {
+                savedDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        function saveAnalysis() {
+            const analysis = document.getElementById('student-work').value;
+            if (!analysis) return;
+            
+            studyData.analyses.push({
+                content: analysis,
+                timestamp: new Date().toLocaleString()
+            });
+            
+            const savedDiv = document.getElementById('analysis-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 분석 결과가 저장되었습니다!</div>';
+            document.getElementById('student-work').value = '';
+            
+            updateMetrics();
+            
+            setTimeout(() => {
+                savedDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        function saveObservation() {
+            const focus = document.getElementById('observation-focus').value;
+            const notes = document.getElementById('observation-notes').value;
+            
+            if (!notes) return;
+            
+            studyData.observations.push({
+                focus: focus,
+                notes: notes,
+                timestamp: new Date().toLocaleString()
+            });
+            
+            const savedDiv = document.getElementById('observation-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 관찰 기록이 저장되었습니다!</div>';
+            document.getElementById('observation-notes').value = '';
+            
+            updateMetrics();
+            
+            setTimeout(() => {
+                savedDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // 분석 도구 함수들
         function addTriangulationRow() {
-            const table = document.getElementById('triangulation-table').getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-            newRow.innerHTML = `<td><input type="text" placeholder="수업 장면/사건" style="width: 100%; border: none; padding: 5px;"></td><td><textarea rows="2" placeholder="의도한 바" style="width: 100%; border: none; resize: vertical;"></textarea></td><td><textarea rows="2" placeholder="실제 진행된 모습" style="width: 100%; border: none; resize: vertical;"></textarea></td><td><textarea rows="2" placeholder="학생들의 반응/결과" style="width: 100%; border: none; resize: vertical;"></textarea></td><td><textarea rows="2" placeholder="발견된 간극과 통찰" style="width: 100%; border: none; resize: vertical;"></textarea></td>`;
+            const tbody = document.querySelector('#triangulation-table tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" placeholder="수업 장면/사건"></td>
+                <td><textarea rows="2" placeholder="의도한 바"></textarea></td>
+                <td><textarea rows="2" placeholder="실제 진행된 모습"></textarea></td>
+                <td><textarea rows="2" placeholder="학생들의 반응/결과"></textarea></td>
+                <td><textarea rows="2" placeholder="발견된 간극과 통찰"></textarea></td>
+            `;
+            tbody.appendChild(newRow);
         }
 
-        // 삼각측량 분석
         function analyzeTriangulation() {
-            document.getElementById('triangulation-result').innerHTML = `<div class="analysis-result"><h4>🔍 삼각측량 분석 결과</h4><h5>주요 발견 사항:</h5><ul><li><strong>의도와 실행의 일치도:</strong> 85% - 대체로 계획한 대로 수업이 진행됨</li><li><strong>예상치 못한 학생 반응:</strong> 3건 발견 - 추가 탐구 필요</li><li><strong>개선이 필요한 영역:</strong> 발문 후 대기 시간, 소외되는 학생에 대한 관심</li></ul><h5>다음 사이클 계획:</h5><p>발견된 패턴을 바탕으로 '대기 시간 3초 룰'과 '소외 학생 체크리스트'를 도입해 볼 예정입니다.</p></div>`;
+            const rows = document.querySelectorAll('#triangulation-table tbody tr');
+            const results = [];
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('input, textarea');
+                if (cells[0].value) {
+                    results.push({
+                        scene: cells[0].value,
+                        intention: cells[1].value,
+                        reality: cells[2].value,
+                        impact: cells[3].value,
+                        gap: cells[4].value
+                    });
+                }
+            });
+            
+            studyData.triangulation = results;
+            
+            const resultDiv = document.getElementById('triangulation-result');
+            if (results.length > 0) {
+                resultDiv.innerHTML = `
+                    <div class="analysis-result">
+                        <h4>삼각측량 분석 결과</h4>
+                        <p>총 ${results.length}개의 수업 장면을 분석했습니다.</p>
+                        <p>주요 발견사항:</p>
+                        <ul>
+                            ${results.map(r => r.gap ? `<li>${r.scene}: ${r.gap}</li>` : '').join('')}
+                        </ul>
+                    </div>
+                `;
+                updateMetrics();
+            }
         }
-        
-        // 구조화된 성찰 요약 생성
+
         function generateReflectionSummary() {
             const step1 = document.getElementById('step1-description').value;
             const step2 = document.getElementById('step2-interpretation').value;
             const step3 = document.getElementById('step3-evaluation').value;
             
-            if (!step1.trim() || !step2.trim() || !step3.trim()) {
-                alert('모든 단계의 성찰을 완료해주세요.'); return;
+            if (!step1 || !step2 || !step3) {
+                document.getElementById('reflection-summary').innerHTML = 
+                    '<div class="alert alert-info">모든 단계를 작성해주세요.</div>';
+                return;
             }
             
-            document.getElementById('reflection-summary').innerHTML = `<div class="analysis-result"><h4>📝 통합 성찰 요약</h4><h5>핵심 발견:</h5><p>이번 수업에서 가장 주목할 점은 '${step1.substring(0, 30)}...' 상황에서 의도와 달리 '${step2.substring(0, 50)}...' 라는 해석이 가능한 지점이었습니다. 이는 향후 수업 설계에 중요한 시사점을 제공합니다.</p><h5>실행 계획:</h5><p>다음 수업에서는 '${step3.substring(0, 50)}...' 와 같은 구체적인 변화를 시도해볼 예정입니다.</p><h5>새로운 연구 질문:</h5><p>오늘의 성찰을 통해 "효과적인 발문은 단순히 좋은 질문이 아니라 적절한 타이밍의 문제인가?" 라는 새로운 질문을 발견했습니다.</p></div>`;
-        }
-
-        // 코드 추가
-        function addCode() {
-            const container = document.getElementById('codes-container');
-            const codeDiv = document.createElement('div');
-            codeDiv.style.margin = '10px 0';
-            codeDiv.innerHTML = `<input type="text" placeholder="코드 이름 (예: 학습자 주도성)" style="width: 200px; margin-right: 10px; padding: 5px;"><textarea placeholder="코드 설명 및 관련 데이터" rows="2" style="width: 300px; margin-right: 10px; padding: 5px;"></textarea><button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.9rem;" onclick="this.parentElement.remove()">삭제</button>`;
-            container.insertBefore(codeDiv, container.lastChild);
-        }
-
-        // 코딩 분석
-        function analyzeCoding() {
-            if (!document.getElementById('coding-text').value.trim()) {
-                alert('분석할 텍스트를 입력해주세요.'); return;
-            }
-            document.getElementById('coding-result').innerHTML = `<div class="analysis-result"><h4>🧠 질적 코딩 분석 결과</h4><h5>추출된 주요 테마:</h5><ul><li><strong>학습자 불안감:</strong> "연필 돌리기", "두리번거리기" 등 회피 행동 패턴</li><li><strong>교사 지원의 효과:</strong> "힌트" 제공 후 급격한 태도 변화</li><li><strong>학습 동기의 순간성:</strong> "갑자기 밝은 표정"으로 표현된 동기 전환점</li></ul><h5>이론적 연결:</h5><p>비고츠키의 근접발달영역(ZPD) 이론과 연결하여, 적절한 비계설정(scaffolding)이 학습자의 자신감과 참여도에 미치는 즉각적 영향을 확인할 수 있었습니다.</p><h5>후속 연구 제안:</h5><p>"학습자의 불안 신호 조기 포착을 위한 관찰 체크리스트 개발"을 다음 연구 주제로 제안합니다.</p></div>`;
-        }
-
-        // 타임라인 아이템 추가
-        function addTimelineItem() {
-            const timelineTab = document.getElementById('timeline-tab');
-            const newItem = document.createElement('div');
-            newItem.className = 'portfolio-item';
-            newItem.innerHTML = `<h4>🌱 ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 - 새로운 연구 사이클</h4><p><strong>연구 주제:</strong> <input type="text" placeholder="연구 주제 입력" style="border: none; border-bottom: 1px solid #ccc; background: transparent;"></p><p><strong>주요 발견:</strong> <input type="text" placeholder="핵심 발견 사항" style="border: none; border-bottom: 1px solid #ccc; background: transparent; width: 400px;"></p><p><strong>적용한 변화:</strong> <input type="text" placeholder="실제 적용한 변화" style="border: none; border-bottom: 1px solid #ccc; background: transparent; width: 400px;"></p>`;
-            const addButton = timelineTab.querySelector('.btn');
-            timelineTab.insertBefore(newItem, addButton);
-        }
-
-        // 루브릭 점수 선택
-        function selectScore(button, category, score) {
-            button.parentElement.querySelectorAll('.score-btn').forEach(btn => btn.classList.remove('selected'));
-            button.classList.add('selected');
-        }
-
-        // PDF 리포트 생성
-        function generatePDFReport() {
-            document.getElementById('export-result').innerHTML = `<div class="analysis-result"><h4>📄 PDF 리포트 생성 중...</h4><p>포트폴리오 데이터를 PDF 형태로 변환하고 있습니다. 잠시만 기다려주세요.</p><div class="progress-bar" style="margin-top: 15px;"><div class="progress-fill" style="width: 100%; background: #27ae60; transition: width 2s ease;"></div></div><p style="margin-top: 10px;">완료! 다운로드가 곧 시작됩니다.</p></div>`;
-        }
-
-        // 데이터 시각화 생성
-        function createVisualization() {
-            const result = document.getElementById('export-result');
-            result.innerHTML = `<div class="analysis-result"><h4>📊 성장 데이터 시각화</h4><div style="background: white; padding: 20px; border-radius: 10px; margin: 15px 0;"><canvas id="growthChart" width="400" height="200" style="max-width: 100%;"></canvas></div><p>지난 6개월간의 성장 궤적이 시각화되었습니다.</p></div>`;
+            const summaryDiv = document.getElementById('reflection-summary');
+            summaryDiv.innerHTML = `
+                <div class="analysis-result">
+                    <h4>구조화된 성찰 종합</h4>
+                    <p><strong>상황:</strong> ${step1.substring(0, 100)}...</p>
+                    <p><strong>의미:</strong> ${step2.substring(0, 100)}...</p>
+                    <p><strong>개선방안:</strong> ${step3.substring(0, 100)}...</p>
+                </div>
+            `;
             
-            const ctx = document.getElementById('growthChart').getContext('2d');
-            if (growthChartInstance) {
-                growthChartInstance.destroy();
-            }
-            growthChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['3월', '4월', '5월', '6월', '7월', '8월'],
-                    datasets: [{
-                        label: '교사 전문성 성장 지수',
-                        data: [55, 62, 68, 75, 78, 85],
-                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, max: 100 } },
-                    responsive: true,
-                    maintainAspectRatio: true
-                }
-            });
+            updateMetrics();
         }
 
-        // 동료와 공유
-        function shareWithColleagues() {
-            document.getElementById('export-result').innerHTML = `<div class="analysis-result"><h4>🤝 공유 링크 생성 완료</h4><p><strong>공유 링크:</strong> <code>https://my-lab.com/p/share/abc123</code></p><p>이 링크를 동료 교사들과 공유하여 피드백을 받아보세요. 링크는 30일간 유효합니다.</p><button class="btn" onclick="copyToClipboard(this)">링크 복사</button><button class="btn btn-secondary" onclick="saveData(event, '이메일 초대장이 발송되었습니다!')">이메일로 초대</button></div>`;
-        }
-
-        // 클립보드에 복사
-        function copyToClipboard(button) {
-            navigator.clipboard.writeText('https://my-lab.com/p/share/abc123').then(() => {
-                const originalText = button.textContent;
-                button.textContent = '복사됨!';
-                setTimeout(() => { button.textContent = originalText; }, 1500);
-            });
-        }
-        
-        // 포트폴리오 메트릭 숫자 애니메이션
-        function animateNumbers() {
-            const metrics = [
-                { id: 'total-reflections', target: 12 },
-                { id: 'completed-cycles', target: 3 },
-                { id: 'improvement-areas', target: 5 },
-                { id: 'growth-score', target: 78, suffix: '%' }
-            ];
+        function startCoding() {
+            const text = document.getElementById('coding-text').value;
+            const categories = document.getElementById('code-categories').value.split(',').map(c => c.trim());
             
-            metrics.forEach(metric => {
-                const element = document.getElementById(metric.id);
-                if (element && parseInt(element.textContent) === 0) { // 이미 실행되었으면 다시 실행 안 함
-                    let current = 0;
-                    const increment = metric.target / 50;
-                    const timer = setInterval(() => {
-                        current += increment;
-                        if (current >= metric.target) {
-                            current = metric.target;
-                            clearInterval(timer);
-                        }
-                        element.textContent = Math.ceil(current) + (metric.suffix || '');
-                    }, 20);
-                }
-            });
+            if (!text || !categories.length) {
+                document.getElementById('coding-results').innerHTML = 
+                    '<div class="alert alert-info">텍스트와 코드 카테고리를 입력해주세요.</div>';
+                return;
+            }
+            
+            const results = categories.map(cat => ({
+                category: cat,
+                count: Math.floor(Math.random() * 10) + 1 // 실제로는 텍스트 분석 로직 필요
+            }));
+            
+            const resultsDiv = document.getElementById('coding-results');
+            resultsDiv.innerHTML = `
+                <div class="analysis-result">
+                    <h4>코딩 분석 결과</h4>
+                    ${results.map(r => `<p>${r.category}: ${r.count}회 발견</p>`).join('')}
+                </div>
+            `;
+        }
+
+        // 포트폴리오 함수들
+        function savePortfolio() {
+            studyData.portfolio = {
+                intro: document.getElementById('portfolio-intro').value,
+                problem: document.getElementById('portfolio-problem').value,
+                evidence: document.getElementById('portfolio-evidence').value,
+                discovery: document.getElementById('portfolio-discovery').value,
+                growth: document.getElementById('portfolio-growth').value,
+                conclusion: document.getElementById('portfolio-conclusion').value,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            const savedDiv = document.getElementById('portfolio-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 포트폴리오가 저장되었습니다!</div>';
+            
+            setTimeout(() => {
+                savedDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        function exportPortfolio() {
+            alert('PDF 내보내기 기능은 실제 구현 시 추가됩니다.\n현재 저장된 데이터:\n' + JSON.stringify(studyData.portfolio, null, 2));
+        }
+
+        // 메트릭 업데이트 함수
+        function updateMetrics() {
+            document.getElementById('reflection-count').textContent = studyData.reflections.length;
+            document.getElementById('data-count').textContent = 
+                studyData.reflections.length + studyData.analyses.length + studyData.observations.length;
+            document.getElementById('insight-count').textContent = studyData.triangulation.length;
+            document.getElementById('improvement-count').textContent = 
+                studyData.triangulation.filter(t => t.gap).length;
         }
 
         // 페이지 로드 시 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            updateProgress();
-            
-            // Intersection Observer를 사용하여 포트폴리오 섹션이 보일 때 애니메이션 실행
-            const portfolioSection = document.getElementById('portfolio');
-            if (portfolioSection) {
-                const observer = new IntersectionObserver((entries) => {
-                    if (entries[0].isIntersecting) {
-                        animateNumbers();
-                        observer.unobserve(portfolioSection); // 한번 실행 후 관찰 중지
-                    }
-                }, { threshold: 0.5 });
-                observer.observe(portfolioSection);
-            }
-        });
+        window.onload = function() {
+            updateMetrics();
+        };
     </script>
 </body>
 </html>
+                        <h4>1단계: 묘사 (What?)</h4>
+                        <div class="reflection-prompt">
+                            <ul>
+                                <li>수업에서 구체적으로 어떤 일이 있었는가?</li>
+                                <li>학생들은 어떤 말과 행동을 보였는가?</li>
+                                <li>나는 어떻게 반응했는가?</li>
+                            </ul>
+                        </div>
+                        <textarea id="step1-description" rows="4" placeholder="가치 판단 없이 사실만 기록하세요"></textarea>
+                    </div>
+
+                    <div class="card">
