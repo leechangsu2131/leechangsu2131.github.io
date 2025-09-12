@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미러 프로토콜 - 내면의 대련장</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --questioner-color: #1e3a5f;
+            --challenger-color: #3a1e1e;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Landing Page */
+        .landing-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .start-button {
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Duel Room */
+        .duel-room {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .topic-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topic-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .timer-button {
+            padding: 0.5rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-button:hover {
+            background: var(--border-color);
+        }
+
+        .duel-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .voice-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .questioner-panel {
+            background: linear-gradient(135deg, var(--questioner-color) 0%, var(--bg-secondary) 100%);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .challenger-panel {
+            background: linear-gradient(135deg, var(--challenger-color) 0%, var(--bg-secondary) 100%);
+        }
+
+        .panel-header {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .dialogue-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .dialogue-entry {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(5px);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .input-area {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dialogue-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            border-radius: 8px;
+            resize: none;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .prompt-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .prompt-button {
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-secondary);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .prompt-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        /* Breakthrough Modal */
+        .breakthrough-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .breakthrough-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 1rem;
+            margin: 1rem 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .cancel-button {
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Bottom Action Bar */
+        .action-bar {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-button {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+        }
+
+        /* Today's Topics */
+        .topics-suggestion {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        .topic-item {
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .topic-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .duel-area {
+                flex-direction: column;
+            }
+            
+            .questioner-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Page -->
+    <div class="landing-page" id="landingPage">
+        <h1 class="hero-title">미러 프로토콜</h1>
+        <p class="hero-subtitle">
+            당신의 마음을 둘로 나누어 싸우게 하라.<br>
+            천재들이 비밀리에 사용해온 사고의 알고리즘.<br>
+            가장 강력한 상대는 당신 안에 있습니다.
+        </p>
+        <button class="start-button" onclick="startDuel()">오늘의 대련 시작하기</button>
+    </div>
+
+    <!-- Duel Room -->
+    <div class="duel-room" id="duelRoom">
+        <div class="top-bar">
+            <div class="topic-container">
+                <label>주제:</label>
+                <input type="text" class="topic-input" id="topicInput" placeholder="오늘의 대련 주제를 입력하세요...">
+                <button class="timer-button" onclick="showTopicSuggestions()">오늘의 주제</button>
+            </div>
+            <div class="timer-container">
+                <div class="timer" id="timer">15:00</div>
+                <button class="timer-button" onclick="startTimer()">시작</button>
+                <button class="timer-button" onclick="pauseTimer()">일시정지</button>
+                <button class="timer-button" onclick="resetTimer()">리셋</button>
+            </div>
+        </div>
+
+        <div class="topics-suggestion" id="topicsSuggestion">
+            <div class="topic-item" onclick="selectTopic('성공에 학력이 필수적인가?')">성공에 학력이 필수적인가?</div>
+            <div class="topic-item" onclick="selectTopic('AI는 인간의 친구인가, 적인가?')">AI는 인간의 친구인가, 적인가?</div>
+            <div class="topic-item" onclick="selectTopic('돈이 행복의 필수 조건인가?')">돈이 행복의 필수 조건인가?</div>
+            <div class="topic-item" onclick="selectTopic('재택근무가 미래의 표준이 될까?')">재택근무가 미래의 표준이 될까?</div>
+            <div class="topic-item" onclick="selectTopic('실패는 정말 성공의 어머니인가?')">실패는 정말 성공의 어머니인가?</div>
+        </div>
+
+        <div class="duel-area">
+            <!-- Questioner Panel -->
+            <div class="voice-panel questioner-panel">
+                <div class="panel-header">
+                    <div class="panel-title">질문자 (The Questioner)</div>
+                    <div class="panel-description">어리석음을 두려워하지 않는 순수한 호기심</div>
+                </div>
+                <div class="dialogue-area" id="questionerDialogue"></div>
+                <div class="input-area">
+                    <textarea class="dialogue-input" id="questionerInput" placeholder="왜? 정말로? 만약 반대라면?"></textarea>
+                    <div class="prompt-buttons">
+                        <button class="prompt-button" onclick="addPrompt('questioner', '왜 이것이 사실이라고 확신하는가?')">왜?</button>
+                        <button class="prompt-button" onclick="addPrompt('questioner', '만약 정반대가 사실이라면?')">반대로 생각하기</button>
+                        <button class="prompt-button" onclick="addPrompt('questioner', '누가 이 규칙을 만들었는가?')">권위에 도전</button>
+                        <button class="prompt-button" onclick="addPrompt('questioner', '이것이 없다면 어떻게 될까?')">제거하기</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenger Panel -->
+            <div class="voice-panel challenger-panel">
+                <div class="panel-header">
+                    <div class="panel-title">도전자 (The Challenger)</div>
+                    <div class="panel-description">무자비한 논리로 약점을 파괴하는 검증자</div>
+                </div>
+                <div class="dialogue-area" id="challengerDialogue"></div>
+                <div class="input-area">
+                    <textarea class="dialogue-input" id="challengerInput" placeholder="증거는? 논리적 허점은? 다른 가능성은?"></textarea>
+                    <div class="prompt-buttons">
+                        <button class="prompt-button" onclick="addPrompt('challenger', '그 주장을 뒷받침하는 증거는 무엇인가?')">증거 요구</button>
+                        <button class="prompt-button" onclick="addPrompt('challenger', '그것은 논리적으로 타당한가?')">논리 검증</button>
+                        <button class="prompt-button" onclick="addPrompt('challenger', '편견이나 감정이 섞여있지 않은가?')">객관성 검증</button>
+                        <button class="prompt-button" onclick="addPrompt('challenger', '다른 더 나은 설명이 있지 않은가?')">대안 제시</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="sessionCount">0</div>
+                    <div class="stat-label">오늘의 대련</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="breakthroughCount">0</div>
+                    <div class="stat-label">발견한 통찰</div>
+                </div>
+            </div>
+            <button class="action-button" onclick="endDuel()">대련 종료</button>
+        </div>
+    </div>
+
+    <!-- Breakthrough Modal -->
+    <div class="breakthrough-modal" id="breakthroughModal">
+        <div class="modal-content">
+            <h2 class="modal-title">제3의 목소리가 들렸나요?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                질문자와 도전자의 싸움 속에서 떠오른 통찰을 기록하세요.
+                이것은 둘 중 어느 쪽도 홀로 도달할 수 없었던 더 높은 차원의 답입니다.
+            </p>
+            <textarea class="breakthrough-textarea" id="breakthroughText" placeholder="어떤 새로운 관점이 떠올랐나요? 무엇을 깨달았나요?"></textarea>
+            <div class="modal-buttons">
+                <button class="modal-button cancel-button" onclick="closeBreakthrough()">나중에</button>
+                <button class="modal-button save-button" onclick="saveBreakthrough()">통찰 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let timerInterval = null;
+        let timeLeft = 900; // 15 minutes in seconds
+        let isPaused = true;
+        let sessionData = {
+            sessions: 0,
+            breakthroughs: 0,
+            currentDialogue: {
+                questioner: [],
+                challenger: []
+            }
+        };
+
+        // Initialize from memory (simulated)
+        function initializeApp() {
+            // In a real app, this would load from storage
+            updateStats();
+        }
+
+        // Navigation
+        function startDuel() {
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('duelRoom').style.display = 'flex';
+            sessionData.sessions++;
+            updateStats();
+        }
+
+        // Timer functions
+        function startTimer() {
+            if (isPaused) {
+                isPaused = false;
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        pauseTimer();
+                        alert('시간이 종료되었습니다! 대련을 마무리해주세요.');
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            isPaused = true;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = 900;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Topic suggestions
+        function showTopicSuggestions() {
+            const suggestions = document.getElementById('topicsSuggestion');
+            suggestions.style.display = suggestions.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectTopic(topic) {
+            document.getElementById('topicInput').value = topic;
+            document.getElementById('topicsSuggestion').style.display = 'none';
+        }
+
+        // Dialogue functions
+        document.getElementById('questionerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addDialogue('questioner', this.value);
+                this.value = '';
+            }
+        });
+
+        document.getElementById('challengerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addDialogue('challenger', this.value);
+                this.value = '';
+            }
+        });
+
+        function addDialogue(voice, text) {
+            if (!text.trim()) return;
+            
+            const dialogueArea = document.getElementById(voice + 'Dialogue');
+            const entry = document.createElement('div');
+            entry.className = 'dialogue-entry';
+            entry.textContent = text;
+            dialogueArea.appendChild(entry);
+            dialogueArea.scrollTop = dialogueArea.scrollHeight;
+            
+            // Store dialogue
+            sessionData.currentDialogue[voice].push(text);
+        }
+
+        function addPrompt(voice, prompt) {
+            const input = document.getElementById(voice + 'Input');
+            input.value = prompt;
+            input.focus();
+        }
+
+        // End duel
+        function endDuel() {
+            pauseTimer();
+            document.getElementById('breakthroughModal').style.display = 'flex';
+        }
+
+        function closeBreakthrough() {
+            document.getElementById('breakthroughModal').style.display = 'none';
+            resetForNewDuel();
+        }
+
+        function saveBreakthrough() {
+            const breakthroughText = document.getElementById('breakthroughText').value;
+            if (breakthroughText.trim()) {
+                sessionData.breakthroughs++;
+                updateStats();
+                
+                // In a real app, this would save to storage
+                console.log('Breakthrough saved:', {
+                    topic: document.getElementById('topicInput').value,
+                    dialogue: sessionData.currentDialogue,
+                    breakthrough: breakthroughText,
+                    timestamp: new Date().toISOString()
+                });
+                
+                alert('통찰이 저장되었습니다! 이제 이것을 현실에서 무기화할 차례입니다.');
+            }
+            
+            document.getElementById('breakthroughModal').style.display = 'none';
+            resetForNewDuel();
+        }
+
+        function resetForNewDuel() {
+            // Clear dialogue areas
+            document.getElementById('questionerDialogue').innerHTML = '';
+            document.getElementById('challengerDialogue').innerHTML = '';
+            document.getElementById('topicInput').value = '';
+            document.getElementById('breakthroughText').value = '';
+            
+            // Reset timer
+            resetTimer();
+            
+            // Clear current dialogue data
+            sessionData.currentDialogue = {
+                questioner: [],
+                challenger: []
+            };
+        }
+
+        function updateStats() {
+            document.getElementById('sessionCount').textContent = sessionData.sessions;
+            document.getElementById('breakthroughCount').textContent = sessionData.breakthroughs;
+        }
+
+        // Hide topic suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            const suggestions = document.getElementById('topicsSuggestion');
+            if (!e.target.matches('.timer-button') && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        // Initialize on load
+        initializeApp();
+    </script>
+</body>
+</html>
