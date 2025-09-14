@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -44,15 +44,42 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .data-management {
+        .header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        /* 데이터 관리 도구바 */
+        .data-toolbar {
             background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
             margin-bottom: 20px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
+            font-size: 0.9rem;
+        }
+
+        .data-toolbar button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .data-toolbar button:hover {
+            transform: translateY(-1px);
+        }
+
+        .data-toolbar .secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
         }
 
         .navigation {
@@ -110,26 +137,35 @@
             padding-bottom: 10px;
         }
 
-        .record-interface {
+        .card-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
             margin-bottom: 30px;
         }
 
-        .record-form {
-            background: #f8f9fa;
+        .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             padding: 25px;
             border-radius: 15px;
-            border-left: 5px solid #667eea;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
 
-        .record-history {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            max-height: 600px;
-            overflow-y: auto;
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
         }
 
         .form-group {
@@ -158,23 +194,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .tag-input {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .tag {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin: 2px;
-        }
-
         .btn {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
@@ -197,153 +216,136 @@
             background: linear-gradient(45deg, #95a5a6, #7f8c8d);
         }
 
-        .btn-small {
-            padding: 6px 15px;
-            font-size: 0.8rem;
-        }
-
-        .record-item {
-            background: white;
-            border: 1px solid #e1e8ed;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .record-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .record-type {
-            background: #667eea;
-            color: white;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-
-        .record-date {
-            color: #7f8c8d;
-            font-size: 0.8rem;
-        }
-
-        .record-content {
-            margin: 10px 0;
-            line-height: 1.5;
-        }
-
-        .record-tags {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .search-filter {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .search-input {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filter-select {
-            min-width: 150px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .timeline {
-            position: relative;
-            margin: 30px 0;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background: #667eea;
-        }
-
-        .timeline-item {
-            position: relative;
-            margin: 20px 0;
-            padding: 0 20px;
-        }
-
-        .timeline-item:nth-child(odd) {
-            text-align: right;
-            padding-right: 50%;
-        }
-
-        .timeline-item:nth-child(even) {
-            text-align: left;
-            padding-left: 50%;
-        }
-
-        .timeline-dot {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #667eea;
-        }
-
-        .insight-card {
+        .analysis-result {
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            padding: 20px;
+            padding: 25px;
             border-radius: 15px;
-            margin: 15px 0;
+            margin-top: 20px;
             border-left: 5px solid #667eea;
         }
 
-        .connection-map {
+        .reflection-prompt {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e1e8ed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            font-weight: bold;
+            color: #7f8c8d;
+            position: relative;
+        }
+
+        .step.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .step.completed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e1e8ed;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            margin-top: 20px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .checklist {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
             margin: 20px 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+
+        .template-box {
+            background: #f1f2f6;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .template-box:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
         }
 
         .alert {
@@ -370,22 +372,117 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        .hidden {
-            display: none !important;
+        .saved-data {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 3px solid #667eea;
         }
 
-        @media (max-width: 768px) {
-            .record-interface {
-                grid-template-columns: 1fr;
-            }
-            
-            .search-filter {
-                flex-direction: column;
-            }
-            
-            .search-input, .filter-select {
-                width: 100%;
-            }
+        /* 개선된 저장된 데이터 표시 */
+        .saved-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .saved-item {
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .saved-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .saved-item-date {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
+        .saved-item-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        td input, td textarea {
+            width: 100%;
+            border: none;
+            padding: 5px;
+            background: transparent;
+        }
+
+        td textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .quote {
+            font-style: italic;
+            color: #7f8c8d;
+            text-align: center;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            margin: 20px 0;
+        }
+
+        /* 검색 및 필터링 */
+        .search-box {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .filter-hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -393,617 +490,1066 @@
     <div class="container">
         <div class="header">
             <h1>나만의 수업 연구실</h1>
-            <p>체계적인 셀프스터디를 통한 교사 전문성 개발 플랫폼</p>
+            <p>아나스타샤 사마라스의 셀프스터디 방법론 기반 개인 맞춤형 수업 개선 플랫폼</p>
+            <div class="quote">
+                "모든 교사는 자기 교실의 최고 전문가가 될 잠재력을 지니고 있다"
+            </div>
         </div>
 
         <!-- 데이터 관리 도구바 -->
-        <div class="data-management">
-            <button class="btn btn-small" onclick="exportData()">📥 데이터 다운로드</button>
+        <div class="data-toolbar">
+            <button onclick="exportData()">📥 데이터 다운로드</button>
             <input type="file" id="importFile" accept=".json" onchange="importData()" style="display: none;">
-            <button class="btn btn-small btn-secondary" onclick="document.getElementById('importFile').click()">📤 데이터 불러오기</button>
-            <button class="btn btn-small btn-secondary" onclick="clearAllData()">🗑️ 데이터 초기화</button>
+            <button class="secondary" onclick="document.getElementById('importFile').click()">📤 데이터 불러오기</button>
+            <button class="secondary" onclick="clearAllData()">🗑️ 초기화</button>
             <div style="flex: 1;"></div>
-            <span id="dataStatus">데이터 상태: 준비됨</span>
+            <span id="dataStatus">자동저장: 활성화</span>
         </div>
 
         <div class="navigation">
-            <button class="nav-btn active" onclick="showSection('record')">기록하기</button>
-            <button class="nav-btn" onclick="showSection('analyze')">분석하기</button>
-            <button class="nav-btn" onclick="showSection('insight')">통찰 도출</button>
+            <button class="nav-btn active" onclick="showSection('intro')">시작하기</button>
+            <button class="nav-btn" onclick="showSection('planning')">연구 설계</button>
+            <button class="nav-btn" onclick="showSection('data')">자료 수집</button>
+            <button class="nav-btn" onclick="showSection('analysis')">분석 도구</button>
             <button class="nav-btn" onclick="showSection('portfolio')">성장 포트폴리오</button>
+            <button class="nav-btn" onclick="showSection('guide')">가이드</button>
         </div>
 
-        <!-- 기록하기 섹션 -->
-        <div class="content-section active" id="record">
-            <h2 class="section-title">수업 기록 및 성찰</h2>
+        <!-- 시작하기 섹션 -->
+        <div class="content-section active" id="intro">
+            <h2 class="section-title">셀프스터디란 무엇인가요?</h2>
             
-            <div class="record-interface">
-                <div class="record-form">
-                    <h3>새로운 기록 작성</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🔍 연구자로서의 교사</h3>
+                    <p>외부 전문가의 평가에 의존하는 것이 아니라, 스스로 연구의 주체가 되어 자신의 실천 속에 담긴 지식과 신념을 탐구하는 과정입니다.</p>
+                </div>
+                
+                <div class="card">
+                    <h3>📊 증거 기반 성찰</h3>
+                    <p>단순한 수업 후기를 넘어, 체계적으로 수집된 데이터를 바탕으로 자신의 수업을 객관적으로 분석합니다.</p>
+                </div>
+                
+                <div class="card">
+                    <h3>🎯 전문성 개발</h3>
+                    <p>수업의 문제점 개선을 넘어, 교사의 실질적인 수업 능력 향상과 전문성 개발을 목표로 합니다.</p>
+                </div>
+            </div>
+
+            <div class="reflection-prompt">
+                <h4>시작 전 성찰 질문</h4>
+                <ul>
+                    <li>수업과 관련하여 최근 가장 신경 쓰고 있는 부분은 무엇인가요?</li>
+                    <li>학생들이 어떤 부분에서 가장 어려움을 겪고 있나요?</li>
+                    <li>나의 수업에서 꼭 개선하고 싶은 한 가지는 무엇인가요?</li>
+                </ul>
+            </div>
+
+            <div class="step-indicator">
+                <div class="step active">1</div>
+                <div class="step">2</div>
+                <div class="step">3</div>
+                <div class="step">4</div>
+                <div class="step">5</div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="showSection('planning')">연구 설계 시작하기</button>
+            </div>
+        </div>
+
+        <!-- 연구 설계 섹션 -->
+        <div class="content-section" id="planning">
+            <h2 class="section-title">연구 프로젝트 설계</h2>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 20%;"></div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showPlanningTab('question')">연구 질문</div>
+                <div class="tab" onclick="showPlanningTab('plan')">연구 계획서</div>
+                <div class="tab" onclick="showPlanningTab('ethics')">연구 윤리</div>
+            </div>
+
+            <div class="tab-content">
+                <div id="question-tab" class="tab-panel active">
+                    <h3>좋은 연구 질문 만들기</h3>
                     
                     <div class="form-group">
-                        <label>기록 유형</label>
-                        <select id="recordType">
-                            <option value="reflection">수업 성찰</option>
-                            <option value="observation">수업 관찰</option>
-                            <option value="student_work">학생 결과물 분석</option>
-                            <option value="experiment">수업 실험</option>
-                            <option value="question">탐구 질문</option>
-                            <option value="insight">깨달음/통찰</option>
-                        </select>
+                        <label>1단계: 현재 고민 적어보기</label>
+                        <textarea id="current-concern" rows="3" placeholder="예: 요즘 내 수업이 전반적으로 지루한 것 같아..."></textarea>
+                    </div>
+
+                    <div class="reflection-prompt">
+                        <strong>질문 개선 가이드:</strong>
+                        <ul>
+                            <li><strong>탐구 가능성:</strong> 데이터를 통해 답을 찾을 수 있는가?</li>
+                            <li><strong>명확성:</strong> 연구 범위가 명확히 한정되어 있는가?</li>
+                            <li><strong>통제 가능성:</strong> 내 노력으로 변화를 시도할 수 있는가?</li>
+                            <li><strong>개인적 의미:</strong> 나에게 중요하고 열정을 불러일으키는가?</li>
+                        </ul>
                     </div>
 
                     <div class="form-group">
-                        <label>제목</label>
-                        <input type="text" id="recordTitle" placeholder="기록의 핵심을 담은 제목">
+                        <label>2단계: 구체화된 연구 질문</label>
+                        <textarea id="research-question" rows="3" placeholder="예: 온라인 협업 도구를 활용한 모둠 토의 활동에서 일부 학생의 참여가 저조한 문제를 어떻게 해결할 수 있는가?"></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label>내용</label>
-                        <textarea id="recordContent" rows="6" placeholder="구체적이고 솔직한 기록을 작성하세요"></textarea>
-                    </div>
+                    <button class="btn" onclick="validateQuestion()">연구 질문 검증하기</button>
+                    <div id="question-feedback"></div>
 
-                    <div class="form-group">
-                        <label>태그 (쉼표로 구분)</label>
-                        <input type="text" id="recordTags" placeholder="예: 발문, 참여도, 수학, 소수">
+                    <!-- 저장된 연구 질문들 표시 -->
+                    <div class="saved-data">
+                        <h4>저장된 연구 질문들</h4>
+                        <div id="saved-questions" class="saved-items"></div>
                     </div>
-
-                    <div class="form-group">
-                        <label>관련 기록 연결</label>
-                        <select id="relatedRecord" multiple style="height: 80px;">
-                            <!-- 기존 기록들이 여기 표시됩니다 -->
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>중요도</label>
-                        <select id="recordImportance">
-                            <option value="low">낮음</option>
-                            <option value="medium" selected>보통</option>
-                            <option value="high">높음</option>
-                            <option value="critical">매우 중요</option>
-                        </select>
-                    </div>
-
-                    <button class="btn" onclick="saveRecord()">기록 저장</button>
-                    <div id="saveStatus"></div>
                 </div>
 
-                <div class="record-history">
-                    <h3>최근 기록</h3>
+                <div id="plan-tab" class="tab-panel">
+                    <h3>연구 계획서 작성</h3>
                     
-                    <div class="search-filter">
-                        <input type="text" id="searchInput" class="search-input" placeholder="기록 검색..." onkeyup="filterRecords()">
-                        <select id="typeFilter" class="filter-select" onchange="filterRecords()">
-                            <option value="">모든 유형</option>
-                            <option value="reflection">수업 성찰</option>
-                            <option value="observation">수업 관찰</option>
-                            <option value="student_work">학생 결과물 분석</option>
-                            <option value="experiment">수업 실험</option>
-                            <option value="question">탐구 질문</option>
-                            <option value="insight">깨달음/통찰</option>
-                        </select>
-                        <select id="sortOrder" class="filter-select" onchange="filterRecords()">
-                            <option value="newest">최신순</option>
-                            <option value="oldest">오래된순</option>
-                            <option value="importance">중요도순</option>
-                        </select>
+                    <div class="template-box" onclick="fillTemplate()">
+                        <h4>📋 연구 계획서 템플릿 사용하기</h4>
+                        <p>클릭하여 기본 템플릿을 불러오세요</p>
                     </div>
 
-                    <div id="recordList">
-                        <!-- 기록들이 여기 표시됩니다 -->
+                    <div class="form-group">
+                        <label>연구 주제</label>
+                        <input type="text" id="research-topic" placeholder="예: 상호작용적 피드백을 통한 학생의 서술형 답안 개선">
                     </div>
+
+                    <div class="form-group">
+                        <label>연구 목표</label>
+                        <textarea id="research-goal" rows="3" placeholder="예: 동료 피드백 활동 후, 학생들이 작성한 서술형 답안에서 '주장-근거-상술'의 논리 구조를 갖춘 비율을 50% 이상으로 높인다."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>성공 지표</label>
+                        <textarea id="success-criteria" rows="4" placeholder="1. 사전/사후 평가 답안의 루브릭 점수 평균 변화
+2. 피드백 활동에 대한 학생들의 설문조사 결과
+3. 수업 성찰 일지에 기록된 학생들의 참여도 변화"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>연구 기간</label>
+                        <input type="text" id="research-period" placeholder="예: 4월 한 달간, 매주 수요일 3교시 국어 수업">
+                    </div>
+
+                    <button class="btn" onclick="savePlan()">계획서 저장</button>
+                    <div id="plan-saved"></div>
+
+                    <!-- 저장된 계획서들 표시 -->
+                    <div class="saved-data">
+                        <h4>저장된 연구 계획서들</h4>
+                        <div id="saved-plans" class="saved-items"></div>
+                    </div>
+                </div>
+
+                <div id="ethics-tab" class="tab-panel">
+                    <h3>연구 윤리 체크리스트</h3>
+                    
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="privacy">
+                            <label for="privacy">학생들의 개인정보를 익명으로 처리하겠습니다</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="purpose">
+                            <label for="purpose">수집된 자료는 수업 개선 목적으로만 사용하겠습니다</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="evaluation">
+                            <label for="evaluation">연구 결과를 학생 평가에 직접 반영하지 않겠습니다</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="self-care">
+                            <label for="self-care">자기 성찰 과정에서 과도한 자책을 피하겠습니다</label>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="checkEthics()">윤리 체크리스트 확인</button>
+                    <div id="ethics-result"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 분석하기 섹션 -->
-        <div class="content-section" id="analyze">
-            <h2 class="section-title">데이터 분석 및 패턴 발견</h2>
+        <!-- 자료 수집 섹션 -->
+        <div class="content-section" id="data">
+            <h2 class="section-title">수업의 증거 수집</h2>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalRecords">0</div>
-                    <div class="stat-label">총 기록 수</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>📝 수업 성찰 일지</h3>
+                    <p><strong>나의 의도</strong>를 기록합니다</p>
+                    <div class="form-group">
+                        <label>오늘의 수업 성찰</label>
+                        <textarea id="reflection-log" rows="4" placeholder="수업 전 의도 → 실제 진행 → 수업 후 성찰"></textarea>
+                    </div>
+                    <button class="btn btn-secondary" onclick="saveReflection()">저장</button>
+                    <div id="reflection-saved"></div>
+
+                    <!-- 저장된 성찰들 표시 -->
+                    <div class="saved-data">
+                        <div class="search-box">
+                            <input type="text" id="reflection-search" placeholder="성찰 일지 검색..." onkeyup="searchReflections()">
+                        </div>
+                        <div id="saved-reflections" class="saved-items"></div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="thisWeekRecords">0</div>
-                    <div class="stat-label">이번 주 기록</div>
+
+                <div class="card">
+                    <h3>📊 학생 결과물 분석</h3>
+                    <p><strong>학습의 영향</strong>을 확인합니다</p>
+                    <div class="form-group">
+                        <label>분석 결과 기록</label>
+                        <textarea id="student-work" rows="4" placeholder="양적 분석: 정답률, 오답 유형
+질적 분석: 사고 과정, 창의성"></textarea>
+                    </div>
+                    <button class="btn btn-secondary" onclick="saveAnalysis()">저장</button>
+                    <div id="analysis-saved"></div>
+
+                    <!-- 저장된 분석들 표시 -->
+                    <div class="saved-data">
+                        <div class="search-box">
+                            <input type="text" id="analysis-search" placeholder="분석 결과 검색..." onkeyup="searchAnalyses()">
+                        </div>
+                        <div id="saved-analyses" class="saved-items"></div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="topTag">-</div>
-                    <div class="stat-label">가장 많은 태그</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="avgWeekly">0</div>
-                    <div class="stat-label">주평균 기록</div>
+
+                <div class="card">
+                    <h3>🎥 수업 관찰 기록</h3>
+                    <p><strong>실제 모습</strong>을 포착합니다</p>
+                    <div class="form-group">
+                        <label>관찰 포인트</label>
+                        <select id="observation-focus">
+                            <option>발문 유형 (개방형/폐쇄형)</option>
+                            <option>학생 질문에 대한 반응</option>
+                            <option>특정 학생과의 상호작용 시간</option>
+                            <option>제스처와 목소리 톤의 영향</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>관찰 메모</label>
+                        <textarea id="observation-notes" rows="3" placeholder="관찰한 내용을 기록하세요"></textarea>
+                    </div>
+                    <button class="btn btn-secondary" onclick="saveObservation()">기록 저장</button>
+                    <div id="observation-saved"></div>
+
+                    <!-- 저장된 관찰들 표시 -->
+                    <div class="saved-data">
+                        <div class="search-box">
+                            <input type="text" id="observation-search" placeholder="관찰 기록 검색..." onkeyup="searchObservations()">
+                        </div>
+                        <div id="saved-observations" class="saved-items"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="timeline" id="timeline">
-                <!-- 타임라인이 여기 표시됩니다 -->
+            <div class="reflection-prompt">
+                <h4>자료 수집 가이드</h4>
+                <p><strong>삼각측량 원리:</strong> 서로 다른 세 가지 관점에서 수업을 조망하세요</p>
+                <ul>
+                    <li><strong>의도(Intention):</strong> 내가 계획한 것</li>
+                    <li><strong>실행(Reality):</strong> 실제로 일어난 것</li>
+                    <li><strong>영향(Impact):</strong> 학생에게 미친 결과</li>
+                </ul>
             </div>
-
-            <div class="insight-card">
-                <h4>📊 자동 패턴 분석 결과</h4>
-                <div id="patternAnalysis">
-                    데이터를 분석하여 패턴을 찾아드리겠습니다.
-                </div>
-            </div>
-
-            <button class="btn" onclick="analyzePatterns()">패턴 분석 실행</button>
         </div>
 
-        <!-- 통찰 도출 섹션 -->
-        <div class="content-section" id="insight">
-            <h2 class="section-title">통찰 도출 및 연결</h2>
+        <!-- 분석 도구 섹션 -->
+        <div class="content-section" id="analysis">
+            <h2 class="section-title">데이터 속에서 의미 찾기</h2>
             
-            <div class="connection-map">
-                <h3>기록 간 연결 관계</h3>
-                <div id="connectionVisualization">
-                    <!-- 연결 관계 시각화 -->
-                </div>
-                <button class="btn" onclick="generateConnections()">연결 관계 분석</button>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 80%;"></div>
             </div>
 
-            <div class="insight-card">
-                <h4>🔍 AI 기반 통찰 제안</h4>
-                <div id="aiInsights">
-                    기록을 바탕으로 의미 있는 통찰을 제안해드리겠습니다.
+            <div class="tabs">
+                <div class="tab active" onclick="showAnalysisTab('triangulation')">삼각측량 분석</div>
+                <div class="tab" onclick="showAnalysisTab('reflection')">구조화된 성찰</div>
+                <div class="tab" onclick="showAnalysisTab('coding')">코딩 분석</div>
+            </div>
+
+            <div class="tab-content">
+                <div id="triangulation-tab" class="tab-panel active">
+                    <h3>데이터 삼각측량 분석 매트릭스</h3>
+                    
+                    <div style="overflow-x: auto;">
+                        <table id="triangulation-table">
+                            <thead>
+                                <tr>
+                                    <th>수업 장면/사건</th>
+                                    <th>나의 의도</th>
+                                    <th>실제 실행</th>
+                                    <th>학생에게 미친 영향</th>
+                                    <th>불일치 지점</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" placeholder="예: 핵심 개념 '변수' 설명"></td>
+                                    <td><textarea rows="2" placeholder="의도한 바"></textarea></td>
+                                    <td><textarea rows="2" placeholder="실제 진행된 모습"></textarea></td>
+                                    <td><textarea rows="2" placeholder="학생들의 반응/결과"></textarea></td>
+                                    <td><textarea rows="2" placeholder="발견된 간극과 통찰"></textarea></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <button class="btn" onclick="addTriangulationRow()">행 추가</button>
+                    <button class="btn" onclick="analyzeTriangulation()">분석 결과 생성</button>
+                    <button class="btn btn-secondary" onclick="saveTriangulation()">분석 저장</button>
+                    
+                    <div id="triangulation-result"></div>
+
+                    <!-- 저장된 삼각측량 분석들 표시 -->
+                    <div class="saved-data">
+                        <h4>저장된 삼각측량 분석들</h4>
+                        <div id="saved-triangulations" class="saved-items"></div>
+                    </div>
                 </div>
-                <button class="btn" onclick="generateInsights()">통찰 생성</button>
+
+                <div id="reflection-tab" class="tab-panel">
+                    <h3>3단계 구조화된 성찰</h3>
+                    
+                    <div class="card">
+                        <h4>1단계: 묘사 (What?)</h4>
+                        <div class="reflection-prompt">
+                            <ul>
+                                <li>수업에서 구체적으로 어떤 일이 있었는가?</li>
+                                <li>학생들은 어떤 말과 행동을 보였는가?</li>
+                                <li>나는 어떻게 반응했는가?</li>
+                            </ul>
+                        </div>
+                        <textarea id="step1-description" rows="4" placeholder="가치 판단 없이 사실만 기록하세요"></textarea>
+                    </div>
+
+                    <div class="card">
+                        <h4>2단계: 해석 (Why?)</h4>
+                        <div class="reflection-prompt">
+                            <ul>
+                                <li>나는 왜 그 순간에 그런 발문을 던졌을까?</li>
+                                <li>학생들의 그러한 반응이 의미하는 것은 무엇인가?</li>
+                                <li>그 행동의 기저에 깔린 나의 교육적 신념은 무엇인가?</li>
+                            </ul>
+                        </div>
+                        <textarea id="step2-interpretation" rows="4" placeholder="행동의 의도와 의미를 파악해보세요"></textarea>
+                    </div>
+
+                    <div class="card">
+                        <h4>3단계: 평가 및 대안 (So what? Now what?)</h4>
+                        <div class="reflection-prompt">
+                            <ul>
+                                <li>나의 의도는 학생들에게 효과적으로 전달되었는가?</li>
+                                <li>수업 목표는 충분히 달성되었는가?</li>
+                                <li>다음 수업에서는 무엇을 다르게 시도해볼 것인가?</li>
+                            </ul>
+                        </div>
+                        <textarea id="step3-evaluation" rows="4" placeholder="효과성을 판단하고 구체적인 개선 방안을 모색하세요"></textarea>
+                    </div>
+                    
+                    <button class="btn" onclick="generateReflectionSummary()">성찰 종합 분석</button>
+                    <button class="btn btn-secondary" onclick="saveStructuredReflection()">구조화된 성찰 저장</button>
+                    <div id="reflection-summary"></div>
+
+                    <!-- 저장된 구조화된 성찰들 표시 -->
+                    <div class="saved-data">
+                        <h4>저장된 구조화된 성찰들</h4>
+                        <div id="saved-structured-reflections" class="saved-items"></div>
+                    </div>
+                </div>
+
+                <div id="coding-tab" class="tab-panel">
+                    <h3>코딩 분석 도구</h3>
+                    
+                    <div class="card">
+                        <h4>데이터 코딩하기</h4>
+                        <div class="form-group">
+                            <label>분석할 텍스트 입력</label>
+                            <textarea id="coding-text" rows="5" placeholder="학생들의 발언, 성찰 일지 내용 등을 입력하세요"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>코드 카테고리 설정</label>
+                            <input type="text" id="code-categories" placeholder="예: 개념 질문, 절차 질문, 경험 공유, 친구 의견 반박">
+                        </div>
+                        
+                        <button class="btn" onclick="startCoding()">코딩 시작</button>
+                        <button class="btn btn-secondary" onclick="saveCoding()">코딩 결과 저장</button>
+                    </div>
+                    
+                    <div id="coding-results"></div>
+
+                    <!-- 저장된 코딩 분석들 표시 -->
+                    <div class="saved-data">
+                        <h4>저장된 코딩 분석들</h4>
+                        <div id="saved-codings" class="saved-items"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- 성장 포트폴리오 섹션 -->
         <div class="content-section" id="portfolio">
-            <h2 class="section-title">성장 여정 포트폴리오</h2>
+            <h2 class="section-title">나의 성장 포트폴리오</h2>
             
-            <div class="insight-card">
-                <h4>📈 성장 지표</h4>
-                <div id="growthMetrics">
-                    <!-- 성장 지표 시각화 -->
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%;"></div>
+            </div>
+
+            <!-- 통계 대시보드 -->
+            <div class="card-grid">
+                <div class="card">
+                    <h3>📊 나의 셀프스터디 현황</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; text-align: center;">
+                        <div>
+                            <div style="font-size: 2rem; font-weight: bold; color: #667eea;" id="total-reflections">0</div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">성찰 기록</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: bold; color: #667eea;" id="total-analyses">0</div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">분석 결과</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: bold; color: #667eea;" id="total-observations">0</div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">관찰 기록</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: bold; color: #667eea;" id="total-plans">0</div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">연구 계획</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="insight-card">
-                <h4>📝 핵심 성찰 모음</h4>
-                <div id="keyReflections">
-                    <!-- 중요한 성찰들 -->
+            <div class="card">
+                <h3>📚 티칭 포트폴리오 구성</h3>
+                
+                <div class="form-group">
+                    <label>서문: 나의 교육 철학과 연구의 시작</label>
+                    <textarea id="portfolio-intro" rows="4" placeholder="교사로서 추구하는 가치와 신념, 셀프스터디를 시작하게 된 계기를 작성하세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>1부: 문제 제기와 탐구 계획</label>
+                    <textarea id="portfolio-problem" rows="4" placeholder="연구 질문과 그 중요성, 수립한 계획과 절차를 기록하세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>2부: 탐구 과정의 증거들</label>
+                    <textarea id="portfolio-evidence" rows="4" placeholder="핵심적인 데이터 샘플, 성찰 일지 발췌, 학생 결과물 변화 등을 정리하세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>3부: 성찰을 통한 발견</label>
+                    <textarea id="portfolio-discovery" rows="4" placeholder="데이터 분석을 통해 얻은 핵심 통찰, 기존 가정의 변화를 기록하세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>4부: 실천을 통한 변화와 성장</label>
+                    <textarea id="portfolio-growth" rows="4" placeholder="개선된 수업 사례, 성공과 실패를 통한 배움을 기록하세요"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>결론: 성찰의 마침표와 새로운 시작</label>
+                    <textarea id="portfolio-conclusion" rows="4" placeholder="가장 큰 배움과 성장, 향후 탐구 과제를 작성하세요"></textarea>
+                </div>
+
+                <button class="btn" onclick="savePortfolio()">포트폴리오 저장</button>
+                <button class="btn btn-secondary" onclick="generatePortfolioReport()">자동 리포트 생성</button>
+                
+                <div id="portfolio-saved"></div>
+            </div>
+
+            <!-- 저장된 포트폴리오들 표시 -->
+            <div class="saved-data">
+                <h4>저장된 포트폴리오들</h4>
+                <div id="saved-portfolios" class="saved-items"></div>
+            </div>
+        </div>
+
+        <!-- 가이드 섹션 -->
+        <div class="content-section" id="guide">
+            <h2 class="section-title">셀프스터디 실천 가이드</h2>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🎯 핵심 원리</h3>
+                    <h4>내적 비평 동료 만들기</h4>
+                    <p>혼자 연구할 때는 다양한 관점을 내면화하는 것이 중요합니다:</p>
+                    <ul>
+                        <li>"비판적인 동료가 이 자료를 본다면?"</li>
+                        <li>"흥미 없는 학생의 입장에서는?"</li>
+                        <li>"학부모가 궁금해할 점은?"</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>📝 실천 전략</h3>
+                    <h4>미니 셀프스터디 습관화</h4>
+                    <p>매주 작은 질문 하나씩 탐구하기:</p>
+                    <ul>
+                        <li>월요일: 질문 설정</li>
+                        <li>화-목: 관찰과 기록</li>
+                        <li>금요일: 간단한 분석과 성찰</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🔄 성장의 나선형 모델</h3>
+                    <h4>지속적인 개선 사이클</h4>
+                    <p>하나의 탐구가 다음 탐구로 이어지는 과정:</p>
+                    <ul>
+                        <li>문제 발견 → 탐구 → 해결</li>
+                        <li>새로운 질문 발견 → 심화 탐구</li>
+                        <li>점진적 전문성 향상</li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="insight-card">
-                <h4>🎯 다음 탐구 과제</h4>
-                <div id="nextQuestions">
-                    <!-- 향후 탐구할 질문들 -->
-                </div>
+            <div class="reflection-prompt">
+                <h4>셀프스터디 성공을 위한 팁</h4>
+                <ol>
+                    <li><strong>작게 시작하기:</strong> 거창한 연구보다 실천 가능한 작은 주제부터</li>
+                    <li><strong>꾸준히 기록하기:</strong> 매일 5분이라도 성찰 일지 작성</li>
+                    <li><strong>증거 중심 사고:</strong> 느낌보다 구체적인 데이터에 기반한 분석</li>
+                    <li><strong>자기 친화적 태도:</strong> 실패도 성장의 기회로 받아들이기</li>
+                    <li><strong>미래 협력 준비:</strong> 언젠가 동료와 나눌 자산 축적하기</li>
+                </ol>
             </div>
 
-            <button class="btn" onclick="generatePortfolio()">포트폴리오 생성</button>
-            <button class="btn btn-secondary" onclick="exportPortfolio()">PDF 내보내기</button>
+            <div class="quote">
+                "혼자 하는 셀프스터디는 고립이 아닌, 가장 깊이 있는 자기 대화의 시작입니다.<br>
+                이 과정을 거친 교사는 미래의 학습 공동체에서 핵심적인 전문가로 기여할 수 있습니다."
+            </div>
         </div>
     </div>
 
     <script>
         // 개선된 데이터 저장 구조
         let studyData = {
-            records: [],
-            connections: [],
-            insights: [],
+            questions: [],
+            plans: [],
+            reflections: [],
+            analyses: [],
+            observations: [],
+            triangulations: [],
+            structuredReflections: [],
+            codings: [],
+            portfolios: [],
             settings: {
                 autoSave: true,
-                reminderFrequency: 'daily'
+                saveInterval: 30000
             },
             metadata: {
                 created: new Date().toISOString(),
                 lastModified: new Date().toISOString(),
-                version: '2.0'
+                version: '2.1'
             }
         };
 
-        // 기록 유형별 아이콘
-        const recordTypeIcons = {
-            reflection: '💭',
-            observation: '👁️',
-            student_work: '📊',
-            experiment: '🧪',
-            question: '❓',
-            insight: '💡'
-        };
-
-        // 기록 유형별 한글명
-        const recordTypeNames = {
-            reflection: '수업 성찰',
-            observation: '수업 관찰',
-            student_work: '학생 결과물 분석',
-            experiment: '수업 실험',
-            question: '탐구 질문',
-            insight: '깨달음/통찰'
-        };
-
-        // 초기화
+        // 페이지 로드 시 초기화
         window.onload = function() {
-            loadSampleData();
-            updateRelatedRecordOptions();
-            displayRecords();
-            updateStats();
+            loadData();
+            updateAllDisplays();
+            startAutoSave();
         };
 
-        // 네비게이션
+        // 네비게이션 함수
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
-            document.getElementById(sectionId).classList.add('active');
+            
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.classList.add('active');
+            }
             
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
+                if (btn.textContent === getSectionName(sectionId)) {
+                    btn.classList.add('active');
+                }
             });
-            event.target.classList.add('active');
+            
+            updateProgress(sectionId);
+        }
 
-            // 섹션별 초기 작업
-            if (sectionId === 'analyze') {
-                updateStats();
-                generateTimeline();
-            } else if (sectionId === 'insight') {
-                updateConnectionVisualization();
-            } else if (sectionId === 'portfolio') {
-                updatePortfolio();
+        function getSectionName(sectionId) {
+            const names = {
+                'intro': '시작하기',
+                'planning': '연구 설계',
+                'data': '자료 수집',
+                'analysis': '분석 도구',
+                'portfolio': '성장 포트폴리오',
+                'guide': '가이드'
+            };
+            return names[sectionId] || '';
+        }
+
+        function updateProgress(sectionId) {
+            const steps = document.querySelectorAll('.step');
+            const progressMap = {
+                'intro': 0,
+                'planning': 1,
+                'data': 2,
+                'analysis': 3,
+                'portfolio': 4
+            };
+            
+            const currentStep = progressMap[sectionId];
+            if (currentStep !== undefined) {
+                steps.forEach((step, index) => {
+                    step.classList.remove('active', 'completed');
+                    if (index < currentStep) {
+                        step.classList.add('completed');
+                    } else if (index === currentStep) {
+                        step.classList.add('active');
+                    }
+                });
             }
         }
 
-        // 새 기록 저장
-        function saveRecord() {
-            const record = {
-                id: Date.now().toString(),
-                type: document.getElementById('recordType').value,
-                title: document.getElementById('recordTitle').value,
-                content: document.getElementById('recordContent').value,
-                tags: document.getElementById('recordTags').value.split(',').map(tag => tag.trim()).filter(tag => tag),
-                relatedRecords: Array.from(document.getElementById('relatedRecord').selectedOptions).map(option => option.value),
-                importance: document.getElementById('recordImportance').value,
-                timestamp: new Date().toISOString(),
-                lastModified: new Date().toISOString()
-            };
+        // 탭 전환 함수들
+        function showPlanningTab(tabName) {
+            const tabs = document.querySelectorAll('#planning .tab');
+            const panels = document.querySelectorAll('#planning .tab-panel');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            panels.forEach(panel => panel.classList.remove('active'));
+            
+            const activeTab = Array.from(tabs).find(tab => tab.textContent.includes(getTabText(tabName)));
+            const activePanel = document.getElementById(`${tabName}-tab`);
+            
+            if (activeTab) activeTab.classList.add('active');
+            if (activePanel) activePanel.classList.add('active');
+        }
 
-            if (!record.title || !record.content) {
-                showAlert('제목과 내용을 모두 입력해주세요.', 'info');
+        function showAnalysisTab(tabName) {
+            const tabs = document.querySelectorAll('#analysis .tab');
+            const panels = document.querySelectorAll('#analysis .tab-panel');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            panels.forEach(panel => panel.classList.remove('active'));
+            
+            const activeTab = Array.from(tabs).find(tab => tab.textContent.toLowerCase().includes(tabName.toLowerCase()));
+            const activePanel = document.getElementById(`${tabName}-tab`);
+            
+            if (activeTab) activeTab.classList.add('active');
+            if (activePanel) activePanel.classList.add('active');
+        }
+
+        function getTabText(tabName) {
+            const texts = {
+                'question': '연구 질문',
+                'plan': '연구 계획서',
+                'ethics': '연구 윤리'
+            };
+            return texts[tabName] || '';
+        }
+
+        // ========== 연구 설계 관련 함수들 ==========
+        
+        function validateQuestion() {
+            const question = document.getElementById('research-question').value;
+            const feedback = document.getElementById('question-feedback');
+            
+            if (!question) {
+                feedback.innerHTML = '<div class="alert alert-info">연구 질문을 입력해주세요.</div>';
                 return;
             }
-
-            studyData.records.push(record);
-            studyData.metadata.lastModified = new Date().toISOString();
-
-            // 연결 관계 자동 생성
-            if (record.relatedRecords.length > 0) {
-                record.relatedRecords.forEach(relatedId => {
-                    studyData.connections.push({
-                        from: record.id,
-                        to: relatedId,
-                        type: 'manual',
-                        strength: 1.0,
-                        created: new Date().toISOString()
-                    });
-                });
-            }
-
-            // 폼 초기화
-            document.getElementById('recordTitle').value = '';
-            document.getElementById('recordContent').value = '';
-            document.getElementById('recordTags').value = '';
-            document.getElementById('relatedRecord').selectedIndex = -1;
-            document.getElementById('recordImportance').value = 'medium';
-
-            updateRelatedRecordOptions();
-            displayRecords();
-            updateStats();
-            showAlert('기록이 저장되었습니다!', 'success');
-        }
-
-        // 기록 목록 표시
-        function displayRecords() {
-            const recordList = document.getElementById('recordList');
-            let filteredRecords = [...studyData.records];
-
-            // 정렬
-            const sortOrder = document.getElementById('sortOrder').value;
-            filteredRecords.sort((a, b) => {
-                if (sortOrder === 'newest') {
-                    return new Date(b.timestamp) - new Date(a.timestamp);
-                } else if (sortOrder === 'oldest') {
-                    return new Date(a.timestamp) - new Date(b.timestamp);
-                } else if (sortOrder === 'importance') {
-                    const importanceOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-                    return importanceOrder[b.importance] - importanceOrder[a.importance];
-                }
-                return 0;
-            });
-
-            recordList.innerHTML = filteredRecords.map(record => `
-                <div class="record-item" data-id="${record.id}">
-                    <div class="record-header">
-                        <span class="record-type">${recordTypeIcons[record.type]} ${recordTypeNames[record.type]}</span>
-                        <span class="record-date">${new Date(record.timestamp).toLocaleDateString('ko-KR')}</span>
-                    </div>
-                    <h4>${record.title}</h4>
-                    <div class="record-content">${record.content.substring(0, 150)}${record.content.length > 150 ? '...' : ''}</div>
-                    <div class="record-tags">
-                        ${record.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <button class="btn btn-small" onclick="editRecord('${record.id}')">수정</button>
-                        <button class="btn btn-small btn-secondary" onclick="deleteRecord('${record.id}')">삭제</button>
-                        <span style="margin-left: 10px; font-size: 0.8rem; color: #7f8c8d;">중요도: ${getImportanceText(record.importance)}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 중요도 텍스트 변환
-        function getImportanceText(importance) {
-            const texts = { low: '낮음', medium: '보통', high: '높음', critical: '매우 중요' };
-            return texts[importance] || '보통';
-        }
-
-        // 기록 필터링
-        function filterRecords() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const typeFilter = document.getElementById('typeFilter').value;
-
-            document.querySelectorAll('.record-item').forEach(item => {
-                const title = item.querySelector('h4').textContent.toLowerCase();
-                const content = item.querySelector('.record-content').textContent.toLowerCase();
-                const type = item.dataset.id;
-                const record = studyData.records.find(r => r.id === type);
-
-                const matchesSearch = !searchTerm || title.includes(searchTerm) || content.includes(searchTerm) || 
-                                    record.tags.some(tag => tag.toLowerCase().includes(searchTerm));
-                const matchesType = !typeFilter || record.type === typeFilter;
-
-                item.style.display = matchesSearch && matchesType ? 'block' : 'none';
-            });
-        }
-
-        // 관련 기록 옵션 업데이트
-        function updateRelatedRecordOptions() {
-            const select = document.getElementById('relatedRecord');
-            select.innerHTML = studyData.records.map(record => 
-                `<option value="${record.id}">${recordTypeIcons[record.type]} ${record.title}</option>`
-            ).join('');
-        }
-
-        // 통계 업데이트
-        function updateStats() {
-            document.getElementById('totalRecords').textContent = studyData.records.length;
             
-            const now = new Date();
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            const thisWeekRecords = studyData.records.filter(record => 
-                new Date(record.timestamp) >= weekAgo
-            );
-            document.getElementById('thisWeekRecords').textContent = thisWeekRecords.length;
-
-            // 가장 많이 사용된 태그
-            const tagCounts = {};
-            studyData.records.forEach(record => {
-                record.tags.forEach(tag => {
-                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-                });
-            });
-            const topTag = Object.entries(tagCounts).sort((a, b) => b[1] - a[1])[0];
-            document.getElementById('topTag').textContent = topTag ? `#${topTag[0]}` : '-';
-
-            // 주평균 기록 수
-            const firstRecord = studyData.records[0];
-            if (firstRecord) {
-                const daysSinceFirst = (now - new Date(firstRecord.timestamp)) / (1000 * 60 * 60 * 24);
-                const weeksSinceFirst = Math.max(1, Math.ceil(daysSinceFirst / 7));
-                const avgWeekly = Math.round(studyData.records.length / weeksSinceFirst * 10) / 10;
-                document.getElementById('avgWeekly').textContent = avgWeekly;
-            }
-        }
-
-        // 타임라인 생성
-        function generateTimeline() {
-            const timeline = document.getElementById('timeline');
-            const sortedRecords = [...studyData.records]
-                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-                .slice(-10); // 최근 10개만
-
-            timeline.innerHTML = sortedRecords.map((record, index) => `
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="insight-card">
-                        <h4>${recordTypeIcons[record.type]} ${record.title}</h4>
-                        <p>${record.content.substring(0, 100)}...</p>
-                        <small>${new Date(record.timestamp).toLocaleDateString('ko-KR')}</small>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 패턴 분석
-        function analyzePatterns() {
-            const analysis = document.getElementById('patternAnalysis');
+            const criteria = {
+                answerable: question.includes('어떻게') || question.includes('무엇') || question.includes('왜'),
+                specific: question.length > 20 && question.length < 200,
+                meaningful: question.includes('학생') || question.includes('수업') || question.includes('학습')
+            };
             
-            // 간단한 패턴 분석 예시
-            const patterns = [];
+            let score = Object.values(criteria).filter(v => v).length;
+            let message = '';
             
-            // 시간대별 분석
-            const hourCounts = {};
-            studyData.records.forEach(record => {
-                const hour = new Date(record.timestamp).getHours();
-                hourCounts[hour] = (hourCounts[hour] || 0) + 1;
-            });
-            const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
-            if (peakHour) {
-                patterns.push(`주로 ${peakHour[0]}시경에 기록을 작성하시는군요!`);
-            }
-
-            // 태그 동시 출현 분석
-            const tagPairs = {};
-            studyData.records.forEach(record => {
-                for (let i = 0; i < record.tags.length; i++) {
-                    for (let j = i + 1; j < record.tags.length; j++) {
-                        const pair = [record.tags[i], record.tags[j]].sort().join('-');
-                        tagPairs[pair] = (tagPairs[pair] || 0) + 1;
-                    }
-                }
-            });
-            const topPair = Object.entries(tagPairs).sort((a, b) => b[1] - a[1])[0];
-            if (topPair && topPair[1] > 1) {
-                patterns.push(`'${topPair[0].replace('-', '과 ')}'가 자주 함께 등장합니다.`);
-            }
-
-            // 성장 패턴 분석
-            const reflectionRecords = studyData.records.filter(r => r.type === 'reflection');
-            if (reflectionRecords.length >= 3) {
-                patterns.push(`성찰 기록이 ${reflectionRecords.length}개 누적되어 지속적인 자기 개선이 이루어지고 있습니다.`);
-            }
-
-            analysis.innerHTML = patterns.length > 0 ? 
-                `<ul>${patterns.map(p => `<li>${p}</li>`).join('')}</ul>` : 
-                '더 많은 데이터가 쌓이면 의미 있는 패턴을 찾을 수 있습니다.';
-        }
-
-        // 연결 관계 시각화
-        function updateConnectionVisualization() {
-            const viz = document.getElementById('connectionVisualization');
-            const connections = studyData.connections.length;
-            const avgConnections = connections > 0 ? Math.round(connections / studyData.records.length * 10) / 10 : 0;
-            
-            viz.innerHTML = `
-                <p>총 ${connections}개의 기록 간 연결이 발견되었습니다.</p>
-                <p>평균적으로 기록당 ${avgConnections}개의 연결이 있습니다.</p>
-                <p>이는 ${avgConnections > 1 ? '높은' : '낮은'} 수준의 기록 간 연관성을 나타냅니다.</p>
-            `;
-        }
-
-        // 연결 관계 생성
-        function generateConnections() {
-            // 태그 기반 자동 연결 생성
-            let newConnections = 0;
-            
-            for (let i = 0; i < studyData.records.length; i++) {
-                for (let j = i + 1; j < studyData.records.length; j++) {
-                    const record1 = studyData.records[i];
-                    const record2 = studyData.records[j];
-                    
-                    // 공통 태그가 2개 이상이면 연결
-                    const commonTags = record1.tags.filter(tag => record2.tags.includes(tag));
-                    if (commonTags.length >= 2) {
-                        const connectionExists = studyData.connections.some(conn => 
-                            (conn.from === record1.id && conn.to === record2.id) ||
-                            (conn.from === record2.id && conn.to === record1.id)
-                        );
-                        
-                        if (!connectionExists) {
-                            studyData.connections.push({
-                                from: record1.id,
-                                to: record2.id,
-                                type: 'auto',
-                                strength: commonTags.length / Math.max(record1.tags.length, record2.tags.length),
-                                commonTags: commonTags,
-                                created: new Date().toISOString()
-                            });
-                            newConnections++;
-                        }
-                    }
-                }
-            }
-            
-            updateConnectionVisualization();
-            showAlert(`${newConnections}개의 새로운 연결을 발견했습니다!`, 'success');
-        }
-
-        // 통찰 생성
-        function generateInsights() {
-            const insights = document.getElementById('aiInsights');
-            const generatedInsights = [];
-            
-            // 기록 유형별 분포 분석
-            const typeCounts = {};
-            studyData.records.forEach(record => {
-                typeCounts[record.type] = (typeCounts[record.type] || 0) + 1;
-            });
-            
-            const dominantType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
-            if (dominantType) {
-                generatedInsights.push(`가장 많이 기록하는 유형은 '${recordTypeNames[dominantType[0]]}'입니다. 이는 ${dominantType[0] === 'reflection' ? '내성적 성찰' : dominantType[0] === 'observation' ? '관찰 중심적 탐구' : '실험적 접근'}을 선호함을 보여줍니다.`);
-            }
-
-            // 기록 빈도 패턴
-            const recordDates = studyData.records.map(r => new Date(r.timestamp).toDateString());
-            const uniqueDates = [...new Set(recordDates)];
-            const avgRecordsPerDay = Math.round(studyData.records.length / uniqueDates.length * 10) / 10;
-            
-            if (avgRecordsPerDay > 1) {
-                generatedInsights.push(`하루 평균 ${avgRecordsPerDay}개의 기록을 작성하여 매우 활발한 성찰 활동을 하고 있습니다.`);
+            if (score === 3) {
+                message = '<div class="alert alert-success">✅ 훌륭한 연구 질문입니다! 구체적이고 탐구 가능합니다.</div>';
+                // 자동으로 저장
+                saveQuestion();
+            } else if (score === 2) {
+                message = '<div class="alert alert-info">📝 좋은 시작입니다. 조금 더 구체화하면 더 좋을 것 같습니다.</div>';
             } else {
-                generatedInsights.push(`꾸준하지만 신중한 기록 작성 패턴을 보이고 있습니다. 질적 깊이를 중시하는 것으로 보입니다.`);
+                message = '<div class="alert alert-info">💡 연구 질문을 더 명확하고 구체적으로 다듬어보세요.</div>';
             }
-
-            // 성장 지표
-            if (studyData.records.length >= 5) {
-                generatedInsights.push(`${studyData.records.length}개의 기록 축적으로 체계적인 셀프스터디가 자리잡고 있습니다. 지속적인 전문성 개발의 좋은 기반이 되고 있습니다.`);
-            }
-
-            insights.innerHTML = generatedInsights.length > 0 ? 
-                `<ul>${generatedInsights.map(insight => `<li>💡 ${insight}</li>`).join('')}</ul>` :
-                '더 많은 기록이 축적되면 개인화된 통찰을 제공해드릴 수 있습니다.';
+            
+            feedback.innerHTML = message;
         }
 
-        // 포트폴리오 업데이트
-        function updatePortfolio() {
-            // 성장 지표
-            const growthMetrics = document.getElementById('growthMetrics');
-            const totalDays = Math.ceil((Date.now() - new Date(studyData.records[0]?.timestamp || Date.now())) / (1000 * 60 * 60 * 24));
+        function saveQuestion() {
+            const question = {
+                id: Date.now().toString(),
+                concern: document.getElementById('current-concern').value,
+                question: document.getElementById('research-question').value,
+                timestamp: new Date().toISOString()
+            };
             
-            growthMetrics.innerHTML = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">${totalDays}</div>
-                        <div class="stat-label">연구 진행 일수</div>
+            if (question.question) {
+                studyData.questions.push(question);
+                updateQuestionsDisplay();
+                showAlert('연구 질문이 저장되었습니다!', 'success');
+                saveData();
+            }
+        }
+
+        function fillTemplate() {
+            document.getElementById('research-topic').value = '상호작용적 피드백을 통한 학생의 서술형 답안 개선';
+            document.getElementById('research-goal').value = '동료 피드백 활동 후, 학생들이 작성한 서술형 답안에서 주장-근거-상술의 논리 구조를 갖춘 비율을 50% 이상으로 높인다.';
+            document.getElementById('success-criteria').value = '1. 사전/사후 평가 답안의 루브릭 점수 평균 변화\n2. 피드백 활동에 대한 학생들의 설문조사 결과\n3. 수업 성찰 일지에 기록된 학생들의 참여도 변화';
+            document.getElementById('research-period').value = '4월 한 달간, 매주 수요일 3교시 국어 수업';
+        }
+
+        function savePlan() {
+            const plan = {
+                id: Date.now().toString(),
+                topic: document.getElementById('research-topic').value,
+                goal: document.getElementById('research-goal').value,
+                criteria: document.getElementById('success-criteria').value,
+                period: document.getElementById('research-period').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!plan.topic || !plan.goal) {
+                showAlert('연구 주제와 목표를 모두 입력해주세요.', 'info');
+                return;
+            }
+            
+            studyData.plans.push(plan);
+            updatePlansDisplay();
+            
+            const savedDiv = document.getElementById('plan-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 연구 계획서가 저장되었습니다!</div>';
+            setTimeout(() => savedDiv.innerHTML = '', 3000);
+            
+            saveData();
+        }
+
+        function checkEthics() {
+            const checkboxes = ['privacy', 'purpose', 'evaluation', 'self-care'];
+            const checked = checkboxes.filter(id => document.getElementById(id).checked);
+            const result = document.getElementById('ethics-result');
+            
+            if (checked.length === 4) {
+                result.innerHTML = '<div class="alert alert-success">✅ 모든 윤리 기준을 충족했습니다. 연구를 진행할 준비가 되었습니다!</div>';
+            } else {
+                result.innerHTML = `<div class="alert alert-info">📋 ${checked.length}/4 항목 체크됨. 모든 항목을 확인해주세요.</div>`;
+            }
+        }
+
+        // ========== 자료 수집 관련 함수들 ==========
+
+        function saveReflection() {
+            const reflection = {
+                id: Date.now().toString(),
+                content: document.getElementById('reflection-log').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!reflection.content) {
+                showAlert('성찰 내용을 입력해주세요.', 'info');
+                return;
+            }
+            
+            studyData.reflections.push(reflection);
+            document.getElementById('reflection-log').value = '';
+            updateReflectionsDisplay();
+            updateStats();
+            
+            showAlert('성찰 일지가 저장되었습니다!', 'success');
+            saveData();
+        }
+
+        function saveAnalysis() {
+            const analysis = {
+                id: Date.now().toString(),
+                content: document.getElementById('student-work').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!analysis.content) {
+                showAlert('분석 내용을 입력해주세요.', 'info');
+                return;
+            }
+            
+            studyData.analyses.push(analysis);
+            document.getElementById('student-work').value = '';
+            updateAnalysesDisplay();
+            updateStats();
+            
+            showAlert('분석 결과가 저장되었습니다!', 'success');
+            saveData();
+        }
+
+        function saveObservation() {
+            const observation = {
+                id: Date.now().toString(),
+                focus: document.getElementById('observation-focus').value,
+                notes: document.getElementById('observation-notes').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!observation.notes) {
+                showAlert('관찰 내용을 입력해주세요.', 'info');
+                return;
+            }
+            
+            studyData.observations.push(observation);
+            document.getElementById('observation-notes').value = '';
+            updateObservationsDisplay();
+            updateStats();
+            
+            showAlert('관찰 기록이 저장되었습니다!', 'success');
+            saveData();
+        }
+
+        // ========== 분석 도구 관련 함수들 ==========
+
+        function addTriangulationRow() {
+            const tbody = document.querySelector('#triangulation-table tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" placeholder="수업 장면/사건"></td>
+                <td><textarea rows="2" placeholder="의도한 바"></textarea></td>
+                <td><textarea rows="2" placeholder="실제 진행된 모습"></textarea></td>
+                <td><textarea rows="2" placeholder="학생들의 반응/결과"></textarea></td>
+                <td><textarea rows="2" placeholder="발견된 간극과 통찰"></textarea></td>
+            `;
+            tbody.appendChild(newRow);
+        }
+
+        function analyzeTriangulation() {
+            const rows = document.querySelectorAll('#triangulation-table tbody tr');
+            const results = [];
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('input, textarea');
+                if (cells[0].value) {
+                    results.push({
+                        scene: cells[0].value,
+                        intention: cells[1].value,
+                        reality: cells[2].value,
+                        impact: cells[3].value,
+                        gap: cells[4].value
+                    });
+                }
+            });
+            
+            const resultDiv = document.getElementById('triangulation-result');
+            if (results.length > 0) {
+                resultDiv.innerHTML = `
+                    <div class="analysis-result">
+                        <h4>삼각측량 분석 결과</h4>
+                        <p>총 ${results.length}개의 수업 장면을 분석했습니다.</p>
+                        <p><strong>주요 발견사항:</strong></p>
+                        <ul>
+                            ${results.map(r => r.gap ? `<li><strong>${r.scene}:</strong> ${r.gap}</li>` : '').join('')}
+                        </ul>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${studyData.records.length}</div>
-                        <div class="stat-label">누적 기록 수</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${studyData.connections.length}</div>
-                        <div class="stat-label">발견된 연결점</div>
-                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-info">분석할 데이터를 입력해주세요.</div>';
+            }
+        }
+
+        function saveTriangulation() {
+            const rows = document.querySelectorAll('#triangulation-table tbody tr');
+            const data = [];
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('input, textarea');
+                if (cells[0].value) {
+                    data.push({
+                        scene: cells[0].value,
+                        intention: cells[1].value,
+                        reality: cells[2].value,
+                        impact: cells[3].value,
+                        gap: cells[4].value
+                    });
+                }
+            });
+            
+            if (data.length > 0) {
+                const triangulation = {
+                    id: Date.now().toString(),
+                    data: data,
+                    timestamp: new Date().toISOString()
+                };
+                
+                studyData.triangulations.push(triangulation);
+                updateTriangulationsDisplay();
+                showAlert('삼각측량 분석이 저장되었습니다!', 'success');
+                saveData();
+            }
+        }
+
+        function generateReflectionSummary() {
+            const step1 = document.getElementById('step1-description').value;
+            const step2 = document.getElementById('step2-interpretation').value;
+            const step3 = document.getElementById('step3-evaluation').value;
+            
+            if (!step1 || !step2 || !step3) {
+                document.getElementById('reflection-summary').innerHTML = 
+                    '<div class="alert alert-info">모든 단계를 작성해주세요.</div>';
+                return;
+            }
+            
+            const summaryDiv = document.getElementById('reflection-summary');
+            summaryDiv.innerHTML = `
+                <div class="analysis-result">
+                    <h4>구조화된 성찰 종합</h4>
+                    <p><strong>상황:</strong> ${step1.substring(0, 100)}${step1.length > 100 ? '...' : ''}</p>
+                    <p><strong>의미:</strong> ${step2.substring(0, 100)}${step2.length > 100 ? '...' : ''}</p>
+                    <p><strong>개선방안:</strong> ${step3.substring(0, 100)}${step3.length > 100 ? '...' : ''}</p>
                 </div>
             `;
-
-            // 핵심 성찰 모음
-            const keyReflections = document.getElementById('keyReflections');
-            const importantRecords = studyData.records
-                .filter(r => r.importance === 'high' || r.importance === 'critical')
-                .slice(-5);
-            
-            keyReflections.innerHTML = importantRecords.map(record => `
-                <div class="insight-card" style="margin: 10px 0;">
-                    <h5>${recordTypeIcons[record.type]} ${record.title}</h5>
-                    <p>${record.content.substring(0, 200)}...</p>
-                    <small>${new Date(record.timestamp).toLocaleDateString('ko-KR')}</small>
-                </div>
-            `).join('') || '<p>중요도가 높은 기록이 없습니다.</p>';
-
-            // 다음 탐구 과제
-            const nextQuestions = document.getElementById('nextQuestions');
-            const questionRecords = studyData.records.filter(r => r.type === 'question').slice(-3);
-            
-            nextQuestions.innerHTML = questionRecords.map(record => `
-                <div style="margin: 10px 0; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
-                    <h5>❓ ${record.title}</h5>
-                    <p>${record.content}</p>
-                </div>
-            `).join('') || '<p>탐구 질문을 기록해보세요!</p>';
         }
 
-        // 데이터 관리 기능들
+        function saveStructuredReflection() {
+            const reflection = {
+                id: Date.now().toString(),
+                description: document.getElementById('step1-description').value,
+                interpretation: document.getElementById('step2-interpretation').value,
+                evaluation: document.getElementById('step3-evaluation').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!reflection.description || !reflection.interpretation || !reflection.evaluation) {
+                showAlert('모든 단계를 작성해주세요.', 'info');
+                return;
+            }
+            
+            studyData.structuredReflections.push(reflection);
+            
+            // 폼 초기화
+            document.getElementById('step1-description').value = '';
+            document.getElementById('step2-interpretation').value = '';
+            document.getElementById('step3-evaluation').value = '';
+            document.getElementById('reflection-summary').innerHTML = '';
+            
+            updateStructuredReflectionsDisplay();
+            showAlert('구조화된 성찰이 저장되었습니다!', 'success');
+            saveData();
+        }
+
+        function startCoding() {
+            const text = document.getElementById('coding-text').value;
+            const categories = document.getElementById('code-categories').value.split(',').map(c => c.trim()).filter(c => c);
+            
+            if (!text || categories.length === 0) {
+                document.getElementById('coding-results').innerHTML = 
+                    '<div class="alert alert-info">텍스트와 코드 카테고리를 입력해주세요.</div>';
+                return;
+            }
+            
+            // 간단한 키워드 기반 코딩 시뮬레이션
+            const results = categories.map(category => {
+                const count = (text.toLowerCase().match(new RegExp(category.toLowerCase(), 'g')) || []).length + 
+                             Math.floor(Math.random() * 3); // 약간의 랜덤성 추가
+                return { category, count };
+            });
+            
+            const resultsDiv = document.getElementById('coding-results');
+            resultsDiv.innerHTML = `
+                <div class="analysis-result">
+                    <h4>코딩 분석 결과</h4>
+                    <p>총 ${text.length}자의 텍스트를 분석했습니다.</p>
+                    ${results.map(r => `<p><strong>${r.category}:</strong> ${r.count}회 발견</p>`).join('')}
+                </div>
+            `;
+        }
+
+        function saveCoding() {
+            const text = document.getElementById('coding-text').value;
+            const categories = document.getElementById('code-categories').value;
+            
+            if (!text || !categories) {
+                showAlert('텍스트와 카테고리를 모두 입력해주세요.', 'info');
+                return;
+            }
+            
+            const coding = {
+                id: Date.now().toString(),
+                text: text,
+                categories: categories,
+                timestamp: new Date().toISOString()
+            };
+            
+            studyData.codings.push(coding);
+            updateCodingsDisplay();
+            showAlert('코딩 분석이 저장되었습니다!', 'success');
+            saveData();
+        }
+
+        // ========== 포트폴리오 관련 함수들 ==========
+
+        function savePortfolio() {
+            const portfolio = {
+                id: Date.now().toString(),
+                intro: document.getElementById('portfolio-intro').value,
+                problem: document.getElementById('portfolio-problem').value,
+                evidence: document.getElementById('portfolio-evidence').value,
+                discovery: document.getElementById('portfolio-discovery').value,
+                growth: document.getElementById('portfolio-growth').value,
+                conclusion: document.getElementById('portfolio-conclusion').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            studyData.portfolios.push(portfolio);
+            updatePortfoliosDisplay();
+            
+            const savedDiv = document.getElementById('portfolio-saved');
+            savedDiv.innerHTML = '<div class="alert alert-success">✅ 포트폴리오가 저장되었습니다!</div>';
+            setTimeout(() => savedDiv.innerHTML = '', 3000);
+            
+            saveData();
+        }
+
+        function generatePortfolioReport() {
+            const report = `
+                <div class="analysis-result">
+                    <h4>📊 자동 생성 리포트</h4>
+                    <p><strong>연구 활동 요약:</strong></p>
+                    <ul>
+                        <li>연구 질문 ${studyData.questions.length}개 개발</li>
+                        <li>연구 계획 ${studyData.plans.length}개 수립</li>
+                        <li>성찰 기록 ${studyData.reflections.length}개 작성</li>
+                        <li>분석 활동 ${studyData.analyses.length}회 실시</li>
+                        <li>관찰 기록 ${studyData.observations.length}개 수집</li>
+                    </ul>
+                    <p><strong>성장 지표:</strong> 체계적인 셀프스터디 진행 중</p>
+                </div>
+            `;
+            
+            document.getElementById('portfolio-saved').innerHTML = report;
+        }
+
+        // ========== 데이터 관리 함수들 ==========
+
+        function saveData() {
+            studyData.metadata.lastModified = new Date().toISOString();
+            // 실제 환경에서는 localStorage 또는 서버 저장
+            // localStorage.setItem('studyData', JSON.stringify(studyData));
+        }
+
+        function loadData() {
+            // 실제 환경에서는 localStorage 또는 서버에서 로드
+            // const saved = localStorage.getItem('studyData');
+            // if (saved) studyData = JSON.parse(saved);
+        }
+
         function exportData() {
             const dataStr = JSON.stringify(studyData, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
@@ -1024,11 +1570,9 @@
             reader.onload = function(e) {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if (importedData.records && Array.isArray(importedData.records)) {
+                    if (importedData.reflections && Array.isArray(importedData.reflections)) {
                         studyData = importedData;
-                        updateRelatedRecordOptions();
-                        displayRecords();
-                        updateStats();
+                        updateAllDisplays();
                         showAlert('데이터를 성공적으로 불러왔습니다!', 'success');
                     } else {
                         throw new Error('잘못된 데이터 형식');
@@ -1043,170 +1587,295 @@
         function clearAllData() {
             if (confirm('모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
                 studyData = {
-                    records: [],
-                    connections: [],
-                    insights: [],
-                    settings: { autoSave: true, reminderFrequency: 'daily' },
+                    questions: [],
+                    plans: [],
+                    reflections: [],
+                    analyses: [],
+                    observations: [],
+                    triangulations: [],
+                    structuredReflections: [],
+                    codings: [],
+                    portfolios: [],
+                    settings: { autoSave: true, saveInterval: 30000 },
                     metadata: {
                         created: new Date().toISOString(),
                         lastModified: new Date().toISOString(),
-                        version: '2.0'
+                        version: '2.1'
                     }
                 };
-                updateRelatedRecordOptions();
-                displayRecords();
-                updateStats();
+                updateAllDisplays();
                 showAlert('모든 데이터가 삭제되었습니다.', 'info');
             }
         }
 
-        // 유틸리티 함수들
-        function showAlert(message, type) {
+        function startAutoSave() {
+            setInterval(() => {
+                if (studyData.settings.autoSave) {
+                    saveData();
+                    document.getElementById('dataStatus').textContent = 
+                        `마지막 저장: ${new Date().toLocaleTimeString()}`;
+                }
+            }, studyData.settings.saveInterval);
+        }
+
+        // ========== 디스플레이 업데이트 함수들 ==========
+
+        function updateAllDisplays() {
+            updateQuestionsDisplay();
+            updatePlansDisplay();
+            updateReflectionsDisplay();
+            updateAnalysesDisplay();
+            updateObservationsDisplay();
+            updateTriangulationsDisplay();
+            updateStructuredReflectionsDisplay();
+            updateCodingsDisplay();
+            updatePortfoliosDisplay();
+            updateStats();
+        }
+
+        function updateQuestionsDisplay() {
+            const container = document.getElementById('saved-questions');
+            if (!container) return;
+            
+            container.innerHTML = studyData.questions.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>연구 질문</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('questions', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.question}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 연구 질문이 없습니다.</p>';
+        }
+
+        function updatePlansDisplay() {
+            const container = document.getElementById('saved-plans');
+            if (!container) return;
+            
+            container.innerHTML = studyData.plans.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>${item.topic}</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('plans', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">목표: ${item.goal.substring(0, 100)}...</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 연구 계획이 없습니다.</p>';
+        }
+
+        function updateReflectionsDisplay() {
+            const container = document.getElementById('saved-reflections');
+            if (!container) return;
+            
+            container.innerHTML = studyData.reflections.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>성찰 일지</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('reflections', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.content.substring(0, 150)}${item.content.length > 150 ? '...' : ''}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 성찰이 없습니다.</p>';
+        }
+
+        function updateAnalysesDisplay() {
+            const container = document.getElementById('saved-analyses');
+            if (!container) return;
+            
+            container.innerHTML = studyData.analyses.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>분석 결과</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('analyses', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.content.substring(0, 150)}${item.content.length > 150 ? '...' : ''}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 분석이 없습니다.</p>';
+        }
+
+        function updateObservationsDisplay() {
+            const container = document.getElementById('saved-observations');
+            if (!container) return;
+            
+            container.innerHTML = studyData.observations.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>${item.focus}</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('observations', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.notes.substring(0, 150)}${item.notes.length > 150 ? '...' : ''}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 관찰이 없습니다.</p>';
+        }
+
+        function updateTriangulationsDisplay() {
+            const container = document.getElementById('saved-triangulations');
+            if (!container) return;
+            
+            container.innerHTML = studyData.triangulations.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>삼각측량 분석</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('triangulations', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.data.length}개 장면 분석</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 삼각측량 분석이 없습니다.</p>';
+        }
+
+        function updateStructuredReflectionsDisplay() {
+            const container = document.getElementById('saved-structured-reflections');
+            if (!container) return;
+            
+            container.innerHTML = studyData.structuredReflections.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>구조화된 성찰</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('structuredReflections', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.description.substring(0, 100)}${item.description.length > 100 ? '...' : ''}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 구조화된 성찰이 없습니다.</p>';
+        }
+
+        function updateCodingsDisplay() {
+            const container = document.getElementById('saved-codings');
+            if (!container) return;
+            
+            container.innerHTML = studyData.codings.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>코딩 분석</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('codings', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.categories}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 코딩 분석이 없습니다.</p>';
+        }
+
+        function updatePortfoliosDisplay() {
+            const container = document.getElementById('saved-portfolios');
+            if (!container) return;
+            
+            container.innerHTML = studyData.portfolios.map(item => `
+                <div class="saved-item">
+                    <div class="saved-item-header">
+                        <strong>포트폴리오</strong>
+                        <div>
+                            <span class="saved-item-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                            <button class="delete-btn" onclick="deleteItem('portfolios', '${item.id}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="saved-item-content">${item.intro ? item.intro.substring(0, 100) + '...' : '내용 없음'}</div>
+                </div>
+            `).join('') || '<p style="text-align: center; color: #7f8c8d;">저장된 포트폴리오가 없습니다.</p>';
+        }
+
+        function updateStats() {
+            document.getElementById('total-reflections').textContent = studyData.reflections.length;
+            document.getElementById('total-analyses').textContent = studyData.analyses.length;
+            document.getElementById('total-observations').textContent = studyData.observations.length;
+            document.getElementById('total-plans').textContent = studyData.plans.length;
+        }
+
+        // ========== 검색 및 필터링 함수들 ==========
+
+        function searchReflections() {
+            const searchTerm = document.getElementById('reflection-search').value.toLowerCase();
+            const items = document.querySelectorAll('#saved-reflections .saved-item');
+            
+            items.forEach(item => {
+                const content = item.textContent.toLowerCase();
+                item.style.display = content.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+
+        function searchAnalyses() {
+            const searchTerm = document.getElementById('analysis-search').value.toLowerCase();
+            const items = document.querySelectorAll('#saved-analyses .saved-item');
+            
+            items.forEach(item => {
+                const content = item.textContent.toLowerCase();
+                item.style.display = content.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+
+        function searchObservations() {
+            const searchTerm = document.getElementById('observation-search').value.toLowerCase();
+            const items = document.querySelectorAll('#saved-observations .saved-item');
+            
+            items.forEach(item => {
+                const content = item.textContent.toLowerCase();
+                item.style.display = content.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+
+        // ========== 유틸리티 함수들 ==========
+
+        function deleteItem(type, id) {
+            if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+            
+            studyData[type] = studyData[type].filter(item => item.id !== id);
+            updateAllDisplays();
+            showAlert('항목이 삭제되었습니다.', 'success');
+            saveData();
+        }
+
+        function showAlert(message, type = 'info') {
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type === 'error' ? 'info' : type}`;
+            alertDiv.className = `alert alert-${type}`;
             alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '1000';
+            alertDiv.style.minWidth = '250px';
             
             document.body.appendChild(alertDiv);
             setTimeout(() => {
-                alertDiv.remove();
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
             }, 3000);
         }
 
-        function editRecord(recordId) {
-            const record = studyData.records.find(r => r.id === recordId);
-            if (record) {
-                document.getElementById('recordType').value = record.type;
-                document.getElementById('recordTitle').value = record.title;
-                document.getElementById('recordContent').value = record.content;
-                document.getElementById('recordTags').value = record.tags.join(', ');
-                document.getElementById('recordImportance').value = record.importance;
+        // 키보드 단축키 (선택사항)
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + S로 현재 입력 중인 내용 저장
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                const activeElement = document.activeElement;
                 
-                // 기존 기록 삭제
-                deleteRecord(recordId, false);
+                if (activeElement.id === 'reflection-log') saveReflection();
+                else if (activeElement.id === 'student-work') saveAnalysis();
+                else if (activeElement.id === 'observation-notes') saveObservation();
+                else showAlert('저장할 내용이 없습니다.', 'info');
             }
-        }
-
-        function deleteRecord(recordId, confirm = true) {
-            if (confirm && !window.confirm('이 기록을 삭제하시겠습니까?')) {
-                return;
-            }
-            
-            studyData.records = studyData.records.filter(r => r.id !== recordId);
-            studyData.connections = studyData.connections.filter(c => c.from !== recordId && c.to !== recordId);
-            
-            updateRelatedRecordOptions();
-            displayRecords();
-            updateStats();
-            
-            if (confirm) {
-                showAlert('기록이 삭제되었습니다.', 'success');
-            }
-        }
-
-        function generatePortfolio() {
-            showAlert('포트폴리오 생성 기능은 개발 중입니다.', 'info');
-        }
-
-        function exportPortfolio() {
-            showAlert('PDF 내보내기 기능은 개발 중입니다.', 'info');
-        }
-
-        // 샘플 데이터 로드 (테스트용)
-        function loadSampleData() {
-            if (studyData.records.length === 0) {
-                studyData.records = [
-                    {
-                        id: '1',
-                        type: 'reflection',
-                        title: '오늘 수업에서 학생들의 질문이 적었던 이유',
-                        content: '평소보다 학생들이 질문을 많이 하지 않았다. 새로운 개념(분수의 나눗셈)을 설명할 때 아이들이 조용했는데, 이게 이해를 못한 건지 아니면 너무 어려워서 질문할 엄두를 못 낸 건지 궁금하다. 다음 시간엔 더 작은 단계로 나누어서 설명해볼 필요가 있을 것 같다.',
-                        tags: ['질문', '분수', '수학', '참여도'],
-                        relatedRecords: [],
-                        importance: 'medium',
-                        timestamp: new Date(Date.now() - 86400000).toISOString(),
-                        lastModified: new Date(Date.now() - 86400000).toISOString()
-                    },
-                    {
-                        id: '2',
-                        type: 'observation',
-                        title: '민수의 발표 참여도 변화',
-                        content: '지난 달까지 발표를 거의 하지 않던 민수가 오늘 적극적으로 손을 들고 자신의 의견을 말했다. 소그룹 활동을 먼저 한 후 전체 발표로 이어진 것이 효과가 있었던 것 같다. 다른 내성적인 아이들도 비슷한 패턴을 보이는지 관찰해보자.',
-                        tags: ['발표', '참여도', '소그룹', '민수'],
-                        relatedRecords: [],
-                        importance: 'high',
-                        timestamp: new Date(Date.now() - 172800000).toISOString(),
-                        lastModified: new Date(Date.now() - 172800000).toISOString()
-                    },
-                    {
-                        id: '3',
-                        type: 'student_work',
-                        title: '서술형 평가 결과 분석',
-                        content: '이번 서술형 평가에서 학생들이 계산은 잘했지만 문제 해결 과정을 설명하는 부분에서 많이 어려워했다. 특히 "왜 그렇게 생각했는지" 설명하는 문항에서 점수가 낮았다. 사고 과정을 말로 표현하는 연습이 더 필요할 것 같다.',
-                        tags: ['서술형', '평가', '사고과정', '설명'],
-                        relatedRecords: [],
-                        importance: 'high',
-                        timestamp: new Date(Date.now() - 259200000).toISOString(),
-                        lastModified: new Date(Date.now() - 259200000).toISOString()
-                    },
-                    {
-                        id: '4',
-                        type: 'experiment',
-                        title: '게임 기반 학습 시도',
-                        content: '곱셈구구를 외우는 대신 카드게임으로 접근해봤다. 아이들이 훨씬 즐거워했고 자연스럽게 암기가 되는 것 같았다. 하지만 시간이 더 오래 걸렸고, 일부 아이들은 게임에만 집중해서 학습 목표를 놓치는 경우가 있었다. 적절한 균형점을 찾아야겠다.',
-                        tags: ['게임', '곱셈구구', '암기', '재미'],
-                        relatedRecords: [],
-                        importance: 'medium',
-                        timestamp: new Date(Date.now() - 345600000).toISOString(),
-                        lastModified: new Date(Date.now() - 345600000).toISOString()
-                    },
-                    {
-                        id: '5',
-                        type: 'question',
-                        title: '내향적 성격의 학생들을 어떻게 더 참여시킬 수 있을까?',
-                        content: '우리 반에 조용한 성격의 아이들이 몇 명 있다. 이 아이들도 분명 좋은 아이디어를 가지고 있을 텐데 큰 소리로 발표하기를 어려워한다. 어떻게 하면 이런 아이들의 생각도 수업에 자연스럽게 포함시킬 수 있을까? 글쓰기나 그림, 또는 작은 그룹 활동이 도움이 될까?',
-                        tags: ['내향성', '참여', '발표', '소그룹'],
-                        relatedRecords: ['2'],
-                        importance: 'high',
-                        timestamp: new Date(Date.now() - 432000000).toISOString(),
-                        lastModified: new Date(Date.now() - 432000000).toISOString()
-                    },
-                    {
-                        id: '6',
-                        type: 'insight',
-                        title: '아이들의 실수에서 배우는 것',
-                        content: '오늘 수업 중 한 학생이 틀린 답을 말했는데, 그 실수를 통해 다른 아이들이 더 깊이 생각하게 되었다. 실수를 단순히 "틀렸다"고 넘기지 않고 "왜 그렇게 생각했을까?"라고 물어보니 전체적인 이해도가 높아진 것 같다. 실수도 학습의 중요한 자원이구나.',
-                        tags: ['실수', '학습', '질문', '이해'],
-                        relatedRecords: [],
-                        importance: 'critical',
-                        timestamp: new Date(Date.now() - 518400000).toISOString(),
-                        lastModified: new Date(Date.now() - 518400000).toISOString()
-                    }
-                ];
-
-                // 샘플 연결 관계 생성
-                studyData.connections = [
-                    {
-                        from: '2',
-                        to: '5',
-                        type: 'manual',
-                        strength: 1.0,
-                        created: new Date(Date.now() - 400000000).toISOString()
-                    }
-                ];
-            }
-        }
-
-        // 자동 저장 (실제 환경에서는 로컬스토리지나 서버에 저장)
-        function autoSave() {
-            if (studyData.settings.autoSave) {
-                // 실제 구현시에는 localStorage.setItem('studyData', JSON.stringify(studyData)); 
-                // 또는 서버로 데이터 전송
-                document.getElementById('dataStatus').textContent = `마지막 저장: ${new Date().toLocaleTimeString()}`;
-            }
-        }
-
-        // 주기적 자동 저장 (30초마다)
-        setInterval(autoSave, 30000);
+        });
     </script>
 </body>
 </html>
