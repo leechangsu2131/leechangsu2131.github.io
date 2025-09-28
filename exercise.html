@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>항당분해 훈련(AGT) 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab:not(.active):hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 500px;
+        }
+
+        .content > div {
+            display: none;
+        }
+
+        .content > div.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .training-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .training-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .training-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .training-card:hover::before {
+            opacity: 1;
+        }
+
+        .training-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(240, 147, 251, 0.4);
+        }
+
+        .training-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .training-card p {
+            font-size: 0.9em;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .timer-container {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin: 30px 0;
+            color: white;
+        }
+
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            border: none;
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #ee5a52, #dc4545);
+        }
+
+        .workout-log {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .log-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .phase-indicator {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .phase-work {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: #d63384;
+        }
+
+        .phase-rest {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #20c997;
+        }
+
+        .system-info {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .system-info h3 {
+            color: #d2691e;
+            margin-bottom: 10px;
+        }
+
+        .system-info p {
+            color: #8b4513;
+            line-height: 1.5;
+        }
+
+        .education-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .education-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .education-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .education-card h4 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .education-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .education-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .education-card li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .timer-display {
+                font-size: 3em;
+            }
+            
+            .timer-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>항당분해 훈련(AGT) 관리 시스템</h1>
+            <p>과학적 원리에 기반한 A+A(Alactic + Aerobic) 훈련으로 폭발력과 지구력을 동시에 향상시키세요</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('workout')">훈련 실행</div>
+            <div class="tab" onclick="switchTab('log')">훈련 기록</div>
+            <div class="tab" onclick="switchTab('progress')">진행 상황</div>
+            <div class="tab" onclick="switchTab('education')">훈련 이론</div>
+        </div>
+
+        <div class="content">
+            <!-- 훈련 실행 탭 -->
+            <div id="workout" class="active">
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
+                    <h2 id="todaySchedule">오늘의 훈련 계획을 확인하세요</h2>
+                    <p id="todayDescription" style="opacity: 0.9; margin-top: 10px;"></p>
+                </div>
+
+                <div class="training-grid">
+                    <div class="training-card" onclick="startWorkout('rowing')">
+                        <h3>🚣 로잉머신 A+A</h3>
+                        <p>15초 전력 로잉 + 1분 45초 적극적 회복<br>총 10-15세트로 전신 파워 지구력 향상<br><strong>권장: 월요일</strong></p>
+                    </div>
+                    <div class="training-card" onclick="startWorkout('bodyweight')">
+                        <h3>💪 맨몸 A+A 서킷</h3>
+                        <p>폭발적 푸쉬업 + 점프스쿼트 + 버피<br>상체 및 전신 폭발력 강화<br><strong>권장: 수요일</strong></p>
+                    </div>
+                    <div class="training-card" onclick="startWorkout('cardio')">
+                        <h3>🫁 저강도 유산소</h3>
+                        <p>30-40분 편안한 강도로 심박수 유지<br>적극적 회복 및 유산소 기반 강화<br><strong>권장: 화요일, 토요일</strong></p>
+                    </div>
+                    <div class="training-card" onclick="startWorkout('strength')">
+                        <h3>🏋️ 보조 근력 운동</h3>
+                        <p>스쿼트, 데드리프트, 벤치프레스 등<br>전신 근력 강화 및 불균형 해소<br><strong>권장: 금요일</strong></p>
+                    </div>
+                    <div class="training-card" onclick="startWorkout('hiit')">
+                        <h3>🔥 보조 HIIT</h3>
+                        <p>500m 최대 속도 로잉 + 2분 휴식<br>심폐지구력 및 젖산 역치 개선<br><strong>선택적 훈련</strong></p>
+                    </div>
+                    <div class="training-card" style="background: linear-gradient(135deg, #a8edea, #fed6e3);">
+                        <h3>😴 완전 휴식</h3>
+                        <p>신경계 및 근육 완전 회복<br>가벼운 스트레칭 또는 산책<br><strong>권장: 목요일, 일요일</strong></p>
+                    </div>
+                </div>
+
+                <div class="timer-container">
+                    <div class="phase-indicator" id="phaseIndicator">훈련을 선택하세요</div>
+                    <div class="timer-display" id="timerDisplay">00:00</div>
+                    <div class="timer-controls">
+                        <button class="btn primary" id="startBtn" onclick="startTimer()">시작</button>
+                        <button class="btn" id="pauseBtn" onclick="pauseTimer()">일시정지</button>
+                        <button class="btn" id="resetBtn" onclick="resetTimer()">리셋</button>
+                        <button class="btn" id="nextBtn" onclick="nextPhase()">다음 단계</button>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <p><strong>현재 세트:</strong> <span id="currentSet">0</span> / <span id="totalSets">0</span></p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="setProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 훈련 기록 탭 -->
+            <div id="log">
+                <h2>훈련 기록 입력</h2>
+                <div class="input-group">
+                    <label for="workoutType">훈련 종류</label>
+                    <select id="workoutType">
+                        <option value="rowing">로잉머신 A+A</option>
+                        <option value="bodyweight">맨몸 A+A 서킷</option>
+                        <option value="hiit">보조 HIIT</option>
+                        <option value="cardio">저강도 유산소</option>
+                        <option value="strength">보조 근력 운동</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="duration">운동 시간 (분)</label>
+                    <input type="number" id="duration" placeholder="30">
+                </div>
+                <div class="input-group">
+                    <label for="sets">세트 수</label>
+                    <input type="number" id="sets" placeholder="12">
+                </div>
+                <div class="input-group">
+                    <label for="intensity">강도 (예: 평균 페이스, 와트 등)</label>
+                    <input type="text" id="intensity" placeholder="2:00/500m 또는 300W">
+                </div>
+                <div class="input-group">
+                    <label for="rpe">운동자각도 (RPE, 1-10)</label>
+                    <input type="number" id="rpe" min="1" max="10" placeholder="7">
+                </div>
+                <div class="input-group">
+                    <label for="notes">메모</label>
+                    <textarea id="notes" placeholder="컨디션, 느낌, 개선점 등을 기록하세요" rows="3"></textarea>
+                </div>
+                <button class="btn primary" onclick="saveWorkout()">기록 저장</button>
+
+                <div class="workout-log" id="workoutLog">
+                    <h3>최근 훈련 기록</h3>
+                    <!-- 기록들이 여기에 추가됩니다 -->
+                </div>
+            </div>
+
+            // 진행 상황 탭 -->
+            <div id="progress">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalWorkouts">0</div>
+                        <div class="stat-label">총 훈련 세션</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="weekStreak">0</div>
+                        <div class="stat-label">연속 훈련 주</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgRPE">0</div>
+                        <div class="stat-label">평균 RPE</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="bestPerformance">-</div>
+                        <div class="stat-label">최고 기록</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 20px;">📅 주간 훈련 계획 및 진행률</h3>
+                <div class="weekly-schedule" style="margin-bottom: 30px;">
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #e74c3c;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>월요일 - A+A 훈련 (로잉머신)</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">전신 파워 지구력 및 심폐 기능 향상</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="mondayStatus" class="status-badge" style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="mondayProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #3498db;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>화요일 - 저강도 유산소 + 코어</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">적극적 회복, 유산소 기반 강화, 안정성 향상</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="tuesdayStatus" class="status-badge" style="background: #3498db; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="tuesdayProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #e67e22;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>수요일 - A+A 훈련 (맨몸 서킷)</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">상체 및 전신 폭발력, 근지구력 향상</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="wednesdayStatus" class="status-badge" style="background: #e67e22; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="wednesdayProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #27ae60;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>목요일 - 완전 휴식</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">신경계 및 근육 회복, 가벼운 스트레칭</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="thursdayStatus" class="status-badge" style="background: #27ae60; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="thursdayProgress" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #9b59b6;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>금요일 - 보조 근력 운동</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">전신 근력 강화, 근육 불균형 해소, 부상 방지</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="fridayStatus" class="status-badge" style="background: #9b59b6; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="fridayProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #f39c12;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>토요일 - 장시간 저강도 유산소</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">지방 대사 능력 향상, 심혈관 건강 증진 (45-60분)</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="saturdayStatus" class="status-badge" style="background: #f39c12; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="saturdayProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #95a5a6;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>일요일 - 완전 휴식</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">완전한 회복 및 초과 회복 유도</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="sundayStatus" class="status-badge" style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">완료</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar" style="margin-top: 10px;">
+                            <div class="progress-fill" id="sundayProgress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #ffecd2, #fcb69f); border-radius: 15px; padding: 20px;">
+                    <h4 style="color: #d2691e; margin-bottom: 10px;">💡 주간 훈련 팁</h4>
+                    <ul style="color: #8b4513; line-height: 1.6; padding-left: 20px;">
+                        <li><strong>A+A 훈련 간격:</strong> 최소 48시간 간격으로 배치 (월요일-수요일)</li>
+                        <li><strong>휴식일 활용:</strong> 목요일과 일요일은 완전 휴식으로 신경계 회복</li>
+                        <li><strong>유산소 훈련:</strong> 화요일은 짧게(30-40분), 토요일은 길게(45-60분)</li>
+                        <li><strong>컨디션 확인:</strong> 피로가 누적되면 계획보다 하루 더 휴식</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 훈련 이론 탭 -->
+            <div id="education">
+                <div class="system-info">
+                    <h3>🧠 항당분해 훈련(AGT)이란?</h3>
+                    <p>항당분해 훈련은 '지치지 않고 강해지는 훈련법'으로, 폭발적인 힘을 반복적으로 사용하면서도 급격한 피로물질(젖산) 축적을 의도적으로 회피하는 고도의 전략입니다.</p>
+                </div>
+
+                <div class="education-cards">
+                    <div class="education-card">
+                        <h4>⚡ ATP-PCr 시스템 (비젖산)</h4>
+                        <ul>
+                            <li>즉각적인 폭발력의 원천</li>
+                            <li>15초 이내 최대 노력 활동</li>
+                            <li>피로 부산물 거의 없음</li>
+                            <li>크레아틴 인산이 주 연료</li>
+                        </ul>
+                    </div>
+
+                    <div class="education-card">
+                        <h4>🔥 해당과정 시스템 (젖산성)</h4>
+                        <ul>
+                            <li>30초~2분 고강도 활동</li>
+                            <li>글리코겐을 연료로 사용</li>
+                            <li>젖산 생성으로 피로 유발</li>
+                            <li>AGT에서 의도적으로 회피</li>
+                        </ul>
+                    </div>
+
+                    <div class="education-card">
+                        <h4>🫁 유산소 시스템</h4>
+                        <ul>
+                            <li>2분 이상 지속 가능</li>
+                            <li>산소와 결합하여 에너지 생성</li>
+                            <li>피로물질 제거 및 회복</li>
+                            <li>A+A의 회복 단계에서 핵심</li>
+                        </ul>
+                    </div>
+
+                    <div class="education-card">
+                        <h4>🎯 A+A 훈련 원칙</h4>
+                        <ul>
+                            <li>10-15초 최대 노력 (Alactic)</li>
+                            <li>1분 이상 적극적 회복 (Aerobic)</li>
+                            <li>운동:휴식 비율 1:5~1:10</li>
+                            <li>매 세트 파워 일관성 유지</li>
+                        </ul>
+                    </div>
+
+                    <div class="education-card">
+                        <h4>📈 점진적 과부하 방법</h4>
+                        <ul>
+                            <li>강도 증가: 더 높은 파워 출력</li>
+                            <li>볼륨 증가: 세트 수 증가</li>
+                            <li>밀도 증가: 휴식 시간 단축</li>
+                            <li>빈도 증가: 훈련 횟수 증가</li>
+                        </ul>
+                    </div>
+
+                    <div class="education-card">
+                        <h4>⚠️ 안전 수칙</h4>
+                        <ul>
+                            <li>올바른 자세 유지 필수</li>
+                            <li>통증 시 즉시 중단</li>
+                            <li>충분한 수면과 영양</li>
+                            <li>점진적 강도 증가</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // 글로벌 변수
+        let currentWorkout = null;
+        let timer = null;
+        let timeLeft = 0;
+        let isRunning = false;
+        let currentPhase = 'work'; // 'work' or 'rest'
+        let currentSetNum = 0;
+        let totalSets = 0;
+        let workTime = 15; // 초
+        let restTime = 105; // 초 (1분 45초)
+
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭과 콘텐츠 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.content > div').forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭과 콘텐츠 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // 진행 상황 탭이 선택되면 통계 업데이트
+            if (tabName === 'progress') {
+                updateStats();
+            }
+            
+            // 훈련 기록 탭이 선택되면 기록 로드
+            if (tabName === 'log') {
+                loadWorkoutLog();
+            }
+        }
+
+        // 운동 시작
+        function startWorkout(type) {
+            currentWorkout = type;
+            
+            const workouts = {
+                'rowing': {
+                    name: '로잉머신 A+A',
+                    sets: 12,
+                    workTime: 15,
+                    restTime: 105
+                },
+                'bodyweight': {
+                    name: '맨몸 A+A 서킷',
+                    sets: 10,
+                    workTime: 20,
+                    restTime: 120
+                },
+                'hiit': {
+                    name: '보조 HIIT',
+                    sets: 5,
+                    workTime: 90,
+                    restTime: 120
+                },
+                'cardio': {
+                    name: '저강도 유산소',
+                    sets: 1,
+                    workTime: 1800, // 30분
+                    restTime: 0
+                },
+                'strength': {
+                    name: '보조 근력 운동',
+                    sets: 1,
+                    workTime: 2700, // 45분
+                    restTime: 0
+                }
+            };
+            
+            const workout = workouts[type];
+            totalSets = workout.sets;
+            workTime = workout.workTime;
+            restTime = workout.restTime;
+            
+            currentSetNum = 1;
+            currentPhase = 'work';
+            timeLeft = workTime;
+            
+            updateDisplay();
+            showNotification(`${workout.name} 훈련을 선택했습니다!`);
+        }
+
+        // 타이머 시작
+        function startTimer() {
+            if (!currentWorkout) {
+                showNotification('먼저 운동을 선택하세요!');
+                return;
+            }
+            
+            isRunning = true;
+            timer = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    if (currentPhase === 'work') {
+                        // 운동 구간 끝, 휴식으로 전환
+                        currentPhase = 'rest';
+                        timeLeft = restTime;
+                        showNotification('휴식 시간! 적극적 회복을 하세요.');
+                    } else {
+                        // 휴식 구간 끝, 다음 세트로
+                        currentSetNum++;
+                        if (currentSetNum <= totalSets) {
+                            currentPhase = 'work';
+                            timeLeft = workTime;
+                            showNotification(`${currentSetNum}세트 시작!`);
+                        } else {
+                            // 운동 완료
+                            isRunning = false;
+                            clearInterval(timer);
+                            showNotification('🎉 훈련 완료! 수고하셨습니다!');
+                            return;
+                        }
+                    }
+                    updateDisplay();
+                }
+            }, 1000);
+        }
+
+        // 타이머 일시정지
+        function pauseTimer() {
+            isRunning = false;
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        }
+
+        // 타이머 리셋
+        function resetTimer() {
+            isRunning = false;
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+            
+            if (currentWorkout) {
+                currentSetNum = 1;
+                currentPhase = 'work';
+                timeLeft = workTime;
+                updateDisplay();
+            } else {
+                timeLeft = 0;
+                document.getElementById('timerDisplay').textContent = '00:00';
+                document.getElementById('phaseIndicator').classList.remove('phase-work', 'phase-rest');
+            }
+        }
+
+        // 다음 단계로
+        function nextPhase() {
+            if (!currentWorkout || !isRunning) return;
+            
+            if (currentPhase === 'work') {
+                currentPhase = 'rest';
+                timeLeft = restTime;
+                showNotification('휴식 단계로 전환했습니다.');
+            } else {
+                currentSetNum++;
+                if (currentSetNum <= totalSets) {
+                    currentPhase = 'work';
+                    timeLeft = workTime;
+                    showNotification(`${currentSetNum}세트로 전환했습니다.`);
+                } else {
+                    isRunning = false;
+                    clearInterval(timer);
+                    showNotification('🎉 훈련 완료!');
+                }
+            }
+            updateDisplay();
+        }
+
+        // 화면 업데이트
+        function updateDisplay() {
+            // 타이머 표시
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 단계 표시기 업데이트
+            const phaseIndicator = document.getElementById('phaseIndicator');
+            if (currentWorkout) {
+                if (currentPhase === 'work') {
+                    phaseIndicator.textContent = '💪 운동 구간 - 최대 파워로!';
+                    phaseIndicator.className = 'phase-indicator phase-work';
+                } else {
+                    phaseIndicator.textContent = '🫁 휴식 구간 - 적극적 회복';
+                    phaseIndicator.className = 'phase-indicator phase-rest';
+                }
+                
+                // 세트 진행률 업데이트
+                document.getElementById('currentSet').textContent = currentSetNum;
+                document.getElementById('totalSets').textContent = totalSets;
+                
+                const progress = (currentSetNum / totalSets) * 100;
+                document.getElementById('setProgress').style.width = `${progress}%`;
+            }
+        }
+
+        // 운동 기록 저장
+        function saveWorkout() {
+            const workoutData = {
+                date: new Date().toLocaleDateString('ko-KR'),
+                type: document.getElementById('workoutType').value,
+                duration: document.getElementById('duration').value,
+                sets: document.getElementById('sets').value,
+                intensity: document.getElementById('intensity').value,
+                rpe: document.getElementById('rpe').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            // 로컬 스토리지에서 기존 기록 가져오기
+            let workouts = JSON.parse(localStorage.getItem('agtWorkouts') || '[]');
+            workouts.unshift(workoutData); // 최신 기록을 앞에 추가
+            
+            // 최대 50개 기록만 저장
+            if (workouts.length > 50) {
+                workouts = workouts.slice(0, 50);
+            }
+            
+            localStorage.setItem('agtWorkouts', JSON.stringify(workouts));
+            
+            // 입력 필드 초기화
+            document.getElementById('duration').value = '';
+            document.getElementById('sets').value = '';
+            document.getElementById('intensity').value = '';
+            document.getElementById('rpe').value = '';
+            document.getElementById('notes').value = '';
+            
+            showNotification('훈련 기록이 저장되었습니다!');
+            loadWorkoutLog();
+        }
+
+        // 운동 기록 로드
+        function loadWorkoutLog() {
+            const workouts = JSON.parse(localStorage.getItem('agtWorkouts') || '[]');
+            const logContainer = document.getElementById('workoutLog');
+            
+            // 기존 기록 제거 (제목 제외)
+            const existingEntries = logContainer.querySelectorAll('.log-entry');
+            existingEntries.forEach(entry => entry.remove());
+            
+            if (workouts.length === 0) {
+                const noData = document.createElement('p');
+                noData.textContent = '아직 기록된 훈련이 없습니다.';
+                noData.style.textAlign = 'center';
+                noData.style.color = '#6c757d';
+                logContainer.appendChild(noData);
+                return;
+            }
+            
+            workouts.forEach(workout => {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                
+                const typeNames = {
+                    'rowing': '로잉머신 A+A',
+                    'bodyweight': '맨몸 A+A 서킷',
+                    'hiit': '보조 HIIT',
+                    'cardio': '저강도 유산소',
+                    'strength': '보조 근력 운동'
+                };
+                
+                entry.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>${typeNames[workout.type] || workout.type}</strong>
+                        <span style="color: #6c757d; font-size: 0.9em;">${workout.date}</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                        <div><small>시간:</small> ${workout.duration}분</div>
+                        <div><small>세트:</small> ${workout.sets}</div>
+                        <div><small>강도:</small> ${workout.intensity}</div>
+                        <div><small>RPE:</small> ${workout.rpe}/10</div>
+                    </div>
+                    ${workout.notes ? `<div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9em;">${workout.notes}</div>` : ''}
+                `;
+                
+                logContainer.appendChild(entry);
+            });
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            const workouts = JSON.parse(localStorage.getItem('agtWorkouts') || '[]');
+            
+            // 총 훈련 세션
+            document.getElementById('totalWorkouts').textContent = workouts.length;
+            
+            // 평균 RPE 계산
+            if (workouts.length > 0) {
+                const totalRPE = workouts.reduce((sum, workout) => sum + parseInt(workout.rpe || 0), 0);
+                const avgRPE = (totalRPE / workouts.length).toFixed(1);
+                document.getElementById('avgRPE').textContent = avgRPE;
+            }
+            
+            // 연속 훈련 주 계산 (간단한 구현)
+            const weekStreak = Math.floor(workouts.length / 3); // 주 3회 기준
+            document.getElementById('weekStreak').textContent = weekStreak;
+            
+            // 최고 기록 (강도 기준)
+            const bestWorkout = workouts.find(w => w.intensity && w.intensity.includes('W'));
+            if (bestWorkout) {
+                document.getElementById('bestPerformance').textContent = bestWorkout.intensity;
+            } else {
+                document.getElementById('bestPerformance').textContent = '-';
+            }
+        }
+
+        // 알림 표시
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            // 초기 상태 설정
+            updateDisplay();
+            updateTodaySchedule();
+            
+            // 사용자에게 환영 메시지
+            setTimeout(() => {
+                showNotification('항당분해 훈련 시스템에 오신 것을 환영합니다!');
+            }, 1000);
+        });
+
+        // 오늘의 훈련 계획 업데이트
+        function updateTodaySchedule() {
+            const today = new Date().getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+            const schedules = {
+                0: { // 일요일
+                    title: '🛌 일요일 - 완전 휴식일',
+                    description: '완전한 회복 및 초과 회복을 위한 휴식일입니다. 가벼운 산책이나 독서를 즐기세요.'
+                },
+                1: { // 월요일
+                    title: '🚣 월요일 - A+A 훈련 (로잉머신)',
+                    description: '15초 전력 로잉 + 1분 45초 적극적 회복으로 전신 파워 지구력을 향상시키세요.'
+                },
+                2: { // 화요일
+                    title: '🫁 화요일 - 저강도 유산소 + 코어',
+                    description: '30-40분 편안한 강도로 적극적 회복하며 유산소 기반을 강화하세요.'
+                },
+                3: { // 수요일
+                    title: '💪 수요일 - A+A 훈련 (맨몸 서킷)',
+                    description: '폭발적 푸쉬업 + 점프스쿼트 + 버피로 상체 및 전신 폭발력을 강화하세요.'
+                },
+                4: { // 목요일
+                    title: '😴 목요일 - 완전 휴식일',
+                    description: '신경계 및 근육 회복을 위한 완전 휴식일입니다. 가벼운 스트레칭만 하세요.'
+                },
+                5: { // 금요일
+                    title: '🏋️ 금요일 - 보조 근력 운동',
+                    description: '스쿼트, 데드리프트, 벤치프레스 등으로 전신 근력을 강화하고 불균형을 해소하세요.'
+                },
+                6: { // 토요일
+                    title: '🚶 토요일 - 장시간 저강도 유산소',
+                    description: '45-60분 긴 시간 동안 저강도로 지방 대사 능력과 심혈관 건강을 증진하세요.'
+                }
+            };
+
+            const todaySchedule = schedules[today];
+            document.getElementById('todaySchedule').textContent = todaySchedule.title;
+            document.getElementById('todayDescription').textContent = todaySchedule.description;
+        }
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isRunning) {
+                    pauseTimer();
+                } else {
+                    startTimer();
+                }
+            } else if (e.code === 'KeyR') {
+                e.preventDefault();
+                resetTimer();
+            } else if (e.code === 'KeyN') {
+                e.preventDefault();
+                nextPhase();
+            }
+        });
+    </script>
+</body>
+</html>ator').textContent = '훈련을 선택하세요';
+                document.getElementById('phaseIndic
