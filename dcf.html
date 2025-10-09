@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narrative & Numbers - Probabilistic Valuation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glass Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(120deg, #fff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Progress Steps */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 3px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .step.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .step-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+
+        .step.active .step-title {
+            opacity: 1;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            width: 100%;
+            height: 3px;
+            background: var(--glass-border);
+            z-index: 1;
+        }
+
+        .step:last-child .step-line {
+            display: none;
+        }
+
+        .step.completed .step-line {
+            background: var(--success);
+        }
+
+        /* Module Content */
+        .module-content {
+            min-height: 500px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .module-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        /* Narrative Guidelines */
+        .narrative-guide {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .narrative-guide h3 {
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .narrative-guide p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* 3P Test */
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-card h3 {
+            color: white;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .test-status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--glass);
+            margin-left: auto;
+            transition: all 0.3s ease;
+        }
+
+        .test-status.passed {
+            background: var(--success);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Bridge Module */
+        .bridge-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .narrative-summary {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .drivers-input {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .driver-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .probability-toggle {
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background: var(--glass);
+            border-radius: 25px;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(25px);
+        }
+
+        /* Distribution Input */
+        .distribution-inputs {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .distribution-inputs.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { 
+                opacity: 0;
+                max-height: 0;
+            }
+            to { 
+                opacity: 1;
+                max-height: 200px;
+            }
+        }
+
+        /* Simulation Progress */
+        .simulation-container {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .simulation-progress {
+            width: 100%;
+            height: 30px;
+            background: var(--glass);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 15px;
+            width: 0%;
+            animation: progress 3s ease-in-out;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes progress {
+            to { width: 100%; }
+        }
+
+        .simulation-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        /* Results */
+        .results-container {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        #histogram {
+            width: 100%;
+            height: 400px;
+        }
+
+        .probability-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .prob-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .prob-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .prob-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prob-value {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        /* Floating Elements */
+        .floating-orb {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+            pointer-events: none;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            right: -100px;
+        }
+
+        .orb2 {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            left: -50px;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(50px, -50px); }
+            66% { transform: translate(-50px, 50px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .bridge-container {
+                grid-template-columns: 1fr;
+            }
+
+            .simulation-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .steps-container {
+                flex-wrap: wrap;
+            }
+
+            .step {
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="floating-orb orb1"></div>
+    <div class="floating-orb orb2"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Narrative & Numbers</h1>
+            <p>다모다란 교수의 확률론적 기업가치평가 - 스토리와 숫자를 잇는 다리</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="glass-card">
+            <div class="steps-container">
+                <div class="step active" onclick="switchModule(1)">
+                    <div class="step-circle">1</div>
+                    <div class="step-title">내러티브 구축</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step" onclick="switchModule(2)">
+                    <div class="step-circle">2</div>
+                    <div class="step-title">3P 테스트</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step" onclick="switchModule(3)">
+                    <div class="step-circle">3</div>
+                    <div class="step-title">브리지</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step" onclick="switchModule(4)">
+                    <div class="step-circle">4</div>
+                    <div class="step-title">시뮬레이션</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step" onclick="switchModule(5)">
+                    <div class="step-circle">5</div>
+                    <div class="step-title">가치평가 결과</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 1: Narrative Canvas -->
+        <div class="module-content active" id="module1">
+            <div class="glass-card">
+                <h2 style="color: white; margin-bottom: 2rem;">📖 내러티브 캔버스</h2>
+                
+                <div class="form-group">
+                    <label>기업명</label>
+                    <input type="text" id="companyName" placeholder="평가할 기업명을 입력하세요">
+                </div>
+
+                <div class="narrative-guide">
+                    <h3>비전과 거시적 그림</h3>
+                    <p>이 기업의 궁극적인 비전은 무엇이며, 산업 내에서 어떤 역할을 하게 될 것인가?</p>
+                </div>
+                <div class="form-group">
+                    <textarea id="vision" placeholder="기업의 비전과 미래 역할을 서술하세요..."></textarea>
+                </div>
+
+                <div class="narrative-guide">
+                    <h3>시장 기회</h3>
+                    <p>기업이 속한 총 유효 시장(TAM)의 현재 규모와 성장 동인은 무엇인가?</p>
+                </div>
+                <div class="form-group">
+                    <textarea id="market" placeholder="시장 기회와 성장 가능성을 설명하세요..."></textarea>
+                </div>
+
+                <div class="narrative-guide">
+                    <h3>경쟁 우위</h3>
+                    <p>이 기업의 핵심 경쟁 우위는 무엇이며 얼마나 지속 가능한가?</p>
+                </div>
+                <div class="form-group">
+                    <textarea id="advantage" placeholder="경쟁 우위 요소를 구체적으로 기술하세요..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="nextModule()">다음 단계로 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 2: 3P Test -->
+        <div class="module-content" id="module2">
+            <div class="glass-card">
+                <h2 style="color: white; margin-bottom: 2rem;">✅ 3P 테스트 - 내러티브 검증</h2>
+                
+                <div class="test-card">
+                    <h3>
+                        가능성 (Possible)
+                        <span class="test-status" id="possible-status"></span>
+                    </h3>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 1rem;">
+                        내러티브가 이론적으로나 물리적으로 실현 가능한가?
+                    </p>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="possible-check1"> 
+                            시장 점유율이 100%를 초과하지 않는다
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="possible-check2"> 
+                            기술적으로 실현 가능한 제품/서비스이다
+                        </label>
+                    </div>
+                    <textarea placeholder="추가 검증 근거를 입력하세요..." style="margin-top: 1rem;"></textarea>
+                </div>
+
+                <div class="test-card">
+                    <h3>
+                        개연성 (Plausible)
+                        <span class="test-status" id="plausible-status"></span>
+                    </h3>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 1rem;">
+                        내러티브를 뒷받침할 만한 증거나 선례가 있는가?
+                    </p>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="plausible-check1"> 
+                            유사한 성공 사례가 존재한다
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="plausible-check2"> 
+                            산업 트렌드가 이를 지지한다
+                        </label>
+                    </div>
+                    <textarea placeholder="역사적 근거와 선례를 설명하세요..." style="margin-top: 1rem;"></textarea>
+                </div>
+
+                <div class="test-card">
+                    <h3>
+                        확률성 (Probable)
+                        <span class="test-status" id="probable-status"></span>
+                    </h3>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 1rem;">
+                        내러티브가 실제로 일어날 가능성은 얼마나 되는가?
+                    </p>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="probable-check1"> 
+                            경쟁사의 대응을 고려했다
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="probable-check2"> 
+                            규제 리스크를 평가했다
+                        </label>
+                    </div>
+                    <textarea placeholder="성공 확률에 대한 평가를 기술하세요..." style="margin-top: 1rem;"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="previousModule()">← 이전</button>
+                    <button class="btn btn-primary" onclick="validate3P()">검증 후 다음 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 3: Bridge -->
+        <div class="module-content" id="module3">
+            <div class="glass-card">
+                <h2 style="color: white; margin-bottom: 2rem;">🌉 브리지 - 내러티브를 숫자로</h2>
+                
+                <div class="bridge-container">
+                    <div class="narrative-summary">
+                        <h3 style="color: var(--secondary); margin-bottom: 1rem;">작성된 내러티브</h3>
+                        <div id="narrative-display" style="color: white; line-height: 1.6;">
+                            <!-- 내러티브 요약이 여기 표시됨 -->
+                        </div>
+                    </div>
+
+                    <div class="drivers-input">
+                        <div class="driver-card">
+                            <label>📈 매출 성장률 (1-5년)</label>
+                            <input type="number" id="growth-rate" placeholder="연평균 성장률 %" step="0.1">
+                            <div class="probability-toggle">
+                                <div class="toggle-switch" onclick="toggleProbability(this, 'growth')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                                <span style="color: white;">확률 분포 설정</span>
+                            </div>
+                            <div class="distribution-inputs" id="growth-dist">
+                                <select>
+                                    <option>정규 분포</option>
+                                    <option>삼각 분포</option>
+                                    <option>균등 분포</option>
+                                </select>
+                                <input type="number" placeholder="표준편차 %" step="0.1">
+                            </div>
+                            <textarea placeholder="내러티브 근거: 왜 이 성장률인가?" style="margin-top: 1rem;"></textarea>
+                        </div>
+
+                        <div class="driver-card">
+                            <label>💰 목표 영업이익률</label>
+                            <input type="number" id="margin" placeholder="목표 영업이익률 %" step="0.1">
+                            <div class="probability-toggle">
+                                <div class="toggle-switch" onclick="toggleProbability(this, 'margin')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                                <span style="color: white;">확률 분포 설정</span>
+                            </div>
+                            <div class="distribution-inputs" id="margin-dist">
+                                <select>
+                                    <option>정규 분포</option>
+                                    <option>삼각 분포</option>
+                                    <option>균등 분포</option>
+                                </select>
+                                <input type="number" placeholder="표준편차 %" step="0.1">
+                            </div>
+                            <textarea placeholder="내러티브 근거: 수익성 전망의 이유는?" style="margin-top: 1rem;"></textarea>
+                        </div>
+
+                        <div class="driver-card">
+                            <label>⚡ 재투자 효율성 (Sales-to-Capital)</label>
+                            <input type="number" id="efficiency" placeholder="매출 대비 자본 비율" step="0.1">
+                            <textarea placeholder="내러티브 근거: 자본 효율성의 근거는?" style="margin-top: 1rem;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="previousModule()">← 이전</button>
+                    <button class="btn btn-primary" onclick="runSimulation()">시뮬레이션 실행 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 4: Simulation -->
+        <div class="module-content" id="module4">
+            <div class="glass-card">
+                <div class="simulation-container">
+                    <h2 style="color: white; margin-bottom: 2rem;">🎲 몬테카를로 시뮬레이션 실행 중</h2>
+                    
+                    <div class="simulation-progress">
+                        <div class="progress-bar" id="progress"></div>
+                    </div>
+
+                    <div class="simulation-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="sim-count">0</div>
+                            <div style="color: rgba(255,255,255,0.8);">시뮬레이션 횟수</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="sim-time">0s</div>
+                            <div style="color: rgba(255,255,255,0.8);">경과 시간</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="sim-scenarios">0</div>
+                            <div style="color: rgba(255,255,255,0.8);">시나리오 생성</div>
+                        </div>
+                    </div>
+
+                    <p style="color: white; margin-top: 2rem; opacity: 0.8;">
+                        10,000개의 미래 시나리오를 생성하고 있습니다...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 5: Results -->
+        <div class="module-content" id="module5">
+            <div class="glass-card">
+                <h2 style="color: white; margin-bottom: 2rem;">📊 확률론적 가치평가 결과</h2>
+                
+                <div class="results-container">
+                    <div class="chart-container">
+                        <canvas id="histogram"></canvas>
+                    </div>
+
+                    <div class="probability-summary">
+                        <div class="prob-card">
+                            <div class="prob-label">평균 가치</div>
+                            <div class="prob-value" id="mean-value">$0</div>
+                        </div>
+                        <div class="prob-card">
+                            <div class="prob-label">중앙값</div>
+                            <div class="prob-value" id="median-value">$0</div>
+                        </div>
+                        <div class="prob-card">
+                            <div class="prob-label">표준편차</div>
+                            <div class="prob-value" id="std-value">$0</div>
+                        </div>
+                        <div class="prob-card" style="background: linear-gradient(135deg, var(--success), var(--primary));">
+                            <div class="prob-label">저평가 확률</div>
+                            <div class="prob-value" id="undervalued">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="margin-top: 2rem;">
+                        <h3 style="color: var(--secondary); margin-bottom: 1rem;">💡 가치평가 요약</h3>
+                        <p id="valuation-summary" style="color: white; line-height: 1.8; font-size: 1.1rem;">
+                            <!-- 자동 생성된 요약문이 여기 표시됨 -->
+                        </p>
+                    </div>
+
+                    <div class="glass-card" style="margin-top: 2rem;">
+                        <h3 style="color: var(--secondary); margin-bottom: 1rem;">🎯 민감도 분석</h3>
+                        <canvas id="tornado-chart" style="background: rgba(255,255,255,0.9); border-radius: 10px; padding: 1rem;"></canvas>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="saveValuation()">💾 저장</button>
+                    <button class="btn btn-secondary" onclick="createScenario()">📋 시나리오 생성</button>
+                    <button class="btn btn-primary" onclick="startNew()">🔄 새로운 평가</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Global state
+        let currentModule = 1;
+        let valuationData = {
+            narrative: {},
+            drivers: {},
+            results: null
+        };
+
+        // Module navigation
+        function switchModule(moduleNumber) {
+            // Only allow navigation to completed or current modules
+            if (moduleNumber > currentModule + 1) return;
+            
+            document.querySelectorAll('.module-content').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            
+            document.getElementById(`module${moduleNumber}`).classList.add('active');
+            document.querySelectorAll('.step')[moduleNumber - 1].classList.add('active');
+            
+            // Mark completed steps
+            for (let i = 0; i < moduleNumber - 1; i++) {
+                document.querySelectorAll('.step')[i].classList.add('completed');
+            }
+        }
+
+        function nextModule() {
+            if (currentModule < 5) {
+                // Save current module data
+                if (currentModule === 1) {
+                    saveNarrative();
+                }
+                
+                currentModule++;
+                switchModule(currentModule);
+                
+                // Load data for next module
+                if (currentModule === 3) {
+                    displayNarrativeSummary();
+                }
+            }
+        }
+
+        function previousModule() {
+            if (currentModule > 1) {
+                currentModule--;
+                switchModule(currentModule);
+            }
+        }
+
+        // Save narrative data
+        function saveNarrative() {
+            valuationData.narrative = {
+                companyName: document.getElementById('companyName').value,
+                vision: document.getElementById('vision').value,
+                market: document.getElementById('market').value,
+                advantage: document.getElementById('advantage').value
+            };
+        }
+
+        // Display narrative summary in bridge module
+        function displayNarrativeSummary() {
+            const summary = `
+                <h4 style="color: var(--primary); margin-bottom: 0.5rem;">${valuationData.narrative.companyName || '기업명'}</h4>
+                <p><strong>비전:</strong> ${valuationData.narrative.vision || '입력된 비전 없음'}</p>
+                <p><strong>시장 기회:</strong> ${valuationData.narrative.market || '입력된 시장 분석 없음'}</p>
+                <p><strong>경쟁 우위:</strong> ${valuationData.narrative.advantage || '입력된 경쟁 우위 없음'}</p>
+            `;
+            document.getElementById('narrative-display').innerHTML = summary;
+        }
+
+        // 3P Test validation
+        function validate3P() {
+            const tests = ['possible', 'plausible', 'probable'];
+            let allPassed = true;
+            
+            tests.forEach(test => {
+                const check1 = document.getElementById(`${test}-check1`).checked;
+                const check2 = document.getElementById(`${test}-check2`).checked;
+                
+                if (check1 && check2) {
+                    document.getElementById(`${test}-status`).classList.add('passed');
+                } else {
+                    allPassed = false;
+                }
+            });
+            
+            if (allPassed) {
+                nextModule();
+            } else {
+                alert('모든 테스트 항목을 통과해야 다음 단계로 진행할 수 있습니다.');
+            }
+        }
+
+        // Toggle probability distribution
+        function toggleProbability(element, driver) {
+            element.classList.toggle('active');
+            const distInputs = document.getElementById(`${driver}-dist`);
+            distInputs.classList.toggle('active');
+        }
+
+        // Run Monte Carlo simulation
+        function runSimulation() {
+            // Save driver inputs
+            valuationData.drivers = {
+                growthRate: parseFloat(document.getElementById('growth-rate').value) || 15,
+                margin: parseFloat(document.getElementById('margin').value) || 20,
+                efficiency: parseFloat(document.getElementById('efficiency').value) || 2
+            };
+            
+            nextModule();
+            
+            // Start simulation animation
+            let progress = 0;
+            let simCount = 0;
+            let startTime = Date.now();
+            
+            const progressBar = document.getElementById('progress');
+            const simInterval = setInterval(() => {
+                progress += 2;
+                simCount += 200;
+                
+                progressBar.style.width = progress + '%';
+                document.getElementById('sim-count').textContent = simCount.toLocaleString();
+                document.getElementById('sim-time').textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
+                document.getElementById('sim-scenarios').textContent = simCount.toLocaleString();
+                
+                if (progress >= 100) {
+                    clearInterval(simInterval);
+                    setTimeout(() => {
+                        generateResults();
+                        nextModule();
+                    }, 500);
+                }
+            }, 60);
+        }
+
+        // Generate simulation results
+        function generateResults() {
+            // Generate mock distribution data
+            const numSimulations = 10000;
+            const baseValue = 100;
+            const results = [];
+            
+            // Generate normal distribution
+            for (let i = 0; i < numSimulations; i++) {
+                const z1 = Math.random();
+                const z2 = Math.random();
+                const normal = Math.sqrt(-2 * Math.log(z1)) * Math.cos(2 * Math.PI * z2);
+                const value = baseValue + (normal * 20);
+                results.push(Math.max(0, value));
+            }
+            
+            // Calculate statistics
+            results.sort((a, b) => a - b);
+            const mean = results.reduce((a, b) => a + b) / results.length;
+            const median = results[Math.floor(results.length / 2)];
+            const std = Math.sqrt(results.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / results.length);
+            const marketPrice = 85;
+            const undervaluedPct = (results.filter(r => r > marketPrice).length / results.length * 100);
+            
+            valuationData.results = {
+                distribution: results,
+                mean: mean,
+                median: median,
+                std: std,
+                undervaluedPct: undervaluedPct,
+                p10: results[Math.floor(results.length * 0.1)],
+                p90: results[Math.floor(results.length * 0.9)]
+            };
+            
+            // Update display
+            document.getElementById('mean-value').textContent = ' + mean.toFixed(2);
+            document.getElementById('median-value').textContent = ' + median.toFixed(2);
+            document.getElementById('std-value').textContent = ' + std.toFixed(2);
+            document.getElementById('undervalued').textContent = undervaluedPct.toFixed(1) + '%';
+            
+            // Generate summary text
+            const summary = `사용자의 내러티브와 가정에 기반하여, 추정된 가치의 중앙값은 주당 ${median.toFixed(2)}입니다. 
+                            내재가치가 ${valuationData.results.p10.toFixed(2)} (10백분위수)에서 ${valuationData.results.p90.toFixed(2)} (90백분위수) 
+                            사이에 존재할 확률은 80%입니다. 현재 시장 가격인 ${marketPrice}을 고려할 때, 
+                            본 시뮬레이션은 이 주식이 저평가되었을 확률이 ${undervaluedPct.toFixed(1)}%임을 시사합니다.`;
+            
+            document.getElementById('valuation-summary').textContent = summary;
+            
+            // Draw charts
+            drawHistogram(results);
+            drawTornadoChart();
+        }
+
+        // Draw histogram
+        function drawHistogram(data) {
+            const ctx = document.getElementById('histogram').getContext('2d');
+            
+            // Create bins
+            const bins = 30;
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const binWidth = (max - min) / bins;
+            const histogram = new Array(bins).fill(0);
+            
+            data.forEach(value => {
+                const binIndex = Math.min(Math.floor((value - min) / binWidth), bins - 1);
+                histogram[binIndex]++;
+            });
+            
+            const labels = [];
+            for (let i = 0; i < bins; i++) {
+                labels.push((min + i * binWidth).toFixed(0));
+            }
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '빈도',
+                        data: histogram,
+                        backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '주당 가치 분포',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '주당 가치 ($)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '빈도'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Draw tornado chart for sensitivity analysis
+        function drawTornadoChart() {
+            const ctx = document.getElementById('tornado-chart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['매출 성장률', '영업이익률', '자본 효율성', '자본비용', '영구성장률'],
+                    datasets: [{
+                        label: '하방 영향',
+                        data: [-25, -20, -15, -12, -8],
+                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: '상방 영향',
+                        data: [30, 22, 18, 15, 10],
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '주요 동인 민감도 분석',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '가치 변화 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Utility functions
+        function saveValuation() {
+            const dataStr = JSON.stringify(valuationData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `valuation_${valuationData.narrative.companyName}_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function createScenario() {
+            alert('시나리오 관리 기능: 여러 대안적 내러티브를 생성하고 비교할 수 있습니다.');
+        }
+
+        function startNew() {
+            if (confirm('새로운 가치평가를 시작하시겠습니까? 현재 작업은 저장하지 않으면 사라집니다.')) {
+                currentModule = 1;
+                valuationData = { narrative: {}, drivers: {}, results: null };
+                switchModule(1);
+                document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+                document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
