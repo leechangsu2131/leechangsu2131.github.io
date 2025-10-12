@@ -455,15 +455,19 @@
                     </div>
                     <div class="training-card" onclick="startWorkout('cardio')">
                         <h3>🫁 저강도 유산소 + 코어</h3>
-                        <p>30-40분 편안한 강도로 심박수 유지<br>플랭크, 레그레이즈, 버드독 포함<br><strong>권장: 화요일</strong></p>
+                        <p>30-40분 편안한 강도로 심박수 유지<br>플랭크, 레그레이즈, 버드독 포함<br><strong>권장: 화요일, 목요일</strong></p>
                     </div>
                     <div class="training-card" onclick="startWorkout('hiit')">
                         <h3>🔥 보조 HIIT (로잉머신)</h3>
-                        <p>500m 최대 속도 로잉 + 2분 휴식<br>심폐지구력 및 젖산 역치 개선<br><strong>권장: 목요일</strong></p>
+                        <p>500m 최대 속도 로잉 + 2분 휴식<br>심폐지구력 및 젖산 역치 개선<br><strong>선택: 토요일 (컨디션 좋을 때)</strong></p>
                     </div>
                     <div class="training-card" onclick="startWorkout('strength')">
                         <h3>🏋️ 보조 근력 운동</h3>
                         <p>스쿼트, 데드리프트, 벤치프레스 등<br>전신 근력 강화 및 불균형 해소<br><strong>권장: 금요일</strong></p>
+                    </div>
+                    <div class="training-card" onclick="startWorkout('liss')">
+                        <h3>🚶 장시간 저강도 유산소</h3>
+                        <p>45-60분 긴 시간 동안 편안한 강도<br>피로 회복 및 지구력 향상<br><strong>대안: 토요일 (HIIT 대신)</strong></p>
                     </div>
                     <div class="training-card" style="background: linear-gradient(135deg, #a8edea, #fed6e3);">
                         <h3>😴 완전 휴식</h3>
@@ -497,9 +501,10 @@
                     <select id="workoutType">
                         <option value="rowing">로잉머신 A+A</option>
                         <option value="bodyweight">맨몸 A+A 서킷</option>
-                        <option value="hiit">보조 HIIT</option>
-                        <option value="cardio">저강도 유산소</option>
+                        <option value="hiit">보조 HIIT (로잉머신)</option>
+                        <option value="cardio">저강도 유산소 + 코어</option>
                         <option value="strength">보조 근력 운동</option>
+                        <option value="liss">장시간 저강도 유산소</option>
                     </select>
                 </div>
                 <div class="input-group">
@@ -598,14 +603,14 @@
                         </div>
                     </div>
 
-                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #27ae60;">
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #3498db;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <strong>목요일 - 보조 HIIT 훈련 (로잉머신)</strong>
-                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">심폐지구력 및 젖산 역치 개선</p>
+                                <strong>목요일 - 적극적 회복 및 저강도 유산소</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">신경계 및 근육 회복 촉진, 유산소 기반 강화</p>
                             </div>
                             <div style="text-align: right;">
-                                <span id="thursdayStatus" class="status-badge" style="background: #27ae60; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                                <span id="thursdayStatus" class="status-badge" style="background: #3498db; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
                             </div>
                         </div>
                         <div class="progress-bar" style="margin-top: 10px;">
@@ -628,14 +633,14 @@
                         </div>
                     </div>
 
-                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #f39c12;">
+                    <div class="day-schedule" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #e67e22;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <strong>토요일 - 장시간 저강도 유산소</strong>
-                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">지방 대사 능력 향상, 심혈관 건강 증진 (45-60분)</p>
+                                <strong>토요일 - 보조 HIIT 훈련 (선택 사항)</strong>
+                                <p style="margin: 5px 0; color: #666; font-size: 0.9em;">심폐지구력 개선 (컨디션 좋을 때만, 피로 시 저강도 유산소 대체)</p>
                             </div>
                             <div style="text-align: right;">
-                                <span id="saturdayStatus" class="status-badge" style="background: #f39c12; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">미완료</span>
+                                <span id="saturdayStatus" class="status-badge" style="background: #e67e22; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">선택</span>
                             </div>
                         </div>
                         <div class="progress-bar" style="margin-top: 10px;">
@@ -662,10 +667,11 @@
                 <div style="background: linear-gradient(135deg, #ffecd2, #fcb69f); border-radius: 15px; padding: 20px;">
                     <h4 style="color: #d2691e; margin-bottom: 10px;">💡 주간 훈련 팁</h4>
                     <ul style="color: #8b4513; line-height: 1.6; padding-left: 20px;">
-                        <li><strong>A+A 훈련 간격:</strong> 최소 48시간 간격으로 배치 (월요일-수요일)</li>
-                        <li><strong>휴식일 활용:</strong> 목요일과 일요일은 완전 휴식으로 신경계 회복</li>
-                        <li><strong>유산소 훈련:</strong> 화요일은 짧게(30-40분), 토요일은 길게(45-60분)</li>
-                        <li><strong>컨디션 확인:</strong> 피로가 누적되면 계획보다 하루 더 휴식</li>
+                        <li><strong>A+A 훈련 간격:</strong> 월요일-수요일로 48시간 간격 유지</li>
+                        <li><strong>회복일 배치:</strong> 목요일은 적극적 회복으로 A+A 후 신경계 회복</li>
+                        <li><strong>HIIT 선택:</strong> 토요일 HIIT는 컨디션 좋을 때만, 피로 시 저강도 유산소나 휴식</li>
+                        <li><strong>휴식일:</strong> 일요일은 완전 휴식으로 주간 피로 회복</li>
+                        <li><strong>유산소 활용:</strong> 화요일/목요일 저강도 유산소로 회복력 향상</li>
                     </ul>
                 </div>
             </div>
@@ -704,10 +710,10 @@
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
-                        <strong>목요일: 보조 HIIT 로잉머신</strong>
+                        <strong>목요일: 적극적 회복 및 저강도 유산소</strong>
                         <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>500미터 최대 속도 로잉 / 2분 휴식</li>
-                            <li>총 4세트</li>
+                            <li>트레드밀/사이클 30-40분 (대화 가능 강도)</li>
+                            <li>신경계와 근육 회복 촉진</li>
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
@@ -718,9 +724,10 @@
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
-                        <strong>토요일: 장시간 저강도 유산소</strong>
+                        <strong>토요일: 보조 HIIT 훈련 (선택 사항)</strong>
                         <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>45-60분, 대화 가능한 편안한 강도</li>
+                            <li>500미터 최대 속도 로잉 / 2분 휴식</li>
+                            <li>총 3-4세트 (컨디션 좋을 때만)</li>
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px;">
@@ -752,10 +759,9 @@
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
-                        <strong>목요일: 보조 HIIT 로잉머신</strong>
+                        <strong>목요일: 적극적 회복 및 저강도 유산소</strong>
                         <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>500미터 최대 속도 로잉 / 2분 휴식</li>
-                            <li>총 5세트 (볼륨 증가)</li>
+                            <li>1-2주차와 동일</li>
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
@@ -765,7 +771,14 @@
                         </ul>
                     </div>
                     <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
-                        <strong>토요일 / 일요일: 1-2주차와 동일</strong>
+                        <strong>토요일: 보조 HIIT 훈련 (선택 사항)</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>500미터 최대 속도 로잉 / 2분 휴식</li>
+                            <li>총 4-5세트 (볼륨 증가, 컨디션 좋을 때만)</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                        <strong>일요일: 완전 휴식</strong>
                     </div>
                 </div>
 
@@ -775,6 +788,7 @@
                         <li><strong>1-2주차:</strong> 올바른 자세 숙달과 에너지 시스템 적응에 집중</li>
                         <li><strong>3-4주차:</strong> 파워 유지하면서 점진적으로 밀도와 볼륨 증가</li>
                         <li><strong>중요:</strong> 후반 세트에서 파워가 급격히 떨어지면 즉시 휴식 시간 늘리기</li>
+                        <li><strong>HIIT 주의:</strong> 토요일 HIIT는 선택 사항, 주중 피로 누적 시 생략하거나 저강도 유산소 대체</li>
                         <li><strong>디로딩:</strong> 4주 후 1주일간 볼륨/강도 50% 감소로 회복 주기</li>
                     </ul>
                 </div>
@@ -842,6 +856,56 @@
                         </ul>
                     </div>
                 </div>
+
+                <h3 style="margin: 30px 0 20px 0;">🔥 준비운동 & 정리운동 가이드</h3>
+                
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 15px; padding: 25px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">준비운동 (5-10분)</h4>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                        <strong>1단계: 전신 혈류량 증가 (2-3분)</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>제자리 뛰기 또는 가벼운 로잉</li>
+                            <li>심박수를 서서히 올리는 것이 목표</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                        <strong>2단계: 동적 스트레칭 (3-5분)</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>팔 돌리기 (양방향 15회씩)</li>
+                            <li>다리 흔들기 (앞뒤/좌우 15회씩)</li>
+                            <li>고관절 돌리기 (양방향 10회씩)</li>
+                            <li>무릎 높이 들기 (30초)</li>
+                            <li>점핑 잭 (30초)</li>
+                        </ul>
+                    </div>
+                    <p style="opacity: 0.9; font-size: 0.9em; margin-top: 10px;">
+                        💡 동적 스트레칭은 근육을 활성화하고 신경계를 깨워 폭발적인 움직임을 준비시킵니다.
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; border-radius: 15px; padding: 25px;">
+                    <h4 style="margin-bottom: 15px;">정리운동 (5-10분)</h4>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                        <strong>1단계: 심박수 안정화 (2-3분)</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>천천히 걷기 또는 매우 가벼운 로잉</li>
+                            <li>급격히 멈추지 말고 점진적으로 강도 낮추기</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px;">
+                        <strong>2단계: 정적 스트레칭 (각 20-30초 유지)</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>햄스트링 스트레칭 (허벅지 뒤)</li>
+                            <li>대퇴사두근 스트레칭 (허벅지 앞)</li>
+                            <li>둔근 스트레칭 (엉덩이)</li>
+                            <li>가슴 및 어깨 스트레칭</li>
+                            <li>광배근 스트레칭 (등)</li>
+                        </ul>
+                    </div>
+                    <p style="opacity: 0.9; font-size: 0.9em; margin-top: 10px;">
+                        💡 정적 스트레칭은 부교감신경을 활성화하여 회복 모드로 전환시킵니다.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -899,21 +963,27 @@
                     restTime: 120
                 },
                 'hiit': {
-                    name: '보조 HIIT',
-                    sets: 5,
+                    name: '보조 HIIT (로잉머신)',
+                    sets: 4,
                     workTime: 90,
                     restTime: 120
                 },
                 'cardio': {
-                    name: '저강도 유산소',
+                    name: '저강도 유산소 + 코어',
                     sets: 1,
-                    workTime: 1800, // 30분
+                    workTime: 2400, // 40분 (유산소 30분 + 코어 10분)
                     restTime: 0
                 },
                 'strength': {
                     name: '보조 근력 운동',
                     sets: 1,
                     workTime: 2700, // 45분
+                    restTime: 0
+                },
+                'liss': {
+                    name: '장시간 저강도 유산소',
+                    sets: 1,
+                    workTime: 3300, // 55분
                     restTime: 0
                 }
             };
@@ -1108,9 +1178,10 @@
                 const typeNames = {
                     'rowing': '로잉머신 A+A',
                     'bodyweight': '맨몸 A+A 서킷',
-                    'hiit': '보조 HIIT',
-                    'cardio': '저강도 유산소',
-                    'strength': '보조 근력 운동'
+                    'hiit': '보조 HIIT (로잉머신)',
+                    'cardio': '저강도 유산소 + 코어',
+                    'strength': '보조 근력 운동',
+                    'liss': '장시간 저강도 유산소'
                 };
                 
                 entry.innerHTML = `
@@ -1202,16 +1273,16 @@
                     description: '폭발적 푸쉬업 + 점프스쿼트 + 버피로 상체 및 전신 폭발력을 강화하세요.'
                 },
                 4: { // 목요일
-                    title: '🔥 목요일 - 보조 HIIT 훈련 (로잉머신)',
-                    description: '500미터 최대 속도 로잉으로 심폐지구력과 젖산 역치를 개선하세요.'
+                    title: '🫁 목요일 - 적극적 회복 및 저강도 유산소',
+                    description: '30-40분 편안한 강도로 신경계와 근육 회복을 촉진하세요.'
                 },
                 5: { // 금요일
                     title: '🏋️ 금요일 - 보조 근력 운동',
                     description: '스쿼트, 데드리프트, 벤치프레스 등으로 전신 근력을 강화하고 불균형을 해소하세요.'
                 },
                 6: { // 토요일
-                    title: '🚶 토요일 - 장시간 저강도 유산소',
-                    description: '45-60분 긴 시간 동안 저강도로 지방 대사 능력과 심혈관 건강을 증진하세요.'
+                    title: '🔥 토요일 - 보조 HIIT 훈련 (선택 사항)',
+                    description: '컨디션이 좋을 때 500미터 최대 속도 로잉으로 심폐지구력을 개선하세요. 피로 시 저강도 유산소로 대체 가능.'
                 }
             };
 
