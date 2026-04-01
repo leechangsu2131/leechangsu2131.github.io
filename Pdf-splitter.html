@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF 단원 분할기</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ef;--surface:#fff;--border:#e0dbd2;
+  --accent:#3d6b4f;--al:#eaf2ed;--ah:#2e5339;
+  --text:#2a2724;--muted:#7a746b;
+  --danger:#c0392b;--warn:#b45309;
+  --r:12px;--sh:0 2px 12px rgba(0,0,0,.08);
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px 16px}
+.wrap{max-width:840px;margin:0 auto}
+header{text-align:center;margin-bottom:26px}
+header h1{font-family:'Nanum Gothic',sans-serif;font-weight:800;font-size:1.85rem;color:var(--accent)}
+header p{color:var(--muted);margin-top:5px;font-size:.88rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:15px;box-shadow:var(--sh)}
+.ctitle{font-weight:700;font-size:.82rem;letter-spacing:.05em;color:var(--accent);text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.ctitle .sn{background:var(--accent);color:#fff;width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0}
+.drop{border:2px dashed var(--border);border-radius:9px;padding:28px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg);position:relative}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--al)}
+.drop .ico{font-size:2rem;margin-bottom:8px}
+.drop p{color:var(--muted);font-size:.88rem}
+.drop .fn{margin-top:9px;font-weight:700;color:var(--accent);font-size:.92rem;word-break:break-all}
+.strip-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.strip-label{font-size:.83rem;color:var(--muted)}
+.strip-label strong{color:var(--text)}
+.strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.strip::-webkit-scrollbar{height:5px}
+.strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.thumb-box{flex-shrink:0;scroll-snap-align:start;cursor:pointer;position:relative;transition:.18s;border-radius:6px;overflow:hidden;border:2px solid transparent;background:#eee}
+.thumb-box:hover{border-color:var(--accent);transform:translateY(-2px)}
+.thumb-box canvas{display:block;width:88px;height:auto}
+.thumb-box .pg-label{position:absolute;bottom:0;left:0;right:0;text-align:center;background:rgba(0,0,0,.6);color:#fff;font-size:.62rem;padding:3px 2px;line-height:1.45}
+.thumb-box .pg-label .det{color:#7fffb0;font-weight:700}
+.thumb-box .pg-label .sys{color:#ccc}
+.detect-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:11px 14px;border-radius:8px;background:var(--al);border:1px solid #b8d9c3;font-size:.84rem}
+.detect-bar.warn{background:#fff8e1;border-color:#ffe082;color:var(--warn)}
+.off-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.off-row label{font-size:.9rem;font-weight:500}
+.off-row input[type=number]{width:80px;border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:.95rem;font-family:'Noto Sans KR',sans-serif;text-align:center;background:var(--bg);color:var(--text);outline:none;transition:.2s}
+.off-row input[type=number]:focus{border-color:var(--accent);background:#fff}
+.hint{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.6}
+textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:.88rem;color:var(--text);background:var(--bg);resize:vertical;min-height:210px;line-height:1.75;outline:none;transition:.2s}
+textarea:focus{border-color:var(--accent);background:#fff}
+#previewList{list-style:none;max-height:250px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+#previewList li{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border);font-size:.85rem;gap:8px}
+#previewList li:last-child{border-bottom:none}
+.sec-name{flex:1;font-weight:500;word-break:keep-all}
+.sec-pages{color:var(--muted);font-size:.78rem;white-space:nowrap}
+.sec-err{color:var(--danger);font-size:.77rem}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:12px 22px;border-radius:8px;font-size:.93rem;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;border:none;transition:.18s}
+.btn-primary{background:var(--accent);color:#fff;width:100%;justify-content:center}
+.btn-primary:hover:not(:disabled){background:var(--ah);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-sm{background:var(--accent);color:#fff;padding:6px 13px;font-size:.79rem;border-radius:7px;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+.btn-sm:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm:hover:not(:disabled){background:var(--ah)}
+.btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent);padding:6px 13px;font-size:.79rem;border-radius:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:700}
+.btn-outline:hover{background:var(--al)}
+#progWrap{display:none;margin-top:13px}
+.pbar-bg{background:var(--border);border-radius:99px;height:7px;overflow:hidden;margin-top:12px}
+.pbar-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .3s;width:0}
+#progMsg{margin-top:7px;font-size:.8rem;color:var(--muted);text-align:center}
+.alert{padding:11px 15px;border-radius:8px;font-size:.87rem;margin-top:11px;display:none;white-space:pre-line}
+.alert-err{background:#fdf2f1;border:1px solid #f0b8b4;color:var(--danger)}
+.alert-ok{background:var(--al);border:1px solid #b8d9c3;color:var(--ah)}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-inner{background:#fff;border-radius:12px;padding:18px;max-width:92vw;max-height:92vh;overflow:auto;position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;min-width:280px}
+.modal-close{position:absolute;top:10px;right:13px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1}
+.modal-inner canvas{max-width:min(560px,80vw);height:auto;border:1px solid var(--border);border-radius:4px;display:block}
+.modal-nav{display:flex;gap:8px;align-items:center}
+.modal-nav button{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:.85rem;font-weight:700}
+.modal-nav button:disabled{opacity:.35;cursor:not-allowed}
+.modal-info{font-size:.83rem;color:var(--muted);text-align:center;line-height:1.6}
+.modal-info strong{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📄 PDF 단원 분할기</h1>
+    <p>페이지를 미리 보며 보정값을 설정한 뒤, 단원별로 자동 분할합니다</p>
+  </header>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="ctitle"><span class="sn">1</span> PDF 파일 선택</div>
+    <div class="drop" id="dropZone">
+      <input type="file" id="pdfInput" accept=".pdf">
+      <div class="ico">📂</div>
+      <p>클릭하거나 파일을 끌어다 놓으세요</p>
+      <div class="fn" id="fileName"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card" id="pageStripWrap" style="display:none">
+    <div class="ctitle"><span class="sn">2</span> 페이지 미리보기 &amp; 보정값 설정</div>
+
+    <div class="strip-header">
+      <span class="strip-label">앞 <strong id="stripCount">20</strong>페이지 — 섬네일 클릭 시 크게 보기 &amp; 이전/다음 탐색 가능</span>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn-sm" id="autoDetectBtn">🔍 쪽번호 자동 감지</button>
+        <button class="btn-outline" id="loadMoreBtn" style="display:none">+ 20페이지 더 보기</button>
+      </div>
+    </div>
+
+    <div class="strip" id="strip"></div>
+
+    <div id="detectBar" style="display:none" class="detect-bar">
+      <span id="detectMsg"></span>
+    </div>
+
+    <div class="off-row" style="margin-top:14px">
+      <label>보정값:</label>
+      <input type="number" id="offsetInput" value="0">
+      <span style="font-size:.82rem;color:var(--muted)">책 쪽수 + 보정값 = PDF 페이지 번호</span>
+    </div>
+    <p class="hint">예) 책 54쪽이 PDF 56번째 페이지 → 보정값 <strong>+2</strong> &nbsp;|&nbsp; 「쪽번호 자동 감지」 버튼으로 자동 계산 가능합니다<br>섬네일을 클릭하면 크게 보면서 페이지 하단의 인쇄된 숫자를 직접 확인할 수 있습니다</p>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <div class="ctitle"><span class="sn">3</span> 단원 및 쪽 정보 입력</div>
+    <textarea id="sectionInput" placeholder="예시:
+미술 시간 계획표: 54 ~ 57쪽
+* 1단원. 함께 만드는 캐릭터: 58 ~ 69쪽
+* 2단원. 조형 요소 색, 선, 형: 70 ~ 81쪽
+* 3단원. 관찰하여 그리기: 82 ~ 91쪽"></textarea>
+    <p class="hint">형식: <strong>제목: 시작쪽 ~ 끝쪽</strong> &nbsp;|&nbsp; 줄 앞의 <code>*</code>는 자동으로 제거됩니다</p>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card">
+    <div class="ctitle"><span class="sn">4</span> 분할 미리보기</div>
+    <ul id="previewList">
+      <li id="prevEmpty" style="border:none;padding:18px;text-align:center;color:var(--muted);font-size:.87rem">
+        단원 정보를 입력하면 여기에 목록이 표시됩니다
+      </li>
+    </ul>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="card">
+    <div class="ctitle"><span class="sn">5</span> 분할 및 다운로드</div>
+    <button class="btn btn-primary" id="runBtn" disabled>✂️ PDF 분할 후 ZIP 다운로드</button>
+    <div id="progWrap">
+      <div class="pbar-bg"><div class="pbar-fill" id="pFill"></div></div>
+      <div id="progMsg">처리 중...</div>
+    </div>
+    <div class="alert alert-err" id="alertErr"></div>
+    <div class="alert alert-ok" id="alertOk"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-inner">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-info" id="modalInfo"></div>
+    <canvas id="modalCanvas"></canvas>
+    <div class="modal-nav">
+      <button id="modalPrev">◀ 이전</button>
+      <button id="modalNext">다음 ▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pdfFile = null;
+let pdfJsDoc = null;
+let parsedSections = [];
+let loadedThumbCount = 0;
+let modalPage = 1;
+
+// ── 파일 업로드 ──────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const pdfInput = document.getElementById('pdfInput');
+pdfInput.addEventListener('change', e => { if(e.target.files[0]) initPDF(e.target.files[0]); });
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if(f && f.type==='application/pdf') initPDF(f);
+  else showErr('PDF 파일만 가능합니다.');
+});
+
+async function initPDF(file) {
+  pdfFile = file;
+  document.getElementById('fileName').textContent = '✅ ' + file.name;
+  const ab = await file.arrayBuffer();
+  pdfJsDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+  loadedThumbCount = 0;
+  document.getElementById('strip').innerHTML = '';
+  document.getElementById('detectBar').style.display = 'none';
+  document.getElementById('pageStripWrap').style.display = 'block';
+
+  const total = pdfJsDoc.numPages;
+  const first = Math.min(20, total);
+  document.getElementById('stripCount').textContent = first;
+  document.getElementById('loadMoreBtn').style.display = total > 20 ? 'inline-flex' : 'none';
+
+  await addThumbs(1, first);
+  loadedThumbCount = first;
+  updateRunBtn();
+}
+
+async function addThumbs(from, to) {
+  const strip = document.getElementById('strip');
+  for(let i = from; i <= to; i++) {
+    const box = document.createElement('div');
+    box.className = 'thumb-box';
+    box.dataset.page = i;
+    const cvs = document.createElement('canvas');
+    box.appendChild(cvs);
+    const lbl = document.createElement('div');
+    lbl.className = 'pg-label';
+    lbl.innerHTML = `<span class="sys">PDF ${i}p</span>`;
+    lbl.id = `lbl-${i}`;
+    box.appendChild(lbl);
+    strip.appendChild(box);
+    box.addEventListener('click', () => openModal(i));
+    renderThumb(i, cvs);
+  }
+}
+
+async function renderThumb(n, cvs) {
+  const page = await pdfJsDoc.getPage(n);
+  const vp = page.getViewport({ scale: 0.26 });
+  cvs.width = vp.width; cvs.height = vp.height;
+  await page.render({ canvasContext: cvs.getContext('2d'), viewport: vp }).promise;
+}
+
+document.getElementById('loadMoreBtn').addEventListener('click', async () => {
+  const total = pdfJsDoc.numPages;
+  const from = loadedThumbCount + 1;
+  const to = Math.min(loadedThumbCount + 20, total);
+  document.getElementById('stripCount').textContent = to;
+  await addThumbs(from, to);
+  loadedThumbCount = to;
+  if(to >= total) document.getElementById('loadMoreBtn').style.display = 'none';
+});
+
+// ── 자동 감지 ─────────────────────────────────────────
+document.getElementById('autoDetectBtn').addEventListener('click', autoDetect);
+
+async function autoDetect() {
+  const btn = document.getElementById('autoDetectBtn');
+  btn.disabled = true; btn.textContent = '감지 중...';
+  const scanTo = Math.min(30, pdfJsDoc.numPages);
+  const offsets = [];
+
+  for(let i = 1; i <= scanTo; i++) {
+    const page = await pdfJsDoc.getPage(i);
+    const vp = page.getViewport({ scale: 1 });
+    const content = await page.getTextContent();
+    const h = vp.height;
+
+    // 페이지 하단 18% 내의 텍스트 수집
+    const bottomItems = content.items.filter(item =>
+      typeof item.str === 'string' && item.transform[5] < h * 0.18
+    );
+
+    // 순수 숫자 토큰 찾기 (1~999 범위)
+    for(const item of bottomItems) {
+      const t = item.str.trim();
+      if(/^\d{1,3}$/.test(t)) {
+        const printed = parseInt(t);
+        if(printed >= 1 && printed < 1000) {
+          const diff = i - printed;
+          offsets.push({ pdf: i, printed, diff });
+          setThumbLabel(i, printed, diff);
+          break;
+        }
+      }
+    }
+  }
+
+  btn.disabled = false; btn.innerHTML = '🔍 쪽번호 자동 감지';
+
+  const bar = document.getElementById('detectBar');
+  bar.style.display = 'flex';
+
+  if(offsets.length === 0) {
+    bar.className = 'detect-bar warn';
+    document.getElementById('detectMsg').innerHTML =
+      '⚠️ 페이지 하단에서 쪽 번호를 자동으로 찾지 못했습니다.<br>섬네일을 클릭하여 크게 보면서 직접 보정값을 입력해 주세요.';
+    return;
+  }
+
+  // 최다 보정값 채택
+  const freq = {};
+  offsets.forEach(o => { freq[o.diff] = (freq[o.diff]||0) + 1; });
+  const [bestDiff, cnt] = Object.entries(freq).sort((a,b) => b[1]-a[1])[0];
+  const ex = offsets.find(o => o.diff === parseInt(bestDiff));
+
+  document.getElementById('offsetInput').value = parseInt(bestDiff);
+  updatePreview();
+
+  bar.className = 'detect-bar';
+  document.getElementById('detectMsg').innerHTML =
+    `✅ <strong>보정값 ${bestDiff > 0 ? '+' : ''}${bestDiff}</strong> 자동 설정 완료`
+    + ` &nbsp;(${cnt}개 페이지에서 감지됨)`
+    + ` &nbsp;예: PDF ${ex.pdf}페이지 = 책 ${ex.printed}쪽`;
+}
+
+function setThumbLabel(n, printed, diff) {
+  const lbl = document.getElementById(`lbl-${n}`);
+  if(lbl) {
+    lbl.innerHTML = `<span class="det">책 ${printed}쪽</span> <span class="sys">/ PDF ${n}p</span>`;
+  }
+}
+
+// ── 모달 ──────────────────────────────────────────────
+async function openModal(n) {
+  modalPage = n;
+  document.getElementById('modal').classList.add('open');
+  await renderModal(n);
+}
+
+async function renderModal(n) {
+  const page = await pdfJsDoc.getPage(n);
+  const vp = page.getViewport({ scale: 1.5 });
+  const cvs = document.getElementById('modalCanvas');
+  cvs.width = vp.width; cvs.height = vp.height;
+  await page.render({ canvasContext: cvs.getContext('2d'), viewport: vp }).promise;
+  const offset = parseInt(document.getElementById('offsetInput').value) || 0;
+  const bookPage = n - offset;
+  document.getElementById('modalInfo').innerHTML =
+    `PDF <strong>${n}</strong>페이지 &nbsp;|&nbsp; 예상 책 쪽수: <strong>${bookPage}쪽</strong>`
+    + ` <span style="color:var(--muted)">(보정값 ${offset >= 0 ? '+' : ''}${offset})</span>`;
+  document.getElementById('modalPrev').disabled = n <= 1;
+  document.getElementById('modalNext').disabled = n >= pdfJsDoc.numPages;
+}
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+document.getElementById('modalPrev').addEventListener('click', () => {
+  if(modalPage > 1){ modalPage--; renderModal(modalPage); }
+});
+document.getElementById('modalNext').addEventListener('click', () => {
+  if(modalPage < pdfJsDoc.numPages){ modalPage++; renderModal(modalPage); }
+});
+
+// 보정값 변경 시 모달 새로고침
+document.getElementById('offsetInput').addEventListener('input', () => {
+  updatePreview();
+  if(document.getElementById('modal').classList.contains('open')) renderModal(modalPage);
+});
+
+// ── 섹션 파싱 ─────────────────────────────────────────
+document.getElementById('sectionInput').addEventListener('input', updatePreview);
+
+function parseSections(text, offset) {
+  return text.split('\n').map(raw => {
+    const line = raw.trim().replace(/^\*\s*/, '');
+    if(!line) return null;
+    const m = line.match(/^(.+?):\s*(\d+)\s*[~～]\s*(\d+)쪽?\s*$/);
+    if(!m) return { name: line, error: '형식 오류 (제목: 시작쪽 ~ 끝쪽)' };
+    const name = m[1].trim();
+    const bookS = parseInt(m[2]), bookE = parseInt(m[3]);
+    if(bookS > bookE) return { name, error: '시작 쪽이 끝 쪽보다 큽니다' };
+    return { name, bookS, bookE, pdfS: bookS + offset, pdfE: bookE + offset };
+  }).filter(Boolean);
+}
+
+function updatePreview() {
+  const offset = parseInt(document.getElementById('offsetInput').value) || 0;
+  parsedSections = parseSections(document.getElementById('sectionInput').value, offset);
+  const list = document.getElementById('previewList');
+  list.innerHTML = '';
+  if(!parsedSections.length) {
+    list.innerHTML = '<li id="prevEmpty" style="border:none;padding:18px;text-align:center;color:var(--muted);font-size:.87rem">단원 정보를 입력하면 여기에 목록이 표시됩니다</li>';
+  } else {
+    parsedSections.forEach(s => {
+      const li = document.createElement('li');
+      if(s.error) {
+        li.innerHTML = `<span class="sec-name">${esc(s.name)}</span><span class="sec-err">⚠️ ${s.error}</span>`;
+      } else {
+        const lbl = s.pdfS === s.bookS
+          ? `${s.bookS} ~ ${s.bookE}쪽`
+          : `책 ${s.bookS}~${s.bookE}쪽 → PDF ${s.pdfS}~${s.pdfE}p`;
+        li.innerHTML = `<span class="sec-name">${esc(s.name)}</span><span class="sec-pages">${lbl}</span>`;
+      }
+      list.appendChild(li);
+    });
+  }
+  updateRunBtn();
+}
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function updateRunBtn(){ document.getElementById('runBtn').disabled = !(pdfFile && parsedSections.some(s=>!s.error)); }
+
+// ── 실행 ─────────────────────────────────────────────
+document.getElementById('runBtn').addEventListener('click', runSplit);
+
+async function runSplit() {
+  clearAlerts();
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  const valids = parsedSections.filter(s => !s.error);
+  if(!valids.length){ showErr('유효한 단원 정보가 없습니다.'); btn.disabled=false; return; }
+
+  showProg(true); setP(0, '📖 PDF 로딩 중...');
+  try {
+    const ab = await pdfFile.arrayBuffer();
+    const srcDoc = await PDFLib.PDFDocument.load(ab);
+    const total = srcDoc.getPageCount();
+    const base = pdfFile.name.replace(/\.pdf$/i,'');
+    const zip = new JSZip();
+    const folder = zip.folder(base);
+
+    for(let i = 0; i < valids.length; i++) {
+      const s = valids[i];
+      setP(Math.round(i/valids.length*90), `✂️ [${i+1}/${valids.length}] ${s.name}`);
+      const si = s.pdfS - 1, ei = s.pdfE - 1;
+      if(si < 0 || ei >= total) {
+        showErr(`「${s.name}」: 범위 초과 (전체 ${total}페이지). 보정값을 확인하세요.`);
+        showProg(false); btn.disabled=false; return;
+      }
+      const newDoc = await PDFLib.PDFDocument.create();
+      const idxs = Array.from({length: ei-si+1}, (_,k) => si+k);
+      const pages = await newDoc.copyPages(srcDoc, idxs);
+      pages.forEach(p => newDoc.addPage(p));
+      const bytes = await newDoc.save();
+      const safe = s.name.replace(/[\\/:*?"<>|]/g,'_');
+      folder.file(`${base}_${safe}.pdf`, bytes);
+    }
+
+    setP(95, '📦 ZIP 압축 중...');
+    const blob = await zip.generateAsync({type:'blob'}, m => setP(95+Math.round(m.percent*.05), '📦 생성 중...'));
+    setP(100, '✅ 완료!');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${base}.zip`;
+    a.click();
+    showOk(`✅ ${valids.length}개 파일 분할 완료! ZIP이 다운로드됩니다.\n📁 압축 내 폴더명: ${base}/`);
+  } catch(e) {
+    showErr('오류: ' + e.message); console.error(e);
+  }
+  showProg(false); btn.disabled=false; updateRunBtn();
+}
+
+function showProg(v){ document.getElementById('progWrap').style.display = v?'block':'none' }
+function setP(p,m){ document.getElementById('pFill').style.width=p+'%'; document.getElementById('progMsg').textContent=m }
+function showErr(m){ const e=document.getElementById('alertErr'); e.textContent=m; e.style.display='block' }
+function showOk(m){ const e=document.getElementById('alertOk'); e.textContent=m; e.style.display='block' }
+function clearAlerts(){ ['alertErr','alertOk'].forEach(id=>document.getElementById(id).style.display='none') }
+</script>
+</body>
+</html>
