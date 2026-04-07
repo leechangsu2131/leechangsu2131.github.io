@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도면 천막 배치 도구</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fabric.js for Canvas Manipulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar for canvas area */
+        #mainArea::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        #mainArea::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        #mainArea::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 5px;
+        }
+        #mainArea::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col font-sans overflow-hidden">
+
+    <!-- 상단 컨트롤 바 -->
+    <nav class="bg-white border-b border-gray-200 px-4 py-3 flex flex-wrap gap-4 items-center justify-between shadow-sm z-10 relative shrink-0">
+        <div class="flex items-center gap-4 flex-wrap">
+            <h1 class="text-lg font-bold text-gray-800 hidden xl:block">
+                <i class="fa-solid fa-tent text-blue-600 mr-2"></i>천막 배치기
+            </h1>
+            
+            <div class="h-6 w-px bg-gray-300 hidden xl:block"></div>
+
+            <!-- 이미지 불러오기 -->
+            <div>
+                <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                <button onclick="document.getElementById('imageUpload').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 lg:px-4 lg:py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open"></i> <span class="hidden sm:inline">도면 불러오기</span>
+                </button>
+            </div>
+
+            <!-- 천막 설정 -->
+            <div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                <select id="tentPreset" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2" title="천막 규격 선택">
+                    <option value="3x6">중형 (3x6m)</option>
+                    <option value="3x3">소형 (3x3m)</option>
+                    <option value="5x5">대형 (5x5m)</option>
+                    <option value="custom">직접 입력 (m)</option>
+                </select>
+
+                <!-- 직접 입력 폼 (기본 숨김) -->
+                <div id="customSizeInputs" class="hidden items-center gap-1 mx-1">
+                    <input type="number" id="tentW" class="w-16 bg-white border border-gray-300 rounded p-1.5 text-sm text-center" placeholder="가로" value="4" min="1">
+                    <span class="text-xs text-gray-500 font-bold">x</span>
+                    <input type="number" id="tentH" class="w-16 bg-white border border-gray-300 rounded p-1.5 text-sm text-center" placeholder="세로" value="4" min="1">
+                    <span class="text-xs text-gray-500 mr-1">m</span>
+                </div>
+
+                <select id="tentColor" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2" title="천막 색상">
+                    <option value="blue">파란색 천막</option>
+                    <option value="yellow">노란색 천막</option>
+                    <option value="white">하얀색 천막</option>
+                </select>
+                
+                <button id="addTentBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> <span class="hidden md:inline">천막 추가</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 lg:gap-3 flex-wrap">
+            <!-- 축척 정보 표시 -->
+            <span id="scaleInfo" class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-1 rounded hidden mr-2">축척: 1m = ?px</span>
+
+            <!-- 축척 설정 버튼 -->
+            <button id="setScaleBtn" class="bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2" title="알고 있는 길이를 그어 도면 축척(m) 설정 (Ctrl키로 수평/수직 고정)">
+                <i class="fa-solid fa-map-location-dot"></i> <span class="hidden lg:inline">축척 설정</span>
+            </button>
+            
+            <!-- 거리 재기 버튼 -->
+            <button id="measureBtn" class="bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2" title="길이 측정 (m단위 표시, Ctrl키로 수평/수직 고정)">
+                <i class="fa-solid fa-ruler-combined"></i> <span class="hidden lg:inline">거리 재기</span>
+            </button>
+            
+            <div class="h-6 w-px bg-gray-300 hidden md:block mx-1"></div>
+            
+            <!-- 기존 기능 버튼들 -->
+            <button id="duplicateBtn" class="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2" title="선택된 객체 복제 (Ctrl+D)">
+                <i class="fa-regular fa-copy"></i>
+            </button>
+            <button id="deleteBtn" class="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2" title="선택된 객체 삭제 (Delete/Backspace)">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <button id="downloadBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 lg:px-4 lg:py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center gap-2 ml-2">
+                <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">저장</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 메인 캔버스 영역 -->
+    <div class="flex-1 overflow-auto bg-gray-200 relative w-full" id="mainArea">
+        
+        <!-- 초기 안내 문구 -->
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 pointer-events-none p-6 z-10">
+            <div class="bg-white p-8 rounded-xl shadow-md text-center max-w-lg pointer-events-auto">
+                <i class="fa-regular fa-image text-5xl mb-4 text-indigo-400"></i>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">도면 이미지를 업로드하세요</h2>
+                <p class="text-sm text-gray-600 mb-4">상단의 <b>[도면 불러오기]</b> 버튼을 눌러 도면 파일을 선택해 주세요.</p>
+                <div class="text-left text-xs text-gray-600 bg-blue-50 border border-blue-100 p-4 rounded-md">
+                    <p class="font-bold text-blue-800 mb-2"><i class="fa-solid fa-lightbulb text-yellow-500"></i> 사용 꿀팁 (축척 기능)</p>
+                    <ol class="list-decimal pl-4 space-y-1">
+                        <li>도면을 불러온 후, 먼저 우측 상단의 <b>[축척 설정]</b>을 클릭합니다.</li>
+                        <li>운동장 가로 길이 등 <b>실제 길이를 알고 있는 곳을 마우스로 드래그하여 선을 긋습니다.</b></li>
+                        <li class="font-bold text-indigo-700">선을 그을 때 <b>Ctrl 키</b>를 누른 상태로 드래그하면 수평/수직으로 곧게 그릴 수 있습니다.</li>
+                        <li>팝업창에 <b>실제 길이(m)</b>를 입력하면 도면 비율 셋팅이 완료됩니다.</li>
+                        <li>이후부터는 <b>[천막 추가]</b>나 <b>[거리 재기]</b>가 모두 실제 미터(m) 단위로 정확히 작동합니다!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fabric Canvas Container -->
+        <div class="inline-block shadow-xl bg-white ring-1 ring-gray-300 m-6 relative origin-top-left" id="canvasWrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // 초기화
+        const canvas = new fabric.Canvas('canvas', {
+            preserveObjectStacking: true
+        });
+
+        let originalFileName = '도면_천막배치.png';
+        const emptyState = document.getElementById('emptyState');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+
+        // 상태 변수
+        let currentMode = 'none'; // 'none', 'measure', 'setScale'
+        let scalePxPerM = null;   // 축척: 1미터당 픽셀 수 (px/m)
+        let isDrawing = false;
+        let drawLine, drawText;
+
+        // 천막 크기 '직접 입력' UI 토글
+        document.getElementById('tentPreset').addEventListener('change', function(e) {
+            const customDiv = document.getElementById('customSizeInputs');
+            if (e.target.value === 'custom') {
+                customDiv.classList.remove('hidden');
+                customDiv.classList.add('flex');
+            } else {
+                customDiv.classList.add('hidden');
+                customDiv.classList.remove('flex');
+            }
+        });
+
+        // 이미지 업로드 처리
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            originalFileName = file.name.replace(/\.[^/.]+$/, "") + "_천막완성.png";
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imgObj = new Image();
+                imgObj.src = event.target.result;
+                imgObj.onload = function() {
+                    emptyState.style.display = 'none';
+
+                    const image = new fabric.Image(imgObj);
+                    canvas.setWidth(image.width);
+                    canvas.setHeight(image.height);
+                    canvas.setBackgroundImage(image, canvas.renderAll.bind(canvas));
+                    
+                    // 새 이미지를 불러오면 축척 초기화
+                    scalePxPerM = null;
+                    document.getElementById('scaleInfo').classList.add('hidden');
+                    if(currentMode !== 'none') toggleMode('none');
+                }
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // ------------------
+        // 도구 모드 전환 (거리재기 vs 축척설정)
+        // ------------------
+        function toggleMode(modeName) {
+            if (!canvas.backgroundImage && modeName !== 'none') {
+                alert('먼저 도면 이미지를 불러와주세요.');
+                return;
+            }
+
+            if (currentMode === modeName) {
+                currentMode = 'none'; // 끄기
+            } else {
+                currentMode = modeName; // 켜기
+            }
+            updateUIForMode();
+        }
+
+        function updateUIForMode() {
+            const measureBtn = document.getElementById('measureBtn');
+            const setScaleBtn = document.getElementById('setScaleBtn');
+            
+            // 기본 스타일로 초기화
+            measureBtn.className = "bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2";
+            setScaleBtn.className = "bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2";
+            
+            canvas.defaultCursor = 'default';
+            canvas.selection = true;
+            canvas.getObjects().forEach(o => o.set('selectable', true));
+
+            if (currentMode === 'measure') {
+                measureBtn.classList.replace('bg-purple-50', 'bg-purple-600');
+                measureBtn.classList.replace('text-purple-600', 'text-white');
+                canvas.defaultCursor = 'crosshair';
+                canvas.selection = false;
+                canvas.getObjects().forEach(o => o.set('selectable', false));
+            } else if (currentMode === 'setScale') {
+                setScaleBtn.classList.replace('bg-orange-50', 'bg-orange-600');
+                setScaleBtn.classList.replace('text-orange-600', 'text-white');
+                canvas.defaultCursor = 'crosshair';
+                canvas.selection = false;
+                canvas.getObjects().forEach(o => o.set('selectable', false));
+            }
+            
+            canvas.discardActiveObject();
+            canvas.renderAll();
+        }
+
+        document.getElementById('measureBtn').addEventListener('click', () => toggleMode('measure'));
+        document.getElementById('setScaleBtn').addEventListener('click', () => toggleMode('setScale'));
+
+        // ------------------
+        // 마우스 이벤트 (선 그리기)
+        // ------------------
+        canvas.on('mouse:down', function(o){
+            if (currentMode === 'none') return;
+            isDrawing = true;
+            var pointer = canvas.getPointer(o.e);
+            var points = [pointer.x, pointer.y, pointer.x, pointer.y];
+            
+            const strokeColor = currentMode === 'measure' ? '#9333ea' : '#ea580c'; // measure: purple, scale: orange
+            
+            drawLine = new fabric.Line(points, {
+                strokeWidth: 3,
+                fill: strokeColor,
+                stroke: strokeColor,
+                originX: 'center',
+                originY: 'center',
+                selectable: false,
+                evented: false,
+                strokeDashArray: currentMode === 'setScale' ? [0,0] : [5, 5] // 축척선은 실선, 측정선은 점선
+            });
+            
+            drawText = new fabric.Text('0', {
+                left: pointer.x,
+                top: pointer.y - 20,
+                fontSize: 18,
+                fontFamily: 'sans-serif',
+                fontWeight: 'bold',
+                fill: strokeColor,
+                backgroundColor: 'rgba(255,255,255,0.9)',
+                selectable: false,
+                evented: false,
+                originX: 'center',
+                originY: 'center',
+                padding: 4
+            });
+
+            canvas.add(drawLine, drawText);
+        });
+
+        canvas.on('mouse:move', function(o){
+            if (!isDrawing) return;
+            var pointer = canvas.getPointer(o.e);
+            
+            // Ctrl 키(또는 Cmd 키)를 누르고 있으면 수평/수직으로 고정 (Ortho Mode)
+            if (o.e.ctrlKey || o.e.metaKey) {
+                var dx = pointer.x - drawLine.x1;
+                var dy = pointer.y - drawLine.y1;
+                
+                // 가로 이동이 세로 이동보다 크면 수평선으로 고정, 아니면 수직선으로 고정
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    pointer.y = drawLine.y1; 
+                } else {
+                    pointer.x = drawLine.x1;
+                }
+            }
+
+            drawLine.set({ x2: pointer.x, y2: pointer.y });
+            
+            var dxFinal = pointer.x - drawLine.x1;
+            var dyFinal = pointer.y - drawLine.y1;
+            var distancePx = Math.round(Math.sqrt(dxFinal * dxFinal + dyFinal * dyFinal));
+            
+            let textStr = distancePx + 'px';
+            
+            if (currentMode === 'setScale') {
+                textStr = '📏 실제 길이 지정하기';
+            } else if (currentMode === 'measure' && scalePxPerM) {
+                // 축척이 설정된 경우 미터(m)로 표시
+                let distanceM = (distancePx / scalePxPerM).toFixed(1);
+                textStr = distanceM + 'm';
+            }
+
+            drawText.set({
+                text: textStr,
+                left: (drawLine.x1 + pointer.x) / 2,
+                top: (drawLine.y1 + pointer.y) / 2 - 20
+            });
+            
+            canvas.renderAll();
+        });
+
+        canvas.on('mouse:up', function(o){
+            if (!isDrawing) return;
+            isDrawing = false;
+            
+            // 선이 너무 짧으면 무시 (점만 찍힌 경우)
+            if (Math.abs(drawLine.x1 - drawLine.x2) < 5 && Math.abs(drawLine.y1 - drawLine.y2) < 5) {
+                canvas.remove(drawLine, drawText);
+                return;
+            }
+
+            if (currentMode === 'setScale') {
+                // 축척 설정 모드 완료 시점
+                var dx = drawLine.x2 - drawLine.x1;
+                var dy = drawLine.y2 - drawLine.y1;
+                var distancePx = Math.sqrt(dx * dx + dy * dy);
+                
+                // 프롬프트로 실제 길이 물어보기
+                setTimeout(() => {
+                    let realMeters = prompt(`그으신 선의 도면상 길이는 약 ${Math.round(distancePx)}px 입니다.\n\n이 선이 실제 공간에서는 몇 미터(m) 입니까?\n(숫자만 입력해 주세요. 예: 100)`, "");
+                    
+                    if (realMeters !== null && realMeters.trim() !== "" && !isNaN(realMeters) && parseFloat(realMeters) > 0) {
+                        scalePxPerM = distancePx / parseFloat(realMeters); // 1미터당 픽셀 수 저장
+                        
+                        const infoEl = document.getElementById('scaleInfo');
+                        infoEl.textContent = `축척설정완료 (1m = ${scalePxPerM.toFixed(1)}px)`;
+                        infoEl.classList.remove('hidden');
+                        
+                        alert(`축척이 설정되었습니다!\n이제부터 천막 배치 및 거리 측정이 미터(m) 단위로 자동 변환됩니다.`);
+                    } else if (realMeters !== null) {
+                        alert('올바른 숫자를 입력해주세요.');
+                    }
+                    
+                    // 입력받은 후 가이드 선은 지우고 모드 종료
+                    canvas.remove(drawLine, drawText);
+                    toggleMode('none');
+                }, 50);
+
+            } else if (currentMode === 'measure') {
+                // 거리 측정 모드 완료 시점 (그룹으로 묶어서 이동/삭제 가능하게 만들기)
+                drawLine.set({selectable: true, evented: true});
+                drawText.set({selectable: true, evented: true});
+                
+                // 마우스 클릭 선택을 아주 쉽게 만들기 위한 투명하고 굵은 보조선 (Hit Area)
+                var hitLine = new fabric.Line([drawLine.x1, drawLine.y1, drawLine.x2, drawLine.y2], {
+                    strokeWidth: 30, // 클릭 영역을 30px로 넓게 확보
+                    stroke: 'rgba(255,255,255,0.01)', // 투명에 가까운 색상
+                    originX: 'center',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false
+                });
+                
+                var group = new fabric.Group([hitLine, drawLine, drawText], {
+                    selectable: true,
+                    hasControls: false, // 크기조절 핸들 숨김
+                    borderColor: '#9333ea',
+                    padding: 5
+                });
+                
+                canvas.remove(drawLine, drawText);
+                canvas.add(group);
+                canvas.setActiveObject(group);
+                canvas.renderAll();
+                toggleMode('none'); // 한 번 재면 기본 모드로 돌아가도록 편의성 제공
+            }
+        });
+
+
+        // ------------------
+        // 천막 추가 기능 (실제 비율 적용)
+        // ------------------
+        document.getElementById('addTentBtn').addEventListener('click', () => {
+            if (!canvas.backgroundImage) {
+                alert('먼저 상단의 [도면 불러오기]를 통해 도면 이미지를 불러와주세요.');
+                return;
+            }
+
+            if (!scalePxPerM) {
+                const confirmRes = confirm('⚠️ 도면의 실제 비율(축척)이 설정되지 않았습니다.\n천막이 정확한 크기로 배치되지 않으며, 임의의 픽셀 크기로 추가됩니다.\n\n정확한 비율로 배치하시려면 취소를 누르고 먼저 상단의 [축척 설정]을 진행해 주세요.\n\n그래도 임의 크기로 추가하시겠습니까?');
+                if(!confirmRes) return;
+            }
+
+            const preset = document.getElementById('tentPreset').value;
+            let wMeters = 3, hMeters = 3;
+            
+            // 크기 (미터) 파악
+            if (preset === 'custom') {
+                wMeters = parseFloat(document.getElementById('tentW').value) || 3;
+                hMeters = parseFloat(document.getElementById('tentH').value) || 3;
+            } else {
+                const parts = preset.split('x');
+                wMeters = parseFloat(parts[0]);
+                hMeters = parseFloat(parts[1]);
+            }
+
+            // 축척을 적용하여 픽셀 크기 계산 (축척이 없으면 1m=20px 정도로 임의 가정)
+            const currentScale = scalePxPerM || 20; 
+            const pxWidth = wMeters * currentScale;
+            const pxHeight = hMeters * currentScale;
+
+            const colorKey = document.getElementById('tentColor').value;
+            const colorStyles = {
+                'blue': { fill: 'rgba(59, 130, 246, 0.75)', stroke: '#1d4ed8', text: '#ffffff' },
+                'yellow': { fill: 'rgba(250, 204, 21, 0.75)', stroke: '#a16207', text: '#1f2937' },
+                'white': { fill: 'rgba(255, 255, 255, 0.85)', stroke: '#374151', text: '#111827' }
+            };
+            const style = colorStyles[colorKey];
+
+            // 캔버스 중앙 위치 계산 (현재 보여지는 스크롤 위치 감안)
+            const vpt = canvas.viewportTransform;
+            const container = document.getElementById('mainArea');
+            const centerLeft = (-vpt[4] + container.clientWidth/2) / vpt[0];
+            const centerTop = (-vpt[5] + container.clientHeight/2) / vpt[3];
+
+            const rect = new fabric.Rect({
+                width: pxWidth,
+                height: pxHeight,
+                fill: style.fill,
+                stroke: style.stroke,
+                strokeWidth: 2,
+                rx: 3, ry: 3,
+                originX: 'center', originY: 'center',
+                strokeDashArray: [4, 2]
+            });
+
+            // 글씨 크기는 천막 크기에 비례하되 너무 작거나 크지 않도록 제한
+            let optimalFontSize = Math.min(pxWidth, pxHeight) * 0.25;
+            optimalFontSize = Math.max(12, Math.min(optimalFontSize, 32));
+
+            const textLabel = scalePxPerM ? `천막\n(${wMeters}x${hMeters}m)` : `천막 (임의크기)`;
+            
+            const text = new fabric.Text(textLabel, {
+                fontSize: optimalFontSize,
+                fontFamily: 'sans-serif',
+                fontWeight: 'bold',
+                fill: style.text,
+                originX: 'center', originY: 'center',
+                textAlign: 'center'
+            });
+
+            const group = new fabric.Group([rect, text], {
+                left: centerLeft,
+                top: centerTop,
+                cornerColor: '#3b82f6',
+                cornerStrokeColor: '#1d4ed8',
+                borderColor: '#3b82f6',
+                cornerSize: 10,
+                transparentCorners: false,
+                padding: 0
+            });
+
+            canvas.add(group);
+            canvas.setActiveObject(group);
+            canvas.renderAll();
+        });
+
+        // ------------------
+        // 유틸리티 기능 (복제, 삭제, 저장, 단축키)
+        // ------------------
+        function duplicateSelected() {
+            const activeObject = canvas.getActiveObject();
+            if (!activeObject) return;
+            
+            activeObject.clone(function(clonedObj) {
+                canvas.discardActiveObject();
+                clonedObj.set({
+                    left: clonedObj.left + 20,
+                    top: clonedObj.top + 20,
+                    evented: true,
+                });
+                
+                if (clonedObj.type === 'activeSelection') {
+                    clonedObj.canvas = canvas;
+                    clonedObj.forEachObject(function(obj) { canvas.add(obj); });
+                    clonedObj.setCoords();
+                } else {
+                    canvas.add(clonedObj);
+                }
+                canvas.setActiveObject(clonedObj);
+                canvas.requestRenderAll();
+            });
+        }
+
+        let _clipboard = null;
+        function copy() {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject && currentMode === 'none') { 
+                activeObject.clone(function(cloned) { _clipboard = cloned; });
+            }
+        }
+        function paste() {
+            if (!_clipboard || currentMode !== 'none') return;
+            _clipboard.clone(function(clonedObj) {
+                canvas.discardActiveObject();
+                clonedObj.set({ left: clonedObj.left + 20, top: clonedObj.top + 20, evented: true });
+                if (clonedObj.type === 'activeSelection') {
+                    clonedObj.canvas = canvas;
+                    clonedObj.forEachObject(function(obj) { canvas.add(obj); });
+                    clonedObj.setCoords();
+                } else {
+                    canvas.add(clonedObj);
+                }
+                _clipboard.top += 20; _clipboard.left += 20;
+                canvas.setActiveObject(clonedObj);
+                canvas.requestRenderAll();
+            });
+        }
+
+        function deleteSelected() {
+            const activeObjects = canvas.getActiveObjects();
+            if (activeObjects.length) {
+                canvas.discardActiveObject();
+                activeObjects.forEach(function(object) { canvas.remove(object); });
+            }
+        }
+
+        document.getElementById('duplicateBtn').addEventListener('click', duplicateSelected);
+        document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
+
+        window.addEventListener('keydown', function(e) {
+            if (e.target.tagName.toLowerCase() === 'input') return;
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (canvas.getActiveObject() && currentMode === 'none') deleteSelected();
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                copy();
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+                paste();
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                duplicateSelected();
+            }
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (!canvas.backgroundImage) {
+                alert('저장할 도면 이미지가 없습니다.'); return;
+            }
+            canvas.discardActiveObject();
+            if (currentMode !== 'none') toggleMode('none');
+            canvas.renderAll();
+
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
+            const link = document.createElement('a');
+            link.download = originalFileName;
+            link.href = dataURL;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    </script>
+</body>
+</html>
