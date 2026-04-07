@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학생 식권 생성기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 인쇄 시 스타일 설정 */
+        @media print {
+            body {
+                background-color: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-area {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+        }
+
+        .coupon-border {
+            background-image: linear-gradient(to right, #cbd5e1 50%, rgba(255,255,255,0) 0%);
+            background-position: bottom;
+            background-size: 10px 2px;
+            background-repeat: repeat-x;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- 제어 패널 (인쇄 시 숨김) -->
+    <div class="no-print w-full md:w-80 bg-white shadow-xl p-6 flex flex-col gap-4 z-10 sticky top-0 md:h-screen overflow-y-auto">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-1">식권 생성기</h1>
+            <p class="text-sm text-gray-500 mb-6">내용을 입력하고 인쇄 버튼을 누르세요. A4 용지 1장당 8개의 식권이 출력됩니다.</p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">대회 / 행사명</label>
+                <input type="text" id="input-event" value="학생선수용 피자 쿠폰" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">식당 이름 (사용처)</label>
+                <input type="text" id="input-restaurant" value="TMT피자" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">제공 내역</label>
+                <input type="text" id="input-menu" value="25000원 내에서 제공" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">사용 일자</label>
+                <input type="text" id="input-date" value="2026. 4월중" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">관리자 / 담당자 확인 (선택)</label>
+                <input type="text" id="input-manager" value="담당교사 이창수" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                인쇄하기 (PDF 저장)
+            </button>
+            <p class="text-xs text-center text-gray-500 mt-2">인쇄 설정에서 '배경 그래픽'을 켜주세요.</p>
+        </div>
+    </div>
+
+    <!-- 미리보기 및 인쇄 영역 (A4 크기 비율 유지) -->
+    <div class="flex-1 flex justify-center p-4 md:p-8 overflow-y-auto">
+        <div class="print-area bg-white shadow-2xl rounded-sm w-[210mm] min-h-[297mm] p-6">
+            
+            <!-- 식권 그리드 (2열 4행 = 8개) -->
+            <div class="grid grid-cols-2 gap-4 h-full" id="coupon-container">
+                <!-- 자바스크립트로 식권 8개가 여기에 생성됩니다. -->
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 식권 템플릿 렌더링 함수
+        function renderCoupons() {
+            const container = document.getElementById('coupon-container');
+            container.innerHTML = ''; // 초기화
+
+            const eventName = document.getElementById('input-event').value;
+            const restaurant = document.getElementById('input-restaurant').value;
+            const menu = document.getElementById('input-menu').value;
+            const date = document.getElementById('input-date').value;
+            const manager = document.getElementById('input-manager').value;
+
+            // A4 한 장에 8개 생성
+            for (let i = 0; i < 8; i++) {
+                const couponHTML = `
+                    <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col justify-between overflow-hidden bg-white">
+                        
+                        <!-- 장식용 배경 요소 -->
+                        <div class="absolute -top-6 -right-6 w-20 h-20 bg-blue-50 rounded-full z-0"></div>
+                        <div class="absolute -bottom-6 -left-6 w-16 h-16 bg-yellow-50 rounded-full z-0"></div>
+
+                        <!-- 내용 (z-index로 위로 올림) -->
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded mb-1">식권 (Meal Ticket)</span>
+                                    <p class="text-xs text-gray-500 font-medium">${eventName}</p>
+                                </div>
+                                <div class="text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center my-4">
+                                <h3 class="text-xl font-black text-gray-900 tracking-tight">${menu}</h3>
+                                <p class="text-sm font-medium text-gray-600 mt-1">사용처: <span class="text-blue-700 font-bold">${restaurant}</span></p>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 mt-auto">
+                            <div class="coupon-border mb-3"></div>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-xs text-gray-500">사용 일자</p>
+                                    <p class="text-sm font-bold text-gray-800">${date}</p>
+                                    <p class="text-[10px] text-gray-400 mt-1">${manager}</p>
+                                </div>
+                                <div class="text-right">
+                                    <!-- 결제 완료 도장 효과 -->
+                                    <div class="inline-block border-2 border-red-500 text-red-500 text-xs font-black px-2 py-1 rounded-sm transform -rotate-12 bg-white bg-opacity-80">
+                                        사전결제<br>완료
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-center text-gray-400 mt-3">* 본 식권은 결제가 완료되어 현금으로 교환되지 않습니다.</p>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += couponHTML;
+            }
+        }
+
+        // 입력창에 이벤트 리스너 추가하여 실시간 업데이트
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', renderCoupons);
+        });
+
+        // 초기 렌더링
+        renderCoupons();
+    </script>
+</body>
+</html>
