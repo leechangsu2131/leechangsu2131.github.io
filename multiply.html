@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>두 자리 수 곱셈 연습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF7EF;
+    --panel:#FFFFFF;
+    --ink:#25324A;
+    --sub:#6B7690;
+    --tens:#3D5A80;
+    --tens-soft:#DCE6F2;
+    --ones:#E8873A;
+    --ones-soft:#FBE6D2;
+    --correct:#4C8C5C;
+    --correct-soft:#E1F0E3;
+    --wrong:#C0503F;
+    --wrong-soft:#FAE4E0;
+    --line:#E4DCC9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Gowun Batang", serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 60px;
+  }
+  .app{ width:100%; max-width:620px; }
+
+  header{ text-align:center; margin-bottom:22px; }
+  h1{
+    font-family:"Jua", sans-serif;
+    font-weight:400;
+    font-size:30px;
+    margin:0 0 4px;
+    color:var(--tens);
+    letter-spacing:0.5px;
+  }
+  .subtitle{
+    color:var(--sub);
+    font-size:14.5px;
+    margin:0;
+  }
+
+  .stats{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:16px 0 20px;
+  }
+  .chip{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 16px;
+    font-size:13.5px;
+    color:var(--sub);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .chip b{ color:var(--ink); font-family:"Jua",sans-serif; font-weight:400; font-size:15px;}
+
+  .tabs{
+    display:flex;
+    gap:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:6px;
+    margin-bottom:20px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 6px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    color:var(--sub);
+    transition:background .15s, color .15s;
+    user-select:none;
+  }
+  .tab .tnum{ font-family:"Jua",sans-serif; display:block; font-size:11.5px; margin-bottom:2px; opacity:.7;}
+  .tab.active{ background:var(--tens); color:#fff; }
+  .tab.active .tnum{ opacity:.85; }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px 22px 26px;
+    box-shadow:0 2px 0 var(--line);
+  }
+
+  .problem-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:14px;
+    font-family:"Jua", sans-serif;
+    font-size:40px;
+    margin-bottom:22px;
+    color:var(--ink);
+  }
+  .problem-row .op{ color:var(--sub); font-size:30px; }
+  .factor-a{ color:var(--tens); }
+  .factor-b{ color:var(--ones); }
+
+  /* Area model grid */
+  .grid-wrap{
+    display:flex;
+    justify-content:center;
+    margin-bottom:22px;
+  }
+  svg text{ font-family:"Jua", sans-serif; }
+
+  .partials{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .partial-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:16px;
+  }
+  .partial-row .label{ color:var(--sub); font-size:14px; }
+  .partial-row .expr{ font-family:"Jua",sans-serif; font-size:17px; }
+  .partial-row input{
+    width:84px;
+    text-align:center;
+    font-family:"Jua", sans-serif;
+    font-size:18px;
+    padding:8px 6px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+  .partial-row input:focus{ outline:none; border-color:var(--tens); }
+  .partial-row.correct{ background:var(--correct-soft); border-color:var(--correct); }
+  .partial-row.wrong{ background:var(--wrong-soft); border-color:var(--wrong); }
+
+  .sum-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    border-top:2px dashed var(--line);
+    padding-top:16px;
+    margin-bottom:10px;
+    font-family:"Jua", sans-serif;
+    font-size:22px;
+  }
+  .sum-row input{
+    width:120px;
+    text-align:center;
+    font-family:"Jua", sans-serif;
+    font-size:24px;
+    padding:10px 6px;
+    border-radius:10px;
+    border:2px solid var(--line);
+  }
+  .sum-row input:focus{ outline:none; border-color:var(--tens); }
+
+  .vtable td.opnum{
+    font-family:"Jua", sans-serif;
+    font-size:26px;
+    color:var(--tens);
+    padding-top:4px;
+  }
+  .vtable td.opnum.multiplier{ color:var(--ones); }
+  .vtable td.optimes{
+    font-family:"Jua", sans-serif;
+    font-size:22px;
+    color:var(--ones);
+  }
+  .vtable-hr{ border-top:3px solid var(--ink); margin:2px 4px 0; }
+
+  /* real <table> so column widths are guaranteed identical across every row by the browser */
+  .vtable{
+    border-collapse:collapse;
+    margin:0 auto 18px;
+    table-layout:fixed;
+  }
+  .vtable col{ width:44px; }
+  .vtable td{
+    text-align:center;
+    vertical-align:middle;
+    height:38px;
+    padding:2px 1px;
+  }
+  .vtable td:not(:first-child){ border-left:1px dashed var(--line); }
+  .vtable tr.vheader td{
+    font-family:"Gowun Batang", serif;
+    font-size:12.5px;
+    color:var(--sub);
+    height:20px;
+    border-left:none !important;
+  }
+  .vtable col.labelcol{ width:150px; }
+  .vtable td.row-label-side{
+    font-size:13px;
+    color:var(--sub);
+    text-align:left;
+    padding-left:12px;
+    border-left:none !important;
+    cursor:pointer;
+    user-select:none;
+    border-radius:8px;
+    transition:background .12s, color .12s;
+  }
+  .vtable td.row-label-side:hover{ background:var(--paper); }
+  .vtable td.row-label-side.active{ color:var(--tens); font-weight:bold; background:var(--tens-soft); }
+  .vtable td.opnum.hl-target{ transition:background .15s, box-shadow .15s; border-radius:6px; }
+  .vtable td.opnum.hl-target.hl-active{
+    background:var(--tens-soft);
+    box-shadow:0 0 0 2px var(--tens-soft);
+  }
+  .vtable td input{
+    width:38px; height:34px;
+    text-align:center;
+    font-family:"Jua", sans-serif;
+    font-size:18px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+  .vtable td input:focus{ outline:none; border-color:var(--tens); }
+  .vtable td.wrong input{ border-color:var(--wrong) !important; background:var(--wrong-soft) !important; }
+  .vtable td.correct input{ border-color:var(--correct) !important; background:var(--correct-soft) !important; }
+  .vtable td.carry input{
+    width:26px; height:26px;
+    font-size:13px;
+    border-radius:50%;
+    border:1.5px dashed var(--ones);
+    color:var(--ones);
+    background:var(--ones-soft);
+  }
+
+  .answer-only{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .answer-only input{
+    width:150px;
+    text-align:center;
+    font-family:"Jua", sans-serif;
+    font-size:30px;
+    padding:14px 8px;
+    border-radius:14px;
+    border:2px solid var(--line);
+  }
+  .answer-only input:focus{ outline:none; border-color:var(--tens); }
+  .answer-only .eq{ font-family:"Jua",sans-serif; font-size:26px; color:var(--sub); }
+
+  .actions{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:6px;
+  }
+  button{
+    font-family:"Jua", sans-serif;
+    font-size:15.5px;
+    border:none;
+    border-radius:12px;
+    padding:12px 22px;
+    cursor:pointer;
+    transition:transform .08s, opacity .15s;
+  }
+  button:active{ transform:scale(0.97); }
+  .btn-check{ background:var(--tens); color:#fff; }
+  .btn-next{ background:var(--ink); color:#fff; }
+  .btn-ghost{ background:transparent; color:var(--sub); border:1.5px solid var(--line); }
+  button:disabled{ opacity:.4; cursor:default; }
+
+  .feedback{
+    text-align:center;
+    margin-top:16px;
+    font-size:15px;
+    min-height:24px;
+    color:var(--sub);
+  }
+  .feedback.good{ color:var(--correct); font-family:"Jua",sans-serif; }
+  .feedback.bad{ color:var(--wrong); font-family:"Jua",sans-serif; }
+
+  .explain{
+    margin-top:14px;
+    background:var(--tens-soft);
+    border-radius:12px;
+    padding:12px 16px;
+    font-size:14.5px;
+    color:var(--ink);
+    line-height:1.7;
+    display:none;
+  }
+  .explain.show{ display:block; }
+
+  .timer{
+    text-align:center;
+    color:var(--sub);
+    font-size:13.5px;
+    margin-bottom:14px;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--sub);
+    font-size:12.5px;
+    margin-top:26px;
+    line-height:1.7;
+  }
+
+  @media (max-width:420px){
+    h1{ font-size:25px; }
+    .problem-row{ font-size:32px; }
+    .card{ padding:18px 14px 20px; }
+    .answer-only input{ width:120px; font-size:26px; }
+    .tab{ font-size:12px; padding:9px 3px; }
+    .tab .tnum{ font-size:10.5px; }
+  }
+
+  /* 학생 정보 & 결과 제출 */
+  .who-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px 16px;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .who-card label{
+    font-size:13.5px;
+    color:var(--sub);
+    white-space:nowrap;
+  }
+  .who-card input{
+    font-family:"Gowun Batang", serif;
+    font-size:15px;
+    padding:9px 10px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+  .who-card input:focus{ outline:none; border-color:var(--tens); }
+  .who-card input.who-num{ width:64px; flex:none; text-align:center; }
+  .who-card input.who-name{ flex:1; min-width:140px; }
+
+  .submit-bar{
+    display:flex;
+    justify-content:center;
+    margin:18px 0 6px;
+  }
+  .btn-submit{
+    font-family:"Jua", sans-serif;
+    font-size:15.5px;
+    border:none;
+    border-radius:12px;
+    padding:13px 26px;
+    cursor:pointer;
+    background:var(--correct);
+    color:#fff;
+    transition:transform .08s, opacity .15s;
+  }
+  .btn-submit:active{ transform:scale(0.97); }
+  .btn-submit:disabled{ opacity:.45; cursor:default; }
+
+  .submit-status{
+    text-align:center;
+    margin-top:10px;
+    font-size:14px;
+    min-height:20px;
+  }
+  .submit-status.ok{ color:var(--correct); }
+  .submit-status.err{ color:var(--wrong); }
+  .submit-status.pending{ color:var(--sub); }
+
+  /* 종합 테스트용 메모장(그림판) */
+  .scratchpad-wrap{
+    margin:16px auto 4px;
+  }
+  .scratchpad-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .scratchpad-header span{
+    font-size:13px;
+    color:var(--sub);
+  }
+  .btn-clear-pad{
+    font-family:"Gowun Batang", serif;
+    font-size:12.5px;
+    padding:6px 12px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    background:transparent;
+    color:var(--sub);
+    cursor:pointer;
+  }
+  .btn-clear-pad:active{ transform:scale(0.96); }
+  #scratchCanvas{
+    display:block;
+    width:100%;
+    height:auto;
+    aspect-ratio:600/520;
+    border:1.5px dashed var(--line);
+    border-radius:14px;
+    background:#fff;
+    touch-action:none;
+    cursor:crosshair;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>두 자리 수 곱셈 연습</h1>
+    <p class="subtitle">3학년 2학기 · 부분곱으로 차근차근 곱셈을 익혀요</p>
+  </header>
+
+  <div class="who-card">
+    <label for="numInput">번호</label>
+    <input type="number" id="numInput" inputmode="numeric" min="1" max="19" placeholder="예: 3" class="who-num" />
+    <label for="nameInputField">이름</label>
+    <input type="text" id="nameInputField" placeholder="본인 이름을 정확히 입력하세요" class="who-name" />
+  </div>
+
+  <div class="stats">
+    <div class="chip">맞힌 문제 <b id="statScore">0</b></div>
+    <div class="chip">연속 정답 <b id="statStreak">0</b></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab" data-level="1"><span class="tnum">1단계</span>(두 자리 수)×(몇십)</div>
+    <div class="tab" data-level="2"><span class="tnum">2단계</span>(두 자리 수)×(두 자리 수)</div>
+    <div class="tab" data-level="3"><span class="tnum">3단계</span>세로셈 · 받아올림</div>
+    <div class="tab" data-level="4"><span class="tnum">4단계</span>종합 테스트</div>
+  </div>
+
+  <div class="card">
+    <div class="problem-row" id="problemRow"></div>
+
+    <div class="grid-wrap" id="gridWrap"></div>
+
+    <div id="scaffoldArea"></div>
+
+    <div class="actions">
+      <button class="btn-check" id="btnCheck">확인</button>
+      <button class="btn-next" id="btnNext" disabled>다음 문제</button>
+      <button class="btn-ghost" id="btnReset">다시 풀기</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="explain" id="explain"></div>
+  </div>
+
+  <div class="submit-bar" id="submitBar" style="display:none;">
+    <button class="btn-submit" id="btnSubmit" disabled>내 결과 선생님께 제출하기</button>
+  </div>
+  <div class="submit-status" id="submitStatus"></div>
+
+  <footer>화천초등학교 3학년 2반 · 두 자리 수 곱셈 연습</footer>
+</div>
+
+<script>
+(function(){
+  const tabsEl = document.getElementById('tabs');
+  const problemRow = document.getElementById('problemRow');
+  const gridWrap = document.getElementById('gridWrap');
+  const scaffoldArea = document.getElementById('scaffoldArea');
+  const btnCheck = document.getElementById('btnCheck');
+  const btnNext = document.getElementById('btnNext');
+  const btnReset = document.getElementById('btnReset');
+  const feedback = document.getElementById('feedback');
+  const explain = document.getElementById('explain');
+  const statScore = document.getElementById('statScore');
+  const statStreak = document.getElementById('statStreak');
+  const numInput = document.getElementById('numInput');
+  const nameInputField = document.getElementById('nameInputField');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const submitStatus = document.getElementById('submitStatus');
+  const submitBar = document.getElementById('submitBar');
+
+  let level = 1;
+  let score = 0;
+  let streak = 0;
+  let attempts = 0;
+  let problem = null;
+  let checked = false;
+
+  // ── 학생 명단 (번호 순서 = DB 등록 기준 이름) ──
+  const ROSTER = [
+    '강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온',
+    '오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기',
+    '황보검','최윤채','박선우'
+  ];
+
+  function updateSubmitEnabled(){
+    btnSubmit.disabled = !(numInput.value.trim() && nameInputField.value.trim());
+  }
+  numInput.addEventListener('input', updateSubmitEnabled);
+  nameInputField.addEventListener('input', updateSubmitEnabled);
+
+  // ── 4단계 종합 테스트 모드 상태 ──
+  const TEST_TOTAL = 10;
+  let testIndex = 0;
+  let testProblem = null;
+  let testResults = [];
+
+  // ── Supabase 저장 설정 ──
+  const SUPABASE_URL = 'https://erzdvlcbjneabxqwnwfy.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+  const LEVEL_LABEL = { 1:'1단계((두자리)×(몇십))', 2:'2단계((두자리)×(두자리))', 3:'3단계(세로셈·받아올림)' };
+
+  function todayStr(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  // 번호+이름이 명단과 정확히 일치하는지 확인. 불일치 시 이름 필드는 '미분류'로
+  // 저장하고, 학생이 실제 입력한 값은 내용 앞부분에 그대로 남겨 나중에 한 번에
+  // 모아 확인할 수 있게 한다 ('🧑‍🎓 이름' = '미분류' 로 검색하면 전부 모임).
+  function resolveStudent(){
+    const numRaw = numInput.value.trim();
+    const nameRaw = nameInputField.value.trim();
+    const num = parseInt(numRaw, 10);
+    const matched = (num >= 1 && num <= ROSTER.length && ROSTER[num-1] === nameRaw);
+    return {
+      valid: !!(numRaw && nameRaw),
+      matched,
+      recordName: matched ? ROSTER[num-1] : '미분류',
+      noteIfMismatch: matched ? '' : `[확인필요 · 학생 입력: 번호 ${numRaw || '?'} / 이름 ${nameRaw || '?'}] `
+    };
+  }
+
+  async function submitResult(){
+    const who = resolveStudent();
+    if(!who.valid){
+      submitStatus.textContent = '먼저 내 번호와 이름을 입력해주세요.';
+      submitStatus.className = 'submit-status err';
+      return;
+    }
+
+    let record;
+    if(level === 4){
+      if(testResults.length < TEST_TOTAL){
+        submitStatus.textContent = '4단계 테스트를 끝까지 풀고 제출해주세요.';
+        submitStatus.className = 'submit-status err';
+        return;
+      }
+      const correctCount = testResults.filter(r=>r.correct).length;
+      const rate = Math.round((correctCount/TEST_TOTAL)*100);
+      const 긍정도 = rate >= 80 ? '긍정✅' : (rate >= 50 ? '중립📋' : '관찰필요🔍');
+      const detail = testResults.map((r,i)=>{
+        const ua = (r.userAnswer===null || isNaN(r.userAnswer)) ? '미입력' : r.userAnswer;
+        return `${i+1})${r.a}×${r.b}=${r.total} ${r.correct ? '정답' : `오답(입력:${ua})`}`;
+      }).join(', ');
+      record = {
+        '기록제목': '두 자리수 곱셈 종합 테스트(4단계) 결과',
+        '날짜': todayStr(),
+        '분야': '학습능력',
+        '긍정도': 긍정도,
+        '출처': '학생직접제출',
+        '과목': '수학',
+        '내용': `${who.noteIfMismatch}1~3단계 문제가 섞인 종합 테스트 ${TEST_TOTAL}문제 중 ${correctCount}문제 정답(정답률 ${rate}%). 세부: ${detail}`,
+        '🧑‍🎓 이름': who.recordName
+      };
+    } else {
+      if(attempts === 0){
+        submitStatus.textContent = '문제를 최소 1개 이상 풀고 제출해주세요.';
+        submitStatus.className = 'submit-status err';
+        return;
+      }
+      const rate = Math.round((score/attempts)*100);
+      const 긍정도 = rate >= 80 ? '긍정✅' : (rate >= 50 ? '중립📋' : '관찰필요🔍');
+      record = {
+        '기록제목': '두 자리수 곱셈 연습 결과',
+        '날짜': todayStr(),
+        '분야': '학습능력',
+        '긍정도': 긍정도,
+        '출처': '학생직접제출',
+        '과목': '수학',
+        '내용': `${who.noteIfMismatch}${LEVEL_LABEL[level]} 기준, 총 ${attempts}문제 중 ${score}문제를 맞혀 정답률 ${rate}%를 기록함. 최고 연속 정답 ${streak}회.`,
+        '🧑‍🎓 이름': who.recordName
+      };
+    }
+
+    btnSubmit.disabled = true;
+    submitStatus.textContent = '제출 중...';
+    submitStatus.className = 'submit-status pending';
+
+    try{
+      if(navigator.onLine === false){
+        throw new Error('오프라인(navigator.onLine=false)');
+      }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/class-manage`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(record)
+      });
+      if(!res.ok){
+        let bodyText = '';
+        try{ bodyText = await res.text(); }catch(e){}
+        throw new Error(`HTTP ${res.status} ${bodyText}`.trim());
+      }
+      submitStatus.textContent = who.matched
+        ? `제출 완료! 결과가 선생님께 전달되었어요.`
+        : `제출 완료! (번호·이름이 명단과 달라 '미분류'로 저장했어요. 선생님께 확인을 부탁드리세요.)`;
+      submitStatus.className = 'submit-status ok';
+    } catch(err){
+      submitStatus.textContent = `제출에 실패했어요. 인터넷 연결을 확인하고 다시 눌러주세요. (오류: ${err.message})`;
+      submitStatus.className = 'submit-status err';
+    } finally {
+      updateSubmitEnabled();
+    }
+  }
+
+  btnSubmit.addEventListener('click', submitResult);
+
+  const PRAISE = ["참 잘했어요!","정확해요!","실력이 늘고 있어요!","완벽해요!","멋져요!","최고예요!"];
+  const NUDGE = ["다시 한 번 살펴볼까요?","괜찮아요, 부분곱을 다시 확인해요.","조금만 더 생각해봐요.","천천히 다시 계산해볼까요?"];
+
+  function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function genProblem(lv){
+    let a, b;
+    if(lv === 1){
+      a = rand(12, 89);
+      b = rand(2, 9) * 10; // 몇십
+    } else if(lv === 2){
+      a = rand(11, 99);
+      b = rand(11, 99);
+    } else {
+      // level 3 (vertical + carrying) needs a meaningful two-row split, so b must not be a multiple of ten
+      do {
+        a = rand(11, 99);
+        b = rand(11, 99);
+      } while (b % 10 === 0);
+    }
+    const a10 = Math.floor(a/10)*10, a1 = a%10;
+    const b10 = Math.floor(b/10)*10, b1 = b%10;
+    return {
+      a, b, a10, a1, b10, b1,
+      p1: a10*b10, // tens x tens
+      p2: a10*b1,  // tens x ones
+      p3: a1*b10,  // ones x tens
+      p4: a1*b1,   // ones x ones
+      vOnes: a*b1, // full a x ones digit of b (vertical algorithm, row 1)
+      vTens: a*b10, // full a x tens value of b (vertical algorithm, row 2)
+      total: a*b
+    };
+  }
+
+  function fmt(n){ return n.toLocaleString('ko-KR'); }
+
+  function drawGrid(p){
+    // scaled (not literal) widths so both digits stay legible
+    const wTens = 118, wOnes = p.b1 > 0 ? 58 : 0;
+    const hTens = 92, hOnes = p.a1 > 0 ? 50 : 0;
+    const gap = 3;
+    const totalW = wTens + (wOnes ? gap+wOnes : 0);
+    const totalH = hTens + (hOnes ? gap+hOnes : 0);
+    const svgW = totalW + 70, svgH = totalH + 46;
+    const ox = 56, oy = 10;
+
+    function rect(x,y,w,h,fill,label,sub){
+      if(w<=0||h<=0) return '';
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="#fff" stroke-width="2"/>
+        <text x="${x+w/2}" y="${y+h/2+6}" font-size="16" text-anchor="middle" fill="#25324A">${label}</text>`;
+    }
+
+    let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+    // top axis labels (b10 / b1)
+    svg += `<text x="${ox+wTens/2}" y="${oy-2}" font-size="14" text-anchor="middle" fill="#E8873A">${p.b10}</text>`;
+    if(wOnes) svg += `<text x="${ox+wTens+gap+wOnes/2}" y="${oy-2}" font-size="14" text-anchor="middle" fill="#E8873A">${p.b1}</text>`;
+    // left axis labels (a10 / a1)
+    svg += `<text x="${ox-10}" y="${oy+hTens/2+5}" font-size="14" text-anchor="end" fill="#3D5A80">${p.a10}</text>`;
+    if(hOnes) svg += `<text x="${ox-10}" y="${oy+hTens+gap+hOnes/2+5}" font-size="14" text-anchor="end" fill="#3D5A80">${p.a1}</text>`;
+
+    svg += rect(ox, oy, wTens, hTens, '#DCE6F2', fmt(p.p1));
+    if(wOnes) svg += rect(ox+wTens+gap, oy, wOnes, hTens, '#F2E3CE', fmt(p.p2));
+    if(hOnes) svg += rect(ox, oy+hTens+gap, wTens, hOnes, '#F2E3CE', fmt(p.p3));
+    if(wOnes && hOnes) svg += rect(ox+wTens+gap, oy+hTens+gap, wOnes, hOnes, '#FBE6D2', fmt(p.p4));
+    svg += `</svg>`;
+    return svg;
+  }
+
+  function renderProblem(){
+    problem = genProblem(level);
+    checked = false;
+    btnNext.disabled = true;
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    explain.className = 'explain';
+    explain.innerHTML = '';
+
+    problemRow.innerHTML = `<span class="factor-a">${problem.a}</span><span class="op">×</span><span class="factor-b">${problem.b}</span>`;
+
+    if(level === 3){
+      gridWrap.innerHTML = '';
+
+      const d1 = problem.b1;               // ones digit of b
+      const d2 = Math.floor(problem.b/10);  // tens digit of b
+      const prod1 = problem.a * d1;         // row 1: not shifted
+      const prod2 = problem.a * d2;         // row 2: shifted one place left
+
+      const digits1 = String(prod1).split('');
+      const digits2 = String(prod2).split('');
+      const colEnd1 = 4, colStart1 = colEnd1 - (digits1.length - 1);
+      const colEnd2 = 3, colStart2 = colEnd2 - (digits2.length - 1);
+
+      scaffoldArea.innerHTML = `
+        ${buildVerticalGrid({d1, d2, a: problem.a, b: problem.b, digits1, digits2, colStart1, colEnd1, colStart2, colEnd2})}
+        <div class="sum-row">
+          <span>합계 =</span>
+          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" />
+        </div>`;
+    } else {
+      gridWrap.innerHTML = drawGrid(problem);
+
+      let rows = '';
+      rows += partialRow('tens-tens', `${problem.a10} × ${problem.b10}`, '십 × 십');
+      if(problem.b1 > 0) rows += partialRow('tens-ones', `${problem.a10} × ${problem.b1}`, '십 × 일');
+      if(problem.a1 > 0) rows += partialRow('ones-tens', `${problem.a1} × ${problem.b10}`, '일 × 십');
+      if(problem.a1 > 0 && problem.b1 > 0) rows += partialRow('ones-ones', `${problem.a1} × ${problem.b1}`, '일 × 일');
+
+      scaffoldArea.innerHTML = `
+        <div class="partials">${rows}</div>
+        <div class="sum-row">
+          <span>합계 =</span>
+          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" />
+        </div>`;
+    }
+  }
+
+  function partialRow(key, expr, label){
+    return `<div class="partial-row" data-key="${key}">
+      <span class="label">${label}</span>
+      <span class="expr">${expr} =</span>
+      <input type="number" inputmode="numeric" data-key="${key}" />
+    </div>`;
+  }
+
+  // Builds ONE grid (header + both carry/digit rows) so every box shares the exact
+  // same 4 fixed-width columns (천/백/십/일) as the header — no separate grids to drift apart.
+  // Real <table> row of 4 <td>s: cells inside [colStart, colEnd] get an input (carry or digit),
+  // everything else is a blank <td>. Because every row is a row of the SAME <table>, the browser
+  // guarantees each column lines up under the same header column on every row — no manual math.
+  function buildVerticalGrid(p){
+    function tdRange(colStart, colEnd, kind, key){
+      let tds = '';
+      for(let c=1;c<=4;c++){
+        if(c < colStart || c > colEnd){
+          tds += `<td></td>`;
+        } else if(kind === 'carry'){
+          tds += `<td class="carry"><input type="text" inputmode="numeric" maxlength="1" data-carry="${key}" /></td>`;
+        } else {
+          const idx = c - colStart;
+          tds += `<td><input type="text" inputmode="numeric" maxlength="1" data-digit="${key}" data-idx="${idx}" /></td>`;
+        }
+      }
+      return tds;
+    }
+
+    // top operand 'a' and multiplier 'b', placed digit-by-digit in their own place-value columns
+    const digitsA = String(p.a).split('');
+    const digitsB = String(p.b).split('');
+    const colStartA = 4 - (digitsA.length - 1);
+    const colStartB = 4 - (digitsB.length - 1);
+
+    function tdOperand(digits, colStart, extraClass){
+      let tds = '';
+      for(let c=1;c<=4;c++){
+        const idx = c - colStart;
+        if(idx >= 0 && idx < digits.length){
+          tds += `<td class="opnum ${extraClass} hl-target" data-group="both">${digits[idx]}</td>`;
+        } else {
+          tds += `<td></td>`;
+        }
+      }
+      return tds;
+    }
+    // the '×' sign sits immediately left of the multiplier's leading digit.
+    // the ones digit of b is what step ① multiplies by, the tens digit is what step ② multiplies by —
+    // so those two digits (not the answer boxes) are what get highlighted when a hint is clicked.
+    function tdMultiplierRow(digits, colStart){
+      let tds = '';
+      for(let c=1;c<=4;c++){
+        const idx = c - colStart;
+        if(c === colStart - 1){
+          tds += `<td class="optimes">×</td>`;
+        } else if(idx >= 0 && idx < digits.length){
+          const grp = (idx === digits.length - 1) ? '1' : '2';
+          tds += `<td class="opnum multiplier hl-target" data-group="${grp}">${digits[idx]}</td>`;
+        } else {
+          tds += `<td></td>`;
+        }
+      }
+      return tds;
+    }
+
+    let html = `<table class="vtable"><colgroup><col><col><col><col><col class="labelcol"></colgroup><tbody>`;
+    html += `<tr>${tdOperand(digitsA, colStartA, '')}<td></td></tr>`;
+    html += `<tr>${tdMultiplierRow(digitsB, colStartB)}<td></td></tr>`;
+    html += `<tr><td colspan="4"><div class="vtable-hr"></div></td><td></td></tr>`;
+    html += `<tr class="vheader"><td>천</td><td>백</td><td>십</td><td>일</td><td></td></tr>`;
+    html += `<tr>${tdRange(3, 3, 'carry', 'c1')}<td rowspan="2" class="row-label-side" data-group="1">① 일의 자리: ${p.a} × ${p.d1}</td></tr>`;
+    html += `<tr>${tdRange(p.colStart1, p.colEnd1, 'digit', 'r1')}</tr>`;
+    html += `<tr>${tdRange(2, 2, 'carry', 'c2')}<td rowspan="2" class="row-label-side" data-group="2">② 십의 자리: ${p.a} × ${p.d2 * 10}</td></tr>`;
+    html += `<tr>${tdRange(p.colStart2, p.colEnd2, 'digit', 'r2')}</tr>`;
+    html += `</tbody></table>`;
+    return html;
+  }
+
+  function checkAnswer(){
+    if(checked) return;
+
+    if(level === 3){
+      const d1 = problem.b1;
+      const d2 = Math.floor(problem.b/10);
+      const prod1 = problem.a * d1;
+      const prod2 = problem.a * d2;
+      const digits1 = String(prod1).split('').map(Number);
+      const digits2 = String(prod2).split('').map(Number);
+      const carry1 = Math.floor((problem.a % 10) * d1 / 10);
+      const carry2 = Math.floor((problem.a % 10) * d2 / 10);
+
+      let allCorrect = true;
+
+      function checkCarry(rowKey, expected){
+        const input = document.querySelector(`input[data-carry="${rowKey}"]`);
+        const cell = input.closest('td');
+        const raw = input.value.trim();
+        const val = raw === '' ? 0 : parseInt(raw, 10);
+        const ok = val === expected;
+        cell.classList.remove('correct','wrong');
+        cell.classList.add(ok ? 'correct' : 'wrong');
+        if(!ok) allCorrect = false;
+      }
+
+      function checkDigits(rowKey, digits){
+        digits.forEach((d, idx)=>{
+          const input = document.querySelector(`input[data-digit="${rowKey}"][data-idx="${idx}"]`);
+          const cell = input.closest('td');
+          const val = parseInt(input.value, 10);
+          const ok = val === d;
+          cell.classList.remove('correct','wrong');
+          cell.classList.add(ok ? 'correct' : 'wrong');
+          if(!ok) allCorrect = false;
+        });
+      }
+
+      checkCarry('c1', carry1);
+      checkDigits('r1', digits1);
+      checkCarry('c2', carry2);
+      checkDigits('r2', digits2);
+
+      const sumInputV = document.getElementById('sumInput');
+      const sumValV = parseInt(sumInputV.value, 10);
+      const sumOkV = sumValV === problem.total;
+      sumInputV.style.borderColor = sumOkV ? 'var(--correct)' : 'var(--wrong)';
+      if(!sumOkV) allCorrect = false;
+
+      checked = true;
+      attempts++;
+      btnNext.disabled = false;
+
+      if(allCorrect){
+        score++; streak++;
+        feedback.textContent = PRAISE[rand(0,PRAISE.length-1)];
+        feedback.className = 'feedback good';
+      } else {
+        streak = 0;
+        feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
+        feedback.className = 'feedback bad';
+        explain.className = 'explain show';
+        explain.innerHTML = `빨간 칸을 다시 볼까요?<br>
+          ① ${problem.a}×${d1}=${fmt(prod1)} (받아올림 ${carry1})<br>
+          ② ${problem.a}×${d2}=${fmt(prod2)}를 한 칸 왼쪽에 (받아올림 ${carry2})<br>
+          두 줄을 더하면 <b>${fmt(problem.total)}</b>이에요.`;
+      }
+      updateStats();
+      return;
+    }
+
+    // level 1 & 2 scaffolded (area model)
+    const keys = ['tens-tens'];
+    if(problem.b1>0) keys.push('tens-ones');
+    if(problem.a1>0) keys.push('ones-tens');
+    if(problem.a1>0 && problem.b1>0) keys.push('ones-ones');
+
+    const answerMap = { 'tens-tens':problem.p1, 'tens-ones':problem.p2, 'ones-tens':problem.p3, 'ones-ones':problem.p4 };
+    let allCorrect = true;
+    keys.forEach(k=>{
+      const input = document.querySelector(`input[data-key="${k}"]`);
+      const row = document.querySelector(`.partial-row[data-key="${k}"]`);
+      const val = parseInt(input.value, 10);
+      const ok = val === answerMap[k];
+      row.classList.remove('correct','wrong');
+      row.classList.add(ok ? 'correct' : 'wrong');
+      if(!ok) allCorrect = false;
+    });
+
+    const sumInput = document.getElementById('sumInput');
+    const sumVal = parseInt(sumInput.value, 10);
+    const sumOk = sumVal === problem.total;
+    sumInput.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+    if(!sumOk) allCorrect = false;
+
+    checked = true;
+    attempts++;
+    btnNext.disabled = false;
+
+    if(allCorrect){
+      score++; streak++;
+      feedback.textContent = PRAISE[rand(0,PRAISE.length-1)];
+      feedback.className = 'feedback good';
+    } else {
+      streak = 0;
+      feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
+      feedback.className = 'feedback bad';
+      explain.className = 'explain show';
+      explain.innerHTML = `부분곱을 다시 볼까요? 빨간색으로 표시된 칸을 확인해보세요.<br>
+        전체 답은 <b>${fmt(problem.total)}</b>이에요.`;
+    }
+    updateStats();
+  }
+
+  // ── 종합 테스트용 메모장(그림판): 문제마다 scaffoldArea가 새로 그려지므로
+  // 매번 새 canvas를 잡아 초기화한다. pointer capture를 써서 캔버스 밖으로
+  // 나가도 그리기가 끊기지 않게 하고, window에 리스너를 남기지 않는다.
+  function initScratchpad(){
+    const canvas = document.getElementById('scratchCanvas');
+    const clearBtn = document.getElementById('btnClearPad');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function fillWhite(){
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    fillWhite();
+    ctx.strokeStyle = '#25324A';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    let drawing = false;
+
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+
+    canvas.addEventListener('pointerdown', (e)=>{
+      drawing = true;
+      canvas.setPointerCapture(e.pointerId);
+      const p = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      e.preventDefault();
+    });
+    canvas.addEventListener('pointermove', (e)=>{
+      if(!drawing) return;
+      const p = getPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      e.preventDefault();
+    });
+    canvas.addEventListener('pointerup', ()=>{ drawing = false; });
+    canvas.addEventListener('pointercancel', ()=>{ drawing = false; });
+
+    if(clearBtn) clearBtn.addEventListener('click', fillWhite);
+  }
+
+  function updateStats(){
+    statScore.textContent = score;
+    statStreak.textContent = streak;
+  }
+
+  // ── 4단계: 1~3단계가 섞인 종합 테스트 ──
+  function startTest(){
+    testIndex = 0;
+    testResults = [];
+    btnCheck.disabled = false;
+    nextTestQuestion();
+  }
+
+  function nextTestQuestion(){
+    if(testIndex >= TEST_TOTAL){
+      showTestReview();
+      return;
+    }
+    testIndex++;
+    checked = false;
+    btnNext.disabled = true;
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    explain.className = 'explain';
+    explain.innerHTML = '';
+
+    const subLv = rand(1,3);
+    testProblem = genProblem(subLv);
+
+    problemRow.innerHTML = `<span class="factor-a">${testProblem.a}</span><span class="op">×</span><span class="factor-b">${testProblem.b}</span>`;
+    gridWrap.innerHTML = `<div class="timer">종합 테스트 · ${testIndex} / ${TEST_TOTAL}번째 문제</div>`;
+    scaffoldArea.innerHTML = `
+      <div class="answer-only">
+        <input type="number" inputmode="numeric" id="testAnswerInput" placeholder="?" />
+      </div>
+      <div class="scratchpad-wrap">
+        <div class="scratchpad-header">
+          <span>✏️ 메모장 · 손으로 자유롭게 계산해보세요</span>
+          <button type="button" class="btn-clear-pad" id="btnClearPad">지우기</button>
+        </div>
+        <canvas id="scratchCanvas" width="600" height="520"></canvas>
+      </div>`;
+    const input = document.getElementById('testAnswerInput');
+    if(input) input.focus();
+    initScratchpad();
+  }
+
+  function checkTestAnswer(){
+    if(checked) return;
+    const input = document.getElementById('testAnswerInput');
+    const val = parseInt(input.value, 10);
+    const ok = val === testProblem.total;
+    input.style.borderColor = ok ? 'var(--correct)' : 'var(--wrong)';
+
+    testResults.push({
+      a: testProblem.a, b: testProblem.b, total: testProblem.total,
+      userAnswer: isNaN(val) ? null : val, correct: ok
+    });
+
+    checked = true;
+    btnNext.disabled = false;
+
+    if(ok){
+      feedback.textContent = PRAISE[rand(0,PRAISE.length-1)];
+      feedback.className = 'feedback good';
+    } else {
+      feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
+      feedback.className = 'feedback bad';
+      explain.className = 'explain show';
+      explain.innerHTML = `정답은 <b>${fmt(testProblem.total)}</b>이에요.`;
+    }
+  }
+
+  function showTestReview(){
+    const correctCount = testResults.filter(r=>r.correct).length;
+    const rate = Math.round((correctCount/TEST_TOTAL)*100);
+
+    problemRow.innerHTML = `<span style="font-size:22px;color:var(--sub);">종합 테스트 결과</span>`;
+    gridWrap.innerHTML = '';
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    explain.className = 'explain';
+    explain.innerHTML = '';
+
+    const rows = testResults.map((r,i)=>{
+      const ua = (r.userAnswer===null) ? '미입력' : fmt(r.userAnswer);
+      return `<div class="partial-row ${r.correct ? 'correct' : 'wrong'}">
+        <span class="label">${i+1}번</span>
+        <span class="expr">${r.a} × ${r.b} = ${fmt(r.total)}</span>
+        <span>${r.correct ? '✅' : `❌ (내 답: ${ua})`}</span>
+      </div>`;
+    }).join('');
+
+    scaffoldArea.innerHTML = `
+      <div class="partials">${rows}</div>
+      <div class="sum-row"><span>맞은 문제 ${correctCount} / ${TEST_TOTAL} (정답률 ${rate}%)</span></div>`;
+
+    btnCheck.disabled = true;
+    btnNext.disabled = true;
+  }
+
+  function setLevel(lv){
+    level = lv;
+    [...tabsEl.children].forEach(t=>{
+      t.classList.toggle('active', parseInt(t.dataset.level,10) === lv);
+    });
+    submitBar.style.display = (lv === 4) ? 'flex' : 'none';
+    submitStatus.textContent = '';
+    submitStatus.className = 'submit-status';
+    if(lv === 4){
+      startTest();
+    } else {
+      btnCheck.disabled = false;
+      renderProblem();
+    }
+  }
+
+  tabsEl.addEventListener('click', (e)=>{
+    const tab = e.target.closest('.tab');
+    if(!tab) return;
+    setLevel(parseInt(tab.dataset.level,10));
+  });
+
+  // clicking a "① 일의 자리..." / "② 십의 자리..." hint highlights the matching part of the
+  // PROBLEM itself (the "71 / ×57" digits above the line) — not the answer boxes below it.
+  scaffoldArea.addEventListener('click', (e)=>{
+    const label = e.target.closest('.row-label-side');
+    if(!label) return;
+    const group = label.dataset.group;
+    if(!group) return;
+    label.classList.toggle('active');
+
+    // the multiplier digit specific to this step (ones digit for ①, tens digit for ②)
+    document.querySelectorAll(`.hl-target[data-group="${group}"]`).forEach(td=>{
+      td.classList.toggle('hl-active');
+    });
+
+    // the top operand ('71') is used in both steps, so keep it highlighted as long as
+    // at least one hint is currently active
+    const anyActive = !!document.querySelector('.row-label-side.active');
+    document.querySelectorAll('.hl-target[data-group="both"]').forEach(td=>{
+      td.classList.toggle('hl-active', anyActive);
+    });
+  });
+
+  btnCheck.addEventListener('click', ()=>{
+    if(level === 4) checkTestAnswer();
+    else checkAnswer();
+  });
+  btnNext.addEventListener('click', ()=>{
+    if(level === 4) nextTestQuestion();
+    else renderProblem();
+  });
+  btnReset.addEventListener('click', ()=>{
+    if(level === 4) startTest();
+    else renderProblem();
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){
+      if(level === 4){
+        if(!checked) checkTestAnswer();
+        else nextTestQuestion();
+      } else {
+        if(!checked) checkAnswer();
+        else renderProblem();
+      }
+    }
+  });
+
+  setLevel(1);
+})();
+</script>
+</body>
+</html>
