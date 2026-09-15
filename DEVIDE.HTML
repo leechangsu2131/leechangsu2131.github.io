@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>나눗셈 연습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF7EF;
+    --panel:#FFFFFF;
+    --ink:#25324A;
+    --sub:#6B7690;
+    --tens:#3D5A80;
+    --tens-soft:#DCE6F2;
+    --ones:#E8873A;
+    --ones-soft:#FBE6D2;
+    --correct:#4C8C5C;
+    --correct-soft:#E1F0E3;
+    --wrong:#C0503F;
+    --wrong-soft:#FAE4E0;
+    --line:#E4DCC9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Gowun Batang", serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 60px;
+  }
+  .app{ width:100%; max-width:620px; }
+
+  header{ text-align:center; margin-bottom:22px; }
+  h1{
+    font-family:"Jua", sans-serif;
+    font-weight:400;
+    font-size:30px;
+    margin:0 0 4px;
+    color:var(--tens);
+    letter-spacing:0.5px;
+  }
+  .subtitle{ color:var(--sub); font-size:14.5px; margin:0; }
+
+  .stats{ display:flex; justify-content:center; gap:10px; margin:16px 0 20px; }
+  .chip{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 16px;
+    font-size:13.5px;
+    color:var(--sub);
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip b{ color:var(--ink); font-family:"Jua",sans-serif; font-weight:400; font-size:15px;}
+
+  .tabs{
+    display:flex; gap:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:6px;
+    margin-bottom:20px;
+  }
+  .tab{
+    flex:1; text-align:center;
+    padding:10px 6px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--sub);
+    transition:background .15s, color .15s;
+    user-select:none;
+  }
+  .tab .tnum{ font-family:"Jua",sans-serif; display:block; font-size:11.5px; margin-bottom:2px; opacity:.7;}
+  .tab.active{ background:var(--tens); color:#fff; }
+  .tab.active .tnum{ opacity:.85; }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px 22px 26px;
+    box-shadow:0 2px 0 var(--line);
+  }
+
+  .problem-row{
+    display:flex; align-items:baseline; justify-content:center; gap:14px;
+    font-family:"Jua", sans-serif;
+    font-size:40px;
+    margin-bottom:22px;
+    color:var(--ink);
+  }
+  .problem-row .op{ color:var(--sub); font-size:30px; }
+  .factor-a{ color:var(--tens); }
+  .factor-b{ color:var(--ones); }
+
+  .partials{ display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .partial-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:16px;
+    gap:8px;
+  }
+  .partial-row .label{ color:var(--sub); font-size:14px; white-space:nowrap; }
+  .partial-row .expr{ font-family:"Jua",sans-serif; font-size:17px; white-space:nowrap; }
+  .partial-row .inputs{ display:flex; align-items:center; gap:6px; }
+  .partial-row input{
+    width:64px;
+    text-align:center;
+    font-family:"Jua", sans-serif;
+    font-size:18px;
+    padding:8px 4px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+  .partial-row input:focus{ outline:none; border-color:var(--tens); }
+  .partial-row input::placeholder{ font-size:13px; }
+  .partial-row.correct{ background:var(--correct-soft); border-color:var(--correct); }
+  .partial-row.wrong{ background:var(--wrong-soft); border-color:var(--wrong); }
+  .rmark{ font-family:"Jua",sans-serif; color:var(--sub); font-size:15px; }
+
+  .algo-intro{
+    background:var(--tens-soft); border-radius:12px; padding:12px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-bottom:10px; line-height:1.5; font-size:14.5px;
+  }
+  .algo-intro .algo-text{ flex:1; }
+  .algo-intro .algo-check-btn{ font-size:13.5px; padding:9px 16px; flex-shrink:0; }
+  .algo-intro .algo-check-btn:disabled{ opacity:.35; }
+
+  .meaning-box{
+    background:var(--ones-soft); border-radius:12px; padding:10px 14px;
+    margin-bottom:16px; font-size:13.5px; color:var(--ink); line-height:1.5;
+    display:none;
+  }
+  .meaning-box.show{ display:block; }
+  .viz-blocks{ display:flex; align-items:flex-end; flex-wrap:wrap; gap:4px; margin-top:8px; }
+  .viz-tenbar{ width:11px; height:34px; background:var(--tens); border-radius:3px; }
+  .viz-onebox{ width:13px; height:13px; background:var(--ones); border-radius:3px; }
+
+  .dtable{ border-collapse:collapse; margin:0 auto 10px; }
+  .dtable col.divcol{ width:34px; }
+  .dtable col.digitcol{ width:54px; }
+  .dtable td{ text-align:center; height:42px; padding:2px; vertical-align:middle; }
+  .dtable td.divisor-cell{ font-family:"Jua",sans-serif; font-size:26px; color:var(--tens); }
+  .dtable td.dividend-cell{ font-family:"Jua",sans-serif; font-size:26px; color:var(--ink); border-top:3px solid var(--ink); }
+  .dtable td.bracket-col{ border-left:3px solid var(--ink); }
+  .dtable-hr{ border-top:2px solid var(--ink); margin:0 6px; }
+  .dcell{
+    width:40px; height:34px; text-align:center;
+    font-family:"Jua",sans-serif; font-size:18px;
+    border-radius:8px; border:1.5px solid var(--line);
+    background:#fff; color:var(--ink);
+  }
+  .dcell:disabled{ background:#F1EEE5; color:var(--sub); }
+  .dcell:focus{ outline:none; border-color:var(--tens); }
+  .dcell.wide{ width:88px; }
+  .dcell.correct{ border-color:var(--correct)!important; background:var(--correct-soft)!important; }
+  .dcell.wrong{ border-color:var(--wrong)!important; background:var(--wrong-soft)!important; }
+
+  .sum-row{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    border-top:2px dashed var(--line);
+    padding-top:16px; margin-bottom:10px;
+    font-family:"Jua", sans-serif; font-size:20px;
+    flex-wrap:wrap;
+  }
+  .sum-row input{
+    width:80px; text-align:center;
+    font-family:"Jua", sans-serif; font-size:22px;
+    padding:10px 6px; border-radius:10px;
+    border:2px solid var(--line);
+  }
+  .sum-row input:focus{ outline:none; border-color:var(--tens); }
+  .sum-row input::placeholder{ font-size:13px; }
+
+  .actions{ display:flex; gap:10px; justify-content:center; margin-top:6px; }
+  button{
+    font-family:"Jua", sans-serif; font-size:15.5px;
+    border:none; border-radius:12px; padding:12px 22px;
+    cursor:pointer; transition:transform .08s, opacity .15s;
+  }
+  button:active{ transform:scale(0.97); }
+  .btn-check{ background:var(--tens); color:#fff; }
+  .btn-next{ background:var(--ink); color:#fff; }
+  .btn-ghost{ background:transparent; color:var(--sub); border:1.5px solid var(--line); }
+  button:disabled{ opacity:.4; cursor:default; }
+
+  .feedback{ text-align:center; margin-top:16px; font-size:15px; min-height:24px; color:var(--sub); }
+  .feedback.good{ color:var(--correct); font-family:"Jua",sans-serif; }
+  .feedback.bad{ color:var(--wrong); font-family:"Jua",sans-serif; }
+
+  .explain{
+    margin-top:14px; background:var(--tens-soft); border-radius:12px;
+    padding:12px 16px; font-size:14.5px; color:var(--ink); line-height:1.7;
+    display:none;
+  }
+  .explain.show{ display:block; }
+
+  footer{ text-align:center; color:var(--sub); font-size:12.5px; margin-top:26px; line-height:1.7; }
+
+  .ld-wrap{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .ld-stage{
+    position:relative;
+    width:100%;
+    max-width:340px;
+    touch-action:none;
+  }
+  .ld-stage svg{ display:block; width:100%; height:auto; }
+  .ld-stage canvas{
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    touch-action:none;
+    cursor:crosshair;
+  }
+  .ld-tools{ display:flex; gap:8px; }
+  .ld-tools button{ font-size:13.5px; padding:8px 16px; }
+  .ld-steps{
+    width:100%;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .ld-steps .step{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:13.5px;
+    color:var(--sub);
+  }
+  .ld-steps .step b{ color:var(--ink); }
+
+  @media (max-width:420px){
+    h1{ font-size:25px; }
+    .problem-row{ font-size:32px; }
+    .card{ padding:18px 14px 20px; }
+    .partial-row{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>나눗셈 연습</h1>
+    <p class="subtitle">3학년 2학기 · 자릿값으로 나눗셈을 익혀요</p>
+  </header>
+
+  <div class="stats">
+    <div class="chip">맞힌 문제 <b id="statScore">0</b></div>
+    <div class="chip">연속 정답 <b id="statStreak">0</b></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab" data-level="1"><span class="tnum">1단계</span>(몇십)÷(몇)</div>
+    <div class="tab" data-level="2"><span class="tnum">2단계</span>나머지 없음</div>
+    <div class="tab" data-level="3"><span class="tnum">3단계</span>나머지 있음</div>
+    <div class="tab" data-level="4"><span class="tnum">4단계</span>세로 나눗셈</div>
+    <div class="tab" data-level="5"><span class="tnum">5단계</span>스스로 풀어보기</div>
+  </div>
+
+  <div class="card">
+    <div class="problem-row" id="problemRow"></div>
+
+    <div id="scaffoldArea"></div>
+
+    <div class="actions">
+      <button class="btn-check" id="btnCheck">확인</button>
+      <button class="btn-next" id="btnNext" disabled>다음 문제</button>
+      <button class="btn-ghost" id="btnReset">다시 풀기</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="explain" id="explain"></div>
+  </div>
+
+  <footer>화천초등학교 3학년 2반 · 나눗셈 연습</footer>
+</div>
+
+<script>
+(function(){
+  const tabsEl = document.getElementById('tabs');
+  const problemRow = document.getElementById('problemRow');
+  const scaffoldArea = document.getElementById('scaffoldArea');
+  const btnCheck = document.getElementById('btnCheck');
+  const btnNext = document.getElementById('btnNext');
+  const btnReset = document.getElementById('btnReset');
+  const feedback = document.getElementById('feedback');
+  const explain = document.getElementById('explain');
+  const statScore = document.getElementById('statScore');
+  const statStreak = document.getElementById('statStreak');
+
+  let level = 1;
+  let score = 0;
+  let streak = 0;
+  let problem = null;
+  let checked = false;
+
+  const PRAISE = ["참 잘했어요!","정확해요!","실력이 늘고 있어요!","완벽해요!","멋져요!","최고예요!"];
+  const NUDGE = ["다시 한 번 살펴볼까요?","괜찮아요, 자리를 다시 나눠볼까요?","조금만 더 생각해봐요.","천천히 다시 계산해볼까요?"];
+
+  function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function genProblem(lv){
+    if(lv === 1){
+      let d, q, n;
+      let tries = 0;
+      do{
+        d = rand(2,9);
+        q = rand(1,9);
+        n = d*q;
+        tries++;
+      } while(n > 9 && tries < 200);
+      const N = n*10;
+      return { level:1, d, q, n, N, total:q*10 };
+    } else if(lv === 2){
+      // pick a genuine ones-digit (1-9) that divides evenly, so the split matches N's real place values
+      let d, Qt, onesDigit, N;
+      let tries = 0;
+      do{
+        d = rand(2,9);
+        Qt = rand(1,3);
+        onesDigit = rand(1,9);
+        N = Qt*d*10 + onesDigit;
+        tries++;
+      } while((onesDigit % d !== 0 || N > 99 || N < 10) && tries < 500);
+      const Qo = onesDigit / d;
+      const partA = Qt*d*10, partB = onesDigit;
+      return { level:2, d, Qt, Qo, N, partA, partB, total:Qt*10+Qo };
+    } else if(lv === 3){
+      // pick a genuine ones-digit (0-9) whose division by d leaves a nonzero remainder,
+      // so partA is still exactly N's real tens value and partB is exactly N's real ones digit
+      let d, Qt, onesDigit, Qo, r, N;
+      let tries = 0;
+      do{
+        d = rand(2,9);
+        Qt = rand(1,3);
+        onesDigit = rand(0,9);
+        Qo = Math.floor(onesDigit/d);
+        r = onesDigit % d;
+        N = Qt*d*10 + onesDigit;
+        tries++;
+      } while((r === 0 || N > 99 || N < 10) && tries < 500);
+      const partA = Qt*d*10, partB = onesDigit;
+      return { level:3, d, Qt, Qo, r, N, partA, partB, totalQ:Qt*10+Qo, totalR:r };
+    } else if(lv === 4){
+      // level 4: full long-division practice — any 2-digit dividend with a 2-digit quotient,
+      // so the "estimate the biggest digit" step always happens exactly twice (tens, then ones)
+      const { d, N, totalQ, totalR } = genLongDivisionBase();
+
+      const firstDigit = Math.floor(N/10);
+      const onesDigit = N % 10;
+      const q1 = Math.floor(firstDigit/d);
+      const product1 = q1*d;
+      const remainder1 = firstDigit - product1;
+      const bringDown = remainder1*10 + onesDigit;
+      const q2 = Math.floor(bringDown/d);
+      const product2 = q2*d;
+      const remainder2 = bringDown - product2;
+
+      return {
+        level:4, d, N, firstDigit, onesDigit,
+        q1, product1, remainder1, bringDown, q2, product2, remainder2,
+        totalQ, totalR
+      };
+    } else {
+      // level 5: same shape of problem as level 4, but no step breakdown — this is the
+      // "work it out yourself" stage, so only the final answer is graded
+      const { d, N, totalQ, totalR } = genLongDivisionBase();
+      return { level:5, d, N, totalQ, totalR };
+    }
+  }
+
+  // shared generator for a 2-digit dividend ÷ 1-digit divisor with a 2-digit quotient
+  function genLongDivisionBase(){
+    let d, Q, r, N;
+    let tries = 0;
+    do{
+      d = rand(2,9);
+      Q = rand(10, Math.max(10, Math.floor(99/d)));
+      r = rand(0, d-1);
+      N = Q*d + r;
+      tries++;
+    } while((N > 99 || N < 10) && tries < 500);
+    return { d, N, totalQ:Q, totalR:r };
+  }
+
+  // is `guess` really the largest whole number where d*guess <= target?
+  function judgeEstimate(target, d, guess){
+    if(isNaN(guess)) return 'invalid';
+    if(d*guess > target) return 'toobig';
+    if(d*(guess+1) <= target) return 'toosmall';
+    return 'ok';
+  }
+
+  function estimateHint(verdict, d, target, correctGuess){
+    if(verdict === 'toobig') return `어림한 수가 너무 컸어요 (${d}×그 수가 ${target}보다 커져요). 정답은 ${correctGuess}예요.<br>`;
+    if(verdict === 'toosmall') return `더 큰 수도 가능했어요 — ${d}×(한 개 더 큰 수)도 ${target} 이하예요. 정답은 ${correctGuess}예요.<br>`;
+    if(verdict === 'invalid') return `숫자를 입력해주세요. 정답은 ${correctGuess}예요.<br>`;
+    return '';
+  }
+
+  function renderProblem(){
+    problem = genProblem(level);
+    checked = false;
+    btnNext.disabled = true;
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    explain.className = 'explain';
+    explain.innerHTML = '';
+
+    problemRow.innerHTML = `<span class="factor-a">${problem.N}</span><span class="op">÷</span><span class="factor-b">${problem.d}</span>`;
+
+    if(level === 1){
+      scaffoldArea.innerHTML = `
+        <div class="partials">
+          ${partialRow('base', `${problem.n} ÷ ${problem.d}`, '① 기본 나눗셈', false)}
+        </div>
+        <div class="sum-row">
+          <span>${problem.N} ÷ ${problem.d} =</span>
+          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" />
+        </div>`;
+    } else if(level === 2){
+      scaffoldArea.innerHTML = `
+        <div class="partials">
+          ${partialRow('tens', `${problem.partA} ÷ ${problem.d}`, '① 십의 자리', false)}
+          ${partialRow('ones', `${problem.partB} ÷ ${problem.d}`, '② 일의 자리', false)}
+        </div>
+        <div class="sum-row">
+          <span>${problem.N} ÷ ${problem.d} =</span>
+          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" />
+        </div>`;
+    } else if(level === 3){
+      scaffoldArea.innerHTML = `
+        <div class="partials">
+          ${partialRow('tens', `${problem.partA} ÷ ${problem.d}`, '① 십의 자리', false)}
+          ${partialRow('rest', `${problem.partB} ÷ ${problem.d}`, '② 나머지 부분', true)}
+        </div>
+        <div class="sum-row">
+          <span>${problem.N} ÷ ${problem.d} =</span>
+          <input type="number" inputmode="numeric" id="sumQ" placeholder="몫" style="width:60px" />
+          <span class="rmark">…</span>
+          <input type="number" inputmode="numeric" id="sumR" placeholder="나머지" style="width:78px" />
+        </div>`;
+    } else if(level === 4){
+      const d = problem.d;
+      const p2digits = String(problem.product2).split('').map(Number);
+      const p2wide = p2digits.length === 2;
+
+      const stepList = [
+        { id:'q1', cells:['q1'], expected:[problem.q1], estimate:true, target: problem.firstDigit,
+          text:`① ${problem.firstDigit} ÷ ${d} 의 몫을 어림해서 써보세요.`,
+          meaning: `${problem.N}은 사실 십의 자리 숫자 ${problem.firstDigit}개의 10과, 일의 자리 숫자 ${problem.onesDigit}개의 1로 이루어져 있어요.
+            지금은 그중 <b>${problem.firstDigit}개의 10 (=${problem.firstDigit*10})</b>을 먼저 ${d}로 나누는 거예요.` + blockViz(problem.firstDigit, 0) },
+        { id:'p1', cells:['p1'], expected:[problem.product1],
+          text:`② ${d} × (방금 구한 몫)을 계산해서 써보세요.`,
+          meaning: `${d}씩 몇 묶음을 뺄 수 있는지 확인하는 계산이에요. 이 값이 ${problem.firstDigit}(십의 자리)보다 크면 안 돼요.` },
+        { id:'s1', cells:['s1'], expected:[problem.remainder1],
+          text:`③ ${problem.firstDigit}에서 위에 쓴 수를 빼서 써보세요.`,
+          meaning: `10짜리 묶음 중에서 아직 못 나눈 나머지가 몇 개인지 구하는 거예요.` },
+        { id:'down', cells:['down'], expected:[problem.onesDigit],
+          text:`④ 일의 자리 숫자를 그대로 내려써 보세요.`,
+          meaning: `남은 10짜리 묶음과 일의 자리 숫자를 합쳐서 새로운 수를 만들어요.
+            <b>10짜리 ${problem.remainder1}개 + 1짜리 ${problem.onesDigit}개 = ${problem.bringDown}</b>` + blockViz(problem.remainder1, problem.onesDigit) },
+        { id:'q2', cells:['q2'], expected:[problem.q2], estimate:true, target: problem.bringDown,
+          text:`⑤ 방금 만든 두 자리 수를 ${d}로 나눈 몫을 어림해서 써보세요.`,
+          meaning: `이제 ${problem.bringDown}을 통째로 ${d}로 나눠요. 여기서 구하는 몫은 더 이상 10배가 아니라, 있는 그대로의 개수예요.` },
+        { id:'p2', cells: p2wide ? ['p2t','p2o'] : ['p2o'], expected: p2digits,
+          text: p2wide ? `⑥ ${d} × (방금 구한 몫)을 계산해서 십의 자리, 일의 자리에 각각 써보세요.`
+                       : `⑥ ${d} × (방금 구한 몫)을 계산해서 써보세요.` },
+        { id:'s2', cells:['s2'], expected:[problem.remainder2],
+          text:`⑦ 마지막으로 남은 수를 빼서 나머지를 구해보세요.`,
+          meaning: `더 이상 ${d}로 나눌 수 없는, 진짜 마지막 나머지예요.` },
+      ];
+
+      const p2RowHtml = p2wide
+        ? `<td class="bracket-col"><input id="p2t" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>
+           <td><input id="p2o" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>`
+        : `<td class="bracket-col"></td>
+           <td><input id="p2o" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>`;
+
+      scaffoldArea.innerHTML = `
+        <div class="algo-intro">
+          <span class="algo-text" id="algoInstructionText">${stepList[0].text}</span>
+          <button type="button" class="btn-check algo-check-btn" id="algoCheckBtn">확인</button>
+        </div>
+        <div class="meaning-box" id="meaningBox"></div>
+
+        <table class="dtable">
+          <colgroup><col class="divcol"><col class="digitcol"><col class="digitcol"></colgroup>
+          <tbody>
+            <tr>
+              <td></td>
+              <td><input id="q1" class="dcell" maxlength="1" inputmode="numeric" /></td>
+              <td><input id="q2" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>
+            </tr>
+            <tr>
+              <td class="divisor-cell">${d}</td>
+              <td class="dividend-cell bracket-col">${problem.firstDigit}</td>
+              <td class="dividend-cell">${problem.onesDigit}</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="bracket-col"><input id="p1" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>
+              <td></td>
+            </tr>
+            <tr><td></td><td class="bracket-col"><div class="dtable-hr"></div></td><td></td></tr>
+            <tr>
+              <td></td>
+              <td class="bracket-col"><input id="s1" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>
+              <td><input id="down" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>
+            </tr>
+            <tr>
+              <td></td>
+              ${p2RowHtml}
+            </tr>
+            <tr><td></td><td colspan="2"><div class="dtable-hr"></div></td></tr>
+            <tr>
+              <td></td>
+              <td class="bracket-col"></td>
+              <td><input id="s2" class="dcell" maxlength="1" inputmode="numeric" disabled /></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="sum-row">
+          <span>${problem.N} ÷ ${problem.d} =</span>
+          <input type="number" inputmode="numeric" id="sumQ" placeholder="몫" style="width:60px" disabled />
+          <span class="rmark">…</span>
+          <input type="number" inputmode="numeric" id="sumR" placeholder="나머지" style="width:78px" disabled />
+          <button type="button" class="btn-check algo-final-btn" disabled>최종 확인</button>
+        </div>`;
+      initAlgoSteps(stepList);
+    } else {
+      // level 5: free practice — a blank canvas under the printed problem, no scaffolding.
+      // Only the final answer is graded; the canvas is scratch space for working it out by hand.
+      scaffoldArea.innerHTML = `
+        <div class="algo-intro">
+          <span class="algo-text">힌트 없이 처음부터 끝까지 직접 세로 나눗셈을 써보세요.</span>
+        </div>
+        <table class="dtable" style="margin-bottom:6px;">
+          <colgroup><col class="divcol"><col class="digitcol"><col class="digitcol"></colgroup>
+          <tbody>
+            <tr>
+              <td class="divisor-cell">${problem.d}</td>
+              <td class="dividend-cell bracket-col">${Math.floor(problem.N/10)}</td>
+              <td class="dividend-cell">${problem.N%10}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ld-stage">
+          <canvas id="ldCanvas" width="300" height="260"></canvas>
+        </div>
+        <div class="ld-tools">
+          <button type="button" class="btn-ghost" id="btnClearCanvas">🧹 지우기</button>
+        </div>
+        <div class="sum-row">
+          <span>${problem.N} ÷ ${problem.d} =</span>
+          <input type="number" inputmode="numeric" id="sumQ" placeholder="몫" style="width:60px" />
+          <span class="rmark">…</span>
+          <input type="number" inputmode="numeric" id="sumR" placeholder="나머지" style="width:78px" />
+        </div>`;
+      setupCanvas();
+    }
+  }
+
+  // small place-value picture: `tens` ten-bars + `ones` one-boxes, so a number's actual
+  // size is visible, not just its digits
+  function blockViz(tens, ones){
+    let html = '<div class="viz-blocks">';
+    for(let i=0;i<tens;i++) html += '<div class="viz-tenbar" title="10"></div>';
+    for(let i=0;i<ones;i++) html += '<div class="viz-onebox" title="1"></div>';
+    html += '</div>';
+    return html;
+  }
+
+  // freehand drawing on the canvas for level 5's blank scratch space
+  function setupCanvas(){
+    const canvas = document.getElementById('ldCanvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let drawing = false, lastX = 0, lastY = 0;
+
+    function pos(e){
+      const rect = canvas.getBoundingClientRect();
+      const cx = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+      const cy = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+      return { x:(cx-rect.left)*(canvas.width/rect.width), y:(cy-rect.top)*(canvas.height/rect.height) };
+    }
+    function start(e){ drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; e.preventDefault(); }
+    function move(e){
+      if(!drawing) return;
+      const p = pos(e);
+      ctx.strokeStyle = '#25324A';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      lastX = p.x; lastY = p.y;
+      e.preventDefault();
+    }
+    function end(){ drawing = false; }
+
+    canvas.addEventListener('pointerdown', start);
+    canvas.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+
+    const clearBtn = document.getElementById('btnClearCanvas');
+    if(clearBtn){
+      clearBtn.addEventListener('click', ()=> ctx.clearRect(0,0,canvas.width,canvas.height));
+    }
+  }
+
+  // Sequential, locked long-division practice, laid out in a real <table> so the quotient,
+  // dividend, and every working row share the exact same 십/일 columns (guaranteed by the
+  // browser's table layout, not by manual positioning). Only one step is unlocked at a time,
+  // and the instruction banner only ever describes that one step, so nothing further down the
+  // algorithm is ever visible before the student has earned it.
+  function initAlgoSteps(stepList){
+    let currentIndex = 0;
+    const instructionText = document.getElementById('algoInstructionText');
+    const checkBtn = document.getElementById('algoCheckBtn');
+    const meaningBox = document.getElementById('meaningBox');
+
+    function activateStep(idx){
+      currentIndex = idx;
+      const step = stepList[idx];
+      instructionText.textContent = step.text;
+      if(meaningBox){
+        if(step.meaning){
+          meaningBox.innerHTML = step.meaning;
+          meaningBox.classList.add('show');
+        } else {
+          meaningBox.classList.remove('show');
+          meaningBox.innerHTML = '';
+        }
+      }
+      step.cells.forEach(id=>{ document.getElementById(id).disabled = false; });
+      document.getElementById(step.cells[0]).focus();
+    }
+
+    function checkCurrentStep(){
+      const step = stepList[currentIndex];
+      let allOk = true;
+      step.cells.forEach((id, i)=>{
+        const input = document.getElementById(id);
+        const val = parseInt(input.value, 10);
+        const ok = step.estimate
+          ? judgeEstimate(step.target, problem.d, val) === 'ok'
+          : val === step.expected[i];
+        input.classList.remove('correct','wrong');
+        input.classList.add(ok ? 'correct' : 'wrong');
+        if(!ok) allOk = false;
+      });
+      if(!allOk) return;
+
+      step.cells.forEach(id=>{ document.getElementById(id).disabled = true; });
+      if(currentIndex < stepList.length - 1){
+        activateStep(currentIndex + 1);
+      } else {
+        instructionText.textContent = '모두 완료했어요! 몫과 나머지를 아래에 써보세요.';
+        checkBtn.disabled = true;
+        const sumQ = document.getElementById('sumQ');
+        const sumR = document.getElementById('sumR');
+        sumQ.disabled = false;
+        sumR.disabled = false;
+        document.querySelector('.algo-final-btn').disabled = false;
+        sumQ.focus();
+      }
+    }
+
+    checkBtn.addEventListener('click', checkCurrentStep);
+    document.querySelector('.dtable').addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' && e.target.tagName === 'INPUT' && !e.target.disabled){
+        e.preventDefault();
+        checkCurrentStep();
+      }
+    });
+
+    document.querySelector('.algo-final-btn').addEventListener('click', ()=>{
+      const sumQ = document.getElementById('sumQ');
+      const sumR = document.getElementById('sumR');
+      const ok = parseInt(sumQ.value,10) === problem.totalQ && parseInt(sumR.value,10) === problem.totalR;
+      sumQ.style.borderColor = ok ? 'var(--correct)' : 'var(--wrong)';
+      sumR.style.borderColor = ok ? 'var(--correct)' : 'var(--wrong)';
+      const explainHtml = ok ? '' : `표에서 구한 몫과 나머지를 그대로 옮겨 적어보세요: <b>${problem.totalQ}…${problem.totalR}</b>`;
+      finishProblem(ok, explainHtml);
+    });
+
+    activateStep(0);
+  }
+
+  function partialRow(key, expr, label, withRemainder){
+    if(withRemainder){
+      return `<div class="partial-row" data-key="${key}">
+        <span class="label">${label}</span>
+        <span class="expr">${expr} =</span>
+        <div class="inputs">
+          <input type="number" inputmode="numeric" data-key="${key}-q" placeholder="몫" />
+          <span class="rmark">…</span>
+          <input type="number" inputmode="numeric" data-key="${key}-r" placeholder="나머지" style="width:78px" />
+        </div>
+      </div>`;
+    }
+    return `<div class="partial-row" data-key="${key}">
+      <span class="label">${label}</span>
+      <span class="expr">${expr} =</span>
+      <div class="inputs"><input type="number" inputmode="numeric" data-key="${key}" /></div>
+    </div>`;
+  }
+
+  function checkAnswer(){
+    if(checked) return;
+    if(level === 4) return; // level 4 uses its own per-step locked flow, see initAlgoSteps()
+    let allCorrect = true;
+
+    if(level === 1){
+      const baseInput = document.querySelector('input[data-key="base"]');
+      const baseRow = document.querySelector('.partial-row[data-key="base"]');
+      const baseOk = parseInt(baseInput.value,10) === problem.q;
+      baseRow.classList.remove('correct','wrong');
+      baseRow.classList.add(baseOk ? 'correct' : 'wrong');
+      if(!baseOk) allCorrect = false;
+
+      const sumInput = document.getElementById('sumInput');
+      const sumOk = parseInt(sumInput.value,10) === problem.total;
+      sumInput.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+      if(!sumOk) allCorrect = false;
+
+    } else if(level === 2){
+      const tensInput = document.querySelector('input[data-key="tens"]');
+      const tensRow = document.querySelector('.partial-row[data-key="tens"]');
+      const tensOk = parseInt(tensInput.value,10) === problem.Qt*10;
+      tensRow.classList.remove('correct','wrong');
+      tensRow.classList.add(tensOk ? 'correct' : 'wrong');
+      if(!tensOk) allCorrect = false;
+
+      const onesInput = document.querySelector('input[data-key="ones"]');
+      const onesRow = document.querySelector('.partial-row[data-key="ones"]');
+      const onesOk = parseInt(onesInput.value,10) === problem.Qo;
+      onesRow.classList.remove('correct','wrong');
+      onesRow.classList.add(onesOk ? 'correct' : 'wrong');
+      if(!onesOk) allCorrect = false;
+
+      const sumInput = document.getElementById('sumInput');
+      const sumOk = parseInt(sumInput.value,10) === problem.total;
+      sumInput.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+      if(!sumOk) allCorrect = false;
+
+    } else if(level === 3){
+      const tensInput = document.querySelector('input[data-key="tens"]');
+      const tensRow = document.querySelector('.partial-row[data-key="tens"]');
+      const tensOk = parseInt(tensInput.value,10) === problem.Qt*10;
+      tensRow.classList.remove('correct','wrong');
+      tensRow.classList.add(tensOk ? 'correct' : 'wrong');
+      if(!tensOk) allCorrect = false;
+
+      const restQInput = document.querySelector('input[data-key="rest-q"]');
+      const restRInput = document.querySelector('input[data-key="rest-r"]');
+      const restRow = document.querySelector('.partial-row[data-key="rest"]');
+      const restOk = parseInt(restQInput.value,10) === problem.Qo && parseInt(restRInput.value,10) === problem.r;
+      restRow.classList.remove('correct','wrong');
+      restRow.classList.add(restOk ? 'correct' : 'wrong');
+      if(!restOk) allCorrect = false;
+
+      const sumQ = document.getElementById('sumQ');
+      const sumR = document.getElementById('sumR');
+      const sumOk = parseInt(sumQ.value,10) === problem.totalQ && parseInt(sumR.value,10) === problem.totalR;
+      sumQ.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+      sumR.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+      if(!sumOk) allCorrect = false;
+    } else if(level === 5){
+      const sumQ = document.getElementById('sumQ');
+      const sumR = document.getElementById('sumR');
+      const sumOk = parseInt(sumQ.value,10) === problem.totalQ && parseInt(sumR.value,10) === problem.totalR;
+      sumQ.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+      sumR.style.borderColor = sumOk ? 'var(--correct)' : 'var(--wrong)';
+      if(!sumOk) allCorrect = false;
+    }
+
+    let explainHtml = '';
+    if(!allCorrect){
+      if(level === 1){
+        explainHtml = `${problem.n}÷${problem.d}=${problem.q} 이니까, ${problem.N}÷${problem.d}=${problem.q}×10=<b>${problem.total}</b>이에요.`;
+      } else if(level === 2){
+        explainHtml = `${problem.partA}÷${problem.d}=${problem.Qt*10}, ${problem.partB}÷${problem.d}=${problem.Qo}<br>
+          두 몫을 더하면 ${problem.N}÷${problem.d}=<b>${problem.total}</b>이에요.`;
+      } else if(level === 3){
+        explainHtml = `${problem.partA}÷${problem.d}=${problem.Qt*10} (나머지 없음)<br>
+          ${problem.partB}÷${problem.d}=${problem.Qo}…${problem.r}<br>
+          몫을 더하고 나머지는 그대로: ${problem.N}÷${problem.d}=<b>${problem.totalQ}…${problem.totalR}</b>이에요.`;
+      } else if(level === 5){
+        explainHtml = `정답은 <b>${problem.totalQ}…${problem.totalR}</b>이에요. 4단계에서 연습한 순서(어림→곱하기→빼기→내려쓰기)대로 다시 한 번 써보세요.`;
+      }
+    }
+    finishProblem(allCorrect, explainHtml);
+  }
+
+  // shared scoring/feedback tail used by checkAnswer (levels 1-3) and the level-4 step engine
+  function finishProblem(allCorrect, explainHtml){
+    checked = true;
+    btnNext.disabled = false;
+
+    if(allCorrect){
+      score++; streak++;
+      feedback.textContent = PRAISE[rand(0,PRAISE.length-1)];
+      feedback.className = 'feedback good';
+      explain.className = 'explain';
+      explain.innerHTML = '';
+    } else {
+      streak = 0;
+      feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
+      feedback.className = 'feedback bad';
+      if(explainHtml){
+        explain.className = 'explain show';
+        explain.innerHTML = explainHtml;
+      }
+    }
+    updateStats();
+  }
+
+  function updateStats(){
+    statScore.textContent = score;
+    statStreak.textContent = streak;
+  }
+
+  function setLevel(lv){
+    level = lv;
+    [...tabsEl.children].forEach(t=>{
+      t.classList.toggle('active', parseInt(t.dataset.level,10) === lv);
+    });
+    btnCheck.style.display = (lv === 4) ? 'none' : '';
+    renderProblem();
+  }
+
+  tabsEl.addEventListener('click', (e)=>{
+    const tab = e.target.closest('.tab');
+    if(!tab) return;
+    setLevel(parseInt(tab.dataset.level,10));
+  });
+
+  btnCheck.addEventListener('click', checkAnswer);
+  btnNext.addEventListener('click', renderProblem);
+  btnReset.addEventListener('click', renderProblem);
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Enter') return;
+    if(checked){ renderProblem(); return; }
+    if(level !== 4) checkAnswer();
+  });
+
+  setLevel(1);
+})();
+</script>
+</body>
+</html>
