@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FBF7EF;
+    --paper:#EAF8FF;
     --panel:#FFFFFF;
     --ink:#25324A;
     --sub:#6B7690;
@@ -20,20 +20,25 @@
     --correct-soft:#E1F0E3;
     --wrong:#C0503F;
     --wrong-soft:#FAE4E0;
-    --line:#E4DCC9;
+    --line:#D6E8F3;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--paper);
+    background:
+      radial-gradient(circle at 8% 8%, rgba(255,241,142,.9) 0 28px, transparent 29px),
+      radial-gradient(circle at 92% 12%, rgba(255,255,255,.9) 0 34px, transparent 35px),
+      linear-gradient(180deg,#CFF3FF 0%,#EAF9FF 48%,#E8F8D8 100%);
     color:var(--ink);
     font-family:"Gowun Batang", serif;
     min-height:100vh;
     display:flex;
     justify-content:center;
-    padding:28px 16px 60px;
+    padding:22px 16px 70px;
+    position:relative;
+    overflow-x:hidden;
   }
-  .app{ width:100%; max-width:620px; }
+  .app{ width:100%; max-width:760px; position:relative; }
 
   header{ text-align:center; margin-bottom:22px; }
   h1{
@@ -81,11 +86,11 @@
   .tab.active .tnum{ opacity:.85; }
 
   .card{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:20px;
+    background:rgba(255,255,255,.94);
+    border:2px solid rgba(255,255,255,.9);
+    border-radius:24px;
     padding:24px 22px 26px;
-    box-shadow:0 2px 0 var(--line);
+    box-shadow:0 10px 30px rgba(73,145,180,.12);
   }
 
   .problem-row{
@@ -144,9 +149,108 @@
     display:none;
   }
   .meaning-box.show{ display:block; }
-  .viz-blocks{ display:flex; align-items:flex-end; flex-wrap:wrap; gap:4px; margin-top:8px; }
-  .viz-tenbar{ width:11px; height:34px; background:var(--tens); border-radius:3px; }
-  .viz-onebox{ width:13px; height:13px; background:var(--ones); border-radius:3px; }
+  .viz-blocks{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .viz-bundle{
+    display:grid; grid-template-columns:repeat(5, 6px); grid-template-rows:repeat(2, 6px);
+    gap:2px; padding:4px;
+    border:1.5px solid var(--tens); border-radius:7px; background:#fff;
+  }
+  .viz-bundle .viz-dot{ width:6px; height:6px; border-radius:50%; background:var(--tens); }
+  .viz-loose-dot{ width:15px; height:15px; border-radius:50%; background:var(--ones); }
+  .viz-share-arrow{ font-size:12.5px; color:var(--sub); margin:8px 0 6px; }
+  .viz-baskets{ display:flex; gap:6px; flex-wrap:wrap; }
+  .viz-basket{
+    width:38px; height:34px; border:2px dashed var(--tens); border-radius:8px;
+    background:rgba(255,255,255,.5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:var(--tens); opacity:.5;
+  }
+
+  /* 어림하기 힌트: 84 → 80 → "8에는 4가 몇 번 들어갈까?"를 눈으로 이해하도록 구성 */
+  .estimate-viz{ margin-top:10px; padding:12px; border:1.5px solid #D9EAF7; border-radius:14px; background:linear-gradient(180deg,#F9FDFF,#FFFFFF); }
+  .estimate-number-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; font-family:"Jua",sans-serif; font-size:20px; color:var(--ink); }
+  .estimate-original,.estimate-zero{ padding:5px 10px; border-radius:10px; }
+  .estimate-original{ background:#F4F8FC; }
+  .estimate-zero{ background:#EAF5FF; color:#1772A8; }
+  .estimate-arrow{ color:#7AA8C5; font-size:18px; }
+  .estimate-caption{ text-align:center; font-size:12.5px; margin-top:5px; color:var(--sub); }
+  .estimate-caption b{ color:#1772A8; }
+  .visual-title{ text-align:center; margin:10px 0 7px; font-size:14px; font-weight:700; color:var(--ink); }
+  .first-digit-division{ padding:9px 8px 10px; border-radius:12px; background:#F2FAFF; border:1px solid #CDE8F7; }
+  .first-div-expr{ text-align:center; font-family:"Jua",sans-serif; font-size:24px; color:#244F73; margin-bottom:7px; }
+  .counter-row{ display:flex; justify-content:center; gap:5px; flex-wrap:wrap; }
+  .counter{ width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#7CC4EE; border:2px solid #4AA6DA; color:#fff; font-family:"Jua",sans-serif; font-size:14px; box-shadow:0 2px 0 rgba(40,110,150,.12); }
+  .grouping-arrow{ text-align:center; font-size:12.5px; color:#4B7895; margin:6px 0; }
+  .quotient-groups{ display:flex; justify-content:center; gap:7px; flex-wrap:wrap; }
+  .q-group{ min-width:78px; padding:6px 6px 7px; border:2px solid #7FC9A0; border-radius:11px; background:#F7FFF9; text-align:center; }
+  .q-group-title{ font-size:11px; color:#4B8061; margin-bottom:4px; font-weight:700; }
+  .q-group .counter{ width:23px; height:23px; font-size:11px; margin:1px; background:#78C89B; border-color:#55AA79; }
+  .group-result{ margin-top:4px; font-family:"Jua",sans-serif; font-size:13px; color:#2E7650; }
+  .leftover-box{ margin:7px auto 0; width:max-content; max-width:100%; padding:5px 9px; border-radius:9px; background:#FFF4DF; color:#9A6411; font-size:12px; }
+  .estimate-result{ text-align:center; margin-top:9px; font-size:14px; color:var(--ink); }
+  .estimate-result b{ display:inline-block; padding:5px 10px; border-radius:9px; background:#EAF7EE; color:#347A50; }
+  .connect-note{ margin-top:7px; padding:7px 9px; border-radius:9px; background:#EEF7FF; color:#45677E; font-size:12px; text-align:center; line-height:1.45; }
+  .connect-note b{ color:#1772A8; }
+  /* 나눗셈이 실제로 "몇 번 들어가는지" 보이는 힌트 */
+  .estimate-viz{ overflow:hidden; }
+  .entry-flow{
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    margin:8px 0 4px; flex-wrap:wrap;
+  }
+  .entry-card{
+    padding:6px 10px; border-radius:12px; background:#fff;
+    border:2px solid #BFE3F5; font-family:"Jua",sans-serif;
+    font-size:18px; color:#245274;
+  }
+  .entry-card.zero{
+    background:#F4FBFF; border-color:#7FC8EA;
+  }
+  .entry-card.zero b{ color:#E58B45; }
+  .entry-arrow{ font-size:18px; color:#76A9C3; font-weight:700; }
+  .in-box{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    flex-wrap:wrap; margin:8px 0 5px;
+  }
+  .in-question{
+    padding:5px 10px; border-radius:12px; background:#FFF4D9;
+    border:2px solid #F2C66D; color:#8A5D0A; font-family:"Jua",sans-serif;
+    font-size:15px;
+  }
+  .in-answer{
+    padding:5px 10px; border-radius:12px; background:#EAF7EE;
+    border:2px solid #8CCCA2; color:#347A50; font-family:"Jua",sans-serif;
+    font-size:15px;
+  }
+  .remainder-mini{
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    margin-top:8px; padding:6px 9px; border-radius:11px;
+    background:#FFF7EC; border:1px solid #F1D7A8; color:#8A641E; font-size:12px;
+  }
+  .mini-dots{ display:flex; gap:3px; }
+  .mini-dot{
+    width:17px; height:17px; border-radius:50%; background:#F0B45C;
+    border:2px solid #D99532;
+  }
+  .divide-groups{
+    display:flex; justify-content:center; gap:6px; flex-wrap:wrap;
+    margin-top:7px;
+  }
+  .divide-group{
+    min-width:76px; padding:5px 6px 6px; border-radius:11px;
+    background:#F8FFFA; border:2px solid #8CCCA2; text-align:center;
+  }
+  .divide-group .g-label{font-size:10.5px;color:#4D7D5B;font-weight:700;margin-bottom:3px;}
+  .ten-stick{
+    display:inline-flex; flex-direction:column; gap:1px; vertical-align:middle;
+    width:14px; margin:1px 2px; padding:2px; border-radius:4px;
+    background:#E5F4FF; border:1px solid #75B9E1;
+  }
+  .ten-stick i{display:block;height:3px;border-radius:1px;background:#58A9D8;}
+  .group-number{
+    display:block; margin-top:3px; font-family:"Jua",sans-serif;
+    font-size:13px; color:#347A50;
+  }
+  .ten-source,.divide-arrow,.share-groups{ display:none; }
 
   .dtable{ border-collapse:collapse; margin:0 auto 10px; }
   .dtable col.divcol{ width:34px; }
@@ -250,6 +354,25 @@
     .card{ padding:18px 14px 20px; }
     .partial-row{ flex-wrap:wrap; }
   }
+
+  .bright-estimate{background:linear-gradient(180deg,#F9FDFF,#F0FAFF);border:2px solid #B9E4F7;box-shadow:0 5px 0 rgba(93,174,215,.10);}
+  .visual-title{text-align:center;font-family:"Jua",sans-serif;font-size:15px;color:#2E6F91;margin:12px 0 9px;}
+  .ten-source{background:#FFFDF0;border:2px dashed #F4C95D;border-radius:14px;padding:9px 8px;}
+  .source-label{text-align:center;font-family:"Jua",sans-serif;color:#8A6A16;font-size:12px;margin-bottom:7px;}
+  .ten-source-row{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;}
+  .ten-bundle-big{width:42px;height:42px;border:2px solid #F3B83F;border-radius:9px;background:#FFF7D8;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+  .ten-label{font-family:"Jua",sans-serif;font-size:12px;color:#D48619;line-height:1;}
+  .ten-dots{font-size:5px;letter-spacing:1px;color:#4EA7D8;white-space:nowrap;line-height:1;margin-top:3px;}
+  .divide-arrow{text-align:center;font-family:"Jua",sans-serif;color:#4B9AC2;font-size:13px;margin:7px 0;}
+  .share-groups{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;}
+  .share-group{width:74px;min-height:78px;border:2px solid #8CC9E8;border-radius:13px;background:#fff;text-align:center;padding:5px 4px;box-shadow:0 3px 0 rgba(91,170,211,.10);}
+  .group-title{font-size:10px;color:#6B7690;margin-bottom:4px;}
+  .group-inside{display:flex;justify-content:center;gap:3px;min-height:24px;}
+  .mini-ten{display:inline-flex;align-items:center;justify-content:center;width:27px;height:22px;border-radius:6px;background:#DDF3FF;border:1px solid #6EBBE0;font-family:"Jua",sans-serif;font-size:11px;color:#287AA5;}
+  .group-value{font-family:"Jua",sans-serif;font-size:12px;color:#347E55;margin-top:4px;}
+  .estimate-result{text-align:center;margin-top:9px;padding:8px;border-radius:12px;background:#E7F8E9;color:#32724A;font-family:"Jua",sans-serif;font-size:17px;}
+  .connect-note{text-align:center;margin-top:7px;font-size:11.5px;color:#53657A;}
+  .connect-note b{color:#347AA0;}
 </style>
 </head>
 <body>
@@ -463,8 +586,8 @@
       const stepList = [
         { id:'q1', cells:['q1'], expected:[problem.q1], estimate:true, target: problem.firstDigit,
           text:`① ${problem.firstDigit} ÷ ${d} 의 몫을 어림해서 써보세요.`,
-          meaning: `${problem.N}은 사실 십의 자리 숫자 ${problem.firstDigit}개의 10과, 일의 자리 숫자 ${problem.onesDigit}개의 1로 이루어져 있어요.
-            지금은 그중 <b>${problem.firstDigit}개의 10 (=${problem.firstDigit*10})</b>을 먼저 ${d}로 나누는 거예요.` + blockViz(problem.firstDigit, 0) },
+          meaning: `${problem.N} = <b>10 묶음 ${problem.firstDigit}개</b> + 낱개 ${problem.onesDigit}개`
+            + estimateViz(problem.firstDigit, problem.onesDigit, d) },
         { id:'p1', cells:['p1'], expected:[problem.product1],
           text:`② ${d} × (방금 구한 몫)을 계산해서 써보세요.`,
           meaning: `${d}씩 몇 묶음을 뺄 수 있는지 확인하는 계산이에요. 이 값이 ${problem.firstDigit}(십의 자리)보다 크면 안 돼요.` },
@@ -473,11 +596,11 @@
           meaning: `10짜리 묶음 중에서 아직 못 나눈 나머지가 몇 개인지 구하는 거예요.` },
         { id:'down', cells:['down'], expected:[problem.onesDigit],
           text:`④ 일의 자리 숫자를 그대로 내려써 보세요.`,
-          meaning: `남은 10짜리 묶음과 일의 자리 숫자를 합쳐서 새로운 수를 만들어요.
-            <b>10짜리 ${problem.remainder1}개 + 1짜리 ${problem.onesDigit}개 = ${problem.bringDown}</b>` + blockViz(problem.remainder1, problem.onesDigit) },
+          meaning: `<b>10짜리 ${problem.remainder1}개 + 낱개 ${problem.onesDigit}개 = ${problem.bringDown}</b>` + blockViz(problem.remainder1, problem.onesDigit) },
         { id:'q2', cells:['q2'], expected:[problem.q2], estimate:true, target: problem.bringDown,
           text:`⑤ 방금 만든 두 자리 수를 ${d}로 나눈 몫을 어림해서 써보세요.`,
-          meaning: `이제 ${problem.bringDown}을 통째로 ${d}로 나눠요. 여기서 구하는 몫은 더 이상 10배가 아니라, 있는 그대로의 개수예요.` },
+          meaning: `이번엔 낱개 ${problem.bringDown}개를 통째로 나눠요 (더 이상 10배가 아니에요).`
+            + shareSetupViz(Math.floor(problem.bringDown/10), problem.bringDown%10, d) },
         { id:'p2', cells: p2wide ? ['p2t','p2o'] : ['p2o'], expected: p2digits,
           text: p2wide ? `⑥ ${d} × (방금 구한 몫)을 계산해서 십의 자리, 일의 자리에 각각 써보세요.`
                        : `⑥ ${d} × (방금 구한 몫)을 계산해서 써보세요.` },
@@ -577,14 +700,131 @@
     }
   }
 
-  // small place-value picture: `tens` ten-bars + `ones` one-boxes, so a number's actual
-  // size is visible, not just its digits
+  // a concrete "bundle of 10": 10 little dots grouped inside one bordered box, so a
+  // ten-bar isn't just an abstract rectangle — it visibly contains 10 things
+  function tenBundle(){
+    let dots = '';
+    for(let i=0;i<10;i++) dots += '<span class="viz-dot"></span>';
+    return `<div class="viz-bundle" title="10">${dots}</div>`;
+  }
+
+  // small place-value picture: `tens` bundles-of-10 + `ones` loose single dots, so a
+  // number's actual size is visible, not just its digits
   function blockViz(tens, ones){
     let html = '<div class="viz-blocks">';
-    for(let i=0;i<tens;i++) html += '<div class="viz-tenbar" title="10"></div>';
-    for(let i=0;i<ones;i++) html += '<div class="viz-onebox" title="1"></div>';
+    for(let i=0;i<tens;i++) html += tenBundle();
+    for(let i=0;i<ones;i++) html += '<div class="viz-loose-dot" title="1"></div>';
     html += '</div>';
     return html;
+  }
+
+  // 첫 번째 어림하기 전용 그림.
+  // 예: 84 ÷ 4 → 84의 일의 자리 4를 0으로 생각 → 80 → "8에는 4가 몇 번 들어갈까?"
+  // 핵심은 실제 84를 나누는 것이 아니라, 십의 자리 숫자끼리 먼저 생각하는 과정을 보여주는 것.
+  function estimateViz(firstDigit, onesDigit, divisor){
+    const q = Math.floor(firstDigit / divisor);
+    const r = firstDigit % divisor;
+    const original = `${firstDigit}${onesDigit}`;
+
+    // "8에는 5가 몇 번 들어갈까?"를 실제 묶음으로 보여준다.
+    // 각 그룹은 divisor개의 1짜리 칸을 하나의 '들어감'으로 표현하고,
+    // 남는 칸은 별도로 표시한다.
+    const groups = Array.from({length:q}, (_,g)=>{
+      const inside = Array.from({length:divisor}, () =>
+        '<span class="counter" style="width:20px;height:20px;font-size:10px;">●</span>'
+      ).join('');
+      return `<div class="divide-group">
+        <div class="g-label">${g+1}번 들어감</div>
+        <div>${inside}</div>
+        <span class="group-number">${divisor}개</span>
+      </div>`;
+    }).join('');
+
+    const remainderDots = r
+      ? Array.from({length:r}, () => '<span class="mini-dot"></span>').join('')
+      : '';
+
+    return `<div class="estimate-viz bright-estimate">
+      <div class="entry-flow">
+        <span class="entry-card">${original}</span>
+        <span class="entry-arrow">→</span>
+        <span class="entry-card zero">${firstDigit}<b>0</b></span>
+      </div>
+
+      <div class="estimate-caption">
+        <b>일의 자리 ${onesDigit}</b>은 0으로 생각하고, 십의 자리 숫자 ${firstDigit}만 먼저 살펴봐요.
+      </div>
+
+      <div class="in-box">
+        <span class="in-question">${firstDigit}에는 ${divisor}가 몇 번 들어갈까요?</span>
+        <span class="in-answer">한 번 들어갈 때 ${divisor}개씩!</span>
+      </div>
+
+      <div class="first-digit-division">
+        <div class="first-div-expr">${firstDigit} ÷ ${divisor}</div>
+        <div class="counter-row">
+          ${Array.from({length:firstDigit}, (_,i)=>
+            `<span class="counter">${i+1}</span>`).join('')}
+        </div>
+        <div class="grouping-arrow">↓ ${divisor}개씩 묶어 보면</div>
+        <div class="divide-groups">
+          ${groups || '<div class="divide-group"><div class="g-label">아직 한 번도 못 들어가요</div></div>'}
+        </div>
+        ${r
+          ? `<div class="remainder-mini">
+               <span>남는 수</span><span class="mini-dots">${remainderDots}</span>
+               <b>${r}</b>개가 남아요.
+             </div>`
+          : `<div class="remainder-mini">남는 수가 없어요.</div>`}
+      </div>
+
+      <div class="estimate-result">
+        <b>${firstDigit} ÷ ${divisor} = ${q} … ${r}</b>
+      </div>
+
+      <div class="connect-note">
+        💡 그래서 <b>${original} ÷ ${divisor}</b>의 세로셈에서는
+        <b>${firstDigit}에 ${divisor}가 ${q}번</b> 들어간다고 생각하고
+        몫의 십의 자리에 <b>${q}</b>를 써요.
+        ${r ? `<br>그리고 <b>${r}</b>이 남았으니 다음 자리 숫자를 내려와서 계속 나눠요.` : ''}
+      </div>
+    </div>`;
+  }
+
+  function shareSetupViz(tens, ones, divisor){
+    const number = tens * 10 + ones;
+    const q = Math.floor(number / divisor);
+    const r = number % divisor;
+
+    // 두 자리 수를 실제로 divisor개의 같은 그룹에 나누어 보는 그림.
+    // 정답을 단순히 숫자로 던지는 대신, 한 그룹에 들어가는 양과
+    // 마지막에 남는 수를 함께 보여준다.
+    let groups = '';
+    for(let g=0; g<divisor; g++){
+      const bars = Array.from({length:q}, () =>
+        `<span class="ten-stick">${Array.from({length:10},()=>'<i></i>').join('')}</span>`
+      ).join('');
+      groups += `<div class="divide-group">
+        <div class="g-label">${g+1}번째 묶음</div>
+        <div>${bars || '<span style="font-size:12px;color:#999;">없음</span>'}</div>
+        <span class="group-number">${q}개씩</span>
+      </div>`;
+    }
+
+    const remainderDots = r
+      ? Array.from({length:r}, () => '<span class="mini-dot"></span>').join('')
+      : '';
+
+    return `<div class="viz-share">
+      <div class="estimate-caption"><b>${number}</b>를 ${divisor}묶음으로 똑같이 나눠 볼까요?</div>
+      <div class="divide-groups">${groups}</div>
+      ${r
+        ? `<div class="remainder-mini">
+             <span>나누고 남는 수</span><span class="mini-dots">${remainderDots}</span>
+             <b>${r}</b>개
+           </div>`
+        : `<div class="remainder-mini">똑같이 나누어 <b>남는 수가 없어요.</b></div>`}
+    </div>`;
   }
 
   // freehand drawing on the canvas for level 5's blank scratch space
