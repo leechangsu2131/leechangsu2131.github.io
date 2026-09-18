@@ -503,6 +503,139 @@
     text-align:center;
     margin-bottom:12px;
   }
+
+  /* ── 3학년용 즉시 힌트 / 현재 할 일 ── */
+  .learning-hint{
+    margin:0 auto 18px;
+    border:2px solid #D7E8F7;
+    border-radius:18px;
+    background:linear-gradient(135deg,#F5FBFF,#F8FFF9);
+    padding:16px 16px 14px;
+  }
+  .hint-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .hint-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:78px;
+    padding:5px 10px;
+    border-radius:999px;
+    background:#E4F2FF;
+    color:var(--tens);
+    font-family:"Jua",sans-serif;
+    font-size:14px;
+  }
+  .hint-title{
+    font-family:"Jua",sans-serif;
+    font-size:18px;
+    color:var(--ink);
+  }
+  .hint-main{
+    background:#fff;
+    border-radius:12px;
+    padding:11px 13px;
+    font-size:15px;
+    line-height:1.65;
+    border:1px solid #E1ECF4;
+  }
+  .hint-main b{ font-family:"Jua",sans-serif; }
+  .hint-steps{
+    display:flex;
+    gap:7px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .hint-step{
+    border:1.5px solid #DCE7EF;
+    background:#fff;
+    border-radius:10px;
+    padding:7px 9px;
+    font-family:"Jua",sans-serif;
+    font-size:13px;
+    color:var(--sub);
+    cursor:pointer;
+  }
+  .hint-step.active{
+    background:var(--tens-soft);
+    border-color:#A9C8E6;
+    color:var(--tens);
+  }
+  .hint-note{
+    margin-top:8px;
+    font-size:12.5px;
+    color:var(--sub);
+  }
+  .auto-focus-hint{
+    animation:hintPulse .45s ease;
+  }
+  @keyframes hintPulse{
+    0%{ box-shadow:0 0 0 0 rgba(61,90,128,.25); }
+    100%{ box-shadow:0 0 0 8px rgba(61,90,128,0); }
+  }
+  .carry-concept{
+    margin-top:8px;
+    padding:7px 9px;
+    border-radius:9px;
+    background:#FFF9ED;
+    border:1px solid #F0DFC0;
+    font-size:12.5px;
+    line-height:1.55;
+  }
+  .carry-help{
+    font-family:"Jua",sans-serif;
+    font-size:10px;
+    color:var(--ones);
+    line-height:1.1;
+    margin-bottom:3px;
+    white-space:nowrap;
+  }
+  .carry-cell{
+    position:relative;
+  }
+  .carry-cell input{
+    margin:auto;
+    display:block;
+  }
+  .carry-caption{
+    display:block;
+    text-align:center;
+    font-size:11px;
+    color:var(--ones);
+    margin-top:2px;
+    white-space:nowrap;
+  }
+  .vtable td.carry.is-current{
+    background:var(--ones-soft);
+    border-radius:10px;
+  }
+  .vtable td.input-current input{
+    border-color:var(--tens);
+    box-shadow:0 0 0 3px rgba(61,90,128,.10);
+  }
+  .vtable td.row-label-side{
+    font-family:"Jua",sans-serif;
+    font-size:13.5px;
+  }
+  .vtable td.row-label-side.active{
+    position:relative;
+  }
+  .no-answer-hint{
+    margin-top:12px;
+    padding:10px 13px;
+    border-radius:11px;
+    background:#FFF9ED;
+    border:1px solid #F0DFC0;
+    font-size:14px;
+    line-height:1.65;
+    color:var(--ink);
+  }
+  .no-answer-hint b{ font-family:"Jua",sans-serif; color:var(--ones); }
+
 </style>
 </head>
 <body>
@@ -819,26 +952,40 @@
     problemRow.innerHTML = `<span class="factor-a">${problem.a}</span><span class="op">×</span><span class="factor-b">${problem.b}</span>`;
 
     if(level === 3){
-      gridWrap.innerHTML = '';
-
       const d1 = problem.b1;               // ones digit of b
       const d2 = Math.floor(problem.b/10);  // tens digit of b
-      const prod1 = problem.a * d1;         // row 1: not shifted
-      const prod2 = problem.a * d2;         // row 2: shifted one place left
+      const prod1 = problem.a * d1;
+      const prod2 = problem.a * d2;
 
       const digits1 = String(prod1).split('');
       const digits2 = String(prod2).split('');
       const colEnd1 = 4, colStart1 = colEnd1 - (digits1.length - 1);
       const colEnd2 = 3, colStart2 = colEnd2 - (digits2.length - 1);
 
+      gridWrap.innerHTML = buildLearningHint(1, problem);
       scaffoldArea.innerHTML = `
         ${buildVerticalGrid({d1, d2, a: problem.a, b: problem.b, digits1, digits2, colStart1, colEnd1, colStart2, colEnd2})}
         <div class="sum-row">
-          <span>합계 =</span>
-          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" />
+          <span>두 줄을 모두 계산한 뒤 합치기</span>
+          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" data-hint-group="3" />
         </div>`;
+      activateHintGroup(1);
+      const firstInput = scaffoldArea.querySelector('input[data-digit="r1"]:last-of-type');
+      if(firstInput) setTimeout(()=>firstInput.focus(), 0);
     } else {
-      gridWrap.innerHTML = drawGrid(problem);
+      gridWrap.innerHTML = `<div class="learning-hint" id="learningHint" data-current-group="1">
+        <div class="hint-top">
+          <span class="hint-badge">먼저 생각해요</span>
+          <span class="hint-title">일의 자리부터!</span>
+        </div>
+        <div class="hint-main" id="hintMain">먼저 <b>일의 자리</b>가 어떤 수인지 찾아보세요. 그다음 같은 자리를 서로 곱해 보세요. <b>답은 직접 계산</b>해요.</div>
+        <div class="hint-steps">
+          <button type="button" class="hint-step active" data-hint-step="1">① 일의 자리</button>
+          <button type="button" class="hint-step" data-hint-step="2">② 십의 자리</button>
+          <button type="button" class="hint-step" data-hint-step="3">③ 모두 더하기</button>
+        </div>
+        <div class="hint-note">💡 계산칸을 누르면 그 계산에 맞는 힌트가 나타나요.</div>
+      </div>`;
 
       let rows = '';
       rows += partialRow('tens-tens', `${problem.a10} × ${problem.b10}`, '십 × 십');
@@ -850,7 +997,7 @@
         <div class="partials">${rows}</div>
         <div class="sum-row">
           <span>합계 =</span>
-          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" />
+          <input type="number" inputmode="numeric" id="sumInput" placeholder="?" data-hint-group="3" />
         </div>`;
     }
   }
@@ -859,7 +1006,7 @@
     return `<div class="partial-row" data-key="${key}">
       <span class="label">${label}</span>
       <span class="expr">${expr} =</span>
-      <input type="number" inputmode="numeric" data-key="${key}" />
+      <input type="number" inputmode="numeric" data-key="${key}" data-hint-group="${key.includes('ones') ? '1' : '2'}" />
     </div>`;
   }
 
@@ -869,42 +1016,71 @@
   // everything else is a blank <td>. Because every row is a row of the SAME <table>, the browser
   // guarantees each column lines up under the same header column on every row — no manual math.
   function buildVerticalGrid(p){
+    // 각 부분곱은 '곱해지는 수 전체 × 한 자리 숫자'로 계산합니다.
+    // 따라서 한 줄 안에서는 최대 두 번의 올림이 생길 수 있습니다.
+    // ①번 줄: 일의 자리 계산에서 생긴 올림 → 십의 자리 위(col 3)
+    //         십의 자리 계산에서 생긴 올림 → 백의 자리 위(col 2)
+    // ②번 줄: 일의 자리 계산에서 생긴 올림 → 십의 자리 위(col 2)
+    //         십의 자리 계산에서 생긴 올림 → 백의 자리 위(col 1)
     function tdRange(colStart, colEnd, kind, key){
       let tds = '';
       for(let c=1;c<=4;c++){
         if(c < colStart || c > colEnd){
           tds += `<td></td>`;
         } else if(kind === 'carry'){
-          tds += `<td class="carry"><input type="text" inputmode="numeric" maxlength="1" data-carry="${key}" /></td>`;
+          const group = key.startsWith('c1') ? '1' : '2';
+          tds += `<td class="carry carry-cell" data-hint-group="${group}">
+            <div class="carry-help">올림</div>
+            <input type="text" inputmode="numeric" maxlength="1" data-carry="${key}" data-hint-group="${group}" aria-label="받아올림 숫자" />
+            <span class="carry-caption">작은 수</span>
+          </td>`;
         } else {
           const idx = c - colStart;
-          tds += `<td><input type="text" inputmode="numeric" maxlength="1" data-digit="${key}" data-idx="${idx}" /></td>`;
+          const group = key === 'r1' ? '1' : '2';
+          tds += `<td><input type="text" inputmode="numeric" maxlength="1" data-digit="${key}" data-idx="${idx}" data-hint-group="${group}" /></td>`;
         }
       }
       return tds;
     }
 
-    // top operand 'a' and multiplier 'b', placed digit-by-digit in their own place-value columns
+    // ①/② 각 줄에 서로 다른 두 개의 올림 칸을 서로 다른 열에 정확히 배치한다.
+    // (기존 tdRange는 하나의 key를 여러 열에 그대로 복제해버려 같은 id가 두 번 생기고,
+    //  두 번째 올림 칸(c1b/c2b)은 아예 그려지지 않던 문제가 있었다.)
+    function carryCellHtml(key, group){
+      return `<td class="carry carry-cell" data-hint-group="${group}">
+        <div class="carry-help">올림</div>
+        <input type="text" inputmode="numeric" maxlength="1" data-carry="${key}" data-hint-group="${group}" aria-label="받아올림 숫자" />
+        <span class="carry-caption">작은 수</span>
+      </td>`;
+    }
+    function tdCarryPair(colNear, keyNear, colFar, keyFar, group){
+      let tds = '';
+      for(let c=1;c<=4;c++){
+        if(c === colFar) tds += carryCellHtml(keyFar, group);
+        else if(c === colNear) tds += carryCellHtml(keyNear, group);
+        else tds += `<td></td>`;
+      }
+      return tds;
+    }
+
     const digitsA = String(p.a).split('');
     const digitsB = String(p.b).split('');
     const colStartA = 4 - (digitsA.length - 1);
     const colStartB = 4 - (digitsB.length - 1);
 
-    function tdOperand(digits, colStart, extraClass){
+    function tdOperand(digits, colStart){
       let tds = '';
       for(let c=1;c<=4;c++){
         const idx = c - colStart;
         if(idx >= 0 && idx < digits.length){
-          tds += `<td class="opnum ${extraClass} hl-target" data-group="both">${digits[idx]}</td>`;
+          tds += `<td class="opnum hl-target" data-group="both">${digits[idx]}</td>`;
         } else {
           tds += `<td></td>`;
         }
       }
       return tds;
     }
-    // the '×' sign sits immediately left of the multiplier's leading digit.
-    // the ones digit of b is what step ① multiplies by, the tens digit is what step ② multiplies by —
-    // so those two digits (not the answer boxes) are what get highlighted when a hint is clicked.
+
     function tdMultiplierRow(digits, colStart){
       let tds = '';
       for(let c=1;c<=4;c++){
@@ -922,16 +1098,110 @@
     }
 
     let html = `<table class="vtable"><colgroup><col><col><col><col><col class="labelcol"></colgroup><tbody>`;
-    html += `<tr>${tdOperand(digitsA, colStartA, '')}<td></td></tr>`;
+    html += `<tr>${tdOperand(digitsA, colStartA)}<td></td></tr>`;
     html += `<tr>${tdMultiplierRow(digitsB, colStartB)}<td></td></tr>`;
     html += `<tr><td colspan="4"><div class="vtable-hr"></div></td><td></td></tr>`;
     html += `<tr class="vheader"><td>천</td><td>백</td><td>십</td><td>일</td><td></td></tr>`;
-    html += `<tr>${tdRange(3, 3, 'carry', 'c1')}<td rowspan="2" class="row-label-side" data-group="1">① 일의 자리: ${p.a} × ${p.d1}</td></tr>`;
+
+    html += `<tr>
+      ${tdCarryPair(3, 'c1a', 2, 'c1b', '1')}
+      <td rowspan="2" class="row-label-side" data-group="1">
+        ① <b>곱하는 수의 일의 자리</b>로 계산해요
+      </td>
+    </tr>`;
     html += `<tr>${tdRange(p.colStart1, p.colEnd1, 'digit', 'r1')}</tr>`;
-    html += `<tr>${tdRange(2, 2, 'carry', 'c2')}<td rowspan="2" class="row-label-side" data-group="2">② 십의 자리: ${p.a} × ${p.d2 * 10}</td></tr>`;
+
+    html += `<tr>
+      ${tdCarryPair(2, 'c2a', 1, 'c2b', '2')}
+      <td rowspan="2" class="row-label-side" data-group="2">
+        ② <b>곱하는 수의 십의 자리</b>로 계산해요
+      </td>
+    </tr>`;
     html += `<tr>${tdRange(p.colStart2, p.colEnd2, 'digit', 'r2')}</tr>`;
     html += `</tbody></table>`;
     return html;
+  }
+
+  function buildLearningHint(group, p){
+    const titles = {
+      1:'① 곱하는 수의 일의 자리로 계산해요',
+      2:'② 곱하는 수의 십의 자리로 계산해요',
+      3:'③ 두 줄을 더해요'
+    };
+    const bodies = {
+      1:`먼저 <b>곱해지는 수 전체</b>와 <b>곱하는 수의 일의 자리 숫자</b>를 곱해요.<br>
+         일의 자리끼리 먼저 계산하고, 그 결과가 10 이상이면 생긴 <b>올림</b>을 같은 줄의 다음 자리 계산에 더해요.`,
+      2:`이번에는 <b>곱해지는 수 전체</b>와 <b>곱하는 수의 십의 자리 숫자</b>를 곱해요.<br>
+         이 계산에서 새로 생기는 올림이 있다면 ②의 다음 자리 계산에 더해요.
+         그리고 이 결과는 <b>십의 자리에서 시작</b>하도록 한 칸 왼쪽에 놓아요.`,
+      3:`①과 ②의 계산이 끝났다면 <b>두 부분곱을 같은 자리에 맞춰 더해요.</b><br>
+         ②의 줄이 한 칸 왼쪽에 있는 이유는 <b>곱하는 수의 십의 자리</b>를 계산했기 때문이에요.`
+    };
+    return `<div class="learning-hint" id="learningHint" data-current-group="${group}">
+      <div class="hint-top">
+        <span class="hint-badge">지금 할 일</span>
+        <span class="hint-title">${titles[group]}</span>
+      </div>
+      <div class="hint-main" id="hintMain">${bodies[group]}</div>
+      <div class="hint-steps">
+        <button type="button" class="hint-step ${group===1?'active':''}" data-hint-step="1">① × 일의 자리</button>
+        <button type="button" class="hint-step ${group===2?'active':''}" data-hint-step="2">② × 십의 자리</button>
+        <button type="button" class="hint-step ${group===3?'active':''}" data-hint-step="3">③ 두 줄 더하기</button>
+      </div>
+      <div class="hint-note">💡 입력칸을 누르면 그 자리의 힌트가 자동으로 바뀌어요.</div>
+    </div>`;
+  }
+
+  function activateHintGroup(group){
+    const hint = document.getElementById('learningHint');
+    if(!hint) return;
+    hint.dataset.currentGroup = String(group);
+
+    const titles = {
+      1:'① 곱하는 수의 일의 자리로 계산해요',
+      2:'② 곱하는 수의 십의 자리로 계산해요',
+      3:'③ 두 줄을 더해요'
+    };
+    const bodies = {
+      1:`먼저 <b>곱해지는 수 전체</b>와 <b>곱하는 수의 일의 자리 숫자</b>를 계산해요.<br>
+         일의 자리끼리 먼저 계산하고, 10 이상이면 생긴 <b>올림을 같은 줄의 다음 자리 계산에 더해요.</b>`,
+      2:`이번에는 <b>곱해지는 수 전체</b>와 <b>곱하는 수의 십의 자리 숫자</b>를 계산해요.<br>
+         이 계산에서 새로 생기는 올림이 있다면 ②의 다음 자리 계산에 더해요.
+         결과는 <b>한 칸 왼쪽</b>에서 시작해요.`,
+      3:`①과 ②의 계산이 끝났다면 <b>두 부분곱을 같은 자리에 맞춰 더해요.</b><br>
+         ②의 결과가 한 칸 왼쪽에 놓이는 것은 <b>십의 자리</b>를 계산했기 때문이에요.`
+    };
+    const title = hint.querySelector('.hint-title');
+    const main = hint.querySelector('#hintMain');
+    if(title) title.textContent = titles[group];
+    if(main) main.innerHTML = bodies[group];
+
+    hint.querySelectorAll('.hint-step').forEach(btn=>{
+      btn.classList.toggle('active', Number(btn.dataset.hintStep)===group);
+    });
+
+    document.querySelectorAll('.row-label-side').forEach(el=>{
+      el.classList.toggle('active', Number(el.dataset.group)===group);
+    });
+    document.querySelectorAll('.hl-target[data-group="1"], .hl-target[data-group="2"]').forEach(el=>{
+      el.classList.toggle('hl-active', Number(el.dataset.group)===group);
+    });
+    const any = group===1 || group===2;
+    document.querySelectorAll('.hl-target[data-group="both"]').forEach(el=>{
+      el.classList.toggle('hl-active', any);
+    });
+    document.querySelectorAll('.carry-cell').forEach(el=>{
+      el.classList.toggle('is-current', Number(el.dataset.hintGroup)===group);
+    });
+
+    hint.classList.remove('auto-focus-hint');
+    void hint.offsetWidth;
+    hint.classList.add('auto-focus-hint');
+  }
+
+  function showNoAnswerHint(text){
+    explain.className = 'explain show';
+    explain.innerHTML = `<div class="no-answer-hint">💡 <b>힌트</b><br>${text}</div>`;
   }
 
   function checkAnswer(){
@@ -944,13 +1214,27 @@
       const prod2 = problem.a * d2;
       const digits1 = String(prod1).split('').map(Number);
       const digits2 = String(prod2).split('').map(Number);
-      const carry1 = Math.floor((problem.a % 10) * d1 / 10);
-      const carry2 = Math.floor((problem.a % 10) * d2 / 10);
+      // 각 부분곱(곱해지는 수 전체 × 한 자리 숫자)의 올림을 계산합니다.
+      // carryA = 일의 자리 계산에서 십의 자리로 올라가는 수
+      // carryB = 십의 자리 계산에서 백의 자리로 올라가는 수
+      const aTens = Math.floor(problem.a / 10);
+      const aOnes = problem.a % 10;
+
+      const onesProd1 = aOnes * d1;
+      const carry1a = Math.floor(onesProd1 / 10);
+      const tensCalc1 = aTens * d1 + carry1a;
+      const carry1b = Math.floor(tensCalc1 / 10);
+
+      const onesProd2 = aOnes * d2;
+      const carry2a = Math.floor(onesProd2 / 10);
+      const tensCalc2 = aTens * d2 + carry2a;
+      const carry2b = Math.floor(tensCalc2 / 10);
 
       let allCorrect = true;
 
       function checkCarry(rowKey, expected){
         const input = document.querySelector(`input[data-carry="${rowKey}"]`);
+        if(!input) return;
         const cell = input.closest('td');
         const raw = input.value.trim();
         const val = raw === '' ? 0 : parseInt(raw, 10);
@@ -972,9 +1256,11 @@
         });
       }
 
-      checkCarry('c1', carry1);
+      checkCarry('c1a', carry1a);
+      checkCarry('c1b', carry1b);
       checkDigits('r1', digits1);
-      checkCarry('c2', carry2);
+      checkCarry('c2a', carry2a);
+      checkCarry('c2b', carry2b);
       checkDigits('r2', digits2);
 
       const sumInputV = document.getElementById('sumInput');
@@ -998,10 +1284,9 @@
         feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
         feedback.className = 'feedback bad';
         explain.className = 'explain show';
-        explain.innerHTML = `빨간 칸을 다시 볼까요?<br>
-          ① ${problem.a}×${d1}=${fmt(prod1)} (받아올림 ${carry1})<br>
-          ② ${problem.a}×${d2}=${fmt(prod2)}를 한 칸 왼쪽에 (받아올림 ${carry2})<br>
-          두 줄을 더하면 <b>${fmt(problem.total)}</b>이에요.`;
+        showNoAnswerHint(`빨간 칸이 있는 자리의 힌트를 다시 살펴보세요.<br>
+          <b>①</b> 곱해지는 수 전체와 곱하는 수의 일의 자리 숫자를 계산하고, 그 줄에서 생긴 올림은 <b>그 줄의 다음 자리</b>에 더해요.<br>
+          <b>②</b> 곱해지는 수 전체와 곱하는 수의 십의 자리 숫자를 계산해요.`);
       }
       updateStats();
       updateNextButtonLabel();
@@ -1047,8 +1332,8 @@
       feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
       feedback.className = 'feedback bad';
       explain.className = 'explain show';
-      explain.innerHTML = `부분곱을 다시 볼까요? 빨간색으로 표시된 칸을 확인해보세요.<br>
-        전체 답은 <b>${fmt(problem.total)}</b>이에요.`;
+      showNoAnswerHint(`빨간색 칸을 하나씩 다시 확인해 보세요.<br>
+        <b>일의 자리부터</b> 계산했는지, 각 계산 결과에서 <b>10개가 한 묶음</b>이 되는 경우를 놓치지 않았는지 살펴보세요.`);
     }
     updateStats();
     updateNextButtonLabel();
@@ -1215,7 +1500,8 @@
       feedback.textContent = NUDGE[rand(0,NUDGE.length-1)];
       feedback.className = 'feedback bad';
       explain.className = 'explain show';
-      explain.innerHTML = `정답은 <b>${fmt(testProblem.total)}</b>이에요.`;
+      showNoAnswerHint(`답을 바로 보여주지 않을게요.<br>
+        <b>일의 자리부터</b> 계산하고, 두 자리 수와 곱하는 경우에는 <b>부분곱을 나누어 생각</b>해 보세요.`);
     }
   }
 
@@ -1264,24 +1550,39 @@
 
   // clicking a "① 일의 자리..." / "② 십의 자리..." hint highlights the matching part of the
   // PROBLEM itself (the "71 / ×57" digits above the line) — not the answer boxes below it.
-  scaffoldArea.addEventListener('click', (e)=>{
+  scaffoldArea.addEventListener('click',(e)=>{
+    const stepBtn = e.target.closest('.hint-step');
+    if(stepBtn){
+      activateHintGroup(Number(stepBtn.dataset.hintStep));
+      return;
+    }
+
     const label = e.target.closest('.row-label-side');
-    if(!label) return;
-    const group = label.dataset.group;
-    if(!group) return;
-    label.classList.toggle('active');
+    if(label){
+      activateHintGroup(Number(label.dataset.group));
+    }
+  });
 
-    // the multiplier digit specific to this step (ones digit for ①, tens digit for ②)
-    document.querySelectorAll(`.hl-target[data-group="${group}"]`).forEach(td=>{
-      td.classList.toggle('hl-active');
-    });
+  scaffoldArea.addEventListener('focusin',(e)=>{
+    const input = e.target.closest('input[data-hint-group]');
+    if(!input) return;
+    activateHintGroup(Number(input.dataset.hintGroup));
 
-    // the top operand ('71') is used in both steps, so keep it highlighted as long as
-    // at least one hint is currently active
-    const anyActive = !!document.querySelector('.row-label-side.active');
-    document.querySelectorAll('.hl-target[data-group="both"]').forEach(td=>{
-      td.classList.toggle('hl-active', anyActive);
-    });
+    document.querySelectorAll('.vtable td').forEach(td=>td.classList.remove('input-current'));
+    input.closest('td')?.classList.add('input-current');
+  });
+
+  scaffoldArea.addEventListener('focusout',(e)=>{
+    const input = e.target.closest('input[data-hint-group]');
+    if(!input) return;
+    input.closest('td')?.classList.remove('input-current');
+  });
+
+  scaffoldArea.addEventListener('click',(e)=>{
+    const row = e.target.closest('.partial-row');
+    if(!row) return;
+    const key = row.dataset.key || '';
+    activateHintGroup(key.includes('ones') ? 1 : 2);
   });
 
   btnCheck.addEventListener('click', ()=>{
