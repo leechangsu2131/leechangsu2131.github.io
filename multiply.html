@@ -649,6 +649,76 @@
   }
   .no-answer-hint b{ font-family:"Jua",sans-serif; color:var(--ones); }
 
+
+/* ===== 수모형 조작판 (오버레이) ===== */
+.bt-open-row{ display:flex; justify-content:center; margin:2px 0 12px; }
+.bt-open-btn{ background:#fff; color:var(--tens); border:1.5px solid var(--tens); font-size:14px; padding:9px 18px; }
+#btOverlay{ --bs:1; --hundreds:#8B5FBF; --hundreds-soft:#EDE3F7; display:none; position:fixed; inset:0; z-index:1000; background:rgba(37,50,74,.55); align-items:center; justify-content:center; padding:10px; }
+#btOverlay.open{ display:flex; }
+#btOverlay .bt-panel{ width:100%; max-width:980px; height:min(94dvh,760px); background:#fff; border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,.3); }
+#btOverlay .bt-head{ flex:none; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:8px 14px; border-bottom:1.5px solid var(--line); }
+#btOverlay .bt-head h2{ font-family:"Jua",sans-serif; font-weight:400; font-size:18px; margin:0; color:var(--tens); }
+#btOverlay .bt-guide{ flex:none; padding:6px 14px; font-size:13px; color:var(--ink); background:var(--tens-soft); }
+#btOverlay .btb-head-right{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+#btOverlay .btb-status{ font-size:12.5px; color:var(--sub); text-align:right; }
+#btOverlay .btb-status b{ color:var(--ink); }
+#btOverlay .btb-toggle{ min-height:34px; padding:4px 10px; border-radius:18px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:12px; font-family:inherit; cursor:pointer; touch-action:manipulation; }
+#btOverlay .btb-toggle[aria-pressed="true"]{ background:var(--tens-soft); border-color:#A9C8E6; color:var(--tens); }
+#btOverlay .bt-close{ background:var(--ink); color:#fff; font-size:13px; padding:7px 14px; border-radius:18px; }
+#btOverlay .btb-main{ flex:1 1 auto; display:flex; gap:10px; padding:10px 12px 6px; min-height:0; }
+#btOverlay .btb-tray{ flex:none; width:calc(96px + (var(--bs,1) - 1) * 100px); display:flex; flex-direction:column; align-items:center; gap:12px; padding:12px 6px; border:1.5px solid var(--line); border-radius:12px; background:#FAF7EE; overflow-y:auto; }
+#btOverlay .btb-tray-label{ font-size:11px; color:var(--sub); text-align:center; }
+#btOverlay .manip-tray-item{ display:flex; flex-direction:column; align-items:center; gap:4px; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; padding:6px 3px; border-radius:9px; width:100%; }
+#btOverlay .manip-tray-item:hover{ background:#fff; }
+#btOverlay .manip-tray-item span{ font-size:12px; color:var(--sub); }
+#btOverlay .manip-tray-sample{ position:static !important; cursor:grab; }
+.manip-tray-ghost{ opacity:.85; box-shadow:0 4px 10px rgba(0,0,0,.3); --bs:1; }
+#btOverlay .btb-canvas-wrap{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+#btOverlay .manip-canvas{ position:relative; flex:1 1 auto; min-height:200px; border:1.5px dashed var(--line); border-radius:12px; background:#fff; overflow-x:hidden; overflow-y:auto; }
+#btOverlay .manip-empty-hint{ position:absolute; top:44%; left:50%; transform:translateX(-50%); font-size:13px; color:var(--sub); text-align:center; width:80%; }
+#btOverlay .manip-block.btb-block{ position:absolute; margin:0; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; transition:left .1s ease-out, top .1s ease-out, box-shadow .15s, border-color .15s, background .15s; }
+#btOverlay .manip-block.btb-block.manip-dragging{ cursor:grabbing; z-index:50; box-shadow:0 4px 10px rgba(0,0,0,.3); transform:scale(1.15); transition:box-shadow .15s; }
+#btOverlay .manip-block.btb-block.manip-selected{ border-color:#D9A400 !important; background:#FFF3C4 !important; box-shadow:0 0 0 3px #D9A400; }
+.manip-rod{ height:calc(22px * var(--bs,1)); width:calc(78px * var(--bs,1)); border:2px solid var(--tens); background:repeating-linear-gradient(90deg, var(--tens-soft) 0 8px, #fff 8px 10px); border-radius:5px; flex:none; }
+.manip-unit{ height:calc(22px * var(--bs,1)); width:calc(22px * var(--bs,1)); border:2px solid var(--correct); background:var(--correct-soft); border-radius:5px; flex:none; }
+.manip-hundred{ height:calc(84px * var(--bs,1)); width:calc(84px * var(--bs,1)); border:2px solid var(--hundreds); background:repeating-linear-gradient(0deg, var(--hundreds-soft) 0 7px, #fff 7px 9px), repeating-linear-gradient(90deg, var(--hundreds-soft) 0 7px, transparent 7px 9px); border-radius:6px; flex:none; }
+#btOverlay .manip-frame{ position:absolute; border:2px dashed #B8C7D9; border-radius:12px; background:rgba(220,230,242,.28); pointer-events:none; }
+#btOverlay .manip-frame-ok{ border-color:var(--correct); background:rgba(225,240,227,.5); }
+#btOverlay .manip-frame-head{ padding:3px 8px; font-size:12px; color:var(--sub); background:rgba(255,255,255,.75); border-radius:10px 10px 0 0; white-space:nowrap; overflow:hidden; }
+#btOverlay .manip-frame-head b{ color:var(--ink); margin-right:6px; }
+#btOverlay .manip-frame-val{ display:none; font-weight:bold; color:var(--tens); }
+#btOverlay .show-values .manip-frame-val{ display:inline; }
+#btOverlay .manip-stock-label{ position:absolute; left:0; right:0; text-align:center; font-size:11px; color:var(--sub); border-top:1.5px dotted var(--line); padding-top:2px; pointer-events:none; }
+#btOverlay .manip-selbox{ position:absolute; border:1.5px dashed var(--tens); background:rgba(61,90,128,.08); pointer-events:none; }
+#btOverlay .btb-controls{ flex:none; display:flex; flex-wrap:wrap; gap:6px; padding:8px 12px 10px; border-top:1.5px solid var(--line); background:#fff; overflow-y:auto; max-height:34%; }
+#btOverlay .btb-group{ display:flex; gap:6px; padding:4px 8px 4px 4px; border-right:1.5px solid var(--line); }
+#btOverlay .btb-group:last-child{ border-right:none; }
+#btOverlay .btb-controls button{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:56px; min-height:46px; padding:5px 8px; border-radius:10px; border:1.5px solid var(--line); background:#fff; cursor:pointer; font-size:11px; font-family:inherit; color:var(--ink); touch-action:manipulation; }
+#btOverlay .btb-controls button .ic{ font-size:17px; line-height:1; }
+#btOverlay .btb-controls button:disabled{ opacity:.35; cursor:not-allowed; }
+#btOverlay .btb-controls button.primary{ background:var(--tens); color:#fff; border-color:var(--tens); }
+#btOverlay .btb-controls button.warn{ background:#FBEFE9; border-color:#E6B79A; }
+#btOverlay .btb-widget{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 8px; border:1.5px solid var(--line); border-radius:10px; background:#fff; }
+#btOverlay .btb-widget .ic{ font-size:17px; line-height:1; }
+#btOverlay .btb-widget .lbl{ font-size:11px; color:var(--ink); }
+#btOverlay .btb-widget-row{ display:flex; align-items:center; gap:4px; }
+#btOverlay .btb-widget-row input{ width:56px; min-height:32px; border:1.5px solid var(--line); border-radius:8px; padding:2px 6px; font-size:14px; text-align:center; font-family:"Jua",sans-serif; }
+#btOverlay .btb-controls .btb-widget-row button{ flex-direction:row; min-width:36px; min-height:32px; padding:2px 8px; font-size:12px; }
+#btOverlay .btb-count{ min-width:34px; text-align:center; font-size:13px; font-weight:bold; }
+#btOverlay .bt-only-div, #btOverlay .bt-only-mul{ display:none; }
+#btOverlay.mode-div .bt-only-div{ display:flex; }
+#btOverlay.mode-mul .bt-only-mul{ display:flex; }
+@media (max-width:640px), (orientation:portrait){
+  #btOverlay{ padding:0; }
+  #btOverlay .bt-panel{ height:100dvh; border-radius:0; max-width:none; }
+  #btOverlay .btb-main{ flex-direction:column; }
+  #btOverlay .btb-tray{ width:auto; flex-direction:row; justify-content:space-around; align-items:flex-end; overflow-y:visible; padding:6px; }
+  #btOverlay .btb-tray-label{ display:none; }
+  #btOverlay .manip-canvas{ min-height:200px; }
+  #btOverlay .btb-controls{ max-height:30%; }
+  #btOverlay .manip-frame-head{ font-size:10px; padding:2px 4px; }
+  #btOverlay .manip-canvas{ min-height:150px; }
+}
 </style>
 </head>
 <body>
@@ -688,6 +758,8 @@
 
     <div id="scaffoldArea"></div>
 
+    <div class="bt-open-row"><button type="button" class="bt-open-btn" id="btOpen">🧱 수모형으로 해보기</button></div>
+
     <div class="actions">
       <button class="btn-check" id="btnCheck">확인</button>
       <button class="btn-next" id="btnNext" disabled>다음 문제</button>
@@ -711,6 +783,66 @@
     </div>
     <div class="submit-status" id="submitStatus"></div>
   </div>
+
+
+<div id="btOverlay" aria-hidden="true">
+ <div class="bt-panel" role="dialog" aria-label="수모형 조작판">
+  <div class="bt-head">
+   <h2>🧱 수모형 조작판</h2>
+   <div class="btb-head-right">
+    <div class="btb-status" id="btStatus"></div>
+    <button type="button" class="btb-toggle" id="btValueToggle" aria-pressed="false" title="모형이 나타내는 수를 숫자로 보기 (처음엔 꺼져 있어요)">🔢 숫자로 보기</button>
+    <button type="button" class="btb-toggle" id="btSizeToggle" aria-pressed="false">🔍 크게</button>
+    <button type="button" class="bt-close" id="btClose">닫기 ✕</button>
+   </div>
+  </div>
+  <div class="bt-guide" id="btGuide"></div>
+  <div class="btb-main">
+   <div class="btb-tray">
+    <div class="btb-tray-label">끌어다 놓기</div>
+    <div class="manip-tray-item" id="btTrayOne" data-tray-type="one"><div class="manip-block manip-unit manip-tray-sample"></div><span>낱개</span></div>
+    <div class="manip-tray-item" id="btTrayTen" data-tray-type="ten"><div class="manip-block manip-rod manip-tray-sample"></div><span>십</span></div>
+    <div class="manip-tray-item" id="btTrayHundred" data-tray-type="hundred"><div class="manip-block manip-hundred manip-tray-sample"></div><span>백</span></div>
+   </div>
+   <div class="btb-canvas-wrap"><div class="manip-canvas" id="btBoard"></div></div>
+  </div>
+  <div class="btb-controls">
+   <div class="btb-group">
+    <button type="button" class="primary" id="btSetup"><span class="ic">🎯</span><span id="btSetupLbl">문제 수 놓기</span></button>
+   </div>
+   <div class="btb-group">
+    <button type="button" id="btAddOne5"><span class="ic">🟩</span>+5</button>
+    <button type="button" id="btAddTen5"><span class="ic">🟦</span>+5</button>
+   </div>
+   <div class="btb-group">
+    <button type="button" id="btSelOnes"><span class="ic">🟩</span>전체선택</button>
+    <button type="button" id="btSelTens"><span class="ic">🟦</span>전체선택</button>
+    <button type="button" id="btArrange"><span class="ic">🧹</span>정리</button>
+   </div>
+   <div class="btb-group">
+    <button type="button" class="primary" id="btJoin" disabled><span class="ic">🔗</span>합치기</button>
+    <button type="button" class="primary" id="btBreak" disabled><span class="ic">✂️</span>쪼개기</button>
+    <button type="button" id="btDup" disabled><span class="ic">📋</span>복사</button>
+   </div>
+   <div class="btb-group">
+    <button type="button" id="btDel" disabled><span class="ic">🗑️</span>지우기</button>
+    <button type="button" id="btClearSel"><span class="ic">🚫</span>선택해제</button>
+   </div>
+   <div class="btb-group bt-only-mul">
+    <div class="btb-widget"><span class="ic">✖️</span><span class="lbl">묶음 반복</span>
+     <div class="btb-widget-row"><input type="number" id="btRepeatN" min="2" max="20" value="2" inputmode="numeric"><button type="button" id="btRepeat" disabled>반복</button></div></div>
+   </div>
+   <div class="btb-group bt-only-div">
+    <div class="btb-widget"><span class="ic">🍱</span><span class="lbl">나눗셈 틀</span>
+     <div class="btb-widget-row"><button type="button" id="btFrMinus" aria-label="틀 줄이기">−</button><span class="btb-count" id="btFrCount">없음</span><button type="button" id="btFrPlus" aria-label="틀 늘리기">+</button></div></div>
+   </div>
+   <div class="btb-group">
+    <button type="button" id="btUndo" disabled><span class="ic">↩️</span>되돌리기</button>
+    <button type="button" class="warn" id="btReset"><span class="ic">🧽</span>비우기</button>
+   </div>
+  </div>
+ </div>
+</div>
 
   <footer>화천초등학교 3학년 2반 · 두 자리 수 곱셈 연습</footer>
 </div>
@@ -743,6 +875,7 @@
   let streak = 0;
   let attempts = 0;
   let problem = null;
+  window.__btGet = function(){ return problem; };
   let checked = false;
   let lastCorrect = false;   // 방금 문제를 맞혔는지 (자동 다음 단계 판단용)
 
@@ -825,7 +958,7 @@
         '긍정도': 긍정도,
         '출처': '학생직접제출',
         '과목': '수학',
-        '내용': `${who.noteIfMismatch}1~3단계 문제가 섞인 종합 테스트 ${TEST_TOTAL}문제 중 ${correctCount}문제 정답(정답률 ${rate}%). 세부: ${detail}`,
+        '내용': `${who.noteIfMismatch}1~3단계 문제가 섞인 종합 테스트 ${TEST_TOTAL}문제 중 ${correctCount}문제 정답(정답률 ${rate}%). 세부: ${detail}.${practiceSummary()}`,
         '🧑‍🎓 이름': who.recordName
       };
     } else {
@@ -843,7 +976,7 @@
         '긍정도': 긍정도,
         '출처': '학생직접제출',
         '과목': '수학',
-        '내용': `${who.noteIfMismatch}${LEVEL_LABEL[level]} 기준, 총 ${attempts}문제 중 ${score}문제를 맞혀 정답률 ${rate}%를 기록함. 최고 연속 정답 ${streak}회.`,
+        '내용': `${who.noteIfMismatch}${LEVEL_LABEL[level]} 기준, 총 ${attempts}문제 중 ${score}문제를 맞혀 정답률 ${rate}%를 기록함. 최고 연속 정답 ${streak}회.${practiceSummary()}`,
         '🧑‍🎓 이름': who.recordName
       };
     }
@@ -955,6 +1088,7 @@
 
   function renderProblem(){
     problem = genProblem(level);
+    if(window.__btNewProblem) window.__btNewProblem();
     checked = false;
     btnNext.disabled = true;
     feedback.textContent = '';
@@ -1281,7 +1415,7 @@
         const ok = val === expected;
         cell.classList.remove('correct','wrong');
         cell.classList.add(ok ? 'correct' : 'wrong');
-        if(!ok) allCorrect = false;
+        if(!ok){ allCorrect = false; pracKind('올림 칸'); }
       }
 
       function checkDigits(rowKey, digits){
@@ -1293,7 +1427,7 @@
           const ok = val === d;
           cell.classList.remove('correct','wrong');
           cell.classList.add(ok ? 'correct' : 'wrong');
-          if(!ok) allCorrect = false;
+          if(!ok){ allCorrect = false; pracKind(rowKey === 'rs' ? '두 줄 더하기(합계)' : '부분곱 계산'); }
         });
       }
 
@@ -1329,6 +1463,7 @@
 
       checked = true;
       attempts++;
+      pracRecord(level, allCorrect);
       btnNext.disabled = false;
 
       if(allCorrect){
@@ -1377,6 +1512,8 @@
 
     checked = true;
     attempts++;
+    pracRecord(level, allCorrect);
+    if(!allCorrect) pracKind('부분곱·합계');
     btnNext.disabled = false;
 
     if(allCorrect){
@@ -1451,8 +1588,27 @@
     statStreak.textContent = streak;
   }
 
+
+  // ── 연습 기록(교사용): 제출 기록의 '내용' 글에만 덧붙임. 서버 구조는 바꾸지 않는다 ──
+  const prac = {start:0, tries:{}, wrong:{}, kinds:{}, back:0};
+  function pracReset(startLevel){ prac.start = startLevel; prac.tries = {}; prac.wrong = {}; prac.kinds = {}; prac.back = 0; }
+  function pracRecord(lv, ok){ prac.tries[lv] = (prac.tries[lv]||0) + 1; if(!ok) prac.wrong[lv] = (prac.wrong[lv]||0) + 1; }
+  function pracKind(name){ prac.kinds[name] = (prac.kinds[name]||0) + 1; }
+  function practiceSummary(){
+    const lv = Object.keys(prac.tries).map(Number).sort((a,b)=>a-b);
+    if(!lv.length) return '';
+    const parts = [`연습 기록: ${prac.start}단계에서 시작`];
+    const w = lv.filter(k=>prac.wrong[k]).map(k=>`${k}단계 ${prac.wrong[k]}번`);
+    parts.push(w.length ? '최종 답 오답 ' + w.join(', ') : '연습 중 최종 답 오답 없음');
+    const kinds = Object.entries(prac.kinds).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}번`);
+    if(kinds.length) parts.push('칸 확인에서 막힌 계산: ' + kinds.join(', '));
+    if(prac.back) parts.push(`스스로 풀기 실패로 앞 단계 복귀 ${prac.back}번`);
+    return ' ' + parts.join(' / ') + '.';
+  }
+
   // ── 자기 진단 → 적응형 연습 ──
   function startPractice(startLevel){
+    pracReset(startLevel);
     assessScreen.style.display = 'none';
     statsBar.style.display = 'flex';
     card.style.display = 'block';
@@ -1462,6 +1618,7 @@
 
   function activateLevel(lv){
     level = lv;
+    var _bo = document.getElementById('btOpen'); if(_bo) _bo.style.display = '';
     btnCheck.disabled = false;
     levelIndicator.textContent = `지금 단계: ${LEVEL_NAME[lv]}`;
     renderProblem();
@@ -1493,6 +1650,7 @@
   // ── 4단계: 1~3단계가 섞인 종합 테스트 ──
   function startTest(){
     level = 4;
+    var _bo = document.getElementById('btOpen'); if(_bo) _bo.style.display = 'none';
     statsBar.style.display = 'none';
     resultBlock.style.display = 'none';
     levelIndicator.textContent = '종합 테스트 · 1~3단계 문제가 섞여 나와요';
@@ -1643,6 +1801,26 @@
     activateHintGroup(key.includes('ones') ? 1 : 2);
   });
 
+  // 칸을 모두 채운 뒤 칸 밖을 누르면 "확인"을 누른 것으로 본다(칸 사이 이동·버튼 클릭은 제외)
+  function requiredFilled(){
+    // 3단계(세로셈)는 올림 칸을 비워 둘 수 있어 성급한 채점이 될 수 있으므로 자동 확인하지 않고 "확인"을 누르게 둔다
+    if(level === 1 || level === 2){
+      const ks = [...scaffoldArea.querySelectorAll('input[data-key]')];
+      const sum = document.getElementById('sumInput');
+      return ks.length > 0 && ks.every(i=>i.value.trim() !== '') && !!sum && sum.value.trim() !== '';
+    }
+    return false;
+  }
+  document.addEventListener('focusout', (e)=>{
+    if(checked || level === 4 || btnCheck.disabled || card.style.display === 'none' || window.__btOpen) return;
+    const t = e.target;
+    if(!t || t.tagName !== 'INPUT' || !scaffoldArea.contains(t)) return;
+    const to = e.relatedTarget;
+    if(to && (to.tagName === 'INPUT' || to.tagName === 'BUTTON')) return;
+    if(!document.hasFocus() || !requiredFilled()) return;
+    setTimeout(()=>{ if(!checked && requiredFilled()) checkAnswer(); }, 0);
+  });
+
   btnCheck.addEventListener('click', ()=>{
     if(level === 4) checkTestAnswer();
     else checkAnswer();
@@ -1694,5 +1872,868 @@
   });
 })();
 </script>
+
+<script>
+(function(){
+function createBaseTenBoard(container){
+  let changeCb = null;
+  // 자리값 단계: 일(one) → 십(ten) → 백(hundred). 인덱스가 1 크면 그 다음 자리.
+  const TIERS = ['one', 'ten', 'hundred'];
+  const TIER_CLASS = { one:'manip-unit', ten:'manip-rod', hundred:'manip-hundred' };
+  const TIER_LABEL  = { one:'낱개', ten:'십 모형', hundred:'백 모형' };
+  const CLICK_MOVE_THRESHOLD = 6; // px — 이보다 적게 움직이면 "드래그"가 아니라 "탭(선택)"으로 본다
+
+  const state = { blocks: [], frames: 0 }; // frames: 나눗셈 도우미 "틀" 개수(0이면 없음)
+  // blocks: {id, type:'one'|'ten'|'hundred', x, y, selected} — x,y는 컨테이너 기준 %
+  let drag = null;      // {id, ids[], orig{id:{x,y}}, startClientX, startClientY, copyUndo}
+  let boxSelect = null; // {startXPct, startYPct} — 배경 드래그로 여러 개 선택할 때
+  let history = [];     // 되돌리기용 스냅샷
+
+  function uid(){ return 'b' + Math.random().toString(36).slice(2, 9); }
+  // 틀(나눗셈 도우미)이 있으면 판의 위쪽 2%~68%는 틀 영역, 그 아래(72%~)는 "보관 구역"이다.
+  // 새로 만드는 모형은 보관 구역에 나오고, 학생이 그걸 틀로 옮겨 담는다.
+  const FRAME_TOP = 2, FRAME_AREA_H = 66, STOCK_TOP = 72;
+  function randomPos(){
+    if(state.frames) return { x: 3 + Math.random()*68, y: STOCK_TOP + 2 + Math.random()*12 };
+    return { x: 3 + Math.random()*68, y: 3 + Math.random()*58 };
+  }
+
+  // 틀 n개를 판 위쪽에 격자로 배치한 좌표(%). 4개까지는 한 줄, 그 이상은 두 줄.
+  function frameRects(){
+    const n = state.frames;
+    if(!n) return [];
+    const cols = n <= 4 ? n : Math.ceil(n/2);
+    const rows = Math.ceil(n/cols);
+    const pad = 1.5, gap = 1.5;
+    const w = (100 - 2*pad - (cols-1)*gap) / cols;
+    const h = (FRAME_AREA_H - (rows-1)*gap) / rows;
+    return Array.from({ length:n }, (_, i)=>{
+      const c = i % cols, r = Math.floor(i/cols);
+      return { x: pad + c*(w+gap), y: FRAME_TOP + r*(h+gap), w, h };
+    });
+  }
+  // 모형이 어느 틀 안에 있는지는 "모형의 중심이 틀 안에 있는가"로 판단한다(보여주기용 계산일 뿐,
+  // 모형 상태를 바꾸지 않는다 — 가까우면 자동으로 뭉치던 예전 방식과 다르다).
+  function frameIndexOf(b, rects, rect){
+    const s = sizeOf(b.type);
+    const cx = b.x + (s.w/2 / (rect.width||300)) * 100;
+    const cy = b.y + (s.h/2 / (rect.height||260)) * 100;
+    for(let i=0;i<rects.length;i++){
+      const r = rects[i];
+      if(cx >= r.x && cx <= r.x+r.w && cy >= r.y && cy <= r.y+r.h) return i;
+    }
+    return -1;
+  }
+  function frameSummary(){
+    const rects = frameRects();
+    const rect = container.getBoundingClientRect();
+    const mk = ()=>({ hundreds:0, tens:0, ones:0, value:0 });
+    const perFrame = rects.map(mk), outside = mk();
+    state.blocks.forEach(b=>{
+      const i = rects.length ? frameIndexOf(b, rects, rect) : -1;
+      const t = i >= 0 ? perFrame[i] : outside;
+      if(b.type === 'hundred'){ t.hundreds++; t.value += 100; }
+      else if(b.type === 'ten'){ t.tens++; t.value += 10; }
+      else { t.ones++; t.value += 1; }
+    });
+    const allEqual = perFrame.length > 1 && perFrame[0].value > 0 && perFrame.every(p=>p.value === perFrame[0].value);
+    return { n: rects.length, perFrame, outside, allEqual };
+  }
+  function frameLabel(p){
+    const parts = [];
+    if(p.hundreds) parts.push('백 '+p.hundreds);
+    parts.push('십 '+p.tens, '낱 '+p.ones);
+    // 합계 숫자는 컨테이너에 .show-values 클래스가 있을 때만 보인다(기본은 숨김 — 학생이 먼저 세어 보게)
+    return parts.join(' · ') + '<span class="manip-frame-val"> = '+p.value+'</span>';
+  }
+  // 드래그 중에 화면을 다시 그리지 않고도 틀 안의 개수 표시만 실시간으로 바꾼다.
+  function refreshFrameLabels(){
+    if(!state.frames) return;
+    const sum = frameSummary();
+    container.querySelectorAll('.manip-frame').forEach(el=>{
+      const i = Number(el.dataset.frame);
+      el.classList.toggle('manip-frame-ok', sum.allEqual);
+      const span = el.querySelector('.manip-frame-sum');
+      if(span && sum.perFrame[i]) span.innerHTML = frameLabel(sum.perFrame[i]);
+    });
+  }
+
+  function render(){
+    const blocksHtml = state.blocks.map(b =>
+      `<div class="manip-block ${TIER_CLASS[b.type]} btb-block${b.selected ? ' manip-selected' : ''}" data-id="${b.id}" style="left:${b.x}%; top:${b.y}%;"></div>`
+    ).join('');
+    const boxHtml = boxSelect
+      ? `<div class="manip-selbox" style="left:${Math.min(boxSelect.startXPct,boxSelect.curXPct)}%; top:${Math.min(boxSelect.startYPct,boxSelect.curYPct)}%; width:${Math.abs(boxSelect.curXPct-boxSelect.startXPct)}%; height:${Math.abs(boxSelect.curYPct-boxSelect.startYPct)}%;"></div>`
+      : '';
+    let framesHtml = '';
+    if(state.frames){
+      const sum = frameSummary();
+      framesHtml = frameRects().map((r, i)=>
+        `<div class="manip-frame${sum.allEqual ? ' manip-frame-ok' : ''}" data-frame="${i}" style="left:${r.x}%; top:${r.y}%; width:${r.w}%; height:${r.h}%;"><div class="manip-frame-head"><b>묶음 ${i+1}</b><span class="manip-frame-sum">${frameLabel(sum.perFrame[i])}</span></div></div>`
+      ).join('') + `<div class="manip-stock-label" style="top:${STOCK_TOP}%;">보관 구역 — 여기 모형을 위의 틀로 옮겨 담아요</div>`;
+    }
+    const emptyHtml = (!state.blocks.length && !state.frames) ? `<span class="manip-empty-hint">모형이 없어요. 아래 + 버튼으로 만들어보세요.</span>` : '';
+    container.innerHTML = framesHtml + emptyHtml + blocksHtml + boxHtml;
+    notify();
+  }
+
+  // 화면을 다시 그리지 않고도(드래그 직후 등) 바깥에 "상태가 바뀌었다"고 알릴 때 쓴다.
+  function notify(){ if(changeCb) changeCb(getCounts(), getSelectionInfo(), frameSummary()); }
+
+  const HISTORY_LIMIT = 100; // 되돌리기 기록은 최근 100단계까지만 (드래그까지 기록하니 무한정 쌓이지 않게)
+  function pushHistory(snapshot){
+    history.push(snapshot);
+    if(history.length > HISTORY_LIMIT) history.shift();
+  }
+  function saveHistory(){ pushHistory(state.blocks.map(b=>({...b}))); }
+
+  function addBlocks(type, count){
+    if(count > 0) saveHistory();
+    for(let i=0;i<count;i++){
+      const pos = randomPos();
+      state.blocks.push({ id: uid(), type, x: pos.x, y: pos.y, selected:false });
+    }
+    render();
+  }
+
+  function getCounts(){
+    return {
+      hundreds: state.blocks.filter(b=>b.type==='hundred').length,
+      tens: state.blocks.filter(b=>b.type==='ten').length,
+      ones: state.blocks.filter(b=>b.type==='one').length
+    };
+  }
+
+  // 지금 선택된 것들에 대해 "합치기"/"쪼개기" 버튼을 활성화할지 판단할 정보.
+  function getSelectionInfo(){
+    const selected = state.blocks.filter(b=>b.selected);
+    const types = new Set(selected.map(b=>b.type));
+    const sameType = types.size === 1 ? [...types][0] : null;
+    const canJoin = !!sameType && TIERS.indexOf(sameType) < TIERS.length-1 && selected.length >= 10;
+    const canBreak = selected.length === 1 && TIERS.indexOf(selected[0].type) > 0;
+    return { count: selected.length, canJoin, canBreak, canDuplicate: selected.length > 0, joinCount: sameType ? Math.floor(selected.length/10) : 0 };
+  }
+
+  function clearSelection(){
+    state.blocks.forEach(b=>{ b.selected = false; });
+    render();
+  }
+
+  // 낱개가 많을 때 하나씩 탭하기 번거로우니, 종류별로 한 번에 다 선택한다.
+  // (다른 종류 선택은 지워서 항상 "한 종류만 선택된" 깔끔한 상태로 만든다.)
+  function selectAllOfType(type){
+    state.blocks.forEach(b=>{ b.selected = (b.type === type); });
+    render();
+  }
+
+  function selectAll(){
+    state.blocks.forEach(b=>{ b.selected = true; });
+    render();
+  }
+
+  // 키보드 단축키(데스크톱용, 필요할 때만 켠다): Delete/Backspace 지우기 · Ctrl/⌘+Z 되돌리기 ·
+  // Ctrl/⌘+A 전체 선택 · Ctrl/⌘+D 복사 · Esc 선택 해제. 글자 입력칸에 커서가 있으면 무시한다.
+  let keyboardOn = false;
+  function enableKeyboardShortcuts(){
+    if(keyboardOn) return;
+    keyboardOn = true;
+    window.addEventListener('keydown', (e)=>{
+      if(!window.__btOpen) return;
+      const t = e.target;
+      if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      const mod = e.ctrlKey || e.metaKey;
+      const k = e.key;
+      if(k === 'Delete' || k === 'Backspace'){ if(deleteSelected()) e.preventDefault(); }
+      else if(mod && (k === 'z' || k === 'Z')){ if(undo()) e.preventDefault(); }
+      else if(mod && (k === 'a' || k === 'A')){ selectAll(); e.preventDefault(); }
+      else if(mod && (k === 'd' || k === 'D')){ if(duplicateSelected()) e.preventDefault(); }
+      else if(k === 'Escape'){ clearSelection(); }
+    });
+  }
+
+  // 잘못 만든 모형을 지운다 (선택된 것들 전부).
+  function deleteSelected(){
+    const selected = state.blocks.filter(b=>b.selected);
+    if(!selected.length) return false;
+    saveHistory();
+    const ids = selected.map(b=>b.id);
+    state.blocks = state.blocks.filter(b=>!ids.includes(b.id));
+    render();
+    return true;
+  }
+
+  // 자유롭게 옮기다 겹치거나 흩어진 모형을, 종류별(백→십→낱개 순)로 줄맞춰
+  // 가지런히 정리한다. 세어보기 쉽게 만드는 게 목적이라 선택 상태는 그대로 둔다.
+  const ARRANGE_ORDER = ['hundred', 'ten', 'one'];
+  const ARRANGE_SIZE = { hundred:{w:84,h:84}, ten:{w:78,h:22}, one:{w:22,h:22} };
+  // 화면에서 "크게 보기"를 켜면 CSS 변수 --bs(block scale)로 모형 크기를 키운다.
+  // 정리/트레이 놓기 계산도 같은 배율을 써야 칸이 안 겹친다.
+  function blockScale(){
+    try{
+      const v = parseFloat(getComputedStyle(container).getPropertyValue('--bs'));
+      return (isNaN(v) || v <= 0) ? 1 : v;
+    }catch(e){ return 1; }
+  }
+  function sizeOf(type){
+    const b = ARRANGE_SIZE[type] || { w:22, h:22 };
+    const k = blockScale();
+    return { w:b.w*k, h:b.h*k };
+  }
+  // 한 무리의 모형(group)을 (leftPx, topPx)에서 시작해 종류별(백→십→낱개)로 줄맞춰 깐다.
+  // widthPx는 그 무리가 쓸 수 있는 가로 폭. 칸 수는 폭에 맞춰 알아서 계산(줄바꿈).
+  function layoutGroup(group, leftPx, topPx, widthPx, cw, ch){
+    const pad = 6;
+    let yPx = topPx;
+    ARRANGE_ORDER.forEach(type=>{
+      const g = group.filter(b=>b.type===type);
+      if(!g.length) return;
+      const size = sizeOf(type);
+      const cols = Math.max(1, Math.floor((widthPx - pad) / (size.w + 4)));
+      g.forEach((b, i)=>{
+        const col = i % cols, row = Math.floor(i / cols);
+        b.x = ((leftPx + pad + col*(size.w+4)) / cw) * 100;
+        b.y = ((yPx + row*(size.h+4)) / ch) * 100;
+      });
+      yPx += Math.ceil(g.length / cols) * (size.h+4) + 10;
+    });
+  }
+
+  // 틀이 없으면 판 전체에, 있으면 "각 틀 안의 모형은 그 틀 안에서, 틀 밖(보관 구역) 모형은
+  // 보관 구역에서" 가지런히 정리한다 — 정리가 모형을 다른 틀로 옮겨버리지 않게.
+  function arrange(){
+    if(!state.blocks.length) return;
+    saveHistory();
+    const rect = container.getBoundingClientRect();
+    const cw = rect.width || 300, ch = rect.height || 260;
+    if(!state.frames){
+      layoutGroup(state.blocks, 0, 6, cw, cw, ch);
+    } else {
+      const rects = frameRects();
+      const groups = rects.map(()=>[]), outside = [];
+      state.blocks.forEach(b=>{
+        const i = frameIndexOf(b, rects, rect);
+        (i >= 0 ? groups[i] : outside).push(b);
+      });
+      rects.forEach((r, i)=>{
+        layoutGroup(groups[i], r.x/100*cw, r.y/100*ch + 26, r.w/100*cw, cw, ch); // 26px = 틀 머리글 높이
+      });
+      layoutGroup(outside, 0, STOCK_TOP/100*ch + 22, cw, cw, ch);
+    }
+    render();
+  }
+
+  // 선택된 것 중 10개씩 묶어서 다음 자리 모형으로 합친다(여러 묶음이면 한 번에 여러 개).
+  // 합쳐진 새 모형은 합쳐진 10개가 있던 자리(평균 위치)에 나타난다 — 멀리 엉뚱한 곳에 생기지 않게.
+  function joinSelected(){
+    const selected = state.blocks.filter(b=>b.selected);
+    const info = getSelectionInfo();
+    if(!info.canJoin) return false;
+    saveHistory();
+    const type = selected[0].type;
+    const tierIdx = TIERS.indexOf(type);
+    const groups = Math.floor(selected.length / 10);
+    const usedBlocks = selected.slice(0, groups*10);
+    const used = usedBlocks.map(b=>b.id);
+    state.blocks = state.blocks.filter(b=>!used.includes(b.id));
+    for(let g=0; g<groups; g++){
+      const chunk = usedBlocks.slice(g*10, g*10+10);
+      const cx = chunk.reduce((sum,b)=>sum+b.x, 0) / chunk.length;
+      const cy = chunk.reduce((sum,b)=>sum+b.y, 0) / chunk.length;
+      state.blocks.push({ id: uid(), type: TIERS[tierIdx+1], x: Math.max(0, Math.min(MAX_POS, cx)), y: Math.max(0, Math.min(MAX_POS, cy)), selected:false });
+    }
+    render();
+    return true;
+  }
+
+  // 선택된 것(딱 1개, 십 모형이나 백 모형) 하나를 10개 이전 자리로 쪼갠다.
+  // 쪼개진 10개는 원래 그 모형이 있던 자리 근처에 가지런히 모여 나타나고(낱개는 5×2,
+  // 십 모형은 2×5), 바로 한 덩어리로 끌어 옮길 수 있게 전부 선택된 상태가 된다.
+  function breakSelected(){
+    const selected = state.blocks.filter(b=>b.selected);
+    const info = getSelectionInfo();
+    if(!info.canBreak) return false;
+    saveHistory();
+    const target = selected[0];
+    const tierIdx = TIERS.indexOf(target.type);
+    const childType = TIERS[tierIdx-1];
+    state.blocks = state.blocks.filter(b=>b.id!==target.id);
+    state.blocks.forEach(b=>{ b.selected = false; });
+    const rect = container.getBoundingClientRect();
+    const cw = rect.width || 300, ch = rect.height || 260;
+    const size = sizeOf(childType);
+    const cols = childType === 'ten' ? 2 : 5;
+    const rows = Math.ceil(10 / cols);
+    const wPct = (cols*(size.w+4) / cw) * 100, hPct = (rows*(size.h+4) / ch) * 100;
+    const x0 = Math.max(0, Math.min(target.x, 100 - wPct - 1));
+    const y0 = Math.max(0, Math.min(target.y, 100 - hPct - 1));
+    for(let i=0;i<10;i++){
+      const col = i % cols, row = Math.floor(i / cols);
+      state.blocks.push({
+        id: uid(), type: childType, selected:true,
+        x: x0 + (col*(size.w+4) / cw) * 100,
+        y: y0 + (row*(size.h+4) / ch) * 100
+      });
+    }
+    render();
+    return true;
+  }
+
+  // ── 나눗셈 도우미: 틀 ──
+  // n개의 "묶음 틀"을 판 위쪽에 깔아준다. 모형을 틀로 옮겨 담으면 틀마다 몇 개가 들어갔는지
+  // 실시간으로 보이고, 모든 틀이 같은 값이면 초록색으로 바뀐다(똑같이 나눴다는 뜻).
+  // 틀은 보기용 영역일 뿐 모형 상태를 바꾸지 않는다. 되돌리기 기록에도 안 들어간다.
+  function setFrames(n){
+    n = Math.max(0, Math.min(10, Math.floor(Number(n)) || 0));
+    if(n === state.frames) return;
+    state.frames = n;
+    render();
+  }
+  function getFrames(){ return state.frames; }
+
+  // ── 수 직접 넣기 (덧셈·뺄셈·나눗셈에서 처음 수를 빨리 만들 때) ──
+  // 예: 347 → 백 3, 십 4, 낱개 7. 새 모형은 한 곳에 종류별로 가지런히 놓인다.
+  // (정답을 대신 만들어 주는 게 아니라 "문제의 처음 수"를 놓는 용도다.)
+  function addNumber(n){
+    n = Math.floor(Number(n));
+    if(!(n > 0) || n > 999) return false;
+    saveHistory();
+    const fresh = [];
+    [['hundred', Math.floor(n/100)], ['ten', Math.floor(n/10)%10], ['one', n%10]].forEach(([type, cnt])=>{
+      for(let i=0;i<cnt;i++){
+        const b = { id: uid(), type, x:0, y:0, selected:false };
+        state.blocks.push(b); fresh.push(b);
+      }
+    });
+    const rect = container.getBoundingClientRect();
+    const cw = rect.width || 300, ch = rect.height || 260;
+    const top = state.frames ? (STOCK_TOP/100*ch + 22) : 6;
+    layoutGroup(fresh, 0, top, cw, cw, ch);
+    render();
+    return true;
+  }
+
+  // ── 같은 묶음을 여러 번 (곱셈: 같은 수를 n번 모은다) ──
+  // 선택된 덩어리를 times개가 되도록 복제해서 오른쪽(모자라면 아래)으로 나란히 놓는다.
+  // 원본+복제본이 전부 선택된 상태가 되어 바로 "합치기"로 이어갈 수 있다.
+  function repeatSelected(times){
+    times = Math.floor(Number(times));
+    const sel = state.blocks.filter(b=>b.selected);
+    if(!sel.length || !(times >= 2) || times > 20) return false;
+    saveHistory();
+    const rect = container.getBoundingClientRect();
+    const cw = rect.width || 300, ch = rect.height || 260;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    sel.forEach(b=>{
+      const s = sizeOf(b.type);
+      const bx = b.x/100*cw, by = b.y/100*ch;
+      minX = Math.min(minX, bx); minY = Math.min(minY, by);
+      maxX = Math.max(maxX, bx + s.w); maxY = Math.max(maxY, by + s.h);
+    });
+    const gap = 16, gw = maxX - minX, gh = maxY - minY;
+    const perRow = Math.max(1, Math.floor((cw - minX + gap) / (gw + gap)));
+    for(let k=1; k<times; k++){
+      const dx = (k % perRow) * (gw + gap), dy = Math.floor(k / perRow) * (gh + gap);
+      sel.forEach(b=>{
+        state.blocks.push({ id: uid(), type:b.type, selected:true, x: b.x + dx/cw*100, y: b.y + dy/ch*100 });
+      });
+    }
+    render();
+    return true;
+  }
+
+  function undo(){
+    if(!history.length) return false;
+    state.blocks = history.pop();
+    render();
+    return true;
+  }
+
+  function clear(){ state.blocks = []; history = []; render(); }
+  function historyLength(){ return history.length; }
+
+  const MAX_POS = 92; // 블록 왼쪽·위쪽 좌표의 최대값(%) — 이보다 오른쪽/아래로는 안 나가게
+
+  // 지금 누른 블록이 "이미 선택된 것"이면 선택된 것 전부가 한 덩어리로 같이 움직인다.
+  // 선택 안 된 블록을 누르면 그 블록 하나만 움직인다(선택은 그대로).
+  function dragGroupFor(id){
+    const pressed = state.blocks.find(b=>b.id===id);
+    if(pressed && pressed.selected){
+      return state.blocks.filter(b=>b.selected).map(b=>b.id);
+    }
+    return [id];
+  }
+
+  function moveTo(clientX, clientY){
+    if(!drag) return;
+    const rect = container.getBoundingClientRect();
+    let dx = ((clientX - drag.startClientX) / rect.width) * 100;
+    let dy = ((clientY - drag.startClientY) / rect.height) * 100;
+    // 덩어리가 판 밖으로 삐져나가지 않게, 가장자리에 닿으면 덩어리 "전체"가 멈춘다.
+    // (블록마다 따로 자르면 가장자리에서 모양이 찌그러진다)
+    const origs = drag.ids.map(i => drag.orig[i]);
+    const minX = Math.min(...origs.map(o=>o.x)), maxX = Math.max(...origs.map(o=>o.x));
+    const minY = Math.min(...origs.map(o=>o.y)), maxY = Math.max(...origs.map(o=>o.y));
+    dx = Math.max(-minX, Math.min(MAX_POS - maxX, dx));
+    dy = Math.max(-minY, Math.min(MAX_POS - maxY, dy));
+    drag.ids.forEach(i=>{
+      const b = state.blocks.find(o=>o.id===i);
+      if(!b) return;
+      b.x = drag.orig[i].x + dx;
+      b.y = drag.orig[i].y + dy;
+      const el = container.querySelector('[data-id="'+i+'"]');
+      if(el){ el.style.left = b.x+'%'; el.style.top = b.y+'%'; el.classList.add('manip-dragging'); }
+    });
+    refreshFrameLabels();
+  }
+
+  // blockEl 인자는 예전 호출부와의 호환용으로 남겨뒀다(이제 안 씀 — 시작 좌표 기준 이동량만 쓴다).
+  function startDrag(id, clientX, clientY, blockEl, opts){
+    const ids = dragGroupFor(id);
+    const orig = {};
+    ids.forEach(i=>{
+      const b = state.blocks.find(o=>o.id===i);
+      if(b) orig[i] = { x:b.x, y:b.y };
+    });
+    drag = {
+      id,
+      ids: ids.filter(i=>orig[i]),
+      orig,
+      startClientX: clientX,
+      startClientY: clientY,
+      copyUndo: !!(opts && opts.copyUndo),
+      snapshot: state.blocks.map(b=>({...b})) // 움직이기 전 상태 — 진짜 움직였을 때만 되돌리기 기록에 넣는다
+    };
+  }
+
+  // 블록 하나를 살짝 옆으로 어긋난 자리에 복제한다. 새로 만든 블록을 돌려준다.
+  function duplicateBlock(b){
+    const dup = { id: uid(), type:b.type, x: Math.max(0,Math.min(MAX_POS,b.x+4)), y: Math.max(0,Math.min(MAX_POS,b.y+4)), selected:false };
+    state.blocks.push(dup);
+    return dup;
+  }
+
+  // 선택된 것을 전부 복제한다("복사하기" 버튼용). 복제본이 새로 선택되고
+  // 원본은 선택 해제되어, 방금 뭘 복사했는지 한눈에 보인다.
+  function duplicateSelected(){
+    const selected = state.blocks.filter(b=>b.selected);
+    if(!selected.length) return false;
+    saveHistory();
+    selected.forEach(b=>{ b.selected = false; });
+    selected.forEach(b=>{ duplicateBlock(b).selected = true; });
+    render();
+    return true;
+  }
+
+  // Ctrl(Mac은 ⌘)을 누른 채 블록을 끌면, 원본은 그대로 두고 복제본을 대신 끈다.
+  // 누른 블록이 선택된 덩어리의 일부면 덩어리 전체를 복제해서 같이 끈다
+  // (복제본들이 새 선택이 되고 원본은 선택 해제).
+  function startCopyDrag(id, clientX, clientY){
+    const src = state.blocks.find(b=>b.id===id);
+    if(!src) return;
+    saveHistory();
+    let pressedDupId = null;
+    if(src.selected){
+      const group = state.blocks.filter(b=>b.selected);
+      group.forEach(b=>{
+        const dup = { id: uid(), type:b.type, x:b.x, y:b.y, selected:true };
+        state.blocks.push(dup);
+        if(b.id === id) pressedDupId = dup.id;
+      });
+      group.forEach(b=>{ b.selected = false; });
+    } else {
+      const dup = { id: uid(), type:src.type, x:src.x, y:src.y, selected:false };
+      state.blocks.push(dup);
+      pressedDupId = dup.id;
+    }
+    render();
+    startDrag(pressedDupId, clientX, clientY, null, { copyUndo:true });
+  }
+
+  function endDrag(clientX, clientY){
+    if(!drag) return;
+    drag.ids.forEach(i=>{
+      const el = container.querySelector('[data-id="'+i+'"]');
+      if(el) el.classList.remove('manip-dragging');
+    });
+    const cx = (clientX == null) ? drag.startClientX : clientX;
+    const cy = (clientY == null) ? drag.startClientY : clientY;
+    const moveDist = Math.hypot(cx - drag.startClientX, cy - drag.startClientY);
+    if(moveDist < CLICK_MOVE_THRESHOLD){
+      if(drag.copyUndo){
+        // Ctrl+클릭만 하고 안 움직였으면 복제를 취소한다(같은 자리에 겹친 복제본이 남지 않게)
+        drag = null;
+        undo();
+        return;
+      }
+      // 거의 안 움직였으면 드래그가 아니라 "탭" — 누른 블록의 선택 상태만 토글한다
+      const b = state.blocks.find(o=>o.id===drag.id);
+      if(b){ b.selected = !b.selected; }
+      render();
+    } else if(!drag.copyUndo){
+      // 진짜로 옮겼으면 "움직이기 전 상태"를 되돌리기 기록에 남긴다(복사 드래그는
+      // 복사 시작 때 이미 기록했으니 건너뜀 — 한 번 되돌리면 복사 전으로 돌아간다)
+      pushHistory(drag.snapshot);
+      drag = null;
+      notify();
+      return;
+    }
+    drag = null;
+  }
+
+  // 배경(빈 곳)을 드래그하면 사각형으로 여러 블록을 한 번에 선택한다.
+  function startBoxSelect(clientX, clientY){
+    const rect = container.getBoundingClientRect();
+    const xPct = ((clientX-rect.left)/rect.width)*100;
+    const yPct = ((clientY-rect.top)/rect.height)*100;
+    boxSelect = { startXPct:xPct, startYPct:yPct, curXPct:xPct, curYPct:yPct };
+  }
+  function moveBoxSelect(clientX, clientY){
+    if(!boxSelect) return;
+    const rect = container.getBoundingClientRect();
+    boxSelect.curXPct = ((clientX-rect.left)/rect.width)*100;
+    boxSelect.curYPct = ((clientY-rect.top)/rect.height)*100;
+    render();
+  }
+  function endBoxSelect(){
+    if(!boxSelect) return;
+    const x1 = Math.min(boxSelect.startXPct, boxSelect.curXPct), x2 = Math.max(boxSelect.startXPct, boxSelect.curXPct);
+    const y1 = Math.min(boxSelect.startYPct, boxSelect.curYPct), y2 = Math.max(boxSelect.startYPct, boxSelect.curYPct);
+    if(Math.abs(x2-x1) > 1 || Math.abs(y2-y1) > 1){
+      state.blocks.forEach(b=>{
+        if(b.x >= x1 && b.x <= x2 && b.y >= y1 && b.y <= y2) b.selected = true;
+      });
+    } else {
+      // 그냥 빈 곳을 클릭(드래그 없이)한 거면, 선택을 전부 해제한다
+      state.blocks.forEach(b=>{ b.selected = false; });
+    }
+    boxSelect = null;
+    render();
+  }
+
+  // ── 마우스 ──
+  container.addEventListener('mousedown', (e)=>{
+    const el = e.target.closest('.btb-block');
+    if(el){
+      if(e.ctrlKey || e.metaKey){ startCopyDrag(el.dataset.id, e.clientX, e.clientY); }
+      else { startDrag(el.dataset.id, e.clientX, e.clientY, el); }
+    }
+    else { startBoxSelect(e.clientX, e.clientY); }
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e)=>{
+    if(drag) moveTo(e.clientX, e.clientY);
+    else if(boxSelect) moveBoxSelect(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', (e)=>{
+    if(drag) endDrag(e.clientX, e.clientY);
+    else if(boxSelect) endBoxSelect();
+  });
+
+  // ── 터치 ──
+  // 배경(빈 곳)을 터치로 드래그하는 건 사각형 선택 대신 "화면 스크롤"로 남겨둔다
+  // (모형이 많아 캔버스가 길어질 수 있어서). 터치에서 여러 개를 한 번에 고르고
+  // 싶으면 "낱개/십모형 전체 선택" 버튼을 쓰면 된다. 블록 위에서 시작한
+  // 드래그(모형 옮기기)는 그대로 preventDefault로 스크롤을 막는다.
+  container.addEventListener('touchstart', (e)=>{
+    const el = e.target.closest('.btb-block');
+    if(!el) return;
+    const t = e.touches[0];
+    startDrag(el.dataset.id, t.clientX, t.clientY, el);
+    e.preventDefault();
+  }, { passive:false });
+  window.addEventListener('touchmove', (e)=>{
+    if(!drag) return;
+    const t = e.touches[0];
+    if(!t) return;
+    moveTo(t.clientX, t.clientY);
+    e.preventDefault();
+  }, { passive:false });
+  window.addEventListener('touchend', (e)=>{
+    if(!drag) return;
+    const t = e.changedTouches && e.changedTouches[0];
+    endDrag(t && t.clientX, t && t.clientY);
+  });
+  window.addEventListener('touchcancel', ()=>{ drag = null; });
+
+  render();
+  function onChangeSet(fn){ changeCb = fn; }
+
+  // ── 트레이(모형 보관함)에서 끌어와서 새 모형 만들기 (Number Pieces 방식) ──
+  // 호스트 페이지가 만든 "샘플 모형" 엘리먼트를 넘겨주면, 그걸 잡아 끌어서 판 위에
+  // 놓는 순간 그 자리에 해당 종류의 새 모형이 하나 만들어진다. 판 밖에 놓으면
+  // 아무 일도 일어나지 않는다(취소). 버튼으로 "+1개"를 누르면 무작위 자리에
+  // 생기던 것과 달리, 학생이 원하는 자리에 바로 놓을 수 있다.
+  function attachTraySource(sourceEl, type){
+    function startSpawnDrag(startX, startY){
+      const ghost = sourceEl.cloneNode(true);
+      ghost.classList.add('manip-tray-ghost');
+      ghost.style.position = 'fixed';
+      ghost.style.pointerEvents = 'none';
+      ghost.style.margin = '0';
+      ghost.style.left = startX + 'px';
+      ghost.style.top = startY + 'px';
+      ghost.style.transform = 'translate(-50%,-50%)';
+      ghost.style.zIndex = '9999';
+      ghost.style.display = 'none'; // 실제로 끌기 시작하기 전까지는 안 보이게(그냥 탭일 수도 있으니)
+      document.body.appendChild(ghost);
+
+      function move(cx, cy){
+        if(Math.hypot(cx-startX, cy-startY) >= CLICK_MOVE_THRESHOLD) ghost.style.display = '';
+        ghost.style.left = cx + 'px';
+        ghost.style.top = cy + 'px';
+      }
+      function cleanup(){
+        ghost.remove();
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend', onTouchEnd);
+        document.removeEventListener('touchcancel', cleanup);
+      }
+      function finish(cx, cy){
+        const moved = Math.hypot(cx-startX, cy-startY);
+        const rect = container.getBoundingClientRect();
+        const inside = cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom;
+        cleanup();
+        if(moved < CLICK_MOVE_THRESHOLD){
+          // 거의 안 움직였으면 "끌기"가 아니라 "탭" — 무작위 자리에 1개 만든다
+          addBlocks(type, 1);
+          return;
+        }
+        if(!inside) return; // 판 밖에 놓으면 취소
+        const size = sizeOf(type);
+        // 손가락/커서가 모형의 한가운데를 잡고 있던 것처럼 중심 기준으로 놓는다
+        const xPct = Math.max(0, Math.min(92, ((cx - rect.left - size.w/2) / rect.width) * 100));
+        const yPct = Math.max(0, Math.min(92, ((cy - rect.top - size.h/2) / rect.height) * 100));
+        saveHistory();
+        state.blocks.push({ id: uid(), type, x:xPct, y:yPct, selected:false });
+        render();
+      }
+      function onMouseMove(e){ move(e.clientX, e.clientY); }
+      function onMouseUp(e){ finish(e.clientX, e.clientY); }
+      function onTouchMove(e){ const t = e.touches[0]; if(t) move(t.clientX, t.clientY); e.preventDefault(); }
+      function onTouchEnd(e){ const t = e.changedTouches[0]; finish(t.clientX, t.clientY); }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      document.addEventListener('touchmove', onTouchMove, { passive:false });
+      document.addEventListener('touchend', onTouchEnd);
+      document.addEventListener('touchcancel', cleanup);
+    }
+
+    sourceEl.addEventListener('mousedown', (e)=>{
+      startSpawnDrag(e.clientX, e.clientY);
+      e.preventDefault();
+    });
+    sourceEl.addEventListener('touchstart', (e)=>{
+      const t = e.touches[0];
+      startSpawnDrag(t.clientX, t.clientY);
+      e.preventDefault();
+    }, { passive:false });
+  }
+
+  return { addBlocks, getCounts, getSelectionInfo, joinSelected, breakSelected, clearSelection, selectAllOfType, deleteSelected, duplicateSelected, selectAll, enableKeyboardShortcuts, arrange, setFrames, getFrames, getFrameSummary: frameSummary, addNumber, repeatSelected, undo, clear, historyLength, render, onChangeSet, attachTraySource };
+}
+  var MODE = "mul";
+  var GUIDE = "곱해지는 수를 모형으로 놓고, 곱하는 수만큼 묶음을 만들어 보세요. 낱개 10개는 합치기로 십 모형 1개가 돼요.";
+  var $ = function(id){ return document.getElementById(id); };
+  var overlay = $('btOverlay');
+  overlay.classList.add('mode-' + MODE);
+  $('btGuide').textContent = GUIDE;
+  var board = createBaseTenBoard($('btBoard'));
+  window.__btOpen = false;
+  var showValue = false, lastC = {hundreds:0,tens:0,ones:0}, lastSel = {count:0}, lastFr = {n:0};
+  function paint(){
+    var c = lastC, sel = lastSel;
+    var h = c.hundreds ? '백 ' + c.hundreds + '개 · ' : '';
+    var v = showValue ? '  =  <b>' + (c.hundreds*100 + c.tens*10 + c.ones) + '</b>' : '';
+    var fr = '';
+    if(lastFr.n > 0){
+      var o = lastFr.outside;
+      fr = '  ·  보관 구역 ' + (o.hundreds ? '백 ' + o.hundreds + ' · ' : '') + '십 ' + o.tens + ' · 낱 ' + o.ones + (lastFr.allEqual ? '  ·  ✅ 모든 묶음이 같아요' : '');
+    }
+    $('btStatus').innerHTML = h + '십 ' + c.tens + '개 · 낱개 ' + c.ones + '개' + v + '  ·  <b>' + sel.count + '개 선택됨</b>' + fr;
+  }
+  board.onChangeSet(function(c, sel, fr){
+    lastC = c; lastSel = sel; lastFr = fr || {n:0};
+    paint();
+    $('btJoin').disabled = !sel.canJoin;
+    $('btJoin').innerHTML = (sel.canJoin && sel.joinCount > 1) ? '<span class="ic">🔗</span>합치기(' + sel.joinCount + ')' : '<span class="ic">🔗</span>합치기';
+    $('btBreak').disabled = !sel.canBreak;
+    $('btDup').disabled = !sel.canDuplicate;
+    $('btDel').disabled = sel.count === 0;
+    $('btRepeat').disabled = sel.count === 0;
+    $('btUndo').disabled = board.historyLength() === 0;
+  });
+  $('btAddOne5').onclick = function(){ board.addBlocks('one', 5); };
+  $('btAddTen5').onclick = function(){ board.addBlocks('ten', 5); };
+  $('btSelOnes').onclick = function(){ board.selectAllOfType('one'); };
+  $('btSelTens').onclick = function(){ board.selectAllOfType('ten'); };
+  $('btArrange').onclick = function(){ board.arrange(); };
+  $('btJoin').onclick = function(){ board.joinSelected(); };
+  $('btBreak').onclick = function(){ board.breakSelected(); };
+  $('btDup').onclick = function(){ board.duplicateSelected(); };
+  $('btDel').onclick = function(){ board.deleteSelected(); };
+  $('btClearSel').onclick = function(){ board.clearSelection(); };
+  $('btUndo').onclick = function(){ board.undo(); };
+  $('btReset').onclick = function(){ board.clear(); setupDone = false; };
+  $('btRepeat').onclick = function(){ board.repeatSelected($('btRepeatN').value); };
+  function frLabel(){ var n = board.getFrames(); $('btFrCount').textContent = n ? n + '개' : '없음'; }
+  $('btFrPlus').onclick = function(){ board.setFrames(board.getFrames() + 1); frLabel(); };
+  $('btFrMinus').onclick = function(){ board.setFrames(board.getFrames() - 1); frLabel(); };
+  $('btValueToggle').onclick = function(e){
+    showValue = !showValue;
+    $('btBoard').classList.toggle('show-values', showValue);
+    e.currentTarget.setAttribute('aria-pressed', String(showValue));
+    paint();
+  };
+  $('btSizeToggle').onclick = function(e){
+    var on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    overlay.style.setProperty('--bs', on ? '1.4' : '1');
+  };
+  board.enableKeyboardShortcuts();
+  ['btTrayOne','btTrayTen','btTrayHundred'].forEach(function(id){
+    var el = $(id); board.attachTraySource(el, el.dataset.trayType);
+  });
+
+  // ── 이 문제에 맞게 시작 상태 만들기 (정답이 아니라 "처음 수"만 놓는다) ──
+  var setupDone = false;
+  function currentSetup(){
+    var p = window.__btGet && window.__btGet();
+    if(!p) return null;
+    if(MODE === 'div') return { number:p.N, frames:p.d, label:p.N + ' 놓기 · 틀 ' + p.d + '개' };
+    return { number:p.a, frames:0, label:p.a + ' 놓기' };
+  }
+  function applySetup(){
+    var s = currentSetup(); if(!s) return;
+    board.clear();
+    if(MODE === 'div'){ board.setFrames(s.frames); frLabel(); }
+    board.addNumber(s.number);
+    setupDone = true;
+  }
+  $('btSetup').onclick = applySetup;
+
+  function open(){
+    var s = currentSetup();
+    if(s) $('btSetupLbl').textContent = s.label;
+    if(!setupDone) applySetup();
+    overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false');
+    window.__btOpen = true; document.body.style.overflow = 'hidden';
+    board.render();
+  }
+  function close(){
+    overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true');
+    window.__btOpen = false; document.body.style.overflow = '';
+  }
+  $('btClose').onclick = close;
+  overlay.addEventListener('mousedown', function(e){ if(e.target === overlay) close(); });
+  // 오버레이 안의 Enter가 앱의 "확인/다음 문제" 단축키로 새지 않게 막는다
+  overlay.addEventListener('keydown', function(e){ if(e.key === 'Enter') e.stopPropagation(); });
+  window.addEventListener('keydown', function(e){ if(e.key === 'Escape' && window.__btOpen){ close(); } });
+  $('btOpen').onclick = open;
+  // 문제가 바뀌면 다음에 열 때 새 문제로 다시 놓는다
+  window.__btNewProblem = function(){ setupDone = false; };
+})();
+</script>
+<!--NUMPAD-START-->
+<style>
+#npad{position:fixed;left:0;right:0;bottom:0;z-index:100000;display:none;background:#e8f1f8;border-top:2px solid #b9d3e6;box-shadow:0 -4px 14px rgba(40,70,100,.18);padding:6px 8px calc(6px + env(safe-area-inset-bottom));user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body.npad-on #npad{display:block}
+#npad .npad-row{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(12,1fr);gap:6px}
+#npad button{font-family:'Jua',sans-serif;font-size:26px;line-height:1;height:52px;border:0;border-radius:12px;background:#fff;color:#3D5A80;box-shadow:0 2px 0 #b9d3e6;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:0}
+#npad button:active{transform:translateY(2px);box-shadow:none;background:#dcecf7}
+#npad button.npad-fn{background:#fff3e6;color:#E8873A;box-shadow:0 2px 0 #f2cfa8;font-size:22px}
+#npad button.npad-ok{background:#e4f6df;color:#3b8a2e;box-shadow:0 2px 0 #b7dcae}
+@media (max-width:640px){#npad .npad-row{grid-template-columns:repeat(6,1fr)}#npad button{height:46px;font-size:24px}}
+</style>
+<style>
+/* 태블릿 가로 화면: 설명은 왼쪽, 세로셈 표는 오른쪽에 두어 한눈에 보이게 */
+@media (pointer:coarse) and (min-width:700px){
+  body{padding-top:8px}
+  header{margin-bottom:6px}
+  h1{font-size:24px;margin:0}
+  .subtitle{display:none}
+  .app{max-width:980px}
+  .sum-row{font-size:18px;gap:6px}
+  .dtable td{height:34px;padding:1px 2px}
+  .dtable td.colname{height:16px}
+  .dtable{margin-bottom:0}
+  .card:not([style*="none"]):has(.dtable){display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:repeat(17,auto) 1fr;column-gap:22px;align-items:start;padding-top:14px;padding-bottom:14px}
+  .card:not([style*="none"]):has(.dtable) > *, .card:not([style*="none"]):has(.dtable) > #scaffoldArea > *{grid-column:1}
+  .card:not([style*="none"]):has(.dtable) > #scaffoldArea{display:contents}
+  .card:not([style*="none"]):has(.dtable) > .level-indicator, .card:not([style*="none"]):has(.dtable) > .problem-row{grid-column:1 / -1}
+  .card:not([style*="none"]):has(.dtable) > #scaffoldArea > .dtable{grid-column:2;grid-row:3 / 19}
+  .card:not([style*="none"]):has(.dtable) .sum-row{padding-top:8px;margin-bottom:4px}
+  .card:not([style*="none"]):has(.dtable) .meaning-box{margin-bottom:6px}
+  .stats{margin:4px 0 8px}
+  .chip{padding:3px 12px}
+  .learning-hint{padding:10px 14px}
+  .learning-hint .hint-main{font-size:14.5px;line-height:1.5}
+  .card:not([style*="none"]):has(#gridWrap){display:grid!important;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto auto repeat(4,auto) 1fr;column-gap:20px;align-items:start;padding-top:12px;padding-bottom:12px}
+  .card:not([style*="none"]):has(#gridWrap) > *{grid-column:1}
+  .card:not([style*="none"]):has(#gridWrap) > .level-indicator, .card:not([style*="none"]):has(#gridWrap) > .problem-row{grid-column:1 / -1}
+  .card:not([style*="none"]):has(#gridWrap) > #scaffoldArea{grid-column:2;grid-row:3 / 8}
+  .card:has(#gridWrap) .vtable td{height:auto}
+}
+</style>
+<div id="npad" aria-hidden="true"><div class="npad-row">
+<button type="button" tabindex="-1" data-k="1">1</button><button type="button" tabindex="-1" data-k="2">2</button><button type="button" tabindex="-1" data-k="3">3</button><button type="button" tabindex="-1" data-k="4">4</button><button type="button" tabindex="-1" data-k="5">5</button><button type="button" tabindex="-1" data-k="6">6</button><button type="button" tabindex="-1" data-k="7">7</button><button type="button" tabindex="-1" data-k="8">8</button><button type="button" tabindex="-1" data-k="9">9</button><button type="button" tabindex="-1" data-k="0">0</button><button type="button" class="npad-fn" tabindex="-1" data-k="bs">⌫</button><button type="button" class="npad-ok" tabindex="-1" data-k="ok">↵</button>
+</div></div>
+<script>
+/* 터치 기기 내장 숫자패드: OS 키보드가 화면을 가리지 않도록 함. ?pad=1 강제 켜기, ?pad=0 끄기 */
+(function(){
+  var q = location.search.match(/[?&]pad=(\d)/);
+  var enabled = q ? q[1] === '1' : (window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  if(!enabled) return;
+  var pad = document.getElementById('npad'), last = null;
+  var SEL = 'input.dcell, input[type=number]';
+  function eligible(el){ return el && el.tagName === 'INPUT' && el.matches(SEL) && el.id !== 'btRepeatN'; }
+  function mark(root){ (root.querySelectorAll ? root.querySelectorAll(SEL) : []).forEach(function(el){ if(eligible(el)) el.setAttribute('inputmode','none'); }); }
+  mark(document);
+  new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(function(n){ if(n.nodeType===1){ if(eligible(n)) n.setAttribute('inputmode','none'); mark(n); } }); }); }).observe(document.body,{childList:true,subtree:true});
+  function layout(){
+    var on = !!last && document.body.contains(last) && !window.__btOpen;
+    document.body.classList.toggle('npad-on', on);
+    document.body.style.paddingBottom = on ? (pad.offsetHeight + 12) + 'px' : '';
+  }
+  function reveal(el){
+    if(!el || !pad.offsetHeight) return;
+    var r = el.getBoundingClientRect(), limit = innerHeight - pad.offsetHeight - 8;
+    if(r.bottom > limit || r.top < 0){ try{ el.scrollIntoView({block:'center'}); }catch(e){} }
+  }
+  document.addEventListener('focusin', function(e){
+    var t = e.target;
+    if(eligible(t)){ last = t; layout(); setTimeout(function(){ reveal(t); }, 30); }
+    else if(t && t.tagName === 'INPUT' && t.type === 'text'){ last = null; layout(); }
+  });
+  window.addEventListener('resize', layout);
+  setInterval(layout, 500);
+  pad.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  pad.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    var el = document.activeElement;
+    if(!eligible(el)) el = last;
+    if(!eligible(el) || !document.body.contains(el) || el.disabled) return;
+    if(document.activeElement !== el) el.focus();
+    var k = b.getAttribute('data-k');
+    if(k === 'ok'){
+      ['keydown','keyup'].forEach(function(t){ el.dispatchEvent(new KeyboardEvent(t,{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true,cancelable:true})); });
+      return;
+    }
+    var v = el.value;
+    if(k === 'bs'){ v = v.slice(0,-1); }
+    else {
+      var ml = parseInt(el.getAttribute('maxlength'),10);
+      if(ml === 1) v = k;
+      else if(!(ml > 0 && v.length >= ml)) v += k;
+    }
+    el.value = v;
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    if(el.id === 'numInput') el.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+})();
+</script>
+<!--NUMPAD-END-->
 </body>
 </html>
