@@ -1,0 +1,9 @@
+{
+  "supabaseUrl": "https://erzdvlcbjneabxqwnwfy.supabase.co",
+  "supabaseAnonKey": "sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz",
+  "table": "unit_test_submissions",
+  "classManageTable": "class-manage",
+  "cmGood": 90,
+  "cmMid": 70,
+  "classLabel": "3학년 2반"
+}

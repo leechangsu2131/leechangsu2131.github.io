@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>단원평가 채점</title>
+<style>
+:root{--bg:#f3f7fa;--card:#fff;--ink:#1f2d3d;--muted:#617182;--line:#d6e2ea;--brand:#2f8fd8;--brand-d:#1d6fb0;--ok:#2e9e5b;--okb:#e2f5ea;--part:#fff1cf;--partc:#a86a00;--bad:#fde7e5;--badc:#c0392b;--pend:#e9ecf1;--sel:#fff3c4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;font-size:15px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+header{background:#1e3a52;color:#fff;padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:1.1rem;margin:0}
+header select{padding:6px 10px;border-radius:8px;border:0;min-width:260px}
+main{max-width:1280px;margin:0 auto;padding:16px 20px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:600}
+.btn.g{background:#fff;color:var(--brand-d)}
+.btn.s{padding:3px 9px;font-size:.85rem}
+input.t,select.t{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff}
+.muted{color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:12px}
+.tabs button{border:0;background:none;padding:9px 16px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button.on{color:var(--brand-d);border-color:var(--brand)}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:center;white-space:nowrap}
+th{background:#eef4f8;font-size:.85rem;position:sticky;top:0;z-index:1}
+td.l,th.l{text-align:left}
+.sc{cursor:pointer;min-width:34px;font-weight:700}
+.sc.full{background:var(--okb);color:#1d7a43}.sc.part{background:var(--part);color:var(--partc)}.sc.zero{background:var(--bad);color:var(--badc)}.sc.pend{background:var(--pend);color:#555}.sc.blank{background:#fafafa;color:#aaa}
+.tot{font-weight:800;background:#f7fbff}
+.badge{display:inline-block;border-radius:10px;padding:0 8px;font-size:.78rem;font-weight:700;background:var(--part);color:var(--partc);margin-left:4px}
+.badge.b{background:#e3f2fd;color:var(--brand-d)}
+.wrapx{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:8px}
+.qchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.qchips button{min-width:38px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;cursor:pointer;font-weight:700}
+.qchips button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.qchips button.has{box-shadow:inset 0 -3px 0 #e6a100}
+.bars .b{display:grid;grid-template-columns:34px 1fr 64px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #edf2f6}
+.bars .track{height:12px;background:#e9eff4;border-radius:6px;overflow:hidden}.bars .track i{display:block;height:100%;background:var(--ok)}
+.bars .track i.low{background:#d6453d}.bars .track i.mid{background:#e6a100}
+.bars small{display:block;color:var(--muted)}
+.ov{position:fixed;inset:0;background:rgba(20,40,60,.5);z-index:20;display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+.ov.show{display:flex}
+.md{background:#fff;border-radius:14px;padding:18px 20px;max-width:760px;width:100%}
+.qa{border-top:1px solid var(--line);padding:10px 0}
+.qa:first-child{border-top:0}
+.kv{display:grid;grid-template-columns:70px 1fr;gap:2px 10px;font-size:.93rem}
+.kv b{color:var(--muted);font-weight:600}
+.ctl{margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ctl button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 10px;cursor:pointer;font-weight:700}
+.ctl button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.ctl input{width:64px;padding:3px 6px;border:1px solid var(--line);border-radius:6px}
+.ans{white-space:pre-wrap;background:#f8fbfd;border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+#msg{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#243b53;color:#fff;border-radius:10px;padding:8px 16px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:40}
+#msg.show{opacity:1}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;text-align:center;color:var(--muted)}
+.drop.over{border-color:var(--brand);background:#eef7ff}
+.mono{font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;font-weight:700}
+@media print{header,.tabs,.noprint{display:none!important}.wrapx{max-height:none;overflow:visible}}
+</style>
+</head>
+<body>
+<header>
+  <h1>단원평가 채점</h1>
+  <select id="selTest"></select>
+  <span id="cnt" class="muted" style="color:#bcd"></span>
+</header>
+<main>
+  <div class="card noprint">
+    <details id="loader" open>
+      <summary>학생 답안 불러오기</summary>
+      <div class="row" style="margin-top:10px;align-items:stretch">
+        <div style="flex:1;min-width:300px">
+          <div style="font-weight:700;margin-bottom:6px">① 학생 제출 파일(.json)</div>
+          <div id="drop" class="drop">파일을 여기에 끌어다 놓거나 <label style="color:var(--brand-d);cursor:pointer;text-decoration:underline">선택<input id="fileIn" type="file" accept=".json,application/json" multiple hidden></label><br><span style="font-size:.85rem">여러 개를 한꺼번에 불러올 수 있어요</span></div>
+        </div>
+        <div style="flex:1;min-width:300px">
+          <div style="font-weight:700;margin-bottom:6px">② Supabase에서 불러오기 <span id="sbState" class="muted" style="font-weight:400"></span></div>
+          <div class="row">
+            <input id="sbEmail" class="t" placeholder="교사 이메일" autocomplete="username" style="width:180px">
+            <input id="sbPw" class="t" type="password" placeholder="비밀번호" autocomplete="current-password" style="width:130px">
+            <button id="btnLogin" class="btn g">로그인</button>
+            <button id="btnFetch" class="btn" disabled>불러오기</button>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="tabs noprint" id="tabs">
+    <button data-tab="matrix" class="on">결과표</button>
+    <button data-tab="byq">문항별 채점</button>
+    <button data-tab="stats">문항 분석</button>
+    <button data-tab="export">내보내기</button>
+  </div>
+  <div id="view"></div>
+</main>
+
+<div id="ov" class="ov"><div class="md" id="md"></div></div>
+<div id="msg"></div>
+
+<script>
+const TESTS = [{"id": "math-3-2-2-basic1", "subject": "수학", "grade": "3-2", "unit": "2. 나눗셈", "title": "나눗셈 (기본1)", "range": "교과서 35~62쪽 / 익힘책 25~44쪽", "scratchpad": true, "questions": [{"no": 1, "points": 4, "type": "short", "level": "하", "topic": "내림이 없는 (몇십)÷(몇)", "page": "38~39쪽", "stem": "수 모형을 보고 30÷3을 계산해 보세요.", "parts": [{"label": "30÷3 =", "answer": "10"}]}, {"no": 2, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "내림이 없는 (몇십)÷(몇)", "page": "38~39쪽", "stem": "꽃 50송이를 꽃병 5개에 똑같이 나누어 꽂으려고 합니다. 꽃병 한 개에 몇 송이씩 꽂아야 할까요?", "options": ["6송이", "7송이", "8송이", "9송이", "10송이"], "answer": [5]}, {"no": 3, "points": 5, "type": "short", "level": "중", "topic": "내림이 없는 (몇십몇)÷(몇)", "page": "40~41쪽", "stem": "빈 곳에 알맞은 수를 써넣으세요.", "parts": [{"label": "84 ÷ 2 =", "answer": "42"}]}, {"no": 4, "points": 5, "type": "short", "level": "중", "topic": "내림이 없는 (몇십몇)÷(몇)", "page": "40~41쪽", "stem": "㉠+㉡을 구해 보세요.", "passage": ["㉠ 69÷3", "㉡ 48÷4"], "parts": [{"label": "㉠+㉡ =", "answer": "35"}]}, {"no": 5, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "내림이 있는 (몇십)÷(몇)", "page": "42~43쪽", "stem": "구슬 60개를 4명에게 똑같이 나누어 주려고 합니다. 한 사람에게 몇 개씩 나누어 줄 수 있을까요?", "options": ["10개", "12개", "14개", "15개", "16개"], "answer": [4]}, {"no": 6, "points": 4, "type": "short", "level": "하", "topic": "내림이 있는 (몇십)÷(몇)", "page": "42~43쪽", "stem": "계산을 하세요.", "parts": [{"label": "(1) [[ldiv 2 90]] 의 몫 =", "answer": "45", "pts": 2}, {"label": "(2) [[ldiv 5 70]] 의 몫 =", "answer": "14", "pts": 2}], "partial": true, "rubric": "한 개만 맞으면 2점"}, {"no": 7, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "내림이 있는 (몇십몇)÷(몇)", "page": "44~45쪽", "stem": "몫이 나머지와 다른 하나는 어느 것인가요?", "options": ["84÷6", "98÷7", "42÷3", "65÷5", "56÷4"], "answer": [4]}, {"no": 8, "points": 6, "type": "work", "level": "상", "topic": "내림이 있는 (몇십몇)÷(몇)", "page": "44~45쪽", "stem": "길이가 48 cm인 철사를 겹치지 않게 모두 사용하여 변의 길이가 모두 같은 삼각형을 한 개 만들었습니다. 만든 삼각형의 한 변의 길이는 몇 cm인지 풀이 과정을 쓰고 답을 구하세요.", "processPts": 3, "answerPts": 3, "unit": "cm", "answer": "16", "rubric": "답만 맞으면 3점", "sample": "변의 길이가 모두 같은 삼각형의 한 변의 길이는 48÷3=16(cm)입니다. 답: 16"}, {"no": 9, "points": 5, "type": "symbol", "level": "중", "topic": "내림이 있는 (몇십몇)÷(몇)", "page": "44~45쪽", "stem": "몫의 크기를 비교하여 ○ 안에 >, =, < 중 알맞은 것을 써넣으세요.", "left": "56÷2", "right": "81÷3", "symbols": [">", "=", "<"], "answer": ">"}, {"no": 10, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "나머지가 있고 내림이 없는 (몇십몇)÷(몇)", "page": "46~47쪽", "stem": "어떤 수를 6으로 나누었을 때 나머지가 될 수 **없는** 수는 얼마일까요?", "options": ["2", "3", "4", "5", "6"], "answer": [5]}, {"no": 11, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "나머지가 있고 내림이 없는 (몇십몇)÷(몇)", "page": "46~47쪽", "stem": "사탕 75개를 한 봉지에 9개씩 담으려고 합니다. 몇 봉지에 담을 수 있고 몇 개가 남는지 바르게 짝지어진 것은 어느 것인가요?", "options": ["8봉지, 2개", "8봉지, 3개", "7봉지, 2개", "7봉지, 3개", "8봉지, 5개"], "answer": [2]}, {"no": 12, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "나머지가 있고 내림이 있는 (몇십몇)÷(몇)", "page": "48~49쪽", "stem": "나머지가 가장 큰 것은 어느 것인가요?", "options": ["76÷6", "85÷7", "95÷6", "62÷5", "89÷8"], "answer": [3]}, {"no": 13, "points": 5, "type": "match", "level": "중", "topic": "나머지가 있고 내림이 있는 (몇십몇)÷(몇)", "page": "48~49쪽", "stem": "나머지가 같은 것끼리 선으로 이어 보세요.", "left": ["47÷3", "55÷4", "64÷6"], "right": ["95÷7", "68÷5", "41÷3"], "answer": [[0, 2], [1, 1], [2, 0]]}, {"no": 14, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "계산이 맞는지 확인하기", "page": "50~51쪽", "stem": "바르게 계산한 사람은 누구인가요?", "options": ["현우: 58÷4=16⋯3", "도연: 78÷5=15⋯3", "지우: 63÷6=11⋯3"], "answer": [2]}, {"no": 15, "points": 5, "type": "work", "level": "상", "topic": "계산이 맞는지 확인하기", "page": "50~51쪽", "stem": "계산한 값이 맞는지 확인해 보려고 합니다. 풀이 과정을 쓰고 ‘맞습니다.’ 또는 ‘틀렸습니다.’로 답을 구하세요.", "passage": ["87÷5=17⋯4"], "processPts": 2, "answerPts": 3, "choices": ["맞습니다.", "틀렸습니다."], "answer": "틀렸습니다.", "rubric": "답만 맞으면 3점", "sample": "계산한 답이 맞는지 확인해 보면 5×17=85, 85+4=89이므로 계산이 틀렸습니다. 답: 틀렸습니다."}, {"no": 16, "points": 5, "type": "short", "level": "중", "topic": "나머지가 없는 (세 자리 수)÷(한 자리 수)", "page": "52~53쪽", "stem": "빈칸에 알맞은 수를 써넣으세요.", "parts": [{"label": "384 ÷ 4 =", "answer": "96"}, {"label": "384 ÷ 6 =", "answer": "64"}], "partial": false}, {"no": 17, "points": 5, "type": "choice", "pick": 1, "level": "중", "topic": "나머지가 없는 (세 자리 수)÷(한 자리 수)", "page": "52~53쪽", "stem": "사과 344개를 8상자에 똑같이 나누어 담으려고 합니다. 한 상자에 몇 개씩 담아야 할까요?", "options": ["43개", "44개", "45개", "46개", "47개"], "answer": [1]}, {"no": 18, "points": 4, "type": "short", "level": "하", "topic": "나머지가 없는 (세 자리 수)÷(한 자리 수)", "page": "52~53쪽", "stem": "계산을 하세요.", "parts": [{"label": "(1) 175÷5 =", "answer": "35", "pts": 2}, {"label": "(2) 259÷7 =", "answer": "37", "pts": 2}], "partial": true, "rubric": "한 개만 맞으면 2점"}, {"no": 19, "points": 6, "type": "choice", "pick": 0, "level": "중", "topic": "나머지가 있는 (세 자리 수)÷(한 자리 수)", "page": "54~55쪽", "stem": "286÷6에 대해 바르게 설명한 것을 **모두** 고르세요.", "options": ["나누어떨어집니다.", "몫은 46입니다.", "나머지는 4입니다.", "몫은 두 자리 수입니다.", "나머지는 없습니다."], "answer": [3, 4]}, {"no": 20, "points": 6, "type": "short", "level": "중", "topic": "나머지가 있는 (세 자리 수)÷(한 자리 수)", "page": "54~55쪽", "stem": "어떤 수를 8로 나누었더니 몫이 14이고 나머지가 6이었습니다. 어떤 수를 구해 보세요.", "parts": [{"label": "어떤 수 =", "answer": "118"}]}]}, {"id": "soc-3-2-1-1", "subject": "사회", "grade": "3-2", "unit": "1. 사회 변화와 다양한 문화", "title": "(1) 사회 변화로 달라진 생활 모습 (2회)", "range": "교과서 12~33쪽", "scratchpad": false, "questions": [{"no": 1, "points": 10, "type": "choice", "pick": 1, "topic": "사회 변화의 원인", "page": "14쪽", "stem": "다음과 같이 오늘날 우리 사회가 변화한 원인으로 알맞은 것은 어느 것입니까?", "passage": ["주민 1: 노인 복지관이 한 곳 더 생겼네요.", "주민 2: 옆 동네에도 새로 생겼더라고요."], "options": ["사람 수의 변화", "평균 수명의 증가", "과학 기술의 발달", "사람들의 생각 변화", "다른 나라와의 교류"], "answer": [2]}, {"no": 2, "points": 10, "type": "choice", "pick": 1, "topic": "저출산의 원인", "page": "16쪽", "stem": "다음 빈칸에 들어갈 말로 알맞은 것은 어느 것입니까?", "passage": ["오늘날에는 결혼하지 않거나 결혼하더라도 아이를 낳아 기르는 것에 부담을 느끼는 사람이 많아지면서 [　　　　] 현상이 나타나고 있습니다."], "options": ["고령화", "도시화", "저출산", "세계화", "지능정보화"], "answer": [3]}, {"no": 3, "points": 10, "type": "choice", "pick": 1, "topic": "저출산 문제 해결 방법", "page": "17쪽", "stem": "저출산으로 나타나는 문제를 해결하기 위한 노력으로 알맞은 것은 어느 것입니까?", "options": ["안전한 보육 시설을 만들고 운영한다.", "자녀가 많은 가정에 벌금을 내게 한다.", "자녀를 키우기 위해 쉬는 제도를 없앤다.", "아이를 키우는 데 큰돈이 들어가게 만든다.", "부모와 아이가 함께 지내는 시간을 줄일 수 있도록 돕는다."], "answer": [1]}, {"no": 4, "points": 10, "type": "ox", "topic": "고령화로 달라진 생활 모습", "page": "19쪽", "stem": "고령화로 달라진 생활 모습으로 알맞은 것에 ○표 하시오.", "items": ["(1) 사회 곳곳에서 일하는 노인의 모습을 찾아볼 수 있습니다.", "(2) 문을 닫는 노인 전문 병원이나 요양 시설이 늘어나고 있습니다."], "answer": [true, false]}, {"no": 5, "points": 10, "type": "written", "topic": "고령화에 대비하기 위한 노력", "page": "20쪽", "stem": "고령화에 대비하기 위해 사회에서 하는 노력을 두 가지 쓰시오.", "inputs": 2, "scoreSteps": [10, 5, 0], "rubric": "고령화에 대비하기 위한 우리 사회의 노력을 두 가지 썼으면 정답으로 처리한다.", "sample": "노인의 건강하고 안정적인 생활을 돕는 다양한 복지 제도를 운영한다. / 노인들에게 알맞은 일자리를 제공한다. / 노인을 대상으로 하는 다양한 물건을 개발한다. / 노인이 되어 지내게 될 생활을 미리 준비하도록 지원한다. 등"}, {"no": 6, "points": 10, "type": "choice", "pick": 1, "topic": "정보 통신 기술의 발달로 달라진 생활 모습", "page": "21쪽", "stem": "정보 통신 기술을 활용한 경험을 바르게 말한 사람은 누구입니까?", "options": ["채윤: 친구와 편지를 주고받았어.", "시후: 공원에서 자전거를 타고 놀았어.", "연우: 모르는 것을 부모님께 여쭤봤어.", "지민: 동생과 도서관에 가서 책을 읽었어.", "우진: 가상 현실(VR) 기기를 이용해 놀았어."], "answer": [5]}, {"no": 7, "points": 10, "type": "choice", "pick": 1, "topic": "정보 통신 기술의 발달과 지능정보화로 나타난 문제", "page": "24쪽", "stem": "정보 통신 기술의 발달과 지능정보화로 나타난 문제로 **볼 수 없는** 것은 어느 것입니까?", "options": ["사이버 범죄", "일자리 감소", "거짓 정보 확산", "초등학교 폐교 증가", "인터넷·스마트폰 과의존"], "answer": [4]}, {"no": 8, "points": 10, "type": "choice", "pick": 2, "labelStyle": "sym", "topic": "정보 통신 기술의 발달과 지능정보화로 나타난 문제를 해결하기 위한 노력", "page": "25쪽", "stem": "다음 <보기>에서 정보 통신 기술의 발달과 지능정보화의 단점을 보완하기 위한 노력으로 알맞은 것을 **두 가지** 찾아 기호를 쓰시오.", "box": ["㉠ 사이버 범죄를 감시합니다.", "㉡ 자신의 개인 정보를 널리 공유합니다.", "㉢ 인터넷에 있는 정보를 무조건 믿습니다.", "㉣ 인공지능을 활용할 수 있는 능력을 기릅니다."], "options": ["사이버 범죄를 감시합니다.", "자신의 개인 정보를 널리 공유합니다.", "인터넷에 있는 정보를 무조건 믿습니다.", "인공지능을 활용할 수 있는 능력을 기릅니다."], "answer": [1, 4]}, {"no": 9, "points": 10, "type": "choice", "pick": 1, "topic": "세계화로 달라진 생활 모습", "page": "27쪽", "stem": "다음과 같은 일들이 가능해진 이유는 무엇입니까?", "passage": ["다른 나라에서 만든 영화를 볼 수 있습니다.", "다른 나라에서 온 식품, 물건을 살 수 있습니다.", "학교에서 영어와 세계 여러 나라에 관한 내용을 배울 수 있습니다."], "options": ["인구가 감소했기 때문이다.", "의학이 발달했기 때문이다.", "인공지능 기술이 발달했기 때문이다.", "태어나는 아이의 수가 크게 늘었기 때문이다.", "세계 여러 나라가 다양한 분야에서 교류하고 있기 때문이다."], "answer": [5]}, {"no": 10, "points": 10, "type": "choice", "pick": 2, "topic": "세계화로 나타나는 사회 변화에 대응하기 위한 노력", "page": "29쪽", "stem": "세계화로 나타나는 사회 변화에 대응하기 위해 갖추어야 할 태도로 알맞은 것을 **두 가지** 고르시오.", "options": ["세계 여러 나라의 문제를 모른 척한다.", "다른 나라와의 교류를 무조건 반대한다.", "우리나라의 생활 양식을 소중히 여긴다.", "다른 나라의 생활 양식을 무조건 따른다.", "세계 여러 나라의 문제를 함께 해결하려고 노력하는 자세를 갖는다."], "answer": [3, 5]}]}, {"id": "soc-3-2-1-2", "subject": "사회", "grade": "3-2", "unit": "1. 사회 변화와 다양한 문화", "title": "(2) 다양한 문화에 대한 이해와 존중 (2회)", "range": "교과서 34~55쪽", "scratchpad": false, "questions": [{"no": 1, "points": 10, "type": "choice", "pick": 1, "topic": "문화의 의미 및 특성", "page": "35-36쪽", "stem": "문화에 대한 설명으로 알맞지 **않은** 것은 어느 것입니까?", "options": ["오랫동안 전해져 내려오기도 한다.", "사람들이 함께 생활하면서 만들어진다.", "환경에 상관없이 사회나 지역마다 똑같다.", "의식주, 말, 글, 음악, 미술, 종교 등이 있다.", "한 사회의 사람들이 지닌 공통의 생활 양식이다."], "answer": [3]}, {"no": 2, "points": 10, "type": "ox", "topic": "문화의 특성", "page": "35쪽", "stem": "사람들이 하는 행동 중 문화인 것에 ○표 하시오.", "items": ["(1) 배가 고파서 음식을 먹습니다.", "(2) 포크와 나이프로 음식을 먹습니다.", "(3) 숟가락과 젓가락으로 음식을 먹습니다."], "answer": [false, true, true]}, {"no": 3, "points": 10, "type": "choice", "pick": 1, "topic": "외국인 이주민의 연도별 수 변화", "page": "40쪽", "stem": "다음 그래프를 통해 알 수 있는 사실로 알맞은 것은 어느 것입니까?", "caption": "▲ 우리나라의 외국인 이주민 수", "options": ["2009년 이전에는 외국인 이주민이 없었다.", "우리나라의 외국인 이주민 수가 늘고 있다.", "우리나라의 외국인 이주민 수가 줄고 있다.", "2009년 외국인 이주민 수는 141만 명이다.", "2021년 외국인 이주민 수는 205만 명이다."], "answer": [2]}, {"no": 4, "points": 10, "type": "choice", "pick": 2, "topic": "1인 가구 증가의 원인", "page": "41쪽", "stem": "오늘날 1인 가구가 늘어나고 있는 까닭을 **두 가지** 고르시오.", "options": ["고령화의 영향 때문에", "교통수단의 발달 때문에", "인공지능의 발달 때문에", "정보 통신 기술의 발달 때문에", "결혼에 관한 생각의 변화 때문에"], "answer": [1, 5]}, {"no": 5, "points": 10, "type": "choice", "pick": 1, "topic": "반려동물과 함께 사는 사람의 증가로 나타나는 긍정적 효과", "page": "45쪽", "stem": "반려동물과 함께 사는 사람이 증가하면서 나타난 긍정적 효과는 무엇입니까?", "options": ["다른 나라의 말을 배울 수 있다.", "새로운 정보를 빠르게 얻을 수 있다.", "결혼을 하는 사람들이 늘어나고 있다.", "세계 여러 나라의 문화를 경험할 수 있다.", "반려동물과 관련 있는 직업이 늘어나고 있다."], "answer": [5]}, {"no": 6, "points": 10, "type": "choice", "pick": 1, "topic": "다양한 문화가 확산되면서 나타나는 긍정적 효과", "page": "43-45쪽", "stem": "다음 <보기>에서 우리 사회에 다양한 문화가 확산되면서 나타나는 긍정적인 효과로 알맞은 것을 두 가지 고른 것은 어느 것입니까?", "box": ["㉠ 다양한 문화를 누릴 수 있게 되었습니다.", "㉡ 우리와 다른 문화를 거부하게 되었습니다.", "㉢ 다른 나라 문화만 소중히 여기게 되었습니다.", "㉣ 누리고 선택할 수 있는 문화가 많아져 일상생활이 더욱 풍요로워졌습니다."], "options": ["㉠, ㉡", "㉠, ㉣", "㉡, ㉢", "㉡, ㉣", "㉢, ㉣"], "answer": [2]}, {"no": 7, "points": 10, "type": "written", "topic": "다양한 문화의 확산으로 나타난 문제", "page": "46쪽", "stem": "다음과 같은 문제가 발생하는 까닭을 쓰시오.", "passage": ["고기를 먹지 않는 것은 옳지 않아.", "종교적인 이유로 고기를 먹지 않는 것을 비난합니다."], "inputs": 1, "scoreSteps": [10, 5, 0], "rubric": "종교가 다르다는 이유로 부당한 대우를 하는 까닭을 썼으면 정답으로 처리한다.", "sample": "다른 종교를 가진 사람의 행동을 이해하지 않고 존중하지도 않기 때문이다. / 내가 생각하는 것이 무조건 옳다고 믿기 때문이다. / 낯선 문화에 대한 편견과 차별 때문이다. 등"}, {"no": 8, "points": 10, "type": "choice", "pick": 0, "labelStyle": "sym", "topic": "다양한 문화를 대하는 바람직한 태도", "page": "49쪽", "stem": "다음 <보기>에서 다양한 문화가 존중받는 사회를 만들기 위한 실천 약속으로 알맞은 것을 찾아 기호를 쓰시오.", "box": ["㉠ 다른 문화를 이해하려고 노력하지 않습니다.", "㉡ 다른 문화의 사람들이 겪는 어려움에 관심을 갖습니다.", "㉢ 다른 문화에 대한 편견을 갖지 않고 차별하지 않습니다.", "㉣ 우리 문화는 매우 뛰어나고, 다른 문화는 그렇지 않다고 생각합니다."], "options": ["다른 문화를 이해하려고 노력하지 않습니다.", "다른 문화의 사람들이 겪는 어려움에 관심을 갖습니다.", "다른 문화에 대한 편견을 갖지 않고 차별하지 않습니다.", "우리 문화는 매우 뛰어나고, 다른 문화는 그렇지 않다고 생각합니다."], "answer": [2, 3]}, {"no": 9, "points": 10, "type": "choice", "pick": 1, "topic": "다양한 문화의 확산으로 나타난 문제를 해결하기 위한 노력", "page": "50-51쪽", "stem": "다음과 관련 있는 기관은 무엇입니까?", "passage": ["편견과 차별을 막는 일을 하는 기관입니다."], "options": ["보건소", "도서관", "소방서", "우체국", "국가 인권 위원회"], "answer": [5]}, {"no": 10, "points": 10, "type": "choice", "pick": 1, "topic": "다양한 문화의 확산으로 나타난 문제를 해결하기 위한 노력", "page": "50-51쪽", "stem": "다양한 문화의 확산으로 나타난 문제를 해결하기 위한 노력을 바르게 말하지 **못한** 사람은 누구입니까?", "options": ["민우: 학교에서 다문화 이해 교육을 해.", "태윤: 한국어에 서툰 외국인을 위해 의사소통을 지원해.", "시후: 혼자 사는 사람들이 안전한 환경에서 살 수 있도록 지원해.", "채이: 반려견의 자유가 보장되도록 산책할 때 목줄을 채우지 않아.", "다은: 세계 여러 나라의 문화를 이해하고 체험할 수 있는 행사를 열어."], "answer": [4]}]}];
+const CFG = {"supabaseUrl": "https://erzdvlcbjneabxqwnwfy.supabase.co", "supabaseAnonKey": "sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz", "table": "unit_test_submissions", "classManageTable": "class-manage", "cmGood": 90, "cmMid": 70, "classLabel": "3학년 2반"};
+
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CIRC='①②③④⑤⑥⑦⑧⑨⑩', SYM='㉠㉡㉢㉣㉤㉥';
+const plain = s => String(s).replace(/\*\*/g,'').replace(/\[\[ldiv (\d+) (\d+)\]\]/g,'$1)$2');
+const num = x => Number.isInteger(x)?String(x):String(Math.round(x*10)/10);
+
+let cur = TESTS[0].id, subs = [], tab = 'matrix', qsel = 1, token = null;
+const test = () => TESTS.find(t=>t.id===cur);
+const LS = 'ut-manual-v1';
+function lsGet(){ try{return JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){return {};} }
+function lsSet(o){ try{localStorage.setItem(LS,JSON.stringify(o));}catch(e){} }
+function msg(t){ const m=$('#msg'); m.textContent=t; m.classList.add('show'); clearTimeout(msg.t); msg.t=setTimeout(()=>m.classList.remove('show'),2600); }
+
+/* ---------- 채점 ---------- */
+function normNum(s){ const m = String(s??'').normalize('NFKC').replace(/[\s,]/g,'').match(/-?\d+(\.\d+)?/); return m?Number(m[0]):null; }
+function sameText(a,b){ const f=s=>String(s??'').normalize('NFKC').replace(/\s/g,''); return f(a)===f(b); }
+function sameVal(student, key){ const kn = normNum(key); if(kn!==null && /^-?\d/.test(String(key))) return normNum(student)===kn; return sameText(student,key); }
+function isAnswered(q,a){
+  switch(q.type){
+    case 'choice': return Array.isArray(a)&&a.length>0;
+    case 'ox': return Array.isArray(a);
+    case 'short': return Array.isArray(a)&&a.some(v=>String(v||'').trim()!=='');
+    case 'symbol': return !!a;
+    case 'match': return Array.isArray(a)&&a.length>0;
+    case 'written': return Array.isArray(a)&&a.some(v=>String(v||'').trim()!=='');
+    case 'work': return !!a&&(String(a.process||'').trim()!==''||String(a.answer||'').trim()!=='');
+  }
+  return false;
+}
+function gradeQ(sub,q){
+  const a = sub.answers[q.no], max = q.points, man = sub.manual||{m:{},o:{}};
+  const blank = !isAnswered(q,a);
+  let auto = 0, pending = false, autoMax = max;
+  switch(q.type){
+    case 'choice': { const s=(a||[]).slice().sort((x,y)=>x-y), k=q.answer.slice().sort((x,y)=>x-y); auto = (s.length===k.length&&s.every((v,i)=>v===k[i]))?max:0; break; }
+    case 'ox': auto = (Array.isArray(a)&&q.answer.every((v,i)=>!!a[i]===v))?max:0; break;
+    case 'short': {
+      const per = q.parts.map((p,i)=>sameVal((a||[])[i],p.answer));
+      if(q.partial) auto = q.parts.reduce((s,p,i)=>s+(per[i]?(p.pts??max/q.parts.length):0),0);
+      else auto = per.every(Boolean)?max:0;
+      break; }
+    case 'symbol': auto = a===q.answer?max:0; break;
+    case 'match': { const k=q.answer.map(p=>p.join('-')).sort().join(','), s=(a||[]).map(p=>p.join('-')).sort().join(','); auto = (a&&a.length===q.answer.length&&k===s)?max:0; break; }
+    case 'written': auto = 0; pending = true; break;
+    case 'work': {
+      const ok = a && (q.choices ? sameText(a.answer,q.answer) : sameVal(a.answer,q.answer));
+      auto = ok?q.answerPts:0; pending = true; break; }
+  }
+  let score = auto;
+  if(q.type==='written'){ const v = man.m[q.no]; if(v!=null){score=v;pending=false;} else score=0; }
+  else if(q.type==='work'){ const v = man.m[q.no]; if(v!=null){score=auto+v;pending=false;} }
+  if(man.o[q.no]!=null){ score = man.o[q.no]; pending = false; }
+  // 빈 답안은 서술형·풀이도 미채점이 아니라 0점으로 처리
+  if(blank && man.m[q.no]==null && man.o[q.no]==null){ pending=false; score=0; }
+  const state = blank && score===0 ? 'blank' : pending ? 'pend' : score>=max ? 'full' : score>0 ? 'part' : 'zero';
+  return {score, max, auto, pending, blank, state};
+}
+function studentTotal(sub){
+  const t = test(); let s=0, p=0;
+  t.questions.forEach(q=>{ const g=gradeQ(sub,q); s+=g.score; if(g.pending) p++; });
+  return {score:s, pending:p};
+}
+
+/* ---------- 표시용 변환 ---------- */
+function fmtAns(q,a){
+  if(!isAnswered(q,a)) return '(무응답)';
+  const lab = i => q.labelStyle==='sym'?SYM[i-1]:CIRC[i-1];
+  switch(q.type){
+    case 'choice': return a.map(i=>lab(i)+(q.labelStyle==='sym'||!q.options[i-1]?'':' '+plain(q.options[i-1]))).join(', ');
+    case 'ox': return q.items.map((_,i)=>'('+(i+1)+') '+(a[i]?'○':'—')).join('  ');
+    case 'short': return q.parts.map((p,i)=>(q.parts.length>1?'('+(i+1)+') ':'')+((a[i]||'').trim()||'—')).join('   ');
+    case 'symbol': return a;
+    case 'match': return a.map(p=>q.left[p[0]]+' ↔ '+q.right[p[1]]).join('\n');
+    case 'written': return a.map((v,i)=>(q.inputs>1?CIRC[i]+' ':'')+(v||'—')).join('\n');
+    case 'work': return '풀이: '+(a.process||'—')+'\n답: '+(a.answer||'—')+(q.unit&&a.answer?' '+q.unit:'');
+  }
+}
+function fmtKey(q){
+  const lab = i => q.labelStyle==='sym'?SYM[i-1]:CIRC[i-1];
+  switch(q.type){
+    case 'choice': return q.answer.map(i=>lab(i)+(q.labelStyle==='sym'?'':' '+plain(q.options[i-1]))).join(', ');
+    case 'ox': return q.items.map((_,i)=>'('+(i+1)+') '+(q.answer[i]?'○':'—')).join('  ');
+    case 'short': return q.parts.map((p,i)=>(q.parts.length>1?'('+(i+1)+') ':'')+p.answer).join('   ');
+    case 'symbol': return q.answer;
+    case 'match': return q.answer.map(p=>q.left[p[0]]+' ↔ '+q.right[p[1]]).join('\n');
+    case 'written': return q.sample||'';
+    case 'work': return '답: '+q.answer+(q.unit?' '+q.unit:'')+(q.sample?'\n'+q.sample:'');
+  }
+}
+
+/* ---------- 데이터 ---------- */
+function subKey(s){ return [s.test_id,s.student_no,s.submitted_at].join('|'); }
+function normalize(o, src){
+  if(!o || !o.test_id || o.student_no==null || !o.answers) return null;
+  const meta = o.meta||{};
+  const s = {src, id:o.id, test_id:o.test_id, student_no:+o.student_no, student_name:o.student_name||'', answers:o.answers,
+    submitted_at:o.submitted_at||meta.submitted_at||o.created_at||'', duration:o.duration_sec??meta.duration_sec};
+  s.key = subKey(s);
+  s.synced = !!o.class_manage_synced_at || !!cmSynced()[s.key];
+  const local = lsGet()[s.key];
+  const remote = o.manual_scores && (Object.keys(o.manual_scores.m||{}).length||Object.keys(o.manual_scores.o||{}).length) ? o.manual_scores : null;
+  s.manual = remote || local || {m:{},o:{}};
+  s.manual.m = s.manual.m||{}; s.manual.o = s.manual.o||{};
+  return s;
+}
+function addSubs(list, src){
+  let n=0;
+  list.forEach(o=>{ const s=normalize(o,src); if(!s) return; const i=subs.findIndex(x=>x.key===s.key); if(i>=0) subs[i]=s; else subs.push(s); n++; });
+  return n;
+}
+function latest(){
+  const m = new Map();
+  subs.filter(s=>s.test_id===cur).forEach(s=>{
+    const k=String(s.student_no), e=m.get(k);
+    if(!e) m.set(k,{sub:s,n:1}); else { e.n++; if(s.submitted_at>e.sub.submitted_at) e.sub=s; }
+  });
+  return [...m.values()].sort((a,b)=>a.sub.student_no-b.sub.student_no).map(e=>Object.assign(e.sub,{redo:e.n-1}));
+}
+async function readFiles(files){
+  let n=0;
+  for(const f of files){
+    try{ const j = JSON.parse(await f.text()); n += addSubs(Array.isArray(j)?j:[j],'file'); }catch(e){ msg(f.name+': 읽을 수 없는 파일이에요'); }
+  }
+  const first = subs.find(s=>TESTS.some(t=>t.id===s.test_id) && !subs.some(x=>x.test_id===cur));
+  if(first){ cur=first.test_id; $('#selTest').value=cur; }
+  msg(n+'건 불러왔어요'); render();
+}
+$('#fileIn').onchange = e=>readFiles(e.target.files);
+const drop=$('#drop');
+['dragover','dragenter'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>readFiles(e.dataTransfer.files));
+
+/* Supabase */
+const sbOK = () => CFG.supabaseUrl && CFG.supabaseAnonKey;
+function sbBase(){ return CFG.supabaseUrl.replace(/\/$/,''); }
+if(!sbOK()){ $('#sbState').textContent='(설정 필요: config.json)'; $('#btnLogin').disabled=true; }
+$('#btnLogin').onclick = async ()=>{
+  try{
+    const r = await fetch(sbBase()+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:CFG.supabaseAnonKey,'Content-Type':'application/json'},body:JSON.stringify({email:$('#sbEmail').value.trim(),password:$('#sbPw').value})});
+    const j = await r.json(); if(!r.ok||!j.access_token) throw new Error(j.error_description||j.msg||r.status);
+    token=j.access_token; $('#sbState').textContent='● 로그인됨'; $('#btnFetch').disabled=false; $('#sbPw').value=''; msg('로그인했어요');
+  }catch(e){ msg('로그인 실패: '+e.message); }
+};
+$('#btnFetch').onclick = async ()=>{
+  try{
+    const r = await fetch(sbBase()+'/rest/v1/'+CFG.table+'?test_id=eq.'+encodeURIComponent(cur)+'&select=*&order=created_at.asc&limit=2000',{headers:{apikey:CFG.supabaseAnonKey,Authorization:'Bearer '+token}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const rows = await r.json(); const n = addSubs(rows,'supabase'); msg(n+'건 불러왔어요'); render();
+  }catch(e){ msg('불러오기 실패: '+e.message); }
+};
+async function pushManual(sub){
+  const all = lsGet(); all[sub.key]=sub.manual; lsSet(all);
+  if(sub.src==='supabase' && sub.id && token){
+    try{ const r = await fetch(sbBase()+'/rest/v1/'+CFG.table+'?id=eq.'+sub.id,{method:'PATCH',headers:{apikey:CFG.supabaseAnonKey,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({manual_scores:sub.manual})}); if(!r.ok) throw new Error(r.status); }
+    catch(e){ msg('서버 저장 실패(이 기기에는 저장됨)'); }
+  }
+}
+function setScore(sub,q,kind,val){
+  const bag = sub.manual[kind]; if(val==null||val==='') delete bag[q.no]; else bag[q.no]=Number(val);
+  pushManual(sub);
+}
+
+/* ---------- 화면 ---------- */
+function scCell(sub,q){
+  const g = gradeQ(sub,q);
+  const txt = g.state==='pend' ? '?' : g.state==='blank' ? '–' : num(g.score);
+  return '<td class="sc '+g.state+'" data-open="'+esc(sub.key)+'" data-q="'+q.no+'" title="'+esc(plain(q.topic||''))+'">'+txt+'</td>';
+}
+function viewMatrix(){
+  const t = test(), L = latest();
+  if(!L.length) return '<div class="card muted">아직 불러온 답안이 없어요. 위에서 학생 파일을 불러오거나 Supabase에서 가져오세요.</div>';
+  const tot = t.questions.reduce((s,q)=>s+q.points,0);
+  let h = '<div class="wrapx"><table><thead><tr><th>번호</th><th class="l">이름</th>'+t.questions.map(q=>'<th>'+q.no+'<br><span class="muted">'+q.points+'</span></th>').join('')+'<th>총점<br><span class="muted">/'+tot+'</span></th><th>제출</th></tr></thead><tbody>';
+  L.forEach(s=>{
+    const T = studentTotal(s);
+    h += '<tr><td>'+s.student_no+'</td><td class="l"><a href="#" data-stu="'+esc(s.key)+'" style="color:var(--brand-d);font-weight:700;text-decoration:none">'+esc(s.student_name)+'</a>'+(s.redo?'<span class="badge b" title="재제출 있음, 마지막 제출을 사용">재제출 '+s.redo+'</span>':'')+'</td>'
+      + t.questions.map(q=>scCell(s,q)).join('')
+      + '<td class="tot mono">'+num(T.score)+(T.pending?'<span class="badge">미채점 '+T.pending+'</span>':'')+'</td>'
+      + '<td class="muted" style="font-size:.8rem">'+esc((s.submitted_at||'').slice(5,16).replace('T',' '))+'</td></tr>';
+  });
+  const avg = L.reduce((s,x)=>s+studentTotal(x).score,0)/L.length;
+  h += '</tbody><tfoot><tr><td colspan="2" class="l"><b>정답률</b></td>'+t.questions.map(q=>{ const r=L.reduce((s,x)=>s+gradeQ(x,q).score,0)/(L.length*q.points); return '<td class="mono" style="font-size:.8rem">'+Math.round(r*100)+'%</td>'; }).join('')+'<td class="tot mono">'+num(avg)+'</td><td>평균</td></tr></tfoot></table></div>';
+  return h + '<p class="muted">칸을 누르면 학생 답과 정답을 비교하고 점수를 고칠 수 있어요. 회색 “?”는 교사가 채점해야 하는 문항, “–”는 무응답입니다.</p>';
+}
+
+function ctlHtml(sub,q,g){
+  const man = sub.manual;
+  if(q.type==='written'){
+    return '<div class="ctl"><span class="muted">서술형 점수</span>'+q.scoreSteps.map(v=>'<button class="'+(man.m[q.no]===v?'on':'')+'" data-set="m" data-sub="'+esc(sub.key)+'" data-q="'+q.no+'" data-v="'+v+'">'+v+'</button>').join('')
+      +'<input type="number" step="0.5" min="0" max="'+q.points+'" placeholder="직접" data-setin="m" data-sub="'+esc(sub.key)+'" data-q="'+q.no+'" value="'+(man.m[q.no]!=null&&!q.scoreSteps.includes(man.m[q.no])?man.m[q.no]:'')+'"></div>';
+  }
+  if(q.type==='work'){
+    const opts=[]; for(let v=0;v<=q.processPts;v++) opts.push(v);
+    return '<div class="ctl"><span class="muted">풀이 과정 점수 (답 '+num(g.auto)+'점 자동)</span>'+opts.map(v=>'<button class="'+(man.m[q.no]===v?'on':'')+'" data-set="m" data-sub="'+esc(sub.key)+'" data-q="'+q.no+'" data-v="'+v+'">'+v+'</button>').join('')+'</div>';
+  }
+  return '<div class="ctl"><span class="muted">점수 조정</span><input type="number" step="0.5" min="0" max="'+q.points+'" placeholder="'+num(g.auto)+'" data-setin="o" data-sub="'+esc(sub.key)+'" data-q="'+q.no+'" value="'+(man.o[q.no]!=null?man.o[q.no]:'')+'">'+(man.o[q.no]!=null?'<button data-set="o" data-sub="'+esc(sub.key)+'" data-q="'+q.no+'" data-v="">자동으로</button>':'')+'</div>';
+}
+function qaHtml(sub,q){
+  const g = gradeQ(sub,q);
+  return '<div class="qa" id="qa'+q.no+'"><div class="row" style="justify-content:space-between"><b>'+q.no+'번 <span class="muted" style="font-weight:400">'+esc(plain(q.topic||''))+' · '+esc(q.page||'')+'</span></b><span class="sc '+g.state+'" style="padding:2px 10px;border-radius:8px;cursor:default">'+(g.state==='pend'?'미채점':num(g.score))+' / '+q.points+'</span></div>'
+    +'<div style="margin:4px 0">'+esc(plain(q.stem))+'</div>'
+    +'<div class="kv"><b>학생 답</b><div class="ans">'+esc(fmtAns(q,sub.answers[q.no]))+'</div><b>정답</b><div class="ans">'+esc(fmtKey(q))+'</div>'+(q.rubric?'<b>채점 기준</b><div>'+esc(q.rubric)+'</div>':'')+'</div>'
+    +ctlHtml(sub,q,g)+'</div>';
+}
+function openStudent(key,qno){
+  const sub = subs.find(s=>s.key===key); if(!sub) return;
+  const t = test(), T = studentTotal(sub);
+  $('#md').innerHTML = '<div class="row" style="justify-content:space-between"><h3 style="margin:0">'+sub.student_no+'번 '+esc(sub.student_name)+' <span class="muted" style="font-weight:400">'+num(T.score)+'점'+(T.pending?' · 미채점 '+T.pending:'')+'</span></h3><button class="btn g" id="mdClose">닫기</button></div>'
+    +(sub.duration!=null?'<div class="muted">풀이 시간 약 '+Math.round(sub.duration/60)+'분</div>':'')
+    +t.questions.map(q=>qaHtml(sub,q)).join('');
+  $('#ov').classList.add('show'); $('#md').dataset.key=key;
+  if(qno){ const el=$('#qa'+qno); if(el) el.scrollIntoView({block:'start'}); }
+}
+function refreshModal(){ if($('#ov').classList.contains('show')){ const key=$('#md').dataset.key, st=$('#ov').scrollTop; openStudent(key); $('#ov').scrollTop=st; } }
+
+function viewByQ(){
+  const t = test(), L = latest(); if(!L.length) return '<div class="card muted">아직 불러온 답안이 없어요.</div>';
+  const q = t.questions.find(x=>x.no===qsel)||t.questions[0];
+  const pendQ = new Set(t.questions.filter(x=>L.some(s=>gradeQ(s,x).pending)).map(x=>x.no));
+  let h = '<div class="qchips">'+t.questions.map(x=>'<button class="'+(x.no===q.no?'on ':'')+(pendQ.has(x.no)?'has':'')+'" data-q="'+x.no+'">'+x.no+'</button>').join('')+'</div>';
+  h += '<div class="card"><b>'+q.no+'번</b> '+esc(plain(q.stem))+'<div class="kv" style="margin-top:6px"><b>정답</b><div class="ans">'+esc(fmtKey(q))+'</div>'+(q.rubric?'<b>채점 기준</b><div>'+esc(q.rubric)+'</div>':'')+'</div></div>';
+  h += '<div class="wrapx"><table><thead><tr><th>번호</th><th class="l">이름</th><th class="l">학생 답</th><th>점수</th><th class="l">채점</th></tr></thead><tbody>';
+  L.forEach(s=>{ const g=gradeQ(s,q);
+    h += '<tr><td>'+s.student_no+'</td><td class="l">'+esc(s.student_name)+'</td><td class="l" style="white-space:pre-wrap;max-width:420px">'+esc(fmtAns(q,s.answers[q.no]))+'</td><td class="sc '+g.state+'" style="cursor:default">'+(g.state==='pend'?'?':num(g.score))+'</td><td class="l">'+ctlHtml(s,q,g).replace('class="ctl"','class="ctl" style="margin:0"')+'</td></tr>'; });
+  return h+'</tbody></table></div>';
+}
+
+function viewStats(){
+  const t = test(), L = latest(); if(!L.length) return '<div class="card muted">아직 불러온 답안이 없어요.</div>';
+  const rows = t.questions.map(q=>{
+    const gs = L.map(s=>gradeQ(s,q)); const r = gs.reduce((s,g)=>s+g.score,0)/(L.length*q.points);
+    const full = gs.filter(g=>g.state==='full').length;
+    let dist = '';
+    if(q.type==='choice'){ const c={}; L.forEach(s=>(s.answers[q.no]||[]).forEach(i=>c[i]=(c[i]||0)+1));
+      const lab=i=>q.labelStyle==='sym'?SYM[i-1]:CIRC[i-1];
+      dist = '<small>선택: '+q.options.map((_,i)=>(q.answer.includes(i+1)?'<b>':'')+lab(i+1)+' '+(c[i+1]||0)+(q.answer.includes(i+1)?'</b>':'')).join(' · ')+'</small>'; }
+    return '<div class="b"><b>'+q.no+'</b><div>'+esc(plain(q.topic||plain(q.stem)))+' <span class="muted">('+esc(q.page||'')+(q.level?' · '+q.level:'')+')</span>'+dist+'<div class="track"><i class="'+(r<.5?'low':r<.8?'mid':'')+'" style="width:'+Math.round(r*100)+'%"></i></div></div><span class="mono"><b>'+Math.round(r*100)+'%</b><small>만점 '+full+'/'+L.length+'</small></span></div>'; });
+  const totals = L.map(s=>studentTotal(s).score), max = t.questions.reduce((s,q)=>s+q.points,0);
+  return '<div class="card row"><div><b>응시</b> '+L.length+'명</div><div><b>평균</b> '+num(totals.reduce((a,b)=>a+b,0)/L.length)+' / '+max+'</div><div><b>최고</b> '+num(Math.max(...totals))+'</div><div><b>최저</b> '+num(Math.min(...totals))+'</div></div><div class="card bars">'+rows.join('')+'</div><p class="muted">막대는 문항별 득점률입니다. 50% 미만 빨강, 80% 미만 노랑.</p>';
+}
+
+function csvEsc(v){ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function saveCsv(name, rows){
+  const blob = new Blob(['﻿'+rows.map(r=>r.map(csvEsc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+function exportScores(){
+  const t=test(), L=latest();
+  const rows=[['번호','이름',...t.questions.map(q=>q.no+'번'),'총점','미채점 문항수']];
+  L.forEach(s=>{ const T=studentTotal(s); rows.push([s.student_no,s.student_name,...t.questions.map(q=>{const g=gradeQ(s,q);return g.state==='pend'?'':num(g.score);}),num(T.score),T.pending]); });
+  rows.push(['','배점',...t.questions.map(q=>q.points),t.questions.reduce((s,q)=>s+q.points,0),'']);
+  saveCsv(t.id+'_점수.csv',rows);
+}
+function exportAnswers(){
+  const t=test(), L=latest();
+  const rows=[['번호','이름',...t.questions.map(q=>q.no+'번 응답')]];
+  L.forEach(s=>rows.push([s.student_no,s.student_name,...t.questions.map(q=>fmtAns(q,s.answers[q.no]))]));
+  saveCsv(t.id+'_응답.csv',rows);
+}
+/* ---------- class-manage(학생별 관찰기록)에 점수 요약 추가 ---------- */
+const CM_NAME_KEY = '\u{1F9D1}‍\u{1F393} 이름';   // "🧑‍🎓 이름" 컬럼
+const CM_LS = 'ut-cm-synced-v1';
+function cmSynced(){ try{return JSON.parse(localStorage.getItem(CM_LS)||'{}');}catch(e){return {};} }
+function cmMark(sub){ const m=cmSynced(); m[sub.key]=new Date().toISOString(); try{localStorage.setItem(CM_LS,JSON.stringify(m));}catch(e){} sub.synced=true; }
+function cmLevel(score,max){ const p=score/max*100; return p>=(CFG.cmGood??90)?'긍정✅':p>=(CFG.cmMid??70)?'중립📋':'관찰필요🔍'; }
+function cmRecord(sub){
+  const t=test(), T=studentTotal(sub), max=t.questions.reduce((s,q)=>s+q.points,0);
+  const weak = t.questions.map(q=>({q,g:gradeQ(sub,q)})).filter(x=>!x.g.pending&&x.g.score<x.q.points).sort((a,b)=>(b.q.points-b.g.score)-(a.q.points-a.g.score));
+  const seen=new Set(), topics=[];
+  weak.forEach(x=>{ const k=plain(x.q.topic||''); if(k&&!seen.has(k)){seen.add(k);topics.push(k+'('+x.q.no+'번)');} });
+  const unitName = t.unit.replace(/^\d+\.\s*/,''), ttl = t.title.replace(/\s*\(\d+회\)/,'');
+  const label = ttl.includes(unitName) ? t.unit.split('.')[0]+'단원 '+ttl : t.unit+' '+ttl;
+  const body = t.subject+' '+label+' 단원평가 결과 '+num(T.score)+'점('+max+'점 만점)입니다. '
+    + (topics.length ? '보충이 필요한 내용: '+topics.slice(0,4).join(', ')+(topics.length>4?' 등':'')+'.' : '모든 문항을 바르게 해결하였습니다.');
+  const day = new Date(sub.submitted_at||Date.now()).toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+  return {sub, score:T.score, pending:T.pending, row:{'내용':body,'날짜':day,'분야':'교과학습','출처':'단원평가',[CM_NAME_KEY]:sub.student_name,'과목':t.subject,'긍정도':cmLevel(T.score,max),'기록제목':t.subject+' '+t.title.replace(/\s*\(\d+회\)/,'')+' 단원평가 '+num(T.score)+'점'}};
+}
+function openCM(){
+  const L=latest(); if(!L.length){ msg('불러온 답안이 없어요'); return; }
+  const recs=L.map(cmRecord);
+  $('#md').innerHTML='<div class="row" style="justify-content:space-between"><h3 style="margin:0">class-manage에 점수 요약 추가</h3><button class="btn g" id="mdClose">닫기</button></div>'
+    +'<p class="muted" style="margin:6px 0">학생별 관찰기록에 한 줄씩 추가됩니다. 서술형 채점이 끝나지 않은 학생과 이미 추가한 학생은 기본으로 체크되지 않아요.</p>'
+    +'<div class="wrapx" style="max-height:52vh"><table><thead><tr><th></th><th>번호</th><th class="l">이름</th><th>점수</th><th>긍정도</th><th class="l">추가될 내용</th></tr></thead><tbody>'
+    +recs.map((r,i)=>{ const off=r.pending>0; return '<tr><td><input type="checkbox" class="cmck" data-i="'+i+'" '+((off||r.sub.synced)?'':'checked')+(off?' disabled':'')+'></td><td>'+r.sub.student_no+'</td><td class="l">'+esc(r.sub.student_name)+(r.sub.synced?'<span class="badge b">추가함</span>':'')+(off?'<span class="badge">미채점 '+r.pending+'</span>':'')+'</td><td class="mono">'+num(r.score)+'</td><td>'+esc(r.row['긍정도'])+'</td><td class="l" style="white-space:normal;min-width:260px">'+esc(r.row['내용'])+'</td></tr>'; }).join('')
+    +'</tbody></table></div><div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn" id="cmGo">선택한 학생 추가</button></div>';
+  $('#ov').classList.add('show');
+  $('#cmGo').onclick = async ()=>{
+    const pick=[...document.querySelectorAll('.cmck:checked')].map(c=>recs[+c.dataset.i]);
+    if(!pick.length){ msg('선택한 학생이 없어요'); return; }
+    if(!sbOK()){ msg('Supabase 설정이 없어요'); return; }
+    $('#cmGo').disabled=true;
+    try{
+      const r = await fetch(sbBase()+'/rest/v1/'+encodeURIComponent(CFG.classManageTable||'class-manage'),{method:'POST',
+        headers:{apikey:CFG.supabaseAnonKey,Authorization:'Bearer '+CFG.supabaseAnonKey,'Content-Type':'application/json',Prefer:'return=minimal'},
+        body:JSON.stringify(pick.map(p=>p.row))});
+      if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
+      for(const p of pick){
+        cmMark(p.sub);
+        if(p.sub.src==='supabase' && p.sub.id && token){ try{ await fetch(sbBase()+'/rest/v1/'+CFG.table+'?id=eq.'+p.sub.id,{method:'PATCH',headers:{apikey:CFG.supabaseAnonKey,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({class_manage_synced_at:new Date().toISOString()})}); }catch(e){} }
+      }
+      msg(pick.length+'명을 class-manage에 추가했어요'); $('#ov').classList.remove('show'); render();
+    }catch(e){ msg('추가 실패: '+e.message); $('#cmGo').disabled=false; }
+  };
+}
+
+function viewExport(){
+  return '<div class="card"><h3 style="margin-top:0">학생별 기록(class-manage)</h3><p class="muted" style="margin-top:0">채점이 끝난 뒤 학생별 점수 요약과 보충이 필요한 내용을 기존 관찰기록 시트에 한 줄씩 추가합니다. 추가하기 전에 내용을 미리 볼 수 있어요.</p><button class="btn" id="btnCM"'+(sbOK()?'':' disabled')+'>class-manage에 점수 요약 추가…</button></div>'
+  + '<div class="card"><h3 style="margin-top:0">내보내기</h3><div class="row"><button class="btn" id="exScore">점수표 CSV (엑셀)</button><button class="btn g" id="exAns">학생 응답 전체 CSV</button><button class="btn g" onclick="print()">결과표 인쇄</button></div><p class="muted">CSV는 엑셀에서 바로 열려요. 서술형 채점 점수는 이 기기에 자동 저장되고, Supabase로 불러온 답안은 로그인 상태에서 서버에도 저장돼요.</p></div>';
+}
+
+function render(){
+  const L = latest();
+  $('#cnt').textContent = L.length ? '응시 '+L.length+'명' : '';
+  $('#view').innerHTML = tab==='matrix'?viewMatrix(): tab==='byq'?viewByQ(): tab==='stats'?viewStats(): viewExport();
+  if(tab==='export'){ $('#exScore').onclick=exportScores; $('#exAns').onclick=exportAnswers; $('#btnCM').onclick=openCM; }
+}
+
+/* ---------- 이벤트 ---------- */
+$('#selTest').innerHTML = TESTS.map(t=>'<option value="'+t.id+'">'+esc(t.subject+' '+t.unit.split('. ')[0]+'단원 '+t.title)+'</option>').join('');
+$('#selTest').onchange = e=>{ cur=e.target.value; qsel=1; render(); };
+$('#tabs').onclick = e=>{ const b=e.target.closest('[data-tab]'); if(!b) return; tab=b.dataset.tab; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); render(); };
+document.addEventListener('click', e=>{
+  const o = e.target.closest('[data-open]'); if(o){ openStudent(o.dataset.open, +o.dataset.q); return; }
+  const st = e.target.closest('[data-stu]'); if(st){ e.preventDefault(); openStudent(st.dataset.stu); return; }
+  if(e.target.id==='mdClose' || e.target===$('#ov')){ $('#ov').classList.remove('show'); render(); return; }
+  const qc = e.target.closest('.qchips [data-q]'); if(qc){ qsel=+qc.dataset.q; render(); return; }
+  const sb = e.target.closest('[data-set]'); if(sb){
+    const sub=subs.find(s=>s.key===sb.dataset.sub), q=test().questions.find(x=>x.no===+sb.dataset.q);
+    const kind=sb.dataset.set, v = sb.dataset.v===''?null:Number(sb.dataset.v);
+    const cur_ = sub.manual[kind][q.no];
+    setScore(sub,q,kind,(cur_===v)?null:v); // 같은 버튼을 다시 누르면 취소
+    if($('#ov').classList.contains('show')) refreshModal(); else render();
+  }
+});
+document.addEventListener('change', e=>{
+  const i = e.target.closest('[data-setin]'); if(!i) return;
+  const sub=subs.find(s=>s.key===i.dataset.sub), q=test().questions.find(x=>x.no===+i.dataset.q);
+  let v = i.value===''?null:Math.max(0,Math.min(q.points,Number(i.value)));
+  setScore(sub,q,i.dataset.setin,v);
+  if($('#ov').classList.contains('show')) refreshModal(); else render();
+});
+render();
+</script>
+</body>
+</html>

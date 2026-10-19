@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3학년 2학기 단원평가 허브</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --brand: #3b82f6;
+            --brand-dark: #1d4ed8;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --math: #0ea5e9;
+            --soc: #10b981;
+            --teacher: #8b5cf6;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 24px 16px 80px;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 20px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+        }
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.18);
+            padding: 6px 14px;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+        }
+        .nav-back:hover {
+            background: rgba(255,255,255,0.28);
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 24px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-color: var(--brand);
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: #fff;
+            align-self: flex-start;
+            margin-bottom: 10px;
+        }
+        .badge.math { background: var(--math); }
+        .badge.soc { background: var(--soc); }
+        .badge.teacher { background: var(--teacher); }
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+        .card p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            flex-grow: 1;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--brand);
+        }
+        .notice {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            color: #92400e;
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-top: 24px;
+            font-size: 0.92rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../index.html" class="nav-back">← 홈페이지 메인으로</a>
+            <h1>📝 3학년 2학기 단원평가</h1>
+            <p>온라인으로 풀고 제출하면 바로 결과가 기록됩니다.</p>
+        </header>
+
+        <h2 class="section-title">👩‍🎓 학생 평가 시험지</h2>
+        <div class="grid">
+            <a href="student_math-3-2-2-basic1.html" class="card">
+                <div>
+                    <span class="badge math">수학 3-2</span>
+                    <h3>2단원. 나눗셈 (기본1)</h3>
+                    <p>교과서 35~62쪽 / 익힘책 25~44쪽<br>20문항 (100점 만점) · 연습장 기능 탑재</p>
+                </div>
+                <div class="card-footer">
+                    <span>시험 응시하기</span>
+                    <span>→</span>
+                </div>
+            </a>
+
+            <a href="student_soc-3-2-1-1.html" class="card">
+                <div>
+                    <span class="badge soc">사회 3-2</span>
+                    <h3>1단원. (1) 사회 변화로 달라진 생활</h3>
+                    <p>교과서 12~33쪽 (2회)<br>10문항 (100점 만점) · 저출산/고령화/정보화</p>
+                </div>
+                <div class="card-footer">
+                    <span>시험 응시하기</span>
+                    <span>→</span>
+                </div>
+            </a>
+
+            <a href="student_soc-3-2-1-2.html" class="card">
+                <div>
+                    <span class="badge soc">사회 3-2</span>
+                    <h3>1단원. (2) 다양한 문화 이해와 존중</h3>
+                    <p>교과서 34~55쪽 (2회)<br>10문항 (100점 만점) · 다양한 문화/다문화</p>
+                </div>
+                <div class="card-footer">
+                    <span>시험 응시하기</span>
+                    <span>→</span>
+                </div>
+            </a>
+        </div>
+
+        <h2 class="section-title">👨‍🏫 교사용 채점 및 결과 관리</h2>
+        <div class="grid">
+            <a href="teacher.html" class="card" style="border-color: #ddd6fe;">
+                <div>
+                    <span class="badge teacher">선생님 전용</span>
+                    <h3>단원평가 채점 및 분석 대시보드</h3>
+                    <p>학생 제출 답안 자동 채점 · 서술형 간편 채점 · 정답률/취약 분석 · class-manage 및 CSV 내보내기</p>
+                </div>
+                <div class="card-footer" style="color: var(--teacher);">
+                    <span>채점실 열기</span>
+                    <span>→</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="notice">
+            💡 <strong>안내:</strong> 학생들이 문제를 풀고 [제출하기]를 누르면 답안이 기기에 자동 다운로드되며 선생님 서버(Supabase)로 즉시 전송됩니다.
+        </div>
+    </div>
+</body>
+</html>

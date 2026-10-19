@@ -1,0 +1,9 @@
+{
+  "supabaseUrl": "https://erzdvlcbjneabxqwnwfy.supabase.co",
+  "supabaseAnonKey": "(Supabase 대시보드 Project Settings > API 의 anon public 키, 또는 get_publishable_keys)",
+  "table": "unit_test_submissions",
+  "classManageTable": "class-manage",
+  "cmGood": 90,
+  "cmMid": 70,
+  "classLabel": "3학년 2반"
+}
