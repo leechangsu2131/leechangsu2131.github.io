@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>분수 조작판</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F8FC;--ink:#25324A;--sub:#6B7690;--blue:#3D5A80;--blue-soft:#DCE6F2;--org:#E8873A;--org-soft:#FBE6D2;--line:#D7E3EE;--bs:1}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Gowun Batang",serif;padding:10px 10px 30px;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+.app{max-width:1100px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+h1{font-family:"Jua",sans-serif;font-weight:400;font-size:26px;margin:0;color:var(--blue);flex:1;min-width:180px}
+.modes{display:flex;gap:6px}
+.mode{font-family:"Jua",sans-serif;font-size:16px;padding:8px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;color:var(--blue);cursor:pointer}
+.mode.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.wrap{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"tray board" "tool tool" "status status";gap:10px}
+@media(max-width:700px){.wrap{grid-template-columns:1fr;grid-template-areas:"tray" "board" "tool" "status"}}
+.tray{grid-area:tray;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;overflow:auto}
+@media(max-width:700px){.tray{flex-direction:row;flex-wrap:wrap}}
+.tlabel{font-family:"Jua",sans-serif;font-size:13px;color:var(--sub);width:100%}
+.tsrc{display:flex;align-items:center;gap:6px;cursor:grab;touch-action:none;padding:3px 4px;border-radius:10px}
+.tsrc:active{background:var(--blue-soft)}
+.tsrc span.nm{font-family:"Jua",sans-serif;font-size:13px;color:var(--sub);min-width:28px}
+.board{grid-area:board;position:relative;background:#fff;border:2px solid var(--line);border-radius:16px;min-height:340px;overflow:hidden;touch-action:none;
+  background-image:linear-gradient(#EEF3F8 1px,transparent 1px),linear-gradient(90deg,#EEF3F8 1px,transparent 1px);background-size:24px 24px}
+.guide{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed #9db8d4;pointer-events:none;z-index:0}
+.guide i{position:absolute;top:2px;left:4px;font:normal 12px "Jua",sans-serif;color:#7d9bbd}
+.it{position:absolute;touch-action:none;cursor:grab;z-index:2}
+.fp{height:calc(36px * var(--bs));border:2px solid rgba(0,0,0,.25);border-radius:6px;color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Jua",sans-serif;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.fp .fr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;font-size:calc(12px * var(--bs))}
+.fp .fr .n{border-bottom:1.5px solid #fff;padding:0 2px}
+.fp .big{font-size:calc(20px * var(--bs))}
+.it.sel{outline:3px dashed #25324A;outline-offset:2px;z-index:5}
+.bead{width:calc(22px * var(--bs));height:calc(22px * var(--bs));border-radius:50%;background:#fff;border:3px solid var(--blue);z-index:4}
+.box{width:calc(132px * var(--bs));height:calc(104px * var(--bs));border:3px solid var(--blue);border-radius:14px;background:rgba(220,230,242,.35);z-index:1}
+.box.on{background:var(--org-soft);border-color:var(--org)}
+.box.on:after{content:"색칠";position:absolute;right:6px;top:2px;font:12px "Jua",sans-serif;color:var(--org)}
+.box.sel{z-index:1}
+.bead.on{background:var(--org);border-color:#c76a22}
+.rb{position:absolute;border:2px dashed var(--org);background:rgba(232,135,58,.12);z-index:9;pointer-events:none}
+.ghost{position:fixed;z-index:99999;pointer-events:none;opacity:.85}
+.tool{grid-area:tool;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.tg{display:flex;gap:6px;align-items:center;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:5px 8px}
+.tg .lb{font-size:13px;color:var(--sub)}
+.tg b{font-family:"Jua",sans-serif;font-weight:400;font-size:19px;min-width:24px;text-align:center;color:var(--blue)}
+button.b{font-family:"Jua",sans-serif;font-size:15px;min-height:40px;min-width:40px;padding:0 12px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}
+button.b:active:not(:disabled){background:var(--blue-soft)}
+button.b:disabled{opacity:.35;cursor:default}
+button.b.pri{background:var(--blue);color:#fff}
+button.b.pri:disabled{background:var(--blue)}
+button.b.on{background:var(--org);border-color:var(--org);color:#fff}
+button.b.warn{border-color:#C0503F;color:#C0503F}
+.status{grid-area:status;margin-top:2px;padding:10px 14px;border-radius:12px;background:var(--blue-soft);font-size:17px;line-height:1.8;min-height:44px;-webkit-user-select:text;user-select:text}
+.status b{font-family:"Jua",sans-serif;font-weight:400;color:#b4560f}
+.fr2{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-family:"Jua",sans-serif}
+.fr2 .n{border-bottom:2.5px solid currentColor;padding:0 5px}.fr2 .d{padding:0 5px}
+.mx2{display:inline-flex;align-items:center;vertical-align:middle;font-family:"Jua",sans-serif}.mx2 b{font-weight:400;font-size:1.15em;margin-right:2px;color:inherit}
+.tip{font-size:13px;color:var(--sub);margin-top:6px}
+@media (max-height:520px) and (orientation:landscape){
+  body{padding:4px}header{margin:0 0 4px}h1{display:none}.mode{padding:4px 10px;font-size:13px}.modes{gap:4px}
+  .wrap{grid-template-columns:auto minmax(0,1fr) 210px;grid-template-areas:"tray board tool" "status status status"}
+  .tray{max-height:calc(100vh - 46px);flex-direction:column;flex-wrap:nowrap}
+  .board{min-height:calc(100vh - 46px);max-height:calc(100vh - 46px);overflow:auto}
+  .tool{flex-direction:column;align-items:stretch;max-height:calc(100vh - 46px);overflow:auto;gap:5px;flex-wrap:nowrap}
+  .tg{flex-wrap:wrap}.tip{display:none}
+  .status{grid-area:status;font-size:14px;min-height:0;padding:4px 10px;line-height:1.4}
+}
+
+.modes{flex-wrap:wrap}
+.bead.go{border-color:#3D5A80}
+.bead.go.on{background:#1d1d1d;border-color:#000}
+.bead.em{border:0;background:transparent;font-size:calc(24px * var(--bs));line-height:1;display:flex;align-items:center;justify-content:center}
+.bead.em.on{box-shadow:0 0 0 3px var(--org);background:var(--org-soft);border-radius:50%}
+.box.on:after{content:"표시"}
+/* 새 탭 */
+.npanel{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:760px){.npanel{grid-template-columns:1fr}}
+.nstage{background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;touch-action:manipulation;overflow-x:auto}
+.nside{display:flex;flex-direction:column;gap:10px}
+.nrow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
+.nlbl{font-family:"Jua",sans-serif;color:var(--blue);font-size:16px;align-self:flex-start}
+.part{cursor:pointer;fill:#fff;stroke:#3D5A80;stroke-width:3;transition:fill .12s}
+.part.on{fill:#E8873A}
+.part:hover{fill:#FBE6D2}.part.on:hover{fill:#d97a2e}
+.signbig{font-family:"Jua",sans-serif;font-size:64px;color:var(--org);line-height:1}
+.nt-info{font-size:18px;line-height:1.9;background:var(--blue-soft);border-radius:12px;padding:10px 14px;min-height:56px}
+.nt-info b{font-family:"Jua",sans-serif;font-weight:400;color:#b4560f}
+.tick{cursor:pointer}
+svg text{font-family:"Jua",sans-serif}
+@media (max-height:520px) and (orientation:landscape){.npanel{grid-template-columns:1.2fr 1fr}.nstage{min-height:120px;padding:6px}.nt-info{font-size:14px;padding:6px 10px;line-height:1.5;min-height:0}.signbig{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>🧩 분수 조작판</h1>
+    <div class="modes"><button class="mode on" data-mode="bead">🥧 나누어 담기</button><button class="mode" data-mode="shape">🎨 색칠하기</button><button class="mode" data-mode="nline">📏 수직선</button><button class="mode" data-mode="cmp">⚖️ 크기 비교</button><button class="mode" data-mode="frac">🧱 조각 맞추기</button></div></header>
+  <div class="wrap" id="legacy">
+    <div class="tray" id="tray"></div>
+    <div class="board" id="board"></div>
+    <div class="tool" id="tool"></div>
+    <div class="status" id="status"></div>
+  </div>
+  <div id="newtab" style="display:none"></div>
+  <div class="tip" id="tip"></div>
+</div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const COL={1:'#4C7DB5',2:'#E8873A',3:'#D9A520',4:'#4C9A6A',5:'#C2609A',6:'#7E62C8',8:'#2E9AA0',10:'#D2583F'};
+const DEN=[2,3,4,5,6,8,10];
+const fr=(n,d)=>`<span class="fr2"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const mx=(w,n,d)=>`<span class="mx2"><b>${w}</b>${fr(n,d)}</span>`;
+const board=$('board'), tray=$('tray'), tool=$('tool'), statusEl=$('status'), tipEl=$('tip');
+const ST={frac:{items:[],undo:[],next:1},bead:{items:[],undo:[],next:1}};
+const SKINS={go:{n:'바둑돌'},pie:{n:'파이',e:'🥧'},cookie:{n:'쿠키',e:'🍪'},berry:{n:'딸기',e:'🍓'},apple:{n:'사과',e:'🍎'}};
+let skin='go', mode='bead', bs=1, W0=240, showNum=false, guide=false, addN=1, splitD=4, groupG=3, flash='';
+const cur=()=>ST[mode];
+const Wp=()=>Math.round(W0*bs);
+function size(it){
+  if(it.k==='f') return {w:Math.round(Wp()/it.d), h:Math.round(36*bs)};
+  if(it.k==='b') return {w:Math.round((skin==='go'?22:30)*bs), h:Math.round((skin==='go'?22:30)*bs)};
+  return {w:Math.round(132*bs), h:Math.round(104*bs)};
+}
+const bw=()=>board.clientWidth||600;
+function snapshot(){ return JSON.stringify(cur().items); }
+function pushUndo(s){ const u=cur().undo; u.push(s||snapshot()); if(u.length>100) u.shift(); }
+function selected(){ return cur().items.filter(i=>i.sel); }
+function byId(id){ return cur().items.find(i=>i.id===id); }
+function newItem(k,d,x,y){ const it={id:cur().next++,k,d:d||0,x:Math.round(x),y:Math.round(y),sel:false,on:false}; cur().items.push(it); return it; }
+function center(it){ const s=size(it); return {x:it.x+s.w/2,y:it.y+s.h/2}; }
+function owner(bead){ const c=center(bead); let o=null; cur().items.forEach(b=>{ if(b.k==='x'){ const s=size(b); if(c.x>=b.x&&c.x<=b.x+s.w&&c.y>=b.y&&c.y<=b.y+s.h) o=b; } }); return o; }
+function contents(box){ return cur().items.filter(i=>i.k==='b'&&owner(i)===box); }
+
+/* ── 그리기 ── */
+function elFor(it){
+  const s=size(it), e=document.createElement('div'); e.dataset.id=it.id;
+  e.className='it '+(it.k==='f'?'fp':it.k==='b'?'bead':'box')+(it.sel?' sel':'');
+  e.style.left=it.x+'px'; e.style.top=it.y+'px'; e.style.width=s.w+'px'; e.style.height=s.h+'px';
+  if(it.k==='f'){ e.style.background=COL[it.d]; e.innerHTML = it.d===1?'<span class="big">1</span>':(s.w>=26?`<span class="fr"><span class="n">1</span><span class="d">${it.d}</span></span>`:''); e.title=it.d===1?'1':'1/'+it.d; }
+  if(it.k==='x'&&it.on) e.classList.add('on');
+  if(it.k==='b'){ const o=owner(it); if(it.on||(o&&o.on)) e.classList.add('on'); if(skin==='go') e.classList.add('go'); else { e.classList.add('em'); e.textContent=SKINS[skin].e; } }
+  return e;
+}
+function render(){
+  const items=cur().items; board.innerHTML='';
+  let maxY=0;
+  if(mode==='frac'&&guide){ for(let k=0;k*Wp()<bw()+Wp();k++){ const g=document.createElement('div'); g.className='guide'; g.style.left=(k*Wp())+'px'; g.innerHTML='<i>'+k+'</i>'; board.appendChild(g); } }
+  items.filter(i=>i.k==='x').concat(items.filter(i=>i.k!=='x')).forEach(it=>{ board.appendChild(elFor(it)); const s=size(it); maxY=Math.max(maxY,it.y+s.h); });
+  board.style.height = Math.max(340, maxY+30)+'px';
+  if(document.body.classList.contains('lsh')) board.style.height='';
+  renderTool(); renderStatus();
+}
+function btn(act,label,cls,extra){ return `<button class="b ${cls||''}" data-act="${act}" ${extra||''}>${label}</button>`; }
+function renderTool(){
+  const sel=selected(), n=sel.length;
+  const has=cur().items.length>0, un=cur().undo.length>0;
+  let h='';
+  h+=`<div class="tg"><span class="lb">한 번에</span>${btn('addn-','−','')}<b>${addN}</b>${btn('addn+','＋','')}<span class="lb">개 놓기</span></div>`;
+  if(mode==='frac'){
+    const canSplit = n===1 && sel[0].k==='f' && sel[0].d===1;
+    const cnt={}; sel.forEach(i=>{ if(i.k==='f'&&i.d>1) cnt[i.d]=(cnt[i.d]||0)+1; });
+    const canMerge = Object.keys(cnt).some(d=>cnt[d]>=+d);
+    h+=`<div class="tg">${btn('split','✂️ 쪼개기','pri',canSplit?'':'disabled')}${btn('splitd-','−','')}<b>${splitD}</b>${btn('splitd+','＋','')}<span class="lb">조각으로</span></div>`;
+    h+=`<div class="tg">${btn('merge','🔗 합치기','pri',canMerge?'':'disabled')}${btn('line','↔️ 한 줄로 붙이기','',n>=2?'':'disabled')}</div>`;
+  } else {
+    h+=`<div class="tg">${btn('divide','🍱 똑같이 나누기','pri',cur().items.some(i=>i.k==='b')?'':'disabled')}${btn('groupg-','−','')}<b>${groupG}</b>${btn('groupg+','＋','')}<span class="lb">묶음으로</span></div>`;
+    h+=`<div class="tg">${btn('paint',skin==='go'?'⚫ 검은 돌로 뒤집기(표시)':'🎨 표시하기(색칠)','pri',sel.some(i=>i.k==='x'||i.k==='b')?'':'disabled')}</div>`;
+    h+=`<div class="tg"><span class="lb">무엇으로?</span>${Object.keys(SKINS).map(k=>btn('skin:'+k,SKINS[k].n,skin===k?'on':'')).join('')}</div>`;
+  }
+  h+=`<div class="tg">${btn('dup','📋 복사','',n?'':'disabled')}${btn('del','🗑️ 지우기','warn',n?'':'disabled')}${btn('same','같은 것 모두 선택','',n?'':'disabled')}${btn('all','전체 선택','',has?'':'disabled')}${btn('none','선택 해제','',n?'':'disabled')}</div>`;
+  h+=`<div class="tg">${btn('arrange','🧹 정리','',has?'':'disabled')}${btn('undo','↩️ 되돌리기','',un?'':'disabled')}${btn('clear','🧽 비우기','warn',has?'':'disabled')}</div>`;
+  h+=`<div class="tg">${btn('num','🔢 숫자로 보기',showNum?'on':'')}${btn('big','🔍 크게',bs>1?'on':'')}${mode==='frac'?btn('guide','📏 눈금선',guide?'on':''):''}</div>`;
+  tool.innerHTML=h;
+}
+function descFrac(list){
+  const f=list.filter(i=>i.k==='f'); if(!f.length) return '';
+  let w=0; const c={}; f.forEach(i=>{ if(i.d===1) w++; else c[i.d]=(c[i.d]||0)+1; });
+  const ds=Object.keys(c).map(Number).sort((a,b)=>a-b);
+  if(!ds.length) return `막대 <b>${w}</b>개 → 자연수 <b>${w}</b>`;
+  if(ds.length===1){ const d=ds[0], total=w*d+c[d], q=total%d, ww=Math.floor(total/d);
+    let t=`${fr(1,d)}이 <b>${total}</b>개 → ${fr(total,d)}`;
+    if(total<d) t+=' <b>(진분수)</b>'; else { t+=' <b>(가분수)</b>'; t+= q? ` = ${mx(ww,q,d)} <b>(대분수)</b>` : ` = 자연수 <b>${ww}</b>`; }
+    return t; }
+  return (w?`막대 ${w}개, `:'')+ds.map(d=>`${fr(1,d)}이 ${c[d]}개`).join(', ')+'<br><span style="font-size:14px">분모가 다르면 한 분수로 바로 나타내기 어려워요. 같은 분모끼리 모아 보아요.</span>';
+}
+function descBead(){
+  const it=cur().items, beads=it.filter(i=>i.k==='b'), boxes=it.filter(i=>i.k==='x');
+  if(!beads.length&&!boxes.length) return '';
+  const marked=beads.filter(b=>b.on).length;
+  const counts=boxes.map(b=>contents(b).length), inBox=counts.reduce((a,b)=>a+b,0), loose=beads.length-inBox;
+  let t=`${SKINS[skin].n} <b>${beads.length}</b>개`; if(marked) t+=` · 표시한 것 <b>${marked}</b>개 → 전체 ${beads.length}개 중 ${marked}개는 전체의 ${fr(marked,beads.length)}`; if(boxes.length) t+=` · 묶음(상자) <b>${boxes.length}</b>개`;
+  if(boxes.length){ t+=`<br>상자마다 ${counts.join(', ')}개`+(loose?` (상자 밖 ${loose}개)`:'');
+    const eq=counts.every(c=>c===counts[0]);
+    if(eq&&!loose&&counts[0]>0){ const G=boxes.length, m=counts[0], a=boxes.filter(b=>b.on).length;
+      t+=`<br>똑같이 나누었어요! 한 묶음은 <b>${m}</b>개`; if(a) t+=`<br>색칠한 것은 ${G}묶음 중 ${a}묶음 → ${fr(a,G)} → ${beads.length}의 ${fr(a,G)} = ${a}×${m} = <b>${a*m}</b>`; }
+    else if(!eq) t+='<br>묶음마다 개수가 달라요. 똑같이 나누어 보아요.'; }
+  return t;
+}
+function renderStatus(){
+  let t='';
+  if(flash){ t=`<b>${flash}</b>`; }
+  else if(!showNum){ t=`놓인 것 ${cur().items.filter(i=>i.k!=='x').length}개 · 선택 ${selected().length}개 <span style="color:#6B7690;font-size:14px">(🔢 숫자로 보기를 켜면 분수가 나와요)</span>`; }
+  else if(mode==='frac'){ const s=selected(), a=descFrac(s), b=descFrac(cur().items); t=(s.length&&a?`<b>선택한 것</b> ${a}<br>`:'')+(b?`<b>판 전체</b> ${b}`:'조각을 놓아 보아요.'); }
+  else t=descBead()||'구체물과 묶음 상자를 놓아 보아요.';
+  statusEl.innerHTML=t;
+}
+function setFlash(m){ flash=m; renderStatus(); setTimeout(()=>{ if(flash===m){ flash=''; renderStatus(); } },2400); }
+
+/* ── 놓기 ── */
+function place(k,d,x,y,count){
+  pushUndo(); const out=[]; const s0=size({k,d}); let cx=x, cy=y;
+  for(let i=0;i<count;i++){
+    if(k==='b'){ cx=x+(i%6)*(s0.w+6); cy=y+Math.floor(i/6)*(s0.h+6); }
+    else if(k==='f'){ if(cx+s0.w>bw()-4 && i>0){ cx=x; cy+=s0.h+8; } }
+    else { cx=x+i*18; cy=y+i*18; }
+    const it=newItem(k,d,clamp0(cx,s0.w),Math.max(0,cy)); out.push(it); if(k==='f') cx+=s0.w+4;
+  }
+  cur().items.forEach(i=>i.sel=false); out.forEach(i=>i.sel=false); render();
+}
+const clamp0=(x,w)=>cl(x,0,Math.max(0,bw()-w));
+function randomSpot(k,d){ const s=size({k,d}); return {x:rand(8,Math.max(8,bw()-s.w-8)), y:rand(8,150)}; }
+function trayHTML(){
+  let h='<div class="tlabel">끌어다 놓거나, 눌러 보아요</div>';
+  if(mode==='frac'){
+    h+=`<div class="tsrc" data-k="f" data-d="1"><div style="width:110px;height:24px;border-radius:5px;background:${COL[1]};border:2px solid rgba(0,0,0,.25)"></div><span class="nm">1</span></div>`;
+    DEN.forEach(d=>{ h+=`<div class="tsrc" data-k="f" data-d="${d}"><div style="width:${Math.max(14,Math.round(110/d))}px;height:24px;border-radius:4px;background:${COL[d]};border:2px solid rgba(0,0,0,.25)"></div><span class="nm">1/${d}</span></div>`; });
+  } else {
+    h+=`<div class="tsrc" data-k="b">${skin==='go'?'<div style="width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid #3D5A80"></div>':'<div style="font-size:26px;line-height:1">'+SKINS[skin].e+'</div>'}<span class="nm">${SKINS[skin].n}</span></div>`;
+    h+=`<div class="tsrc" data-k="x"><div style="width:56px;height:44px;border-radius:10px;border:3px solid #3D5A80;background:rgba(220,230,242,.5)"></div><span class="nm">묶음 상자</span></div>`;
+  }
+  tray.innerHTML=h;
+}
+
+/* ── 마우스·터치 ── */
+let drag=null;
+function local(e){ const r=board.getBoundingClientRect(); return {x:e.clientX-r.left+board.scrollLeft, y:e.clientY-r.top+board.scrollTop}; }
+board.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.it'); const p=local(e);
+  try{ board.setPointerCapture(e.pointerId); }catch(_){}
+  if(el){
+    const it=byId(+el.dataset.id); if(!it) return;
+    let ids=(it.sel&&selected().length>1)?selected():[it];
+    const extra=[]; ids.forEach(i=>{ if(i.k==='x') contents(i).forEach(b=>{ if(!ids.includes(b)&&!extra.includes(b)) extra.push(b); }); });
+    ids=ids.concat(extra);
+    drag={type:'item',it,ids,p0:p,orig:ids.map(i=>({i,x:i.x,y:i.y})),moved:false,before:snapshot()};
+  } else {
+    drag={type:'rb',p0:p,moved:false,add:e.ctrlKey||e.metaKey||e.shiftKey,rb:null};
+  }
+});
+board.addEventListener('pointermove',e=>{
+  if(!drag) return; const p=local(e), dx=p.x-drag.p0.x, dy=p.y-drag.p0.y;
+  if(!drag.moved && Math.hypot(dx,dy)<5) return; drag.moved=true;
+  if(drag.type==='item'){
+    let minX=1e9,minY=1e9,maxR=-1e9; drag.orig.forEach(o=>{ const s=size(o.i); minX=Math.min(minX,o.x); minY=Math.min(minY,o.y); maxR=Math.max(maxR,o.x+s.w); });
+    const ddx=cl(dx,-minX,bw()-maxR), ddy=Math.max(dy,-minY);
+    drag.orig.forEach(o=>{ o.i.x=Math.round(o.x+ddx); o.i.y=Math.round(o.y+ddy); const el=board.querySelector(`[data-id="${o.i.id}"]`); if(el){ el.style.left=o.i.x+'px'; el.style.top=o.i.y+'px'; } });
+  } else {
+    if(!drag.rb){ drag.rb=document.createElement('div'); drag.rb.className='rb'; board.appendChild(drag.rb); }
+    const x=Math.min(p.x,drag.p0.x), y=Math.min(p.y,drag.p0.y); Object.assign(drag.rb.style,{left:x+'px',top:y+'px',width:Math.abs(dx)+'px',height:Math.abs(dy)+'px'});
+  }
+});
+function endDrag(e){
+  if(!drag) return; const d=drag; drag=null; const p=local(e);
+  if(d.type==='item'){
+    if(d.moved){ pushUndo(d.before); render(); }
+    else { d.it.sel=!d.it.sel; render(); }
+  } else {
+    if(d.rb){ const x1=Math.min(p.x,d.p0.x),x2=Math.max(p.x,d.p0.x),y1=Math.min(p.y,d.p0.y),y2=Math.max(p.y,d.p0.y);
+      cur().items.forEach(i=>{ const s=size(i); const hit=i.x<x2&&i.x+s.w>x1&&i.y<y2&&i.y+s.h>y1; if(hit) i.sel=true; else if(!d.add) i.sel=false; });
+      render(); }
+    else { cur().items.forEach(i=>i.sel=false); render(); }
+  }
+}
+board.addEventListener('pointerup',endDrag);
+board.addEventListener('pointercancel',()=>{ if(drag){ if(drag.type==='item'){ drag.orig.forEach(o=>{o.i.x=o.x;o.i.y=o.y;}); } drag=null; render(); } });
+
+/* 트레이에서 끌어오기 */
+let td=null;
+tray.addEventListener('pointerdown',e=>{
+  const s=e.target.closest('.tsrc'); if(!s) return;
+  td={k:s.dataset.k,d:+(s.dataset.d||0),x0:e.clientX,y0:e.clientY,ghost:null,src:s};
+  try{ tray.setPointerCapture(e.pointerId); }catch(_){}
+});
+tray.addEventListener('pointermove',e=>{
+  if(!td) return; if(!td.ghost&&Math.hypot(e.clientX-td.x0,e.clientY-td.y0)>6){ td.ghost=td.src.cloneNode(true); td.ghost.className='ghost'; document.body.appendChild(td.ghost); }
+  if(td.ghost){ td.ghost.style.left=(e.clientX-20)+'px'; td.ghost.style.top=(e.clientY-14)+'px'; }
+});
+function endTray(e){
+  if(!td) return; const t=td; td=null; if(t.ghost) t.ghost.remove();
+  if(!t.ghost){ const sp=randomSpot(t.k,t.d); place(t.k,t.d,sp.x,sp.y,addN); return; }
+  const r=board.getBoundingClientRect();
+  if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){ const s=size({k:t.k,d:t.d}); place(t.k,t.d,e.clientX-r.left+board.scrollLeft-s.w/2,e.clientY-r.top+board.scrollTop-s.h/2,addN); }
+}
+tray.addEventListener('pointerup',endTray); tray.addEventListener('pointercancel',()=>{ if(td&&td.ghost) td.ghost.remove(); td=null; });
+
+/* ── 버튼 동작 ── */
+function mutate(fn){ pushUndo(); fn(); render(); }
+function arrange(){
+  const items=cur().items, W=bw(); let x=10,y=10;
+  if(mode==='frac'){
+    const rowH=Math.round(36*bs)+10; let any=false;
+    const place1=(it)=>{ const s=size(it); if(x+s.w>W-6&&x>10){ x=10; y+=rowH; } it.x=x; it.y=y; x+=s.w+4; any=true; };
+    items.filter(i=>i.d===1).forEach(i=>{ place1(i); x+=6; });
+    DEN.forEach(d=>{ const g=items.filter(i=>i.d===d); if(!g.length) return; if(any&&x>10){ x=10; y+=rowH; } g.forEach(place1); });
+  } else {
+    const boxes=items.filter(i=>i.k==='x'), bs0=boxes.map(b=>({b,c:contents(b)}));
+    const loose=items.filter(i=>i.k==='b'&&!bs0.some(o=>o.c.includes(i)));
+    const bsz=size({k:'x'}), bz=size({k:'b'}); let rowH=0;
+    bs0.forEach(o=>{ if(x+bsz.w>W-6&&x>10){ x=10; y+=bsz.h+12; } o.b.x=x; o.b.y=y;
+      const cols=Math.max(1,Math.floor((bsz.w-12)/(bz.w+5)));
+      o.c.forEach((c,i)=>{ c.x=x+8+(i%cols)*(bz.w+5); c.y=y+8+Math.floor(i/cols)*(bz.h+5); }); x+=bsz.w+12; rowH=bsz.h+12; });
+    if(bs0.length){ x=10; y+=rowH; }
+    loose.forEach((b,i)=>{ if(x+bz.w>W-6){ x=10; y+=bz.h+6; } b.x=x; b.y=y; x+=bz.w+6; });
+  }
+}
+function lineup(){ const s=selected().sort((a,b)=>a.y-b.y||a.x-b.x); let x=Math.min(...s.map(i=>i.x)), y=s[0].y; const x0=x;
+  s.forEach(i=>{ const z=size(i); if(x+z.w>bw()-4&&x>x0){ x=x0; y+=Math.round(36*bs)+8; } i.x=Math.round(x); i.y=Math.round(y); x+=z.w; }); }
+function doSplit(){ const w=selected()[0], z=size(w), per=Math.round(Wp()/splitD); const items=cur().items; items.splice(items.indexOf(w),1);
+  for(let i=0;i<splitD;i++){ const it=newItem('f',splitD,w.x+i*per+(i?0:0),w.y); it.sel=true; } }
+function doMerge(){ const items=cur().items, sel=selected().filter(i=>i.k==='f'&&i.d>1); const by={}; sel.forEach(i=>(by[i.d]=by[i.d]||[]).push(i));
+  Object.keys(by).forEach(ds=>{ const d=+ds, g=by[d].sort((a,b)=>a.y-b.y||a.x-b.x), k=Math.floor(g.length/d); if(!k) return;
+    const rm=g.slice(0,k*d), ax=Math.min(...rm.map(i=>i.x)), ay=Math.min(...rm.map(i=>i.y));
+    rm.forEach(i=>items.splice(items.indexOf(i),1));
+    for(let j=0;j<k;j++){ const w=newItem('f',1,clamp0(ax,Wp()),ay+j*(Math.round(36*bs)+8)); w.sel=true; } }); }
+function doDivide(){ const items=cur().items, beads=items.filter(i=>i.k==='b'), sb=beads.filter(i=>i.sel), src=sb.length?sb:beads, T=src.length;
+  if(T%groupG!==0){ setFlash(`${T}개를 ${groupG}묶음으로 똑같이 나눌 수 없어요. 숫자를 바꿔 보아요.`); return false; }
+  pushUndo(); const m=T/groupG;
+  for(let i=items.length-1;i>=0;i--) if(items[i].k==='x') items.splice(i,1);
+  const bsz=size({k:'x'}), bz=size({k:'b'}); let x=10,y=10; const boxes=[];
+  for(let g=0;g<groupG;g++){ if(x+bsz.w>bw()-6&&x>10){ x=10; y+=bsz.h+12; } boxes.push(newItem('x',0,x,y)); x+=bsz.w+12; }
+  const cols=Math.max(1,Math.floor((bsz.w-12)/(bz.w+5)));
+  boxes.forEach((b,g)=>{ for(let i=0;i<m;i++){ const bd=src[g*m+i]; bd.x=b.x+8+(i%cols)*(bz.w+5); bd.y=b.y+8+Math.floor(i/cols)*(bz.h+5); } });
+  items.forEach(i=>i.sel=false); render(); return true; }
+function act(a){
+  const c=cur();
+  if(a.indexOf('skin:')===0){ skin=a.slice(5); trayHTML(); render(); return; }
+  switch(a){
+    case 'addn-': addN=Math.max(1,addN-1); renderTool(); return;
+    case 'addn+': addN=Math.min(10,addN+1); renderTool(); return;
+    case 'splitd-': splitD=DEN[Math.max(0,DEN.indexOf(splitD)-1)]; renderTool(); return;
+    case 'splitd+': splitD=DEN[Math.min(DEN.length-1,DEN.indexOf(splitD)+1)]; renderTool(); return;
+    case 'groupg-': groupG=Math.max(2,groupG-1); renderTool(); return;
+    case 'groupg+': groupG=Math.min(10,groupG+1); renderTool(); return;
+    case 'split': mutate(doSplit); return;
+    case 'merge': mutate(doMerge); return;
+    case 'line': mutate(lineup); return;
+    case 'divide': doDivide(); return;
+    case 'paint': mutate(()=>{ const bx=selected().filter(i=>i.k==='x'||i.k==='b'), allOn=bx.every(b=>b.on); bx.forEach(b=>b.on=!allOn); }); return;
+    case 'dup': mutate(()=>{ const sel=selected(), clones=[]; sel.forEach(i=>{ const n=newItem(i.k,i.d,i.x+16,i.y+16); n.on=i.on; clones.push(n);
+        if(i.k==='x') contents(i).forEach(b=>{ if(!sel.includes(b)){ const nb=newItem('b',0,b.x+16,b.y+16); clones.push(nb); } }); });
+      c.items.forEach(i=>i.sel=false); clones.forEach(i=>i.sel=true); }); return;
+    case 'del': mutate(()=>{ c.items=c.items.filter(i=>!i.sel); }); return;
+    case 'same': { const f=selected()[0]; c.items.forEach(i=>{ if(i.k===f.k&&i.d===f.d) i.sel=true; }); render(); return; }
+    case 'all': c.items.forEach(i=>i.sel=true); render(); return;
+    case 'none': c.items.forEach(i=>i.sel=false); render(); return;
+    case 'arrange': mutate(arrange); return;
+    case 'undo': if(c.undo.length){ c.items=JSON.parse(c.undo.pop()); render(); } return;
+    case 'clear': mutate(()=>{ c.items=[]; }); return;
+    case 'num': showNum=!showNum; render(); return;
+    case 'guide': guide=!guide; render(); return;
+    case 'big': { const nb=bs>1?1:1.4, f=nb/bs; ['frac','bead'].forEach(m=>ST[m].items.forEach(i=>{ i.x=Math.round(i.x*f); i.y=Math.round(i.y*f); })); ST.frac.undo=[]; ST.bead.undo=[]; bs=nb; render(); return; }
+  }
+}
+tool.addEventListener('click',e=>{ const b=e.target.closest('button[data-act]'); if(b&&!b.disabled) act(b.dataset.act); });
+function showTab(name){
+  document.querySelectorAll('.mode').forEach(x=>x.classList.toggle('on',x.dataset.mode===name));
+  const legacy=(name==='frac'||name==='bead');
+  $('legacy').style.display=legacy?'grid':'none'; $('newtab').style.display=legacy?'none':'block';
+  if(legacy){ mode=name; flash=''; trayHTML(); setTip(); render(); }
+  else { tipEl.textContent=''; if(window.NT) window.NT.show(name); }
+}
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.mode)));
+document.addEventListener('keydown',e=>{
+  if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ act('undo'); e.preventDefault(); }
+  else if((e.key==='Delete'||e.key==='Backspace')&&selected().length){ act('del'); e.preventDefault(); }
+  else if(e.key==='Escape'){ act('none'); }
+});
+function setTip(){ tipEl.textContent = mode==='frac'
+  ? '조각을 끌어서 옮기고, 눌러서 고르고, 빈 곳을 끌면 한꺼번에 골라요. 막대(1)를 고르고 ✂️ 쪼개기, 같은 분모 조각이 모이면 🔗 합치기를 해 보아요.'
+  : '바둑돌·파이·쿠키 같은 구체물을 놓고, 묶음 상자에 똑같이 나누어 담아 보아요. 돌을 고르고 표시하면 "전체 중 몇 개"가 분수로 보이고, 상자를 고르고 표시하면 "분수만큼은 몇 개"가 보여요.'; }
+function init(){ W0=cl(Math.floor((board.clientWidth||600)*0.55),140,260); trayHTML(); setTip(); render();
+  const lsh=()=>document.body.classList.toggle('lsh', innerWidth>innerHeight && innerHeight<=520); lsh(); addEventListener('resize',()=>{ lsh(); render(); }); }
+window.__bd={showTab,ST,act,get mode(){return mode;},size,place,render,get bs(){return bs;}};
+init();
+})();
+</script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const fr=(n,d)=>`<span class="fr2"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const mx=(w,n,d)=>`<span class="mx2"><b>${w}</b>${fr(n,d)}</span>`;
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const root=$('newtab');
+const S={
+  shape:{kind:'circle',d:4,W:2,on:new Set()},
+  nline:{d:4,p:0},
+  cmp:{d:5,W:2,A:new Set(),B:new Set()}
+};
+let tab='shape';
+const btn=(act,label,cls,x)=>`<button class="b ${cls||''}" data-act="${act}" ${x||''}>${label}</button>`;
+const stp=(label,key,v)=>`<div class="tg"><span class="lb">${label}</span>${btn(key+'-','−')}<b>${v}</b>${btn(key+'+','＋')}</div>`;
+
+/* 그림 만들기: 원(파이), 직사각형(띠) */
+function pieSVG(d,on,base,tag){
+  const R=62,cx=70,cy=70; let h=`<svg viewBox="0 0 140 140" width="140" height="140">`;
+  for(let i=0;i<d;i++){
+    const a0=-Math.PI/2+i*2*Math.PI/d, a1=-Math.PI/2+(i+1)*2*Math.PI/d, big=(a1-a0)>Math.PI?1:0;
+    const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+    const path=d===1?`M${cx-R},${cy}a${R},${R} 0 1,0 ${2*R},0a${R},${R} 0 1,0 ${-2*R},0`:`M${cx},${cy}L${x0.toFixed(2)},${y0.toFixed(2)}A${R},${R} 0 ${big},1 ${x1.toFixed(2)},${y1.toFixed(2)}Z`;
+    h+=`<path class="part${on.has(base+i)?' on':''}" data-t="${tag}" data-i="${base+i}" d="${path}"/>`;
+  }
+  return h+'</svg>';
+}
+function rectSVG(d,on,base,tag){
+  const w=Math.min(260,Math.max(180,d*30)), pw=w/d; let h=`<svg viewBox="0 0 ${w+6} 66" width="${w+6}" height="66">`;
+  for(let i=0;i<d;i++) h+=`<rect class="part${on.has(base+i)?' on':''}" data-t="${tag}" data-i="${base+i}" x="${3+i*pw}" y="3" width="${pw}" height="60"/>`;
+  return h+'</svg>';
+}
+function shapesRow(kind,d,W,on,tag){ let h='<div class="nrow">'; for(let k=0;k<W;k++) h+=(kind==='circle'?pieSVG:rectSVG)(d,on,k*d,tag); return h+'</div>'; }
+function describe(n,d,gathered){
+  if(!n) return '';
+  const w=Math.floor(n/d), q=n%d;
+  let t=`색칠한 부분은 ${fr(1,d)}이 <b>${n}</b>개 → ${fr(n,d)} `;
+  if(n<d) return t+'<b>(진분수)</b>';
+  t+='<b>(가분수)</b>';
+  if(gathered) t+= q? `<br>꽉 찬 것 <b>${w}</b>개와 남은 ${q}칸 → ${mx(w,q,d)} <b>(대분수)</b>` : `<br>꽉 찬 것 <b>${w}</b>개 → 자연수 <b>${w}</b>`;
+  else t+='<br><span style="font-size:15px">🧺 “앞에서부터 모으기”를 눌러 꽉 찬 것이 몇 개인지 알아보아요.</span>';
+  return t;
+}
+const isGathered=(on,d)=>{ const n=on.size; for(let i=0;i<n;i++) if(!on.has(i)) return false; return true; };
+function numLine(d,marks){
+  const N=3*d, Wd=640, x=i=>30+i*(Wd-60)/N; let h=`<svg viewBox="0 0 ${Wd} 150" style="width:100%;max-width:720px">`;
+  h+=`<line x1="${x(0)}" y1="80" x2="${x(N)}" y2="80" stroke="#3D5A80" stroke-width="3"/>`;
+  marks.forEach(m=>{ if(m.arcs) for(let i=1;i<=m.p;i++){ const a=x(i-1),b=x(i),mid=(a+b)/2; h+=`<path d="M${a},76 Q${mid},${m.h||34} ${b},76" fill="none" stroke="${m.c}" stroke-width="3" marker-end="none"/>`; } });
+  for(let i=0;i<=N;i++){ const big=i%d===0; h+=`<line x1="${x(i)}" y1="${big?62:68}" x2="${x(i)}" y2="${big?98:92}" stroke="#3D5A80" stroke-width="${big?3:2}"/>`; if(big) h+=`<text x="${x(i)}" y="124" text-anchor="middle" font-size="20" fill="#3D5A80">${i/d}</text>`; }
+  marks.forEach(m=>{ h+=`<circle cx="${x(m.p)}" cy="80" r="10" fill="${m.c}" stroke="#fff" stroke-width="3"/>`; if(m.l) h+=`<text x="${x(m.p)}" y="${m.ly||46}" text-anchor="middle" font-size="18" fill="${m.c}">${m.l}</text>`; });
+  for(let i=0;i<=N;i++) h+=`<circle class="tick" data-p="${i}" cx="${x(i)}" cy="80" r="${Math.min(14,(Wd-60)/N/2)}" fill="transparent"/>`;
+  return h+'</svg>';
+}
+
+function view(){
+  let stage='',ctl='',info='';
+  if(tab==='shape'){
+    const s=S.shape, n=s.on.size, g=isGathered(s.on,s.d);
+    stage=`<div class="nlbl">부분을 눌러 색칠해 보아요 (${s.d}등분)</div>`+shapesRow(s.kind,s.d,s.W,s.on,'s')+`<div class="nlbl" style="font-size:14px;color:#6B7690">${s.kind==='circle'?'파이 모양':'띠 모양'} ${s.W}개</div>`;
+    ctl=`<div class="tg">${btn('kind:circle','🥧 원(파이)',s.kind==='circle'?'on':'')}${btn('kind:rect','▭ 띠',s.kind==='rect'?'on':'')}</div>`+stp('똑같이 나눈 수(분모)','d',s.d)+stp('전체 개수','W',s.W)+`<div class="tg">${btn('gather','🧺 앞에서부터 모으기','pri',n?'':'disabled')}${btn('clear','🧽 지우기','warn',n?'':'disabled')}</div>`;
+    info=n?describe(n,s.d,g):'조각을 눌러 색칠해 보아요. 색칠한 것은 분수로 나타내져요.';
+  } else if(tab==='nline'){
+    const s=S.nline, p=s.p, w=Math.floor(p/s.d), q=p%s.d;
+    stage=`<div class="nlbl">0에서 ${fr(1,s.d)}씩 뛰어 세어 보아요 (눈금을 눌러도 돼요)</div>`+numLine(s.d,[{p,c:'#E8873A',arcs:true,l:p?`${p}번`:'' ,h:30}]);
+    ctl=stp('0과 1 사이를 나눈 칸 수','d',s.d)+`<div class="tg">${btn('jmp-','◀ 한 칸 뒤로','',p>0?'':'disabled')}${btn('jmp+','한 칸 앞으로 ▶','pri',p<3*s.d?'':'disabled')}${btn('zero','0으로','',p?'':'disabled')}</div>`;
+    info=p===0?'0에 있어요. ▶를 눌러 한 칸씩 뛰어 보아요.':`${fr(1,s.d)}씩 <b>${p}</b>번 뛰었어요 → ${fr(p,s.d)} `+(p<s.d?'<b>(진분수)</b>':'<b>(가분수)</b>'+(q?`<br>1을 ${w}번 지나고 ${q}칸 더 → ${mx(w,q,s.d)} <b>(대분수)</b>`:`<br>자연수 <b>${w}</b>`));
+  } else {
+    const s=S.cmp, a=s.A.size, b=s.B.size, sg=a>b?'>':(a<b?'<':'=');
+    stage=`<div class="nlbl">왼쪽(A)</div>${shapesRow('rect',s.d,s.W,s.A,'A')}<div class="nlbl">오른쪽(B)</div>${shapesRow('rect',s.d,s.W,s.B,'B')}`+numLine(s.d,[{p:Math.min(a,3*s.d),c:'#E8873A',l:'A',ly:56},{p:Math.min(b,3*s.d),c:'#3D5A80',l:'B',ly:30}]);
+    ctl=stp('똑같이 나눈 수(분모)','d',s.d)+stp('각 줄 개수','W',s.W)+`<div class="tg">${btn('gather','🧺 앞에서부터 모으기','',(a||b)?'':'disabled')}${btn('clear','🧽 지우기','warn',(a||b)?'':'disabled')}</div>`;
+    info=(a||b)?`${fr(a,s.d)} <span class="signbig">${sg}</span> ${fr(b,s.d)}<br>${fr(1,s.d)}이 A는 <b>${a}</b>개, B는 <b>${b}</b>개 → ${a===b?'같아요':(a>b?'A가 더 커요':'B가 더 커요')}`:'A, B를 각각 색칠해서 크기를 견주어 보아요. 수직선에도 두 위치가 나타나요.';
+  }
+  root.innerHTML=`<div class="npanel"><div class="nstage">${stage}</div><div class="nside"><div class="ctl" style="display:flex;flex-wrap:wrap;gap:8px 12px">${ctl}</div><div class="nt-info">${info}</div></div></div>`;
+}
+function gatherSet(set,max){ const n=set.size; set.clear(); for(let i=0;i<n&&i<max;i++) set.add(i); }
+root.addEventListener('click',e=>{
+  const part=e.target.closest('.part');
+  if(part){ const i=+part.dataset.i, t=part.dataset.t, set=t==='s'?S.shape.on:(t==='A'?S.cmp.A:S.cmp.B); set.has(i)?set.delete(i):set.add(i); view(); return; }
+  const tk=e.target.closest('.tick'); if(tk){ S.nline.p=+tk.dataset.p; view(); return; }
+  const b=e.target.closest('button[data-act]'); if(!b||b.disabled) return; const a=b.dataset.act;
+  const s=S[tab];
+  if(a.indexOf('kind:')===0){ s.kind=a.slice(5); }
+  else if(a==='d-'||a==='d+'){ s.d=cl(s.d+(a==='d+'?1:-1),2,10); if(tab==='shape') s.on=new Set([...s.on].filter(i=>i<s.d*s.W)); if(tab==='cmp'){ s.A=new Set([...s.A].filter(i=>i<s.d*s.W)); s.B=new Set([...s.B].filter(i=>i<s.d*s.W)); } if(tab==='nline') s.p=Math.min(s.p,3*s.d); }
+  else if(a==='W-'||a==='W+'){ s.W=cl(s.W+(a==='W+'?1:-1),1,tab==='shape'?4:3); if(tab==='shape') s.on=new Set([...s.on].filter(i=>i<s.d*s.W)); if(tab==='cmp'){ s.A=new Set([...s.A].filter(i=>i<s.d*s.W)); s.B=new Set([...s.B].filter(i=>i<s.d*s.W)); } }
+  else if(a==='gather'){ if(tab==='shape') gatherSet(s.on,s.d*s.W); else { gatherSet(s.A,s.d*s.W); gatherSet(s.B,s.d*s.W); } }
+  else if(a==='clear'){ if(tab==='shape') s.on.clear(); else { s.A.clear(); s.B.clear(); } }
+  else if(a==='jmp+'){ s.p=Math.min(3*s.d,s.p+1); } else if(a==='jmp-'){ s.p=Math.max(0,s.p-1); } else if(a==='zero'){ s.p=0; }
+  view();
+});
+window.NT={show(name){ tab=name; view(); }};
+})();
+</script>
+</body>
+</html>
