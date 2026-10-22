@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>분수 연습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F8FC;--panel:#fff;--ink:#25324A;--sub:#6B7690;--blue:#3D5A80;--blue-soft:#DCE6F2;--org:#E8873A;--org-soft:#FBE6D2;--ok:#4C8C5C;--ok-soft:#E1F0E3;--bad:#C0503F;--bad-soft:#FAE4E0;--line:#D7E3EE;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:"Gowun Batang",serif;min-height:100vh;display:flex;justify-content:center;padding:24px 14px 60px}
+.app{width:100%;max-width:620px}
+header{text-align:center;margin-bottom:16px}
+h1{font-family:"Jua",sans-serif;font-weight:400;font-size:30px;margin:0 0 4px;color:var(--blue)}
+.subtitle{color:var(--sub);font-size:14.5px;margin:0}
+.stats{display:flex;justify-content:center;gap:10px;margin:12px 0 16px;flex-wrap:wrap}
+.chip{background:var(--panel);border:1.5px solid var(--line);border-radius:999px;padding:6px 16px;font-size:15px}
+.chip b{font-family:"Jua",sans-serif;font-weight:400;font-size:20px;color:var(--blue)}
+.chip-btn{cursor:pointer;background:var(--blue-soft);color:var(--blue);font-family:"Jua",sans-serif;font-size:15px;border-color:#b9cfe3}
+.assess-box,.card,.result-block{background:var(--panel);border:1.5px solid var(--line);border-radius:20px;padding:20px 20px 22px;box-shadow:0 3px 14px rgba(61,90,128,.08)}
+.assess-title{font-family:"Jua",sans-serif;font-size:22px;color:var(--blue);margin-bottom:6px}
+.assess-q{font-size:17px;margin-bottom:14px}
+.assess-btn{display:block;width:100%;text-align:left;margin:0 0 10px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink)}
+.assess-btn:hover{border-color:var(--blue);background:var(--blue-soft)}
+.assess-btn-main{display:block;font-family:"Jua",sans-serif;font-size:19px;color:var(--blue)}
+.assess-btn-sub{display:block;font-size:13.5px;color:var(--sub);margin-top:2px}
+.assess-btn.test{border-color:#f0c9a6;background:var(--org-soft)}
+.level-indicator{font-family:"Jua",sans-serif;font-size:14px;color:#fff;background:var(--blue);display:inline-block;padding:3px 12px;border-radius:999px;margin-bottom:10px}
+.level-indicator.test{background:var(--org)}
+.problem-row{font-size:21px;font-weight:700;line-height:1.7;margin:2px 0 10px}
+.cols{display:block}
+.visual{margin:6px 0 12px;padding:10px;border-radius:14px;background:#F8FBFE;border:1.5px dashed var(--line);min-height:20px}
+.visual:empty{display:none}
+.dots{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.dots i{display:inline-block;width:17px;height:17px;border-radius:50%;background:#fff;border:2px solid var(--blue)}
+.dots.grouped{gap:8px}
+.grp{display:inline-flex;flex-wrap:wrap;gap:3px;padding:5px 6px;border:2px solid var(--blue);border-radius:10px;background:#fff;max-width:96px;justify-content:center}
+.grp.on{background:var(--org-soft);border-color:var(--org)}
+.grp.on i{background:var(--org);border-color:#c76a22}
+.bar-block{margin:4px 0 10px}
+.bar-label{font-family:"Jua",sans-serif;color:var(--blue);margin-bottom:3px;font-size:16px}
+.barrow{display:flex;align-items:center;margin-bottom:4px}
+.barrow .cells{display:flex;flex:0 1 auto}
+.bc{width:30px;height:26px;border:2px solid var(--blue);margin-left:-2px;background:#fff}
+.bc:first-child{margin-left:0}
+.bc.on{background:var(--org-soft);box-shadow:inset 0 0 0 100px var(--org-soft);border-color:var(--org)}
+.bw{font-family:"Jua",sans-serif;font-size:13px;color:var(--sub);margin-left:6px}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-family:"Jua",sans-serif;font-weight:400}
+.fr .n{border-bottom:3px solid currentColor;padding:0 5px;text-align:center}
+.fr .d{padding:0 5px;text-align:center}
+.mx{display:inline-flex;align-items:center;vertical-align:middle;font-family:"Jua",sans-serif;font-weight:400}
+.mx b{font-weight:400;font-size:1.15em;margin-right:2px}
+.pf{font-size:1.25em}
+.step{margin:10px 0;padding:12px 14px;border-radius:14px;border:2px solid var(--blue-soft);background:#fff}
+.step.locked{display:none}
+.step.done{background:var(--ok-soft);border-color:#bfdcc4}
+.step.cur{border-color:var(--blue)}
+.step-prompt{font-size:17px;line-height:1.7;margin-bottom:8px}
+.ans-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:"Jua",sans-serif;font-size:22px}
+.dcell{width:62px;height:50px;border:2.5px solid var(--blue);border-radius:10px;text-align:center;font-family:"Jua",sans-serif;font-size:26px;color:var(--ink);background:#fff;padding:0;outline:none}
+.dcell:focus{border-color:var(--org);box-shadow:0 0 0 3px var(--org-soft)}
+.dcell.bad{border-color:var(--bad);background:var(--bad-soft);animation:shake .35s}
+.dcell.ok{border-color:var(--ok);background:var(--ok-soft)}
+.dcell.w5{width:92px}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.big .n,.big .d{padding:3px 6px}
+.big{font-size:24px}
+.big .st{display:inline-block;min-width:32px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opt{font-family:"Jua",sans-serif;font-size:22px;min-width:74px;padding:9px 16px;border-radius:12px;border:2.5px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}
+.opt:hover{background:var(--blue-soft)}
+.opt.sel{background:var(--org-soft);border-color:var(--org);color:#b4560f}
+.opt.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);animation:shake .35s}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.opt:disabled{cursor:default}
+.signbox{display:inline-block;min-width:1.6em;text-align:center;border:2.5px dashed var(--org);border-radius:8px;margin:0 6px;color:var(--org);font-family:"Jua",sans-serif}
+.signbox.set{border-style:solid;color:var(--ok);border-color:var(--ok)}
+.step-help{display:none;margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--org-soft);font-size:15px;line-height:1.6}
+.step-help.show{display:block}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.actions button{font-family:"Jua",sans-serif;font-size:18px;padding:10px 20px;border-radius:12px;border:0;cursor:pointer}
+.btn-check{background:var(--blue);color:#fff}
+.btn-next{background:var(--ok);color:#fff}
+.btn-next:disabled,.btn-check:disabled{opacity:.4;cursor:default}
+.btn-ghost{background:var(--blue-soft);color:var(--blue)}
+.feedback{margin-top:10px;font-family:"Jua",sans-serif;font-size:19px;min-height:26px}
+.feedback.ok{color:var(--ok)}.feedback.bad{color:var(--bad)}.feedback.info{color:var(--blue)}
+.explain{display:none;margin-top:8px;padding:10px 14px;border-radius:12px;background:var(--blue-soft);font-size:16px;line-height:1.7}
+.explain.show{display:block}
+.result-block{margin-top:16px}
+.result-title{font-family:"Jua",sans-serif;font-size:20px;color:var(--blue);margin-bottom:12px}
+.who-card{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:16px}
+.who-card input{height:44px;border:2px solid var(--blue);border-radius:10px;font-size:18px;padding:0 10px;font-family:inherit}
+.who-num{width:90px;text-align:center}.who-name{flex:1;min-width:160px}
+.btn-submit{font-family:"Jua",sans-serif;font-size:19px;padding:12px 22px;border-radius:14px;border:0;background:var(--org);color:#fff;cursor:pointer}
+.btn-submit:disabled{opacity:.4}
+.submit-status{margin-top:10px;font-size:15px}
+.submit-status.ok{color:var(--ok)}.submit-status.err{color:var(--bad)}.submit-status.pending{color:var(--sub)}
+footer{text-align:center;color:var(--sub);font-size:13px;margin-top:22px}
+@media (min-width:720px){
+  .app{max-width:940px}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+  .colR{position:sticky;top:8px}
+}
+body.tabletui{padding-top:8px}
+body.tabletui header{margin-bottom:4px}
+body.tabletui h1{font-size:24px;margin:0}
+body.tabletui .subtitle{display:none}
+body.tabletui .stats{margin:6px 0 8px}
+body.landshort header,body.landshort .stats,body.landshort footer{display:none!important}
+body.landshort{padding:4px 6px 6px}
+body.landshort .app{max-width:none}
+body.landshort .card{padding:8px 12px!important;border-radius:14px}
+body.landshort .problem-row{font-size:17px;line-height:1.4;margin:0 0 4px}
+body.landshort .level-indicator{font-size:11px;margin-bottom:4px}
+body.landshort .visual{padding:4px;margin:2px 0 4px}
+body.landshort .dots i{width:12px;height:12px}
+body.landshort .bc{width:20px;height:16px}
+body.landshort .step{padding:6px 10px;margin:4px 0}
+body.landshort .step-prompt{font-size:13.5px;line-height:1.4;margin-bottom:4px}
+body.landshort .dcell{height:36px;width:48px;font-size:20px}
+body.landshort .opt{font-size:18px;padding:5px 12px}
+body.landshort .actions button{font-size:14px;padding:6px 12px}
+body.landshort .feedback{font-size:15px;min-height:18px;margin-top:4px}
+body.landshort .explain{font-size:13px;padding:6px 10px}
+body.landshort .cols{gap:12px}
+body.landshort #npad{left:auto;top:0;bottom:0;right:0;width:172px;padding:6px 8px;border-top:0;border-left:2px solid #b9d3e6;box-shadow:-4px 0 14px rgba(40,70,100,.18);align-items:center}
+body.landshort.npad-on #npad{display:flex}
+body.landshort #npad .npad-row{grid-template-columns:repeat(3,1fr);gap:5px;width:100%}
+body.landshort #npad button{height:min(54px,calc((100vh - 40px)/4));font-size:22px;border-radius:10px}
+body.landshort .cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+
+.mp-open-row{margin:6px 0 2px}
+.mp-open-btn{font-family:"Jua",sans-serif;font-size:17px;padding:8px 16px;border-radius:12px;border:2px solid var(--org);background:var(--org-soft);color:#b4560f;cursor:pointer}
+#mpOverlay{display:none;position:fixed;inset:0;z-index:200000;background:rgba(37,50,74,.55);align-items:center;justify-content:center;padding:10px}
+#mpOverlay.on{display:flex}
+.mp-panel{background:#fff;border-radius:18px;width:100%;max-width:720px;max-height:100%;overflow:auto;padding:14px 16px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.mp-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mp-head h2{font-family:"Jua",sans-serif;font-weight:400;font-size:20px;margin:0;color:var(--blue);flex:1}
+.mp-tab,.mp-close,.mp-ctl button{font-family:"Jua",sans-serif;font-size:16px;padding:7px 14px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}
+.mp-tab.on{background:var(--blue);color:#fff}
+.mp-close{border-color:var(--bad);color:var(--bad)}
+.mp-stage{background:#F8FBFE;border:1.5px dashed var(--line);border-radius:14px;padding:12px;min-height:120px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.mp-stage .barrow{margin-bottom:6px}
+.mp-stage .bc{width:44px;height:38px;cursor:pointer;background:#fff;box-shadow:none}
+.mp-stage .bc.on{background:var(--org);border-color:#c76a22;box-shadow:none}
+.mp-stage .grp{cursor:pointer;max-width:130px}
+.mp-stage .dots.grouped{justify-content:center}
+.mp-ctl{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin:10px 0 6px}
+.mp-ctl .grp2{display:flex;align-items:center;gap:6px;font-size:15px}
+.mp-ctl .grp2 b{font-family:"Jua",sans-serif;font-weight:400;font-size:20px;min-width:26px;text-align:center;color:var(--blue)}
+.mp-ctl button{padding:4px 12px;font-size:18px}
+.mp-info{margin-top:8px;padding:10px 14px;border-radius:12px;background:var(--blue-soft);font-size:17px;line-height:1.8;min-height:44px}
+.mp-hint{font-size:13.5px;color:var(--sub);margin-top:6px}
+body.landshort .mp-stage .bc{width:30px;height:26px}
+body.landshort .mp-panel{padding:8px 12px}
+body.landshort .mp-info{font-size:14px;padding:6px 10px;line-height:1.5}
+.pwrap{margin-top:4px}
+.nrow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
+.part{cursor:pointer;fill:#fff;stroke:#3D5A80;stroke-width:3;transition:fill .12s}
+.part.on{fill:#E8873A}.part.static{cursor:default}
+.tick{cursor:pointer}
+svg text{font-family:"Jua",sans-serif}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>분수 연습</h1>
+    <p class="subtitle">3학년 2학기 · 4. 분수 · 그림과 단계로 차근차근</p>
+  </header>
+
+  <div class="assess-box" id="assessScreen">
+    <div class="assess-title">🙋 시작하기 전에 하나만 물어볼게요</div>
+    <div class="assess-q">분수, 지금 어느 정도 할 수 있을 것 같아요?</div>
+    <button class="assess-btn" data-start-level="1"><span class="assess-btn-main">아직 낯설어요</span><span class="assess-btn-sub">전체를 똑같이 나누어 분수로 나타내기부터</span></button>
+    <button class="assess-btn" data-start-level="2"><span class="assess-btn-main">전체의 몇 분의 몇은 알아요</span><span class="assess-btn-sub">분수만큼은 얼마인지 구하기부터</span></button>
+    <button class="assess-btn" data-start-level="3"><span class="assess-btn-main">분수 이름을 알아요</span><span class="assess-btn-sub">진분수·가분수·대분수부터</span></button>
+    <button class="assess-btn" data-start-level="5"><span class="assess-btn-main">대분수·가분수 바꾸기도 자신 있어요</span><span class="assess-btn-sub">분수의 크기 비교부터</span></button>
+    <button class="assess-btn test" data-start-level="test"><span class="assess-btn-main">바로 종합 테스트에 도전할래요</span><span class="assess-btn-sub">10문제 · 힌트 없이 풀어요</span></button>
+  </div>
+
+  <div class="stats" id="statsBar" style="display:none">
+    <div class="chip">맞힌 문제 <b id="statScore">0</b></div>
+    <div class="chip">연속 정답 <b id="statStreak">0</b></div>
+    <div class="chip chip-btn" id="btnToTest" role="button" tabindex="0">종합 테스트 도전 ▶</div>
+  </div>
+
+  <div class="card" id="card" style="display:none">
+    <div class="level-indicator" id="levelIndicator"></div>
+    <div class="cols">
+      <div class="colL">
+        <div class="problem-row" id="problemRow"></div>
+        <div class="visual" id="visual"></div>
+      </div>
+      <div class="colR">
+        <div class="mp-open-row" id="mpOpenRow"><button type="button" class="mp-open-btn" id="mpOpen">🧩 분수 조작판으로 해보기</button></div>
+        <div id="stepsArea"></div>
+        <div class="actions">
+          <button class="btn-check" id="btnCheck">확인</button>
+          <button class="btn-next" id="btnNext" disabled>다음 문제</button>
+          <button class="btn-ghost" id="btnReset">다시 풀기</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div class="explain" id="explain"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-block" id="resultBlock" style="display:none">
+    <div class="result-title">🎉 종합 테스트가 끝났어요! 번호와 이름을 쓰고 제출해주세요.</div>
+    <div class="who-card">
+      <label for="numInput">번호</label>
+      <input type="number" id="numInput" inputmode="numeric" min="1" max="19" placeholder="예: 3" class="who-num">
+      <label for="nameInputField">이름</label>
+      <input type="text" id="nameInputField" placeholder="본인 이름을 정확히 입력하세요" class="who-name">
+    </div>
+    <div class="submit-bar"><button class="btn-submit" id="btnSubmit" disabled>내 결과 선생님께 제출하기</button></div>
+    <div class="submit-status" id="submitStatus"></div>
+  </div>
+
+<div id="mpOverlay" aria-hidden="true"><div class="mp-panel" role="dialog" aria-label="분수 조작판">
+  <div class="mp-head"><h2>🧩 분수 조작판</h2>
+    <button type="button" class="mp-tab on" data-tab="bar">분수 막대</button>
+    <button type="button" class="mp-tab" data-tab="dots">묶음 나누기</button>
+    <button type="button" class="mp-close" id="mpClose">닫기 ✕</button></div>
+  <div class="mp-stage" id="mpStage"></div>
+  <div class="mp-ctl" id="mpCtl"></div>
+  <div class="mp-info" id="mpInfo"></div>
+  <div class="mp-hint" id="mpHint"></div>
+</div></div>
+
+  <footer>화천초등학교 3학년 2반 · 분수 연습</footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = a => a[rand(0,a.length-1)];
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=rand(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const fr = (n,d) => `<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const mx = (w,n,d) => `<span class="mx"><b>${w}</b>${fr(n,d)}</span>`;
+const LEVEL_NAME = {1:'1단계 · 전체에 대한 분수',2:'2단계 · 분수만큼은 얼마',3:'3단계 · 진분수·가분수·대분수',4:'4단계 · 가분수 ↔ 대분수',5:'5단계 · 분모가 같은 분수의 크기',6:'6단계 · 생활 속 분수'};
+const LEVEL_LABEL = {1:'1단계(전체에 대한 분수)',2:'2단계(분수만큼은 얼마)',3:'3단계(진·가·대분수)',4:'4단계(가분수↔대분수)',5:'5단계(크기 비교)',6:'6단계(활용)'};
+const PRAISE = ['참 잘했어요!','정확해요!','실력이 늘고 있어요!','완벽해요!','멋져요!','최고예요!'];
+const NUDGE = ['다시 한 번 살펴볼까요?','괜찮아요, 그림을 다시 보아요.','조금만 더 생각해 봐요.','천천히 다시 해 볼까요?'];
+const ROSTER = ['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
+const SUPABASE_URL = 'https://erzdvlcbjneabxqwnwfy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+const TEST_SEQ = [1,2,3,4,2,5,4,5,6,6];
+const TEST_TOTAL = TEST_SEQ.length;
+const ITEMS = [['사탕','개'],['구슬','개'],['쿠키','개'],['딸기','개'],['색종이','장'],['스티커','장'],['연필','자루'],['풍선','개']];
+const NAMES = ['도하','제니','태리','윤서','미르','하준','서아','지우'];
+
+/* ── 그림 만들기 ── */
+function dotsHTML(total, size, coloredGroups, grouped){
+  if(!grouped) return `<div class="dots">${'<i></i>'.repeat(total)}</div>`;
+  const G = total/size; let h = '<div class="dots grouped">';
+  for(let g=0; g<G; g++) h += `<span class="grp${g<coloredGroups?' on':''}">${'<i></i>'.repeat(size)}</span>`;
+  return h + '</div>';
+}
+function barHTML(d, n, label){
+  const W = Math.max(1, Math.ceil(n/d)); let h = '<div class="bar-block">';
+  if(label) h += `<div class="bar-label">${label}</div>`;
+  for(let w=0; w<W; w++){
+    h += '<div class="barrow"><span class="cells">';
+    for(let c=0; c<d; c++) h += `<span class="bc${(w*d+c)<n?' on':''}"></span>`;
+    h += `</span><span class="bw">${w+1}</span></div>`;
+  }
+  return h + '</div>';
+}
+
+function shapeSVG(kind,d,W,on,tag,live){
+  let h='<div class="nrow">';
+  for(let k=0;k<W;k++){ const base=k*d;
+    if(kind==='pie'){ const R=58,cx=64,cy=64; h+='<svg viewBox="0 0 128 128" width="128" height="128">';
+      for(let i=0;i<d;i++){ const a0=-Math.PI/2+i*2*Math.PI/d,a1=-Math.PI/2+(i+1)*2*Math.PI/d,big=(a1-a0)>Math.PI?1:0;
+        const p=`M${cx},${cy}L${(cx+R*Math.cos(a0)).toFixed(2)},${(cy+R*Math.sin(a0)).toFixed(2)}A${R},${R} 0 ${big},1 ${(cx+R*Math.cos(a1)).toFixed(2)},${(cy+R*Math.sin(a1)).toFixed(2)}Z`;
+        h+=`<path class="part${on.has(base+i)?' on':''}${live?'':' static'}" data-t="${tag}" data-i="${base+i}" d="${p}"/>`; }
+      h+='</svg>'; }
+    else { const w=Math.min(240,Math.max(170,d*30)),pw=w/d; h+=`<svg viewBox="0 0 ${w+6} 62" width="${w+6}" height="62">`;
+      for(let i=0;i<d;i++) h+=`<rect class="part${on.has(base+i)?' on':''}${live?'':' static'}" data-t="${tag}" data-i="${base+i}" x="${3+i*pw}" y="3" width="${pw}" height="56"/>`; h+='</svg>'; }
+  }
+  return h+'</div>';
+}
+function numLine(d,p,live,max){
+  const N=(max||3)*d,Wd=620,x=i=>30+i*(Wd-60)/N; let h=`<svg viewBox="0 0 ${Wd} 110" style="width:100%;max-width:700px">`;
+  h+=`<line x1="${x(0)}" y1="50" x2="${x(N)}" y2="50" stroke="#3D5A80" stroke-width="3"/>`;
+  for(let i=0;i<=N;i++){ const big=i%d===0; h+=`<line x1="${x(i)}" y1="${big?34:40}" x2="${x(i)}" y2="${big?68:62}" stroke="#3D5A80" stroke-width="${big?3:2}"/>`; if(big) h+=`<text x="${x(i)}" y="94" text-anchor="middle" font-size="20" fill="#3D5A80">${i/d}</text>`; }
+  if(p!==null&&p!==undefined) h+=`<circle cx="${x(p)}" cy="50" r="11" fill="#E8873A" stroke="#fff" stroke-width="3"/>`;
+  if(live) for(let i=0;i<=N;i++) h+=`<circle class="tick" data-p="${i}" cx="${x(i)}" cy="50" r="${Math.min(14,(Wd-60)/N/2)}" fill="transparent"/>`;
+  return h+'</svg>';
+}
+const paintStep=(prompt,n,help)=>({prompt,layout:'paint',ans:{v:n},help,sel:new Set()});
+const pointStep=(prompt,p,help)=>({prompt,layout:'point',ans:{v:p},help,pos:null});
+
+/* ── 문제 만들기 ── */
+const one = (prompt, v, unit, help) => ({prompt, layout:'one', ans:{v}, unit:unit||'', help});
+const choice = (prompt, opts, v, help) => ({prompt, layout:'choice', opts, ans:{v}, help});
+const SIGNS = [{v:'>',h:'&gt;'},{v:'=',h:'='},{v:'<',h:'&lt;'}];
+
+function gen1(){
+  if(Math.random()<.35){ const d=rand(2,8), n=rand(1,d-1), kind=pick(['pie','rect']);
+    const s=paintStep(`${fr(n,d)}만큼 색칠해 보세요. 색칠한 칸 수를 맞추면 돼요.`,n,`전체가 ${d}칸이에요. 분자 ${n}만큼 칸을 색칠해 보아요.`); s.shape={kind,d,W:1};
+    return {lv:1, plain:`${n}/${d} 색칠하기`, q:`전체를 똑같이 ${d}로 나눈 ${kind==='pie'?'원':'띠'}예요. ${fr(n,d)}만큼 색칠해 보세요.`, vis:()=>'', essential:false, steps:[s], final:0,
+      explain:`전체를 ${d}로 나눈 것 중 ${n}칸이므로 ${fr(n,d)} 이에요.`}; }
+  if(Math.random()<.3){ const d=rand(2,8), n=rand(1,d-1), kind=pick(['pie','rect']), on=new Set(Array.from({length:n},(_,i)=>i));
+    return {lv:1, plain:`전체 ${d}칸 중 ${n}칸 색칠(그림) → 분수`, q:`색칠한 부분은 전체의 얼마일까요?`, vis:()=>shapeSVG(kind,d,1,on,'v',false), essential:true,
+      steps:[one(`전체는 모두 몇 칸인가요?`,d,'칸','그림의 칸을 하나씩 세어 보아요.'), one(`색칠한 것은 몇 칸인가요?`,n,'칸','색칠된 칸만 세어 보아요.'),
+        {prompt:'분수로 나타내 볼까요?',layout:'frac',ans:{n,d},help:'분모는 전체 칸 수, 분자는 색칠한 칸 수예요.'}], final:2,
+      explain:`전체를 ${d}칸으로 똑같이 나눈 것 중 ${n}칸이므로 ${fr(n,d)} 이에요.`}; }
+  const G = rand(3,8), g = pick([1,1,2,3,4]), c = rand(1,G-1), T = G*g;
+  const q = g===1 ? `전체 ${G}칸 중 색칠한 것은 전체의 얼마일까요?` : `구슬 ${T}개를 ${g}개씩 묶었어요. 색칠한 묶음은 전체의 얼마일까요?`;
+  const unitW = g===1 ? '칸' : '묶음';
+  return {lv:1, manip:{t:'dots',T,G}, plain:`전체 ${G}${unitW} 중 ${c}${unitW} 색칠 → 분수`, q,
+    vis:()=>dotsHTML(T,g,c,true), essential:true,
+    steps:[
+      one(g===1?'전체는 모두 몇 칸인가요?':'전체는 모두 몇 묶음인가요?', G, unitW, '그림의 칸(묶음)을 하나씩 세어 보아요.'),
+      one('색칠한 것은 몇 '+unitW+'인가요?', c, unitW, '색칠된 칸(묶음)만 세어 보아요.'),
+      {prompt:'분수로 나타내 볼까요? (전체를 똑같이 나눈 수가 아래에 와요)', layout:'frac', ans:{n:c,d:G}, help:'분모는 전체를 똑같이 나눈 수, 분자는 색칠한 수예요.'}
+    ], final:2,
+    explain:`전체를 ${G}${unitW}으로 똑같이 나눈 것 중 ${c}${unitW}이므로 ${fr(c,G)} 이에요.`};
+}
+function gen2(){
+  let b,m; do{ b=rand(2,8); m=rand(2,9); }while(b*m>48);
+  const a = rand(1,b-1), T=b*m, [item,unit] = pick(ITEMS);
+  return {lv:2, manip:{t:'dots',T,G:b}, plain:`${T}의 ${a}/${b}`, q:`${item} ${T}${unit}의 ${fr(a,b)}는 몇 ${unit}일까요?`,
+    vis:(st)=> dotsHTML(T, m, st>=2?a:0, st>=1), essential:false,
+    steps:[
+      one(`${T}${unit}을 ${b}묶음으로 똑같이 나누면 한 묶음은 몇 ${unit}일까요?`, m, unit, `${T}을 ${b}묶음으로 똑같이 나누는 거예요. 그림을 보며 나누어 보아요.`),
+      one(`${fr(a,b)}는 ${b}묶음 중 ${a}묶음이에요. ${a}묶음은 모두 몇 ${unit}일까요?`, a*m, unit, `한 묶음이 ${m}${unit}이니까 ${a}묶음이면 몇 ${unit}인지 세어 보아요.`)
+    ], final:1, stageAt:[1,2],
+    explain:`${T}을 ${b}묶음으로 나누면 한 묶음은 ${m}, ${a}묶음은 ${a}×${m}=${a*m} 이므로 ${T}의 ${fr(a,b)}는 ${a*m}${unit}이에요.`};
+}
+function gen3(){
+  const NAMES3 = {p:'진분수', i:'가분수', m:'대분수'};
+  const mk = k => { const d=rand(2,9);
+    if(k==='p'){ const n=rand(1,d-1); return {k,n,d,h:fr(n,d),plain:`${n}/${d}`,cells:n}; }
+    if(k==='i'){ const n = Math.random()<.15 ? d : rand(d+1,3*d); return {k,n,d,h:fr(n,d),plain:`${n}/${d}`,cells:n}; }
+    const w=rand(1,4), q=rand(1,d-1); return {k,n:q,w,d,h:mx(w,q,d),plain:`${w}과 ${q}/${d}`,cells:w*d+q};
+  };
+  const help = '분자가 분모보다 작으면 진분수, 분자가 분모와 같거나 더 크면 가분수, 자연수와 진분수로 이루어지면 대분수예요.';
+  if(Math.random()<.6){
+    const k = pick(['p','i','m']), x = mk(k);
+    return {lv:3, manip:{t:'bar',d:x.d,W:Math.ceil(x.cells/x.d)}, plain:`${x.plain}의 이름`, q:`다음 분수의 이름을 골라 보세요. <span style="font-size:1.5em">${x.h}</span>`,
+      vis:()=>barHTML(x.d,x.cells), essential:false,
+      steps:[choice('이 분수는 무엇일까요?',[{v:'p',h:'진분수'},{v:'i',h:'가분수'},{v:'m',h:'대분수'}],k,help)], final:0,
+      explain:`${x.h} 는 ${NAMES3[k]}예요.`};
+  }
+  const k = pick(['p','i','m']), ks = shuffle(['p','i','m']);
+  const xs = ks.map(kk=>mk(kk)); const t = xs.find(x=>x.k===k);
+  return {lv:3, plain:`세 분수 중 ${NAMES3[k]}`, q:`다음 중 ${NAMES3[k]}를 찾아 보세요.`, vis:()=>'', essential:false,
+    steps:[choice('어느 분수일까요?', xs.map((x,i)=>({v:String(i),h:x.h})), String(xs.indexOf(t)), help)], final:0,
+    explain:`${t.h} 가 ${NAMES3[k]}예요.`};
+}
+function gen4(){
+  const r0=Math.random();
+  if(r0<.2){ const d=rand(2,6), n=rand(1,3*d), w=Math.floor(n/d), q=n%d, asMix=(q>0&&n>d&&Math.random()<.5);
+    const s=pointStep('눈금을 눌러 점을 찍어 보세요.',n,`0과 1 사이가 ${d}칸이에요. 눈금 한 칸은 ${fr(1,d)}이에요.`);
+    return {lv:4, plain:`수직선 ${asMix?w+'과 '+q+'/'+d:n+'/'+d} 위치`, q:`수직선에서 ${asMix?mx(w,q,d):fr(n,d)}의 위치에 점을 찍어 보세요.`, vis:()=>'', essential:false, steps:[Object.assign(s,{d})], final:0,
+      explain:`0에서 ${fr(1,d)}씩 ${n}칸 간 곳이에요.`}; }
+  if(r0<.4){ const d=rand(2,6); let p; do{ p=rand(d+1,3*d); }while(p%d===0); const w=Math.floor(p/d), q=p%d, mixed=Math.random()<.5;
+    return {lv:4, plain:`수직선 점 읽기(${p}/${d})→${mixed?'대분수':'가분수'}`, q:`수직선에 ●로 나타낸 곳을 ${mixed?'대분수':'가분수'}로 나타내 보세요.`, vis:()=>numLine(d,p,false), essential:true,
+      steps:[mixed?{prompt:'대분수로 써 보세요. (자연수와 남은 진분수)',layout:'mixed',ans:{w,n:q},stat:d,help:'0과 1 사이가 몇 칸인지 세고, 1을 몇 번 지났는지 보아요.'}
+                  :{prompt:'가분수로 써 보세요. (0에서 1/'+d+'씩 몇 칸?)',layout:'imp',ans:{n:p},stat:d,help:`눈금 한 칸은 ${fr(1,d)}이에요. 0에서 ●까지 몇 칸인지 세어 보아요.`}], final:0,
+      explain:`눈금 한 칸이 ${fr(1,d)}이고 0에서 ${p}칸이므로 ${fr(p,d)} = ${mx(w,q,d)} 이에요.`}; }
+  const d=rand(2,8), w=rand(1,4), q=rand(1,d-1), n=w*d+q;
+  if(Math.random()<.5){
+    return {lv:4, manip:{t:'bar',d,W:Math.ceil(n/d)}, plain:`${w}과 ${q}/${d} → 가분수`, q:`대분수 ${mx(w,q,d)} 을(를) 가분수로 나타내 보세요.`,
+      vis:()=>barHTML(d,n), essential:false,
+      steps:[
+        one(`자연수 ${w}은(는) ${fr(1,d)}이 몇 개일까요? (그림의 꽉 찬 ${w}줄을 보아요)`, w*d, '개', `1은 ${fr(d,d)}이에요. 그림에서 꽉 찬 줄 하나가 ${fr(1,d)}이 몇 개인지 세어 보아요.`),
+        {prompt:`${mx(w,q,d)} 은(는) ${fr(1,d)}이 모두 몇 개일까요? 가분수로 써 보세요.`, layout:'imp', ans:{n}, stat:d, help:`${w}만큼의 개수에 ${fr(q,d)}의 개수를 더해 보아요.`}
+      ], final:1,
+      explain:`${mx(w,q,d)} 은(는) ${fr(1,d)}이 ${w*d}+${q}=${n}개이므로 ${fr(n,d)} 이에요.`};
+  }
+  return {lv:4, manip:{t:'bar',d,W:Math.ceil(n/d)}, plain:`${n}/${d} → 대분수`, q:`가분수 ${fr(n,d)} 을(를) 대분수로 나타내 보세요.`,
+    vis:()=>barHTML(d,n), essential:false,
+    steps:[
+      one(`${fr(n,d)}에서 ${fr(d,d)}(=1)이 몇 번 들어 있을까요? (자연수 부분)`, w, '', `그림에서 꽉 찬 줄이 몇 개인지 세어 보아요.`),
+      {prompt:'대분수로 써 보세요. (자연수와 남은 진분수)', layout:'mixed', ans:{w,n:q}, stat:d, help:`꽉 찬 줄은 자연수, 남은 칸은 진분수의 분자예요.`}
+    ], final:1,
+    explain:`${fr(n,d)} 은(는) 자연수 ${w}과(와) 진분수 ${fr(q,d)}만큼이므로 ${mx(w,q,d)} 이에요.`};
+}
+function gen5(){
+  const d=rand(3,9), t=pick(['ii','mm','im','mm']);
+  let A,B; // {n,w,h,val,plain}
+  const imp = n => ({n, h:fr(n,d), val:n, plain:`${n}/${d}`, kind:'i'});
+  const mix = (w,q) => ({w,n:q, h:mx(w,q,d), val:w*d+q, plain:`${w}과 ${q}/${d}`, kind:'m'});
+  const r = Math.random();
+  if(t==='ii'){ const a=rand(d,3*d); let b=(r<.1)?a:rand(d,3*d); A=imp(a); B=imp(b); }
+  else if(t==='mm'){ const w1=rand(1,4), q1=rand(1,d-1); let w2,q2;
+    if(r<.1){w2=w1;q2=q1;} else if(r<.5){w2=w1;do{q2=rand(1,d-1);}while(q2===q1);} else {do{w2=rand(1,4);}while(w2===w1); q2=rand(1,d-1);} A=mix(w1,q1); B=mix(w2,q2); }
+  else { const w=rand(1,4), q=rand(1,d-1); const v=w*d+q; let nv;
+    if(r<.1) nv=v; else { do{ nv=rand(d+1,4*d); }while(nv===v || nv%d===0); }
+    A=imp(nv); B=mix(w,q); }
+  if(Math.random()<.5){ const x=A; A=B; B=x; }
+  const ans = A.val>B.val?'>':(A.val<B.val?'<':'=');
+  const steps=[]; let help;
+  const impSide = A.kind==='i'&&B.kind==='m' ? A : (B.kind==='i'&&A.kind==='m' ? B : null);
+  if(impSide){ const nn=impSide.n, w0=Math.floor(nn/d), q0=nn-w0*d;
+    steps.push({prompt:`먼저 가분수 ${impSide.h} 을(를) 대분수로 바꾸어 볼까요?`, layout:'mixed', ans:{w:w0,n:q0}, stat:d, help:`${impSide.h} 에서 ${fr(d,d)}(=1)이 몇 번 들어 있는지 세어 보아요.`}); }
+  help = t==='mm' ? '대분수는 자연수 부분부터 비교하고, 같으면 진분수 부분을 비교해요.' : '분모가 같으면 분자가 큰 쪽이 더 커요. 1/'+d+'이 몇 개인지 비교해 보아요.';
+  steps.push(choice('□ 안에 알맞은 기호를 골라 보세요.', SIGNS, ans, help));
+  return {lv:5, manip:{t:'bar',d,W:Math.ceil(Math.max(A.val,B.val)/d)}, plain:`${A.plain} ? ${B.plain}`, q:`분수의 크기를 비교해요. <span style="font-size:1.4em">${A.h}<span class="signbox" id="signBox">□</span>${B.h}</span>`,
+    vis:()=>barHTML(d,A.val,'왼쪽')+barHTML(d,B.val,'오른쪽'), essential:false,
+    steps, final:steps.length-1, sign:true,
+    explain:`${A.h} ${ans==='='?'과 ':'와 '}${B.h} 를 비교하면 ${A.h} ${ans} ${B.h} 이에요.`};
+}
+function gen6(){
+  const t = pick(['price','tree','remain','remain']);
+  if(t==='price'){
+    const b=rand(2,6), m=rand(1,9), a=rand(1,b-1), P=b*m*100, item=pick(['채집통','공책 세트','필통','장난감','가방']);
+    return {lv:6, plain:`${P}원의 ${a}/${b}`, q:`원래 가격이 ${P}원인 ${item}을(를) 원래 가격의 ${fr(a,b)}로 팔아요. 판매 가격은 얼마일까요?`,
+      vis:()=>'', essential:false,
+      steps:[
+        one(`${P}원을 ${b}묶음으로 똑같이 나누면 한 묶음은 얼마일까요?`, m*100, '원', `${P}÷${b} 를 생각해 보아요. 100원짜리 ${b*m}개를 ${b}묶음으로 나누어도 좋아요.`),
+        one(`${a}묶음은 얼마일까요?`, a*m*100, '원', `한 묶음의 ${a}배를 구해 보아요.`)
+      ], final:1, long:true,
+      explain:`${P}원을 ${b}묶음으로 나누면 한 묶음은 ${m*100}원, ${a}묶음은 ${a*m*100}원이에요.`};
+  }
+  if(t==='tree'){
+    const d=rand(3,9), w=rand(1,3), q=rand(1,d-1); let n;
+    do{ n=rand(d+1,4*d); }while(n===w*d+q);
+    const [x,y]=shuffle(NAMES).slice(0,2), mixLeft=Math.random()<.5;
+    const hx = mixLeft? mx(w,q,d):fr(n,d), hy = mixLeft? fr(n,d):mx(w,q,d);
+    const vx = mixLeft? w*d+q : n, vy = mixLeft? n : w*d+q;
+    const win = vx>vy?x:y;
+    return {lv:6, manip:{t:'bar',d,W:Math.ceil(Math.max(vx,vy)/d)}, plain:`나무 높이 ${x}네 ${mixLeft?w+'과 '+q+'/'+d:n+'/'+d}m, ${y}네 ${mixLeft?n+'/'+d:w+'과 '+q+'/'+d}m`,
+      q:`푸른 숲 만들기 행사에서 ${x}네 모둠은 높이가 ${hx}m인 나무를, ${y}네 모둠은 높이가 ${hy}m인 나무를 심었어요. 더 높은 나무를 심은 모둠은 어디일까요?`,
+      vis:()=>'', essential:false,
+      steps:[
+        {prompt:`먼저 대분수 ${mx(w,q,d)} 을(를) 가분수로 나타내 볼까요?`, layout:'imp', ans:{n:w*d+q}, stat:d, help:`${w}은(는) ${fr(1,d)}이 몇 개인지 먼저 생각해 보아요.`},
+        choice('더 높은 나무를 심은 모둠을 골라 보세요.',[{v:x,h:x+'네'},{v:y,h:y+'네'}],win,'분모가 같으니 분자가 큰 쪽이 더 커요.')
+      ], final:1,
+      explain:`${mx(w,q,d)} = ${fr(w*d+q,d)} 이므로 ${win}네 모둠의 나무가 더 높아요.`};
+  }
+  let b,m; do{ b=rand(2,6); m=rand(2,8); }while(b*m>36);
+  const a=rand(1,b-1), T=b*m, [item,unit]=pick(ITEMS.slice(0,4));
+  return {lv:6, manip:{t:'dots',T,G:b}, plain:`${item} ${T}${unit} 중 ${a}/${b} 먹고 남은 수`, q:`${item} ${T}${unit} 중 ${fr(a,b)}을(를) 먹었어요. 남은 ${item}은 몇 ${unit}일까요?`,
+    vis:(st)=>dotsHTML(T,m,st>=2?a:0,st>=1), essential:false,
+    steps:[
+      one(`${T}${unit}을 ${b}묶음으로 똑같이 나누면 한 묶음은 몇 ${unit}일까요?`, m, unit, `그림의 ${T}${unit}을 ${b}묶음으로 나누어 보아요.`),
+      one(`먹은 것은 ${a}묶음이에요. 먹은 ${item}은 몇 ${unit}일까요?`, a*m, unit, `한 묶음이 ${m}${unit}이에요.`),
+      one(`남은 ${item}은 몇 ${unit}일까요?`, T-a*m, unit, `전체에서 먹은 수를 빼 보아요.`)
+    ], final:2, stageAt:[1,2],
+    explain:`한 묶음은 ${m}${unit}, 먹은 것은 ${a*m}${unit}이므로 남은 것은 ${T}−${a*m}=${T-a*m}${unit}이에요.`};
+}
+const GENS = {1:gen1,2:gen2,3:gen3,4:gen4,5:gen5,6:gen6};
+
+/* ── 상태 ── */
+let level=1, P=null, score=0, attempts=0, streak=0, bestStreak=0, lvlRun=0, lvlMiss=0, returnTo=null;
+let inTest=false, testIdx=0, testResults=[], done=false, curStep=0, stage=0, pendingMsg='', nextAction='next';
+let prac={}, moves=[];
+const els = {assess:$('assessScreen'),stats:$('statsBar'),card:$('card'),lvl:$('levelIndicator'),prob:$('problemRow'),vis:$('visual'),steps:$('stepsArea'),
+  check:$('btnCheck'),next:$('btnNext'),reset:$('btnReset'),fb:$('feedback'),ex:$('explain'),res:$('resultBlock'),score:$('statScore'),streak:$('statStreak'),
+  num:$('numInput'),name:$('nameInputField'),submit:$('btnSubmit'),status:$('submitStatus')};
+
+function practiceSummary(){
+  const ks = Object.keys(prac).sort(); if(!ks.length) return '';
+  const s = ks.map(k=>`${k}단계 ${prac[k].c}/${prac[k].n}`).join(', ');
+  return ` [연습기록: ${s}${moves.length?` · 단계이동: ${moves.join(' ')}`:''}]`;
+}
+function updateStats(){ els.score.textContent=score; els.streak.textContent=streak; }
+
+function cellInput(i,k,ans){
+  const len = String(ans).length;
+  return `<input class="dcell${len>=4?' w5':''}" data-s="${i}" data-k="${k}" type="text" inputmode="numeric" autocomplete="off" maxlength="${len}" aria-label="답">`;
+}
+function stepHTML(s,i){
+  let inner='';
+  if(s.layout==='paint') inner=`<div class="pwrap" id="pw${i}"></div>`;
+  else if(s.layout==='point') inner=`<div class="pwrap" id="pw${i}"></div>`;
+  else if(s.layout==='choice'){
+    inner = `<div class="opts">${s.opts.map(o=>`<button type="button" class="opt" data-s="${i}" data-v="${o.v}">${o.h}</button>`).join('')}</div>`;
+  } else {
+    let c='';
+    if(s.layout==='one') c = cellInput(i,'v',s.ans.v) + (s.unit?`<span>${s.unit}</span>`:'');
+    else if(s.layout==='frac') c = `<span class="fr big"><span class="n">${cellInput(i,'n',s.ans.n)}</span><span class="d">${cellInput(i,'d',s.ans.d)}</span></span>`;
+    else if(s.layout==='imp') c = `<span class="fr big"><span class="n">${cellInput(i,'n',s.ans.n)}</span><span class="d"><span class="st">${s.stat}</span></span></span>`;
+    else if(s.layout==='mixed') c = `<span class="mx big">${cellInput(i,'w',s.ans.w)}<span class="fr big"><span class="n">${cellInput(i,'n',s.ans.n)}</span><span class="d"><span class="st">${s.stat}</span></span></span></span>`;
+    inner = `<div class="ans-row">${c}</div>`;
+  }
+  return `<div class="step locked" id="step${i}" data-i="${i}"><div class="step-prompt">${s.prompt}</div>${inner}<div class="step-help"></div></div>`;
+}
+function drawPW(i){ const s=P.steps[i], el=$('pw'+i); if(!el) return;
+  if(s.layout==='paint') el.innerHTML=shapeSVG(s.shape.kind,s.shape.d,s.shape.W,s.sel,'p',!P.stepDone[i]);
+  else el.innerHTML=numLine(s.d,s.pos,!P.stepDone[i]); }
+function setVisual(st){
+  stage = st;
+  if(inTest && !P.essential){ els.vis.innerHTML=''; return; }
+  els.vis.innerHTML = P.vis ? P.vis(st) : '';
+}
+function renderProblem(){
+  done=false; curStep=0; stage=0; P.miss=0; P.stepMiss=P.steps.map(()=>0); P.stepDone=P.steps.map(()=>false);
+  els.lvl.textContent = inTest ? `종합 테스트 · ${testIdx+1} / ${TEST_TOTAL}` : LEVEL_NAME[P.lv];
+  els.lvl.className = 'level-indicator'+(inTest?' test':'');
+  els.prob.innerHTML = P.q;
+  els.steps.innerHTML = P.steps.map(stepHTML).join('');
+  els.ex.className='explain'; els.ex.innerHTML='';
+  P.steps.forEach((s,i)=>{ if(s.sel) s.sel.clear(); if(s.layout==='point') s.pos=null; });
+  P.steps.forEach((s,i)=>drawPW(i));
+  els.fb.className='feedback'; els.fb.textContent = pendingMsg; if(pendingMsg) els.fb.className='feedback info'; pendingMsg='';
+  els.next.disabled=true; els.next.textContent = inTest ? '다음 문제' : '다음 문제'; els.next.style.display = inTest?'none':'';
+  els.check.style.display=''; els.check.textContent = inTest ? (testIdx===TEST_TOTAL-1?'확인하고 끝내기':'확인하고 다음 문제') : '확인'; els.check.disabled=false;
+  els.reset.style.display = inTest?'none':''; $('mpOpenRow').style.display = inTest?'none':'';
+  nextAction='next';
+  setVisual(0);
+  if(inTest){ const s=$('step'+P.final); s.classList.remove('locked'); s.classList.add('cur'); const pr=s.querySelector('.step-prompt'); if(P.steps.length>1 && P.steps[P.final].layout!=='choice' && P.steps[P.final].layout!=='one') {} focusStep(P.final); }
+  else unlock(0);
+}
+function unlock(i){
+  curStep=i; const s=$('step'+i); s.classList.remove('locked'); s.classList.add('cur'); focusStep(i);
+}
+function focusStep(i){
+  const s=$('step'+i); const c=s.querySelector('input.dcell'); if(c) setTimeout(()=>{ try{ c.focus(); }catch(e){} }, 30);
+}
+function cellsOf(i){ return Array.from(document.querySelectorAll(`#step${i} input.dcell`)); }
+function stepFilled(i){ const s=P.steps[i]; return cellsOf(i).every(c=>c.value.length >= String(s.ans[c.dataset.k]).length); }
+function stepVals(i){ const o={}; cellsOf(i).forEach(c=>{ o[c.dataset.k]=c.value; }); return o; }
+function stepOK(i,v){ const s=P.steps[i]; return Object.keys(s.ans).every(k=>String(parseInt(v[k],10))===String(s.ans[k])); }
+function userStr(i,v){ const s=P.steps[i]; if(s.layout==='choice') return v===undefined||v===''?'미선택':v; return Object.keys(s.ans).map(k=>(v[k]===''||v[k]===undefined)?'□':v[k]).join('/'); }
+function ansStr(i){ const s=P.steps[i]; return Object.keys(s.ans).map(k=>s.ans[k]).join('/'); }
+
+function checkStep(i, forced){
+  if(done || P.stepDone[i]) return;
+  const s=P.steps[i];
+  if(s.layout==='choice'||s.layout==='point') return; // 선택지·눈금은 클릭 즉시 처리
+  if(s.layout==='paint'){ if(!forced) return; if(s.sel.size===s.ans.v) stepCorrect(i); else { P.miss++; P.stepMiss[i]++; setFb('bad',pick(NUDGE)); const h=$('step'+i).querySelector('.step-help'); h.textContent='💡 '+(s.help||''); h.classList.add('show'); } return; }
+  if(!stepFilled(i)){ if(forced){ setFb('bad','빈 칸을 모두 채워 보아요.'); } return; }
+  const v=stepVals(i);
+  if(stepOK(i,v)) stepCorrect(i);
+  else stepWrong(i,Object.keys(s.ans).filter(k=>String(parseInt(v[k],10))!==String(s.ans[k])));
+}
+function setFb(cls,t){ els.fb.className='feedback '+cls; els.fb.textContent=t; }
+function stepWrong(i,badKeys){
+  P.miss++; P.stepMiss[i]++;
+  const cs=cellsOf(i).filter(c=>badKeys.indexOf(c.dataset.k)>=0);
+  cs.forEach(c=>c.classList.add('bad'));
+  setFb('bad', pick(NUDGE));
+  if(P.stepMiss[i]>=2 || P.steps[i].help){ const h=$('step'+i).querySelector('.step-help'); if(P.stepMiss[i]>=1){ h.textContent='💡 '+(P.steps[i].help||''); h.classList.add('show'); } }
+  setTimeout(()=>{ cs.forEach(c=>{ c.value=''; c.classList.remove('bad'); }); if(cs[0]) try{cs[0].focus();}catch(e){} }, 750);
+}
+function stepCorrect(i){
+  P.stepDone[i]=true; drawPW(i);
+  const st=$('step'+i); st.classList.remove('cur'); st.classList.add('done');
+  cellsOf(i).forEach(c=>{ c.classList.add('ok'); c.readOnly=true; });
+  st.querySelectorAll('.opt').forEach(b=>{ b.disabled=true; });
+  const sw = P.stageAt ? P.stageAt.indexOf(i) : -1;
+  if(i===P.steps.length-1){ finishProblem(); }
+  else { setFb('ok','좋아요! 다음 단계로 가요.'); setVisual(Math.max(stage, sw>=0?sw+1:stage)); unlock(i+1); }
+}
+function finishProblem(){
+  done=true;
+  setVisual(2);
+  const ok = P.miss===0;
+  attempts++; prac[P.lv]=prac[P.lv]||{n:0,c:0}; prac[P.lv].n++;
+  if(ok){ score++; streak++; bestStreak=Math.max(bestStreak,streak); prac[P.lv].c++; lvlRun++; lvlMiss=0; }
+  else { streak=0; lvlRun=0; lvlMiss++; }
+  updateStats();
+  setFb(ok?'ok':'info', ok ? pick(PRAISE) : '끝까지 풀었어요! 다음엔 한 번에 맞혀 봐요.');
+  els.ex.innerHTML = P.explain; els.ex.className='explain show';
+  els.next.disabled=false; els.check.disabled=true;
+  decideNext();
+  els.next.focus && els.next.focus({preventScroll:true});
+}
+function decideNext(){
+  nextAction='next'; els.next.textContent='다음 문제';
+  if(returnTo && lvlRun>=2){ level=returnTo; returnTo=null; lvlRun=0; lvlMiss=0; moves.push('↩'+level); pendingMsg=`잘했어요! 다시 ${level}단계로 돌아가요.`; }
+  else if(lvlRun>=3 && !returnTo){
+    if(level<6){ level++; lvlRun=0; lvlMiss=0; moves.push('↑'+level); pendingMsg=`🎉 ${level}단계로 올라가요!`; }
+    else { nextAction='test'; els.next.textContent='종합 테스트 시작 ▶'; pendingMsg=''; }
+  }
+  else if(lvlMiss>=3 && level>1){ returnTo = returnTo||level; level--; lvlMiss=0; lvlRun=0; moves.push('↓'+level); pendingMsg=`괜찮아요, ${level}단계에서 한 번 더 다져 볼까요?`; }
+  else if(lvlMiss>=3){ lvlMiss=0; }
+}
+function newProblem(){ P = GENS[level](); renderProblem(); }
+
+/* ── 이벤트 ── */
+els.steps.addEventListener('input', e=>{
+  const t=e.target; if(!t.classList.contains('dcell')) return;
+  t.value = t.value.replace(/\D/g,''); t.classList.remove('bad');
+  if(inTest || done) return;
+  const i=+t.dataset.s; if(i===curStep && stepFilled(i)) checkStep(i,false);
+});
+els.steps.addEventListener('click', e=>{
+  const part=e.target.closest('.part');
+  if(part&&!part.classList.contains('static')){ const st=part.closest('.step'), i=+st.dataset.i, s=P.steps[i]; if(done||P.stepDone[i]) return; const k=+part.dataset.i; s.sel.has(k)?s.sel.delete(k):s.sel.add(k); drawPW(i); if(!inTest&&s.sel.size===s.ans.v) stepCorrect(i); return; }
+  const tk=e.target.closest('.tick');
+  if(tk){ const st=tk.closest('.step'), i=+st.dataset.i, s=P.steps[i]; if(done||P.stepDone[i]) return; s.pos=+tk.dataset.p; drawPW(i);
+    if(!inTest){ if(s.pos===s.ans.v) stepCorrect(i); else { P.miss++; P.stepMiss[i]++; setFb('bad',pick(NUDGE)); const h=st.querySelector('.step-help'); h.textContent='💡 '+(s.help||''); h.classList.add('show'); setTimeout(()=>{ s.pos=null; drawPW(i); },600); } } return; }
+  const b=e.target.closest('.opt'); if(!b || b.disabled) return;
+  const i=+b.dataset.s, v=b.dataset.v, s=P.steps[i];
+  if(inTest){ els.steps.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel')); b.classList.add('sel');
+    const sb=$('signBox'); if(sb){ sb.textContent=b.textContent; sb.classList.add('set'); } return; }
+  if(done || P.stepDone[i]) return;
+  if(v===String(s.ans.v)){ b.classList.add('ok'); const sb=$('signBox'); if(sb){ sb.textContent=b.textContent; sb.classList.add('set'); } stepCorrect(i); }
+  else { P.miss++; P.stepMiss[i]++; b.classList.add('bad'); setTimeout(()=>b.classList.remove('bad'),600); setFb('bad',pick(NUDGE)); const h=$('step'+i).querySelector('.step-help'); h.textContent='💡 '+(s.help||''); h.classList.add('show'); }
+});
+els.check.addEventListener('click', ()=>{ if(inTest) submitTestQ(); else checkStep(curStep,true); });
+els.next.addEventListener('click', ()=>{ if(!done) return; if(nextAction==='test') startTest(); else newProblem(); });
+els.reset.addEventListener('click', ()=>{ if(P){ const keep=P; P.miss=0; renderProblem(); } });
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Enter') return;
+  if(!els.card || els.card.style.display==='none') return;
+  const tg=e.target; if(tg && (tg.id==='numInput'||tg.id==='nameInputField')) return;
+  if(inTest){ submitTestQ(); return; }
+  if(done){ els.next.click(); } else checkStep(curStep,true);
+});
+document.querySelectorAll('[data-start-level]').forEach(b=>b.addEventListener('click', ()=>{
+  const v=b.getAttribute('data-start-level'); els.assess.style.display='none'; els.stats.style.display='flex'; els.card.style.display='block';
+  if(v==='test'){ startTest(); } else { level=+v; newProblem(); }
+}));
+$('btnToTest').addEventListener('click', ()=>{ if(inTest) return; startTest(); });
+
+/* ── 종합 테스트 ── */
+function startTest(){
+  inTest=true; testIdx=0; testResults=[]; els.res.style.display='none'; els.stats.style.display='none';
+  els.card.style.display='block'; P=GENS[TEST_SEQ[0]](); renderProblem();
+}
+function submitTestQ(){
+  const i=P.final, s=P.steps[i]; let v, ok, u;
+  if(s.layout==='paint'){ ok=s.sel.size===s.ans.v; u=s.sel.size+'칸'; }
+  else if(s.layout==='point'){ if(s.pos===null){ setFb('bad','눈금을 눌러 점을 찍어 보아요.'); return; } ok=s.pos===s.ans.v; u=String(s.pos); }
+  else if(s.layout==='choice'){ const sel=els.steps.querySelector('.opt.sel'); if(!sel){ setFb('bad','답을 하나 골라 보아요.'); return; } v=sel.dataset.v; ok = v===String(s.ans.v); u=v; }
+  else { if(!cellsOf(i).every(c=>c.value!=='')){ setFb('bad','빈 칸을 모두 채워 보아요.'); return; } v=stepVals(i); ok=stepOK(i,v); u=userStr(i,v); }
+  testResults.push({plain:P.plain, correct:ok, user:u, ans:ansStr(i)});
+  testIdx++;
+  if(testIdx>=TEST_TOTAL){ finishTest(); } else { P=GENS[TEST_SEQ[testIdx]](); renderProblem(); window.scrollTo({top:0}); }
+}
+function finishTest(){
+  els.card.style.display='none'; els.res.style.display='block'; window.scrollTo({top:0,behavior:'smooth'});
+  const n=testResults.filter(r=>r.correct).length;
+  $('resultBlock').querySelector('.result-title').textContent = `🎉 종합 테스트가 끝났어요! ${TEST_TOTAL}문제 중 ${n}문제를 맞혔어요. 번호와 이름을 쓰고 제출해주세요.`;
+  updateSubmitEnabled();
+}
+
+/* ── 제출 ── */
+function updateSubmitEnabled(){ els.submit.disabled = !(els.num.value.trim() && els.name.value.trim()); }
+els.num.addEventListener('input', updateSubmitEnabled); els.name.addEventListener('input', updateSubmitEnabled);
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function resolveStudent(){
+  const numRaw=els.num.value.trim(), nameRaw=els.name.value.trim(), num=parseInt(numRaw,10);
+  const matched=(num>=1 && num<=ROSTER.length && ROSTER[num-1]===nameRaw);
+  return {valid:!!(numRaw&&nameRaw), matched, recordName: matched?ROSTER[num-1]:'미분류',
+    note: matched?'':`[확인필요 · 학생 입력: 번호 ${numRaw||'?'} / 이름 ${nameRaw||'?'}] `};
+}
+async function submitResult(){
+  const who=resolveStudent();
+  if(!who.valid){ els.status.textContent='먼저 내 번호와 이름을 입력해주세요.'; els.status.className='submit-status err'; return; }
+  if(testResults.length<TEST_TOTAL){ els.status.textContent='종합 테스트를 끝까지 풀고 제출해주세요.'; els.status.className='submit-status err'; return; }
+  const n=testResults.filter(r=>r.correct).length, rate=Math.round(n/TEST_TOTAL*100);
+  const pos = rate>=80?'긍정✅':(rate>=50?'중립📋':'관찰필요🔍');
+  const detail=testResults.map((r,i)=>`${i+1})${r.plain} ${r.correct?'정답':`오답(입력:${r.user}, 정답:${r.ans})`}`).join(', ');
+  const record={'기록제목':'분수 종합 테스트 결과','날짜':todayStr(),'분야':'학습능력','긍정도':pos,'출처':'학생직접제출','과목':'수학',
+    '내용':`${who.note}분수(3-2 4단원) 종합 테스트 ${TEST_TOTAL}문제 중 ${n}문제 정답(정답률 ${rate}%). 세부: ${detail}.${practiceSummary()}`,'🧑‍🎓 이름':who.recordName};
+  els.submit.disabled=true; els.status.textContent='제출 중...'; els.status.className='submit-status pending';
+  try{
+    if(navigator.onLine===false) throw new Error('오프라인(navigator.onLine=false)');
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/class-manage`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+    if(!res.ok){ let t=''; try{ t=await res.text(); }catch(e){} throw new Error(`HTTP ${res.status} ${t}`.trim()); }
+    els.status.textContent = who.matched ? '제출 완료! 결과가 선생님께 전달되었어요.' : "제출 완료! (번호·이름이 명단과 달라 '미분류'로 저장했어요. 선생님께 확인을 부탁드리세요.)";
+    els.status.className='submit-status ok';
+  }catch(err){ els.status.textContent=`제출에 실패했어요. 인터넷 연결을 확인하고 다시 눌러주세요. (오류: ${err.message})`; els.status.className='submit-status err'; }
+  finally{ updateSubmitEnabled(); }
+}
+els.submit.addEventListener('click', submitResult);
+
+/* ── 분수 조작판 (직접 칠하고 나누어 보는 연습 도구) ── */
+const MP = {tab:'bar', d:4, W:2, n:0, T:12, G:3, a:0};
+const mpEl = {ov:$('mpOverlay'), stage:$('mpStage'), ctl:$('mpCtl'), info:$('mpInfo'), hint:$('mpHint')};
+const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
+function mpStepper(label,key,lo,hi){ return `<div class="grp2">${label}<button type="button" data-k="${key}" data-dx="-1">−</button><b>${MP[key]}</b><button type="button" data-k="${key}" data-dx="1">＋</button></div>`; }
+function mpRender(){
+  document.querySelectorAll('.mp-tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===MP.tab));
+  if(MP.tab==='bar'){
+    const {d,W,n}=MP; let h='';
+    for(let w=0; w<W; w++){ h+='<div class="barrow"><span class="cells">'; for(let c=0;c<d;c++){ const i=w*d+c; h+=`<span class="bc${i<n?' on':''}" data-i="${i}"></span>`; } h+=`<span class="bw">${w+1}</span></div>`; }
+    mpEl.stage.innerHTML=h;
+    mpEl.ctl.innerHTML = mpStepper('한 칸 나누기 (분모)','d',2,10)+mpStepper('막대 수','W',1,5)+'<div class="grp2"><button type="button" id="mpClear">🧽 지우기</button></div>';
+    let t;
+    if(n===0) t='칸을 눌러 앞에서부터 색칠해 보아요.';
+    else{
+      const w=Math.floor(n/d), q=n%d;
+      t=`색칠한 칸은 ${fr(1,d)}이 <b>${n}</b>개 → ${fr(n,d)}`;
+      if(n<d) t+=` <b>(진분수)</b>`;
+      else if(q===0) t+=` <b>(가분수)</b> = 자연수 <b>${w}</b>`;
+      else t+=` <b>(가분수)</b> = ${mx(w,q,d)} <b>(대분수)</b>`;
+    }
+    mpEl.info.innerHTML=t; mpEl.hint.textContent='칸을 누르면 그 칸까지 색칠돼요. 마지막으로 칠한 칸을 다시 누르면 한 칸 지워져요.';
+  } else {
+    const {T,G,a}=MP, ok = T%G===0, m=ok?T/G:0;
+    mpEl.stage.innerHTML = ok ? dotsHTML(T,m,a,true).replace(/class="grp/g,'data-g="" class="grp') : dotsHTML(T,1,0,false);
+    if(ok){ mpEl.stage.querySelectorAll('.grp').forEach((g,i)=>g.dataset.g=i); }
+    mpEl.ctl.innerHTML = mpStepper('전체 개수','T',2,48)+mpStepper('몇 묶음으로 나눌까','G',2,10)+'<div class="grp2"><button type="button" id="mpClear">🧽 지우기</button></div>';
+    if(!ok) mpEl.info.innerHTML=`${T}개를 ${G}묶음으로 똑같이 나눌 수 없어요. 숫자를 바꿔 보아요.`;
+    else if(a===0) mpEl.info.innerHTML=`${T}개를 ${G}묶음으로 나누면 한 묶음은 <b>${m}</b>개예요. 묶음을 눌러 색칠해 보아요.`;
+    else mpEl.info.innerHTML=`한 묶음 ${m}개 · 색칠한 것은 ${a}묶음 → ${T}의 ${fr(a,G)} = ${a}×${m} = <b>${a*m}</b>`;
+    mpEl.hint.textContent='묶음을 누르면 그 묶음까지 색칠돼요.';
+  }
+}
+function mpOpen(){
+  const m = P && P.manip;
+  if(m){ if(m.t==='bar'){ MP.tab='bar'; MP.d=clamp(m.d,2,10); MP.W=clamp(m.W,1,5); MP.n=0; } else { MP.tab='dots'; MP.T=clamp(m.T,2,48); MP.G=clamp(m.G,2,10); MP.a=0; } }
+  try{ document.activeElement && document.activeElement.blur(); }catch(e){}
+  window.__btOpen=true; mpEl.ov.classList.add('on'); mpEl.ov.setAttribute('aria-hidden','false'); mpRender();
+}
+function mpClose(){ window.__btOpen=false; mpEl.ov.classList.remove('on'); mpEl.ov.setAttribute('aria-hidden','true'); if(P && !done && !inTest) focusStep(curStep); }
+$('mpOpen').addEventListener('click', mpOpen);
+$('mpClose').addEventListener('click', mpClose);
+mpEl.ov.addEventListener('click', e=>{ if(e.target===mpEl.ov) mpClose(); });
+document.querySelectorAll('.mp-tab').forEach(b=>b.addEventListener('click', ()=>{ MP.tab=b.dataset.tab; mpRender(); }));
+mpEl.ctl.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.id==='mpClear'){ MP.n=0; MP.a=0; mpRender(); return; }
+  const k=b.dataset.k, dx=+b.dataset.dx; const lim={d:[2,10],W:[1,5],T:[2,48],G:[2,10]}[k];
+  MP[k]=clamp(MP[k]+dx,lim[0],lim[1]); MP.n=Math.min(MP.n,MP.d*MP.W); MP.a=Math.min(MP.a,MP.G); mpRender();
+});
+mpEl.stage.addEventListener('click', e=>{
+  const c=e.target.closest('.bc'); if(c){ const i=+c.dataset.i; MP.n = (i===MP.n-1) ? i : i+1; mpRender(); return; }
+  const g=e.target.closest('.grp'); if(g && g.dataset.g!==undefined){ const j=+g.dataset.g; MP.a = (j===MP.a-1) ? j : j+1; mpRender(); }
+});
+window.__frac = {gens:GENS, get P(){return P;}};
+})();
+</script>
+<!--NUMPAD-START-->
+<style>
+#npad{position:fixed;left:0;right:0;bottom:0;z-index:100000;display:none;background:#e8f1f8;border-top:2px solid #b9d3e6;box-shadow:0 -4px 14px rgba(40,70,100,.18);padding:6px 8px calc(6px + env(safe-area-inset-bottom));user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body.npad-on #npad{display:block}
+#npad .npad-row{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(12,1fr);gap:6px}
+#npad button{font-family:'Jua',sans-serif;font-size:26px;line-height:1;height:52px;border:0;border-radius:12px;background:#fff;color:#3D5A80;box-shadow:0 2px 0 #b9d3e6;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:0}
+#npad button:active{transform:translateY(2px);box-shadow:none;background:#dcecf7}
+#npad button.npad-fn{background:#fff3e6;color:#E8873A;box-shadow:0 2px 0 #f2cfa8;font-size:22px}
+#npad button.npad-ok{background:#e4f6df;color:#3b8a2e;box-shadow:0 2px 0 #b7dcae}
+@media (max-width:640px){#npad .npad-row{grid-template-columns:repeat(6,1fr)}#npad button{height:46px;font-size:24px}}
+</style>
+<div id="npad" aria-hidden="true"><div class="npad-row">
+<button type="button" tabindex="-1" data-k="1">1</button><button type="button" tabindex="-1" data-k="2">2</button><button type="button" tabindex="-1" data-k="3">3</button><button type="button" tabindex="-1" data-k="4">4</button><button type="button" tabindex="-1" data-k="5">5</button><button type="button" tabindex="-1" data-k="6">6</button><button type="button" tabindex="-1" data-k="7">7</button><button type="button" tabindex="-1" data-k="8">8</button><button type="button" tabindex="-1" data-k="9">9</button><button type="button" tabindex="-1" data-k="0">0</button><button type="button" class="npad-fn" tabindex="-1" data-k="bs">⌫</button><button type="button" class="npad-ok" tabindex="-1" data-k="ok">↵</button>
+</div></div>
+<script>
+/* 터치 기기 내장 숫자패드: OS 키보드가 화면을 가리지 않도록 함. ?pad=1 강제 켜기, ?pad=0 끄기 */
+(function(){
+  var q = location.search.match(/[?&]pad=(\d)/);
+  var touchy = q ? q[1] === '1' : !!((window.matchMedia && (matchMedia('(any-pointer: coarse)').matches || matchMedia('(pointer: coarse)').matches)) || navigator.maxTouchPoints > 0 || ('ontouchstart' in window));
+  if(!touchy) return;
+  var pad = document.getElementById('npad'), last = null;
+  var SEL = 'input.dcell, input[type=number], input[data-digit], input[data-carry]';
+  function eligible(el){ return el && el.tagName === 'INPUT' && el.matches(SEL) && el.id !== 'btRepeatN'; }
+  function arm(el){ el.setAttribute('inputmode','none'); el.readOnly = true; }   // OS 키보드가 뜨지 않게 함(값은 패드·실제 키보드로 입력)
+  function mark(root){ (root.querySelectorAll ? root.querySelectorAll(SEL) : []).forEach(function(el){ if(eligible(el)) arm(el); }); }
+  mark(document);
+  new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(function(n){ if(n.nodeType===1){ if(eligible(n)) arm(n); mark(n); } }); }); }).observe(document.body,{childList:true,subtree:true});
+  function ui(){
+    document.body.classList.toggle('tabletui', innerWidth >= 700);
+    document.body.classList.toggle('landshort', innerWidth > innerHeight && innerHeight <= 520);
+  }
+  ui();
+  function layout(){
+    ui();
+    var on = !!last && document.body.contains(last) && !window.__btOpen;
+    document.body.classList.toggle('npad-on', on);
+    var side = document.body.classList.contains('landshort');
+    document.body.style.paddingBottom = (on && !side) ? (pad.offsetHeight + 12) + 'px' : '';
+    document.body.style.paddingRight = (on && side) ? (pad.offsetWidth + 8) + 'px' : '';
+  }
+  function reveal(el){
+    if(!el || !pad.offsetHeight) return;
+    var side = document.body.classList.contains('landshort');
+    var r = el.getBoundingClientRect(), limit = side ? innerHeight - 8 : innerHeight - pad.offsetHeight - 8;
+    if(r.bottom > limit || r.top < 0){ try{ el.scrollIntoView({block:'center'}); }catch(e){} }
+  }
+  document.addEventListener('focusin', function(e){
+    var t = e.target;
+    if(eligible(t)){ last = t; layout(); setTimeout(function(){ reveal(t); }, 30); }
+    else if(t && t.tagName === 'INPUT' && t.type === 'text'){ last = null; layout(); }
+  });
+  window.addEventListener('resize', layout);
+  setInterval(layout, 500);
+  function press(el, k){
+    var v = el.value;
+    if(k === 'bs'){ v = v.slice(0,-1); }
+    else {
+      var ml = parseInt(el.getAttribute('maxlength'),10);
+      if(ml === 1) v = k;
+      else if(!(ml > 0 && v.length >= ml)) v += k;
+    }
+    el.value = v;
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    if(el.id === 'numInput') el.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  /* 실제 키보드(블루투스 등)를 쓰는 경우에도 숫자·지우기가 동작하도록 */
+  document.addEventListener('keydown', function(e){
+    var el = e.target;
+    if(!eligible(el) || !el.readOnly || el.disabled || e.ctrlKey || e.metaKey || e.altKey) return;
+    if(/^[0-9]$/.test(e.key)){ e.preventDefault(); press(el, e.key); }
+    else if(e.key === 'Backspace'){ e.preventDefault(); press(el, 'bs'); }
+  }, true);
+  pad.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  pad.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    var el = document.activeElement;
+    if(!eligible(el)) el = last;
+    if(!eligible(el) || !document.body.contains(el) || el.disabled) return;
+    if(document.activeElement !== el) el.focus();
+    var k = b.getAttribute('data-k');
+    if(k === 'ok'){
+      ['keydown','keyup'].forEach(function(t){ el.dispatchEvent(new KeyboardEvent(t,{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true,cancelable:true})); });
+      return;
+    }
+    press(el, k);
+  });
+})();
+</script>
+<!--NUMPAD-END-->
+</body>
+</html>
