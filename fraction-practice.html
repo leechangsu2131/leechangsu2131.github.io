@@ -163,6 +163,30 @@ body.landshort .mp-info{font-size:14px;padding:6px 10px;line-height:1.5}
 .part.on{fill:#E8873A}.part.static{cursor:default}
 .tick{cursor:pointer}
 svg text{font-family:"Jua",sans-serif}
+.hello{font-family:"Jua",sans-serif;font-size:20px;color:var(--blue);margin-bottom:10px}
+.assess-btn.resume{border-color:#bfdcc4;background:var(--ok-soft)}
+.prof{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:5px 14px;cursor:pointer;min-width:200px}
+.prof-top{font-size:14.5px}.prof-top b{font-family:"Jua",sans-serif;font-weight:400;color:var(--org);font-size:18px}
+.prof-bar{display:block;height:8px;border-radius:99px;background:#E7EEF5;margin-top:3px;overflow:hidden}
+.prof-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F4B26B,#E8873A);transition:width .5s}
+.modal{position:fixed;inset:0;background:rgba(37,50,74,.55);z-index:200000;align-items:center;justify-content:center;padding:14px}
+.modal-box{background:#fff;border-radius:18px;padding:16px 18px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:8px 0}
+.bdg{border:2px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;font-size:13px;line-height:1.4;background:#F6F8FA;color:#9aa5b5}
+.bdg i{display:block;font-style:normal;font-size:28px;filter:grayscale(1);opacity:.5}
+.bdg.on{background:var(--org-soft);border-color:#f0c9a6;color:var(--ink)}.bdg.on i{filter:none;opacity:1}
+.modal-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:14px;color:var(--sub)}
+#toasts{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:300000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:92%;max-width:460px}
+.toast{background:#25324A;color:#fff;font-family:"Jua",sans-serif;font-size:18px;padding:10px 20px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:tin .35s,tout .4s 2.8s forwards;text-align:center}
+.toast.lv{background:linear-gradient(90deg,#E8873A,#d9a520);font-size:22px}
+@keyframes tin{from{transform:translateY(-20px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tout{to{opacity:0;transform:translateY(-10px)}}
+.xpgain{color:var(--org);font-family:"Jua",sans-serif}
+body.landshort .prof{padding:2px 10px;min-width:150px}
+.mp-panel2{position:relative;background:#fff;border-radius:16px;width:100%;max-width:1100px;height:94vh;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#mpHost,#mpHost iframe{width:100%;height:100%;border:0;display:block}
+.mp-close2{position:absolute;right:10px;top:8px;z-index:3;font-family:"Jua",sans-serif;font-size:15px;padding:6px 14px;border-radius:10px;border:2px solid #C0503F;background:#fff;color:#C0503F;cursor:pointer}
+.hint-btn{font-family:"Jua",sans-serif;font-size:16px;padding:8px 16px;border-radius:12px;border:2px dashed var(--org);background:var(--org-soft);color:#b4560f;cursor:pointer;margin:2px 0 8px}
 </style>
 </head>
 <body>
@@ -172,7 +196,19 @@ svg text{font-family:"Jua",sans-serif}
     <p class="subtitle">3학년 2학기 · 4. 분수 · 그림과 단계로 차근차근</p>
   </header>
 
-  <div class="assess-box" id="assessScreen">
+  <div class="assess-box" id="gateScreen">
+    <div class="assess-title">🙋 먼저 내 이름을 알려 주세요</div>
+    <div class="assess-q">번호와 이름을 쓰면 내 연습이 기록되고, 경험치와 레벨이 쌓여요.</div>
+    <div class="who-card">
+      <label for="gNum">번호</label><input type="number" id="gNum" inputmode="numeric" min="1" max="19" placeholder="예: 3" class="who-num">
+      <label for="gName">이름</label><input type="text" id="gName" placeholder="본인 이름을 정확히 입력하세요" class="who-name">
+    </div>
+    <button class="btn-submit" id="gStart" disabled>시작하기 ▶</button>
+  </div>
+
+  <div class="assess-box" id="assessScreen" style="display:none">
+    <div class="hello" id="helloLine"></div>
+    <button class="assess-btn resume" id="btnResume" style="display:none"><span class="assess-btn-main" id="resumeMain">이어서 하기</span><span class="assess-btn-sub">지난번 단계에서 계속해요</span></button>
     <div class="assess-title">🙋 시작하기 전에 하나만 물어볼게요</div>
     <div class="assess-q">분수, 지금 어느 정도 할 수 있을 것 같아요?</div>
     <button class="assess-btn" data-start-level="1"><span class="assess-btn-main">아직 낯설어요</span><span class="assess-btn-sub">전체를 똑같이 나누어 분수로 나타내기부터</span></button>
@@ -185,6 +221,7 @@ svg text{font-family:"Jua",sans-serif}
   <div class="stats" id="statsBar" style="display:none">
     <div class="chip">맞힌 문제 <b id="statScore">0</b></div>
     <div class="chip">연속 정답 <b id="statStreak">0</b></div>
+    <div class="prof" id="profChip" role="button" tabindex="0" title="내 배지 보기"><span class="prof-top"><b id="profLv">Lv.1</b> <span id="profTitle">분수 씨앗 🌱</span> · <span id="profXp">0</span> XP</span><span class="prof-bar"><i id="profFill"></i></span></div>
     <div class="chip chip-btn" id="btnToTest" role="button" tabindex="0">종합 테스트 도전 ▶</div>
   </div>
 
@@ -194,6 +231,7 @@ svg text{font-family:"Jua",sans-serif}
       <div class="colL">
         <div class="problem-row" id="problemRow"></div>
         <div class="visual" id="visual"></div>
+        <button type="button" class="btn-ghost hint-btn" id="btnHint" style="display:none">🖼️ 그림 힌트 보기</button>
       </div>
       <div class="colR">
         <div class="mp-open-row" id="mpOpenRow"><button type="button" class="mp-open-btn" id="mpOpen">🧩 분수 조작판으로 해보기</button></div>
@@ -221,20 +259,13 @@ svg text{font-family:"Jua",sans-serif}
     <div class="submit-status" id="submitStatus"></div>
   </div>
 
-<div id="mpOverlay" aria-hidden="true"><div class="mp-panel" role="dialog" aria-label="분수 조작판">
-  <div class="mp-head"><h2>🧩 분수 조작판</h2>
-    <button type="button" class="mp-tab on" data-tab="bar">분수 막대</button>
-    <button type="button" class="mp-tab" data-tab="dots">묶음 나누기</button>
-    <button type="button" class="mp-close" id="mpClose">닫기 ✕</button></div>
-  <div class="mp-stage" id="mpStage"></div>
-  <div class="mp-ctl" id="mpCtl"></div>
-  <div class="mp-info" id="mpInfo"></div>
-  <div class="mp-hint" id="mpHint"></div>
-</div></div>
-
+<div id="mpOverlay" aria-hidden="true"><div class="mp-panel2"><button type="button" class="mp-close2" id="mpClose">닫기 ✕</button><div id="mpHost"></div></div></div>
+  <div id="badgeModal" class="modal" style="display:none"><div class="modal-box"><div class="assess-title">🏅 내 배지</div><div id="badgeGrid" class="badge-grid"></div><div class="modal-foot"><span id="badgeSum"></span><button class="btn-ghost" id="badgeClose" style="font-family:Jua,sans-serif;font-size:16px;padding:8px 16px;border-radius:10px;border:0;cursor:pointer;background:#DCE6F2;color:#3D5A80">닫기</button></div></div></div>
+  <div id="toasts"></div>
   <footer>화천초등학교 3학년 2반 · 분수 연습</footer>
 </div>
 
+<script>window.__BOARD_HTML="<!DOCTYPE html>\n<html lang=\"ko\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no\">\n<title>\ubd84\uc218 \uc870\uc791\ud310<\/title>\n<link href=\"https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap\" rel=\"stylesheet\">\n<style>\n:root{--paper:#F3F8FC;--ink:#25324A;--sub:#6B7690;--blue:#3D5A80;--blue-soft:#DCE6F2;--org:#E8873A;--org-soft:#FBE6D2;--line:#D7E3EE;--bs:1}\n*{box-sizing:border-box}\nhtml,body{margin:0}\nbody{background:var(--paper);color:var(--ink);font-family:\"Gowun Batang\",serif;padding:10px 10px 30px;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}\n.app{max-width:1100px;margin:0 auto}\nheader{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}\nh1{font-family:\"Jua\",sans-serif;font-weight:400;font-size:26px;margin:0;color:var(--blue);flex:1;min-width:180px}\n.modes{display:flex;gap:6px}\n.mode{font-family:\"Jua\",sans-serif;font-size:16px;padding:8px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;color:var(--blue);cursor:pointer}\n.mode.on{background:var(--blue);border-color:var(--blue);color:#fff}\n.wrap{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:\"tray board\" \"tool tool\" \"status status\";gap:10px}\n@media(max-width:700px){.wrap{grid-template-columns:1fr;grid-template-areas:\"tray\" \"board\" \"tool\" \"status\"}}\n.tray{grid-area:tray;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;overflow:auto}\n@media(max-width:700px){.tray{flex-direction:row;flex-wrap:wrap}}\n.tlabel{font-family:\"Jua\",sans-serif;font-size:13px;color:var(--sub);width:100%}\n.tsrc{display:flex;align-items:center;gap:6px;cursor:grab;touch-action:none;padding:3px 4px;border-radius:10px}\n.tsrc:active{background:var(--blue-soft)}\n.tsrc span.nm{font-family:\"Jua\",sans-serif;font-size:13px;color:var(--sub);min-width:28px}\n.board{grid-area:board;position:relative;background:#fff;border:2px solid var(--line);border-radius:16px;min-height:340px;overflow:hidden;touch-action:none;\n  background-image:linear-gradient(#EEF3F8 1px,transparent 1px),linear-gradient(90deg,#EEF3F8 1px,transparent 1px);background-size:24px 24px}\n.guide{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed #9db8d4;pointer-events:none;z-index:0}\n.guide i{position:absolute;top:2px;left:4px;font:normal 12px \"Jua\",sans-serif;color:#7d9bbd}\n.it{position:absolute;touch-action:none;cursor:grab;z-index:2}\n.fp{height:calc(36px * var(--bs));border:2px solid rgba(0,0,0,.25);border-radius:6px;color:#fff;display:flex;align-items:center;justify-content:center;font-family:\"Jua\",sans-serif;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.18)}\n.fp .fr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;font-size:calc(12px * var(--bs))}\n.fp .fr .n{border-bottom:1.5px solid #fff;padding:0 2px}\n.fp .big{font-size:calc(20px * var(--bs))}\n.it.sel{outline:3px dashed #25324A;outline-offset:2px;z-index:5}\n.bead{width:calc(22px * var(--bs));height:calc(22px * var(--bs));border-radius:50%;background:#fff;border:3px solid var(--blue);z-index:4}\n.box{width:calc(132px * var(--bs));height:calc(104px * var(--bs));border:3px solid var(--blue);border-radius:14px;background:rgba(220,230,242,.35);z-index:1}\n.box.on{background:var(--org-soft);border-color:var(--org)}\n.box.on:after{content:\"\uc0c9\uce60\";position:absolute;right:6px;top:2px;font:12px \"Jua\",sans-serif;color:var(--org)}\n.box.sel{z-index:1}\n.bead.on{background:var(--org);border-color:#c76a22}\n.rb{position:absolute;border:2px dashed var(--org);background:rgba(232,135,58,.12);z-index:9;pointer-events:none}\n.ghost{position:fixed;z-index:99999;pointer-events:none;opacity:.85}\n.tool{grid-area:tool;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}\n.tg{display:flex;gap:6px;align-items:center;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:5px 8px}\n.tg .lb{font-size:13px;color:var(--sub)}\n.tg b{font-family:\"Jua\",sans-serif;font-weight:400;font-size:19px;min-width:24px;text-align:center;color:var(--blue)}\nbutton.b{font-family:\"Jua\",sans-serif;font-size:15px;min-height:40px;min-width:40px;padding:0 12px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}\nbutton.b:active:not(:disabled){background:var(--blue-soft)}\nbutton.b:disabled{opacity:.35;cursor:default}\nbutton.b.pri{background:var(--blue);color:#fff}\nbutton.b.pri:disabled{background:var(--blue)}\nbutton.b.on{background:var(--org);border-color:var(--org);color:#fff}\nbutton.b.warn{border-color:#C0503F;color:#C0503F}\n.status{grid-area:status;margin-top:2px;padding:10px 14px;border-radius:12px;background:var(--blue-soft);font-size:17px;line-height:1.8;min-height:44px;-webkit-user-select:text;user-select:text}\n.status b{font-family:\"Jua\",sans-serif;font-weight:400;color:#b4560f}\n.fr2{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-family:\"Jua\",sans-serif}\n.fr2 .n{border-bottom:2.5px solid currentColor;padding:0 5px}.fr2 .d{padding:0 5px}\n.mx2{display:inline-flex;align-items:center;vertical-align:middle;font-family:\"Jua\",sans-serif}.mx2 b{font-weight:400;font-size:1.15em;margin-right:2px;color:inherit}\n.tip{font-size:13px;color:var(--sub);margin-top:6px}\n@media (max-height:520px) and (orientation:landscape){\n  body{padding:4px}header{margin:0 0 4px}h1{display:none}.mode{padding:4px 10px;font-size:13px}.modes{gap:4px}\n  .wrap{grid-template-columns:auto minmax(0,1fr) 210px;grid-template-areas:\"tray board tool\" \"status status status\"}\n  .tray{max-height:calc(100vh - 46px);flex-direction:column;flex-wrap:nowrap}\n  .board{min-height:calc(100vh - 46px);max-height:calc(100vh - 46px);overflow:auto}\n  .tool{flex-direction:column;align-items:stretch;max-height:calc(100vh - 46px);overflow:auto;gap:5px;flex-wrap:nowrap}\n  .tg{flex-wrap:wrap}.tip{display:none}\n  .status{grid-area:status;font-size:14px;min-height:0;padding:4px 10px;line-height:1.4}\n}\n\n.modes{flex-wrap:wrap}\n.bead.go{border-color:#3D5A80}\n.bead.go.on{background:#1d1d1d;border-color:#000}\n.bead.em{border:0;background:transparent;font-size:calc(24px * var(--bs));line-height:1;display:flex;align-items:center;justify-content:center}\n.bead.em.on{box-shadow:0 0 0 3px var(--org);background:var(--org-soft);border-radius:50%}\n.box.on:after{content:\"\ud45c\uc2dc\"}\n/* \uc0c8 \ud0ed */\n.npanel{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}\n@media(max-width:760px){.npanel{grid-template-columns:1fr}}\n.nstage{background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;touch-action:manipulation;overflow-x:auto}\n.nside{display:flex;flex-direction:column;gap:10px}\n.nrow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}\n.nlbl{font-family:\"Jua\",sans-serif;color:var(--blue);font-size:16px;align-self:flex-start}\n.part{cursor:pointer;fill:#fff;stroke:#3D5A80;stroke-width:3;transition:fill .12s}\n.part.on{fill:#E8873A}\n.part:hover{fill:#FBE6D2}.part.on:hover{fill:#d97a2e}\n.signbig{font-family:\"Jua\",sans-serif;font-size:64px;color:var(--org);line-height:1}\n.nt-info{font-size:18px;line-height:1.9;background:var(--blue-soft);border-radius:12px;padding:10px 14px;min-height:56px}\n.nt-info b{font-family:\"Jua\",sans-serif;font-weight:400;color:#b4560f}\n.tick{cursor:pointer}\nsvg text{font-family:\"Jua\",sans-serif}\n@media (max-height:520px) and (orientation:landscape){.npanel{grid-template-columns:1.2fr 1fr}.nstage{min-height:120px;padding:6px}.nt-info{font-size:14px;padding:6px 10px;line-height:1.5;min-height:0}.signbig{font-size:36px}}\nbody.embed h1{display:none}body.embed header{margin-bottom:4px}\n<\/style>\n<\/head>\n<body>\n<div class=\"app\">\n  <header><h1>\ud83e\udde9 \ubd84\uc218 \uc870\uc791\ud310<\/h1>\n    <div class=\"modes\"><button class=\"mode on\" data-mode=\"bead\">\ud83e\udd67 \ub098\ub204\uc5b4 \ub2f4\uae30<\/button><button class=\"mode\" data-mode=\"shape\">\ud83c\udfa8 \uc0c9\uce60\ud558\uae30<\/button><button class=\"mode\" data-mode=\"nline\">\ud83d\udccf \uc218\uc9c1\uc120<\/button><button class=\"mode\" data-mode=\"cmp\">\u2696\ufe0f \ud06c\uae30 \ube44\uad50<\/button><button class=\"mode\" data-mode=\"frac\">\ud83e\uddf1 \uc870\uac01 \ub9de\ucd94\uae30<\/button><\/div><\/header>\n  <div class=\"wrap\" id=\"legacy\">\n    <div class=\"tray\" id=\"tray\"><\/div>\n    <div class=\"board\" id=\"board\"><\/div>\n    <div class=\"tool\" id=\"tool\"><\/div>\n    <div class=\"status\" id=\"status\"><\/div>\n  <\/div>\n  <div id=\"newtab\" style=\"display:none\"><\/div>\n  <div class=\"tip\" id=\"tip\"><\/div>\n<\/div>\n<script>\n(function(){\n'use strict';\nconst $=id=>document.getElementById(id);\nconst rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;\nconst cl=(v,a,b)=>Math.max(a,Math.min(b,v));\nconst COL={1:'#4C7DB5',2:'#E8873A',3:'#D9A520',4:'#4C9A6A',5:'#C2609A',6:'#7E62C8',8:'#2E9AA0',10:'#D2583F'};\nconst DEN=[2,3,4,5,6,8,10];\nconst fr=(n,d)=>`<span class=\"fr2\"><span class=\"n\">${n}<\/span><span class=\"d\">${d}<\/span><\/span>`;\nconst mx=(w,n,d)=>`<span class=\"mx2\"><b>${w}<\/b>${fr(n,d)}<\/span>`;\nconst EMBED=(window.parent!==window);\nconst board=$('board'), tray=$('tray'), tool=$('tool'), statusEl=$('status'), tipEl=$('tip');\nconst ST={frac:{items:[],undo:[],next:1},bead:{items:[],undo:[],next:1}};\nconst SKINS={go:{n:'\ubc14\ub451\ub3cc'},pie:{n:'\ud30c\uc774',e:'\ud83e\udd67'},cookie:{n:'\ucfe0\ud0a4',e:'\ud83c\udf6a'},berry:{n:'\ub538\uae30',e:'\ud83c\udf53'},apple:{n:'\uc0ac\uacfc',e:'\ud83c\udf4e'}};\nlet skin='go', mode='bead', bs=1, W0=240, showNum=false, guide=false, addN=1, splitD=4, groupG=3, flash='';\nconst cur=()=>ST[mode];\nconst Wp=()=>Math.round(W0*bs);\nfunction size(it){\n  if(it.k==='f') return {w:Math.round(Wp()/it.d), h:Math.round(36*bs)};\n  if(it.k==='b') return {w:Math.round((skin==='go'?22:30)*bs), h:Math.round((skin==='go'?22:30)*bs)};\n  return {w:Math.round(132*bs), h:Math.round(104*bs)};\n}\nconst bw=()=>board.clientWidth||600;\nfunction snapshot(){ return JSON.stringify(cur().items); }\nfunction pushUndo(s){ const u=cur().undo; u.push(s||snapshot()); if(u.length>100) u.shift(); }\nfunction selected(){ return cur().items.filter(i=>i.sel); }\nfunction byId(id){ return cur().items.find(i=>i.id===id); }\nfunction newItem(k,d,x,y){ const it={id:cur().next++,k,d:d||0,x:Math.round(x),y:Math.round(y),sel:false,on:false}; cur().items.push(it); return it; }\nfunction center(it){ const s=size(it); return {x:it.x+s.w/2,y:it.y+s.h/2}; }\nfunction owner(bead){ const c=center(bead); let o=null; cur().items.forEach(b=>{ if(b.k==='x'){ const s=size(b); if(c.x>=b.x&&c.x<=b.x+s.w&&c.y>=b.y&&c.y<=b.y+s.h) o=b; } }); return o; }\nfunction contents(box){ return cur().items.filter(i=>i.k==='b'&&owner(i)===box); }\n\n/* \u2500\u2500 \uadf8\ub9ac\uae30 \u2500\u2500 */\nfunction elFor(it){\n  const s=size(it), e=document.createElement('div'); e.dataset.id=it.id;\n  e.className='it '+(it.k==='f'?'fp':it.k==='b'?'bead':'box')+(it.sel?' sel':'');\n  e.style.left=it.x+'px'; e.style.top=it.y+'px'; e.style.width=s.w+'px'; e.style.height=s.h+'px';\n  if(it.k==='f'){ e.style.background=COL[it.d]; e.innerHTML = it.d===1?'<span class=\"big\">1<\/span>':(s.w>=26?`<span class=\"fr\"><span class=\"n\">1<\/span><span class=\"d\">${it.d}<\/span><\/span>`:''); e.title=it.d===1?'1':'1/'+it.d; }\n  if(it.k==='x'&&it.on) e.classList.add('on');\n  if(it.k==='b'){ const o=owner(it); if(it.on||(o&&o.on)) e.classList.add('on'); if(skin==='go') e.classList.add('go'); else { e.classList.add('em'); e.textContent=SKINS[skin].e; } }\n  return e;\n}\nfunction render(){\n  const items=cur().items; board.innerHTML='';\n  let maxY=0;\n  if(mode==='frac'&&guide){ for(let k=0;k*Wp()<bw()+Wp();k++){ const g=document.createElement('div'); g.className='guide'; g.style.left=(k*Wp())+'px'; g.innerHTML='<i>'+k+'<\/i>'; board.appendChild(g); } }\n  items.filter(i=>i.k==='x').concat(items.filter(i=>i.k!=='x')).forEach(it=>{ board.appendChild(elFor(it)); const s=size(it); maxY=Math.max(maxY,it.y+s.h); });\n  board.style.height = Math.max(340, maxY+30)+'px';\n  if(document.body.classList.contains('lsh')) board.style.height='';\n  renderTool(); renderStatus();\n}\nfunction btn(act,label,cls,extra){ return `<button class=\"b ${cls||''}\" data-act=\"${act}\" ${extra||''}>${label}<\/button>`; }\nfunction renderTool(){\n  const sel=selected(), n=sel.length;\n  const has=cur().items.length>0, un=cur().undo.length>0;\n  let h='';\n  h+=`<div class=\"tg\"><span class=\"lb\">\ud55c \ubc88\uc5d0<\/span>${btn('addn-','\u2212','')}<b>${addN}<\/b>${btn('addn+','\uff0b','')}<span class=\"lb\">\uac1c \ub193\uae30<\/span><\/div>`;\n  if(mode==='frac'){\n    const canSplit = n===1 && sel[0].k==='f' && sel[0].d===1;\n    const cnt={}; sel.forEach(i=>{ if(i.k==='f'&&i.d>1) cnt[i.d]=(cnt[i.d]||0)+1; });\n    const canMerge = Object.keys(cnt).some(d=>cnt[d]>=+d);\n    h+=`<div class=\"tg\">${btn('split','\u2702\ufe0f \ucabc\uac1c\uae30','pri',canSplit?'':'disabled')}${btn('splitd-','\u2212','')}<b>${splitD}<\/b>${btn('splitd+','\uff0b','')}<span class=\"lb\">\uc870\uac01\uc73c\ub85c<\/span><\/div>`;\n    h+=`<div class=\"tg\">${btn('merge','\ud83d\udd17 \ud569\uce58\uae30','pri',canMerge?'':'disabled')}${btn('line','\u2194\ufe0f \ud55c \uc904\ub85c \ubd99\uc774\uae30','',n>=2?'':'disabled')}<\/div>`;\n  } else {\n    if(!EMBED) h+=`<div class=\"tg\">${btn('divide','\ud83c\udf71 \ub611\uac19\uc774 \ub098\ub204\uae30','pri',cur().items.some(i=>i.k==='b')?'':'disabled')}${btn('groupg-','\u2212','')}<b>${groupG}<\/b>${btn('groupg+','\uff0b','')}<span class=\"lb\">\ubb36\uc74c\uc73c\ub85c<\/span><\/div>`;\n    h+=`<div class=\"tg\">${btn('paint',skin==='go'?'\u26ab \uac80\uc740 \ub3cc\ub85c \ub4a4\uc9d1\uae30(\ud45c\uc2dc)':'\ud83c\udfa8 \ud45c\uc2dc\ud558\uae30(\uc0c9\uce60)','pri',sel.some(i=>i.k==='x'||i.k==='b')?'':'disabled')}<\/div>`;\n    h+=`<div class=\"tg\"><span class=\"lb\">\ubb34\uc5c7\uc73c\ub85c?<\/span>${Object.keys(SKINS).map(k=>btn('skin:'+k,SKINS[k].n,skin===k?'on':'')).join('')}<\/div>`;\n  }\n  h+=`<div class=\"tg\">${btn('dup','\ud83d\udccb \ubcf5\uc0ac','',n?'':'disabled')}${btn('del','\ud83d\uddd1\ufe0f \uc9c0\uc6b0\uae30','warn',n?'':'disabled')}${btn('same','\uac19\uc740 \uac83 \ubaa8\ub450 \uc120\ud0dd','',n?'':'disabled')}${btn('all','\uc804\uccb4 \uc120\ud0dd','',has?'':'disabled')}${btn('none','\uc120\ud0dd \ud574\uc81c','',n?'':'disabled')}<\/div>`;\n  h+=`<div class=\"tg\">${btn('arrange','\ud83e\uddf9 \uc815\ub9ac','',has?'':'disabled')}${btn('undo','\u21a9\ufe0f \ub418\ub3cc\ub9ac\uae30','',un?'':'disabled')}${btn('clear','\ud83e\uddfd \ube44\uc6b0\uae30','warn',has?'':'disabled')}<\/div>`;\n  h+=`<div class=\"tg\">${EMBED?'':btn('num','\ud83d\udd22 \uc22b\uc790\ub85c \ubcf4\uae30',showNum?'on':'')}${btn('big','\ud83d\udd0d \ud06c\uac8c',bs>1?'on':'')}${mode==='frac'?btn('guide','\ud83d\udccf \ub208\uae08\uc120',guide?'on':''):''}<\/div>`;\n  tool.innerHTML=h;\n}\nfunction descFrac(list){\n  const f=list.filter(i=>i.k==='f'); if(!f.length) return '';\n  let w=0; const c={}; f.forEach(i=>{ if(i.d===1) w++; else c[i.d]=(c[i.d]||0)+1; });\n  const ds=Object.keys(c).map(Number).sort((a,b)=>a-b);\n  if(!ds.length) return `\ub9c9\ub300 <b>${w}<\/b>\uac1c \u2192 \uc790\uc5f0\uc218 <b>${w}<\/b>`;\n  if(ds.length===1){ const d=ds[0], total=w*d+c[d], q=total%d, ww=Math.floor(total/d);\n    let t=`${fr(1,d)}\uc774 <b>${total}<\/b>\uac1c \u2192 ${fr(total,d)}`;\n    if(total<d) t+=' <b>(\uc9c4\ubd84\uc218)<\/b>'; else { t+=' <b>(\uac00\ubd84\uc218)<\/b>'; t+= q? ` = ${mx(ww,q,d)} <b>(\ub300\ubd84\uc218)<\/b>` : ` = \uc790\uc5f0\uc218 <b>${ww}<\/b>`; }\n    return t; }\n  return (w?`\ub9c9\ub300 ${w}\uac1c, `:'')+ds.map(d=>`${fr(1,d)}\uc774 ${c[d]}\uac1c`).join(', ')+'<br><span style=\"font-size:14px\">\ubd84\ubaa8\uac00 \ub2e4\ub974\uba74 \ud55c \ubd84\uc218\ub85c \ubc14\ub85c \ub098\ud0c0\ub0b4\uae30 \uc5b4\ub824\uc6cc\uc694. \uac19\uc740 \ubd84\ubaa8\ub07c\ub9ac \ubaa8\uc544 \ubcf4\uc544\uc694.<\/span>';\n}\nfunction descBead(){\n  const it=cur().items, beads=it.filter(i=>i.k==='b'), boxes=it.filter(i=>i.k==='x');\n  if(!beads.length&&!boxes.length) return '';\n  const marked=beads.filter(b=>b.on).length;\n  const counts=boxes.map(b=>contents(b).length), inBox=counts.reduce((a,b)=>a+b,0), loose=beads.length-inBox;\n  let t=`${SKINS[skin].n} <b>${beads.length}<\/b>\uac1c`; if(marked) t+=` \u00b7 \ud45c\uc2dc\ud55c \uac83 <b>${marked}<\/b>\uac1c \u2192 \uc804\uccb4 ${beads.length}\uac1c \uc911 ${marked}\uac1c\ub294 \uc804\uccb4\uc758 ${fr(marked,beads.length)}`; if(boxes.length) t+=` \u00b7 \ubb36\uc74c(\uc0c1\uc790) <b>${boxes.length}<\/b>\uac1c`;\n  if(boxes.length){ t+=`<br>\uc0c1\uc790\ub9c8\ub2e4 ${counts.join(', ')}\uac1c`+(loose?` (\uc0c1\uc790 \ubc16 ${loose}\uac1c)`:'');\n    const eq=counts.every(c=>c===counts[0]);\n    if(eq&&!loose&&counts[0]>0){ const G=boxes.length, m=counts[0], a=boxes.filter(b=>b.on).length;\n      t+=`<br>\ub611\uac19\uc774 \ub098\ub204\uc5c8\uc5b4\uc694! \ud55c \ubb36\uc74c\uc740 <b>${m}<\/b>\uac1c`; if(a) t+=`<br>\uc0c9\uce60\ud55c \uac83\uc740 ${G}\ubb36\uc74c \uc911 ${a}\ubb36\uc74c \u2192 ${fr(a,G)} \u2192 ${beads.length}\uc758 ${fr(a,G)} = ${a}\u00d7${m} = <b>${a*m}<\/b>`; }\n    else if(!eq) t+='<br>\ubb36\uc74c\ub9c8\ub2e4 \uac1c\uc218\uac00 \ub2ec\ub77c\uc694. \ub611\uac19\uc774 \ub098\ub204\uc5b4 \ubcf4\uc544\uc694.'; }\n  return t;\n}\nfunction renderStatus(){\n  let t='';\n  if(flash){ t=`<b>${flash}<\/b>`; }\n  else if(EMBED){ t='\uc870\uac01\uc774\ub098 \uad6c\uc2ac\uc744 \ub04c\uc5b4 \uc62e\uae30\uace0, \ub20c\ub7ec \uace8\ub77c \ubcf4\uc544\uc694.'; }\n  else if(!showNum){ t=`\ub193\uc778 \uac83 ${cur().items.filter(i=>i.k!=='x').length}\uac1c \u00b7 \uc120\ud0dd ${selected().length}\uac1c`+(EMBED?'':' <span style=\"color:#6B7690;font-size:14px\">(\ud83d\udd22 \uc22b\uc790\ub85c \ubcf4\uae30\ub97c \ucf1c\uba74 \ubd84\uc218\uac00 \ub098\uc640\uc694)<\/span>'); }\n  else if(mode==='frac'){ const s=selected(), a=descFrac(s), b=descFrac(cur().items); t=(s.length&&a?`<b>\uc120\ud0dd\ud55c \uac83<\/b> ${a}<br>`:'')+(b?`<b>\ud310 \uc804\uccb4<\/b> ${b}`:'\uc870\uac01\uc744 \ub193\uc544 \ubcf4\uc544\uc694.'); }\n  else t=descBead()||'\uad6c\uccb4\ubb3c\uacfc \ubb36\uc74c \uc0c1\uc790\ub97c \ub193\uc544 \ubcf4\uc544\uc694.';\n  statusEl.innerHTML=t;\n}\nfunction setFlash(m){ flash=m; renderStatus(); setTimeout(()=>{ if(flash===m){ flash=''; renderStatus(); } },2400); }\n\n/* \u2500\u2500 \ub193\uae30 \u2500\u2500 */\nfunction place(k,d,x,y,count){\n  pushUndo(); const out=[]; const s0=size({k,d}); let cx=x, cy=y;\n  for(let i=0;i<count;i++){\n    if(k==='b'){ cx=x+(i%6)*(s0.w+6); cy=y+Math.floor(i/6)*(s0.h+6); }\n    else if(k==='f'){ if(cx+s0.w>bw()-4 && i>0){ cx=x; cy+=s0.h+8; } }\n    else { cx=x+i*18; cy=y+i*18; }\n    const it=newItem(k,d,clamp0(cx,s0.w),Math.max(0,cy)); out.push(it); if(k==='f') cx+=s0.w+4;\n  }\n  cur().items.forEach(i=>i.sel=false); out.forEach(i=>i.sel=false); render();\n}\nconst clamp0=(x,w)=>cl(x,0,Math.max(0,bw()-w));\nfunction randomSpot(k,d){ const s=size({k,d}); return {x:rand(8,Math.max(8,bw()-s.w-8)), y:rand(8,150)}; }\nfunction trayHTML(){\n  let h='<div class=\"tlabel\">\ub04c\uc5b4\ub2e4 \ub193\uac70\ub098, \ub20c\ub7ec \ubcf4\uc544\uc694<\/div>';\n  if(mode==='frac'){\n    h+=`<div class=\"tsrc\" data-k=\"f\" data-d=\"1\"><div style=\"width:110px;height:24px;border-radius:5px;background:${COL[1]};border:2px solid rgba(0,0,0,.25)\"><\/div><span class=\"nm\">1<\/span><\/div>`;\n    DEN.forEach(d=>{ h+=`<div class=\"tsrc\" data-k=\"f\" data-d=\"${d}\"><div style=\"width:${Math.max(14,Math.round(110/d))}px;height:24px;border-radius:4px;background:${COL[d]};border:2px solid rgba(0,0,0,.25)\"><\/div><span class=\"nm\">1/${d}<\/span><\/div>`; });\n  } else {\n    h+=`<div class=\"tsrc\" data-k=\"b\">${skin==='go'?'<div style=\"width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid #3D5A80\"><\/div>':'<div style=\"font-size:26px;line-height:1\">'+SKINS[skin].e+'<\/div>'}<span class=\"nm\">${SKINS[skin].n}<\/span><\/div>`;\n    h+=`<div class=\"tsrc\" data-k=\"x\"><div style=\"width:56px;height:44px;border-radius:10px;border:3px solid #3D5A80;background:rgba(220,230,242,.5)\"><\/div><span class=\"nm\">\ubb36\uc74c \uc0c1\uc790<\/span><\/div>`;\n  }\n  tray.innerHTML=h;\n}\n\n/* \u2500\u2500 \ub9c8\uc6b0\uc2a4\u00b7\ud130\uce58 \u2500\u2500 */\nlet drag=null;\nfunction local(e){ const r=board.getBoundingClientRect(); return {x:e.clientX-r.left+board.scrollLeft, y:e.clientY-r.top+board.scrollTop}; }\nboard.addEventListener('pointerdown',e=>{\n  const el=e.target.closest('.it'); const p=local(e);\n  try{ board.setPointerCapture(e.pointerId); }catch(_){}\n  if(el){\n    const it=byId(+el.dataset.id); if(!it) return;\n    let ids=(it.sel&&selected().length>1)?selected():[it];\n    const extra=[]; ids.forEach(i=>{ if(i.k==='x') contents(i).forEach(b=>{ if(!ids.includes(b)&&!extra.includes(b)) extra.push(b); }); });\n    ids=ids.concat(extra);\n    drag={type:'item',it,ids,p0:p,orig:ids.map(i=>({i,x:i.x,y:i.y})),moved:false,before:snapshot()};\n  } else {\n    drag={type:'rb',p0:p,moved:false,add:e.ctrlKey||e.metaKey||e.shiftKey,rb:null};\n  }\n});\nboard.addEventListener('pointermove',e=>{\n  if(!drag) return; const p=local(e), dx=p.x-drag.p0.x, dy=p.y-drag.p0.y;\n  if(!drag.moved && Math.hypot(dx,dy)<5) return; drag.moved=true;\n  if(drag.type==='item'){\n    let minX=1e9,minY=1e9,maxR=-1e9; drag.orig.forEach(o=>{ const s=size(o.i); minX=Math.min(minX,o.x); minY=Math.min(minY,o.y); maxR=Math.max(maxR,o.x+s.w); });\n    const ddx=cl(dx,-minX,bw()-maxR), ddy=Math.max(dy,-minY);\n    drag.orig.forEach(o=>{ o.i.x=Math.round(o.x+ddx); o.i.y=Math.round(o.y+ddy); const el=board.querySelector(`[data-id=\"${o.i.id}\"]`); if(el){ el.style.left=o.i.x+'px'; el.style.top=o.i.y+'px'; } });\n  } else {\n    if(!drag.rb){ drag.rb=document.createElement('div'); drag.rb.className='rb'; board.appendChild(drag.rb); }\n    const x=Math.min(p.x,drag.p0.x), y=Math.min(p.y,drag.p0.y); Object.assign(drag.rb.style,{left:x+'px',top:y+'px',width:Math.abs(dx)+'px',height:Math.abs(dy)+'px'});\n  }\n});\nfunction endDrag(e){\n  if(!drag) return; const d=drag; drag=null; const p=local(e);\n  if(d.type==='item'){\n    if(d.moved){ pushUndo(d.before); render(); }\n    else { d.it.sel=!d.it.sel; render(); }\n  } else {\n    if(d.rb){ const x1=Math.min(p.x,d.p0.x),x2=Math.max(p.x,d.p0.x),y1=Math.min(p.y,d.p0.y),y2=Math.max(p.y,d.p0.y);\n      cur().items.forEach(i=>{ const s=size(i); const hit=i.x<x2&&i.x+s.w>x1&&i.y<y2&&i.y+s.h>y1; if(hit) i.sel=true; else if(!d.add) i.sel=false; });\n      render(); }\n    else { cur().items.forEach(i=>i.sel=false); render(); }\n  }\n}\nboard.addEventListener('pointerup',endDrag);\nboard.addEventListener('pointercancel',()=>{ if(drag){ if(drag.type==='item'){ drag.orig.forEach(o=>{o.i.x=o.x;o.i.y=o.y;}); } drag=null; render(); } });\n\n/* \ud2b8\ub808\uc774\uc5d0\uc11c \ub04c\uc5b4\uc624\uae30 */\nlet td=null;\ntray.addEventListener('pointerdown',e=>{\n  const s=e.target.closest('.tsrc'); if(!s) return;\n  td={k:s.dataset.k,d:+(s.dataset.d||0),x0:e.clientX,y0:e.clientY,ghost:null,src:s};\n  try{ tray.setPointerCapture(e.pointerId); }catch(_){}\n});\ntray.addEventListener('pointermove',e=>{\n  if(!td) return; if(!td.ghost&&Math.hypot(e.clientX-td.x0,e.clientY-td.y0)>6){ td.ghost=td.src.cloneNode(true); td.ghost.className='ghost'; document.body.appendChild(td.ghost); }\n  if(td.ghost){ td.ghost.style.left=(e.clientX-20)+'px'; td.ghost.style.top=(e.clientY-14)+'px'; }\n});\nfunction endTray(e){\n  if(!td) return; const t=td; td=null; if(t.ghost) t.ghost.remove();\n  if(!t.ghost){ const sp=randomSpot(t.k,t.d); place(t.k,t.d,sp.x,sp.y,addN); return; }\n  const r=board.getBoundingClientRect();\n  if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){ const s=size({k:t.k,d:t.d}); place(t.k,t.d,e.clientX-r.left+board.scrollLeft-s.w/2,e.clientY-r.top+board.scrollTop-s.h/2,addN); }\n}\ntray.addEventListener('pointerup',endTray); tray.addEventListener('pointercancel',()=>{ if(td&&td.ghost) td.ghost.remove(); td=null; });\n\n/* \u2500\u2500 \ubc84\ud2bc \ub3d9\uc791 \u2500\u2500 */\nfunction mutate(fn){ pushUndo(); fn(); render(); }\nfunction arrange(){\n  const items=cur().items, W=bw(); let x=10,y=10;\n  if(mode==='frac'){\n    const rowH=Math.round(36*bs)+10; let any=false;\n    const place1=(it)=>{ const s=size(it); if(x+s.w>W-6&&x>10){ x=10; y+=rowH; } it.x=x; it.y=y; x+=s.w+4; any=true; };\n    items.filter(i=>i.d===1).forEach(i=>{ place1(i); x+=6; });\n    DEN.forEach(d=>{ const g=items.filter(i=>i.d===d); if(!g.length) return; if(any&&x>10){ x=10; y+=rowH; } g.forEach(place1); });\n  } else {\n    const boxes=items.filter(i=>i.k==='x'), bs0=boxes.map(b=>({b,c:contents(b)}));\n    const loose=items.filter(i=>i.k==='b'&&!bs0.some(o=>o.c.includes(i)));\n    const bsz=size({k:'x'}), bz=size({k:'b'}); let rowH=0;\n    bs0.forEach(o=>{ if(x+bsz.w>W-6&&x>10){ x=10; y+=bsz.h+12; } o.b.x=x; o.b.y=y;\n      const cols=Math.max(1,Math.floor((bsz.w-12)/(bz.w+5)));\n      o.c.forEach((c,i)=>{ c.x=x+8+(i%cols)*(bz.w+5); c.y=y+8+Math.floor(i/cols)*(bz.h+5); }); x+=bsz.w+12; rowH=bsz.h+12; });\n    if(bs0.length){ x=10; y+=rowH; }\n    loose.forEach((b,i)=>{ if(x+bz.w>W-6){ x=10; y+=bz.h+6; } b.x=x; b.y=y; x+=bz.w+6; });\n  }\n}\nfunction lineup(){ const s=selected().sort((a,b)=>a.y-b.y||a.x-b.x); let x=Math.min(...s.map(i=>i.x)), y=s[0].y; const x0=x;\n  s.forEach(i=>{ const z=size(i); if(x+z.w>bw()-4&&x>x0){ x=x0; y+=Math.round(36*bs)+8; } i.x=Math.round(x); i.y=Math.round(y); x+=z.w; }); }\nfunction doSplit(){ const w=selected()[0], z=size(w), per=Math.round(Wp()/splitD); const items=cur().items; items.splice(items.indexOf(w),1);\n  for(let i=0;i<splitD;i++){ const it=newItem('f',splitD,w.x+i*per+(i?0:0),w.y); it.sel=true; } }\nfunction doMerge(){ const items=cur().items, sel=selected().filter(i=>i.k==='f'&&i.d>1); const by={}; sel.forEach(i=>(by[i.d]=by[i.d]||[]).push(i));\n  Object.keys(by).forEach(ds=>{ const d=+ds, g=by[d].sort((a,b)=>a.y-b.y||a.x-b.x), k=Math.floor(g.length/d); if(!k) return;\n    const rm=g.slice(0,k*d), ax=Math.min(...rm.map(i=>i.x)), ay=Math.min(...rm.map(i=>i.y));\n    rm.forEach(i=>items.splice(items.indexOf(i),1));\n    for(let j=0;j<k;j++){ const w=newItem('f',1,clamp0(ax,Wp()),ay+j*(Math.round(36*bs)+8)); w.sel=true; } }); }\nfunction doDivide(){ const items=cur().items, beads=items.filter(i=>i.k==='b'), sb=beads.filter(i=>i.sel), src=sb.length?sb:beads, T=src.length;\n  if(T%groupG!==0){ setFlash(`${T}\uac1c\ub97c ${groupG}\ubb36\uc74c\uc73c\ub85c \ub611\uac19\uc774 \ub098\ub20c \uc218 \uc5c6\uc5b4\uc694. \uc22b\uc790\ub97c \ubc14\uafd4 \ubcf4\uc544\uc694.`); return false; }\n  pushUndo(); const m=T/groupG;\n  for(let i=items.length-1;i>=0;i--) if(items[i].k==='x') items.splice(i,1);\n  const bsz=size({k:'x'}), bz=size({k:'b'}); let x=10,y=10; const boxes=[];\n  for(let g=0;g<groupG;g++){ if(x+bsz.w>bw()-6&&x>10){ x=10; y+=bsz.h+12; } boxes.push(newItem('x',0,x,y)); x+=bsz.w+12; }\n  const cols=Math.max(1,Math.floor((bsz.w-12)/(bz.w+5)));\n  boxes.forEach((b,g)=>{ for(let i=0;i<m;i++){ const bd=src[g*m+i]; bd.x=b.x+8+(i%cols)*(bz.w+5); bd.y=b.y+8+Math.floor(i/cols)*(bz.h+5); } });\n  items.forEach(i=>i.sel=false); render(); return true; }\nfunction act(a){\n  const c=cur();\n  if(a.indexOf('skin:')===0){ skin=a.slice(5); trayHTML(); render(); return; }\n  switch(a){\n    case 'addn-': addN=Math.max(1,addN-1); renderTool(); return;\n    case 'addn+': addN=Math.min(10,addN+1); renderTool(); return;\n    case 'splitd-': splitD=DEN[Math.max(0,DEN.indexOf(splitD)-1)]; renderTool(); return;\n    case 'splitd+': splitD=DEN[Math.min(DEN.length-1,DEN.indexOf(splitD)+1)]; renderTool(); return;\n    case 'groupg-': groupG=Math.max(2,groupG-1); renderTool(); return;\n    case 'groupg+': groupG=Math.min(10,groupG+1); renderTool(); return;\n    case 'split': mutate(doSplit); return;\n    case 'merge': mutate(doMerge); return;\n    case 'line': mutate(lineup); return;\n    case 'divide': doDivide(); return;\n    case 'paint': mutate(()=>{ const bx=selected().filter(i=>i.k==='x'||i.k==='b'), allOn=bx.every(b=>b.on); bx.forEach(b=>b.on=!allOn); }); return;\n    case 'dup': mutate(()=>{ const sel=selected(), clones=[]; sel.forEach(i=>{ const n=newItem(i.k,i.d,i.x+16,i.y+16); n.on=i.on; clones.push(n);\n        if(i.k==='x') contents(i).forEach(b=>{ if(!sel.includes(b)){ const nb=newItem('b',0,b.x+16,b.y+16); clones.push(nb); } }); });\n      c.items.forEach(i=>i.sel=false); clones.forEach(i=>i.sel=true); }); return;\n    case 'del': mutate(()=>{ c.items=c.items.filter(i=>!i.sel); }); return;\n    case 'same': { const f=selected()[0]; c.items.forEach(i=>{ if(i.k===f.k&&i.d===f.d) i.sel=true; }); render(); return; }\n    case 'all': c.items.forEach(i=>i.sel=true); render(); return;\n    case 'none': c.items.forEach(i=>i.sel=false); render(); return;\n    case 'arrange': mutate(arrange); return;\n    case 'undo': if(c.undo.length){ c.items=JSON.parse(c.undo.pop()); render(); } return;\n    case 'clear': mutate(()=>{ c.items=[]; }); return;\n    case 'num': showNum=!showNum; render(); return;\n    case 'guide': guide=!guide; render(); return;\n    case 'big': { const nb=bs>1?1:1.4, f=nb/bs; ['frac','bead'].forEach(m=>ST[m].items.forEach(i=>{ i.x=Math.round(i.x*f); i.y=Math.round(i.y*f); })); ST.frac.undo=[]; ST.bead.undo=[]; bs=nb; render(); return; }\n  }\n}\ntool.addEventListener('click',e=>{ const b=e.target.closest('button[data-act]'); if(b&&!b.disabled) act(b.dataset.act); });\nfunction showTab(name){\n  document.querySelectorAll('.mode').forEach(x=>x.classList.toggle('on',x.dataset.mode===name));\n  const legacy=(name==='frac'||name==='bead');\n  $('legacy').style.display=legacy?'grid':'none'; $('newtab').style.display=legacy?'none':'block';\n  if(legacy){ mode=name; flash=''; trayHTML(); setTip(); render(); }\n  else { tipEl.textContent=''; if(window.NT) window.NT.show(name); }\n}\ndocument.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.mode)));\ndocument.addEventListener('keydown',e=>{\n  if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return;\n  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ act('undo'); e.preventDefault(); }\n  else if((e.key==='Delete'||e.key==='Backspace')&&selected().length){ act('del'); e.preventDefault(); }\n  else if(e.key==='Escape'){ act('none'); }\n});\nfunction setTip(){ tipEl.textContent = mode==='frac'\n  ? '\uc870\uac01\uc744 \ub04c\uc5b4\uc11c \uc62e\uae30\uace0, \ub20c\ub7ec\uc11c \uace0\ub974\uace0, \ube48 \uacf3\uc744 \ub04c\uba74 \ud55c\uaebc\ubc88\uc5d0 \uace8\ub77c\uc694. \ub9c9\ub300(1)\ub97c \uace0\ub974\uace0 \u2702\ufe0f \ucabc\uac1c\uae30, \uac19\uc740 \ubd84\ubaa8 \uc870\uac01\uc774 \ubaa8\uc774\uba74 \ud83d\udd17 \ud569\uce58\uae30\ub97c \ud574 \ubcf4\uc544\uc694.'\n  : '\ubc14\ub451\ub3cc\u00b7\ud30c\uc774\u00b7\ucfe0\ud0a4 \uac19\uc740 \uad6c\uccb4\ubb3c\uc744 \ub193\uace0, \ubb36\uc74c \uc0c1\uc790\uc5d0 \ub611\uac19\uc774 \ub098\ub204\uc5b4 \ub2f4\uc544 \ubcf4\uc544\uc694. \ub3cc\uc744 \uace0\ub974\uace0 \ud45c\uc2dc\ud558\uba74 \"\uc804\uccb4 \uc911 \uba87 \uac1c\"\uac00 \ubd84\uc218\ub85c \ubcf4\uc774\uace0, \uc0c1\uc790\ub97c \uace0\ub974\uace0 \ud45c\uc2dc\ud558\uba74 \"\ubd84\uc218\ub9cc\ud07c\uc740 \uba87 \uac1c\"\uac00 \ubcf4\uc5ec\uc694.'; }\nfunction init(){ W0=cl(Math.floor((board.clientWidth||600)*0.55),140,260); trayHTML(); setTip(); render();\n  const lsh=()=>document.body.classList.toggle('lsh', innerWidth>innerHeight && innerHeight<=520); lsh(); addEventListener('resize',()=>{ lsh(); render(); }); }\n/* \uc5f0\uc2b5 \ud398\uc774\uc9c0\uc5d0\uc11c \uc5f4 \ub54c: \ubb38\uc81c\uc5d0 \ub9de\ub294 \uc7ac\ub8cc\ub9cc \ub193\uc544 \uc900\ub2e4(\ubb36\uc74c\u00b7\uc0c9\uce60\u00b7\ub2f5\uc740 \ub193\uc9c0 \uc54a\uc74c) */\nwindow.addEventListener('message',ev=>{\n  const m=ev.data; if(!m||m.type!=='setup') return;\n  const tab=m.tab||'bead';\n  if(tab==='bead'){\n    showTab('bead'); skin=m.skin&&SKINS[m.skin]?m.skin:'go'; const c=ST.bead; c.items=[]; c.undo=[]; c.next=1;\n    if(m.G) groupG=Math.max(2,Math.min(10,m.G));\n    trayHTML();\n    const s=size({k:'b'}), per=Math.max(1,Math.floor((bw()-20)/(s.w+8)));\n    for(let i=0;i<(m.T||0);i++){ const it=newItem('b',0,10+(i%per)*(s.w+8),10+Math.floor(i/per)*(s.h+8)); }\n    render();\n  } else { showTab(tab); if(window.NT&&window.NT.set) window.NT.set(tab,m); }\n});\nif(window.parent!==window) document.body.classList.add('embed');\nwindow.__bd={showTab,ST,act,get mode(){return mode;},size,place,render,get bs(){return bs;}};\ninit();\n})();\n<\/script>\n<script>\n(function(){\n'use strict';\nconst $=id=>document.getElementById(id);\nconst fr=(n,d)=>`<span class=\"fr2\"><span class=\"n\">${n}<\/span><span class=\"d\">${d}<\/span><\/span>`;\nconst mx=(w,n,d)=>`<span class=\"mx2\"><b>${w}<\/b>${fr(n,d)}<\/span>`;\nconst cl=(v,a,b)=>Math.max(a,Math.min(b,v));\nconst root=$('newtab');\nconst S={\n  shape:{kind:'circle',d:4,W:2,on:new Set()},\n  nline:{d:4,p:0},\n  cmp:{d:5,W:2,A:new Set(),B:new Set()}\n};\nconst EMBED=(window.parent!==window); let showNum=false;\nlet tab='shape';\nconst btn=(act,label,cls,x)=>`<button class=\"b ${cls||''}\" data-act=\"${act}\" ${x||''}>${label}<\/button>`;\nconst stp=(label,key,v)=>`<div class=\"tg\"><span class=\"lb\">${label}<\/span>${btn(key+'-','\u2212')}<b>${v}<\/b>${btn(key+'+','\uff0b')}<\/div>`;\n\n/* \uadf8\ub9bc \ub9cc\ub4e4\uae30: \uc6d0(\ud30c\uc774), \uc9c1\uc0ac\uac01\ud615(\ub760) */\nfunction pieSVG(d,on,base,tag){\n  const R=62,cx=70,cy=70; let h=`<svg viewBox=\"0 0 140 140\" width=\"140\" height=\"140\">`;\n  for(let i=0;i<d;i++){\n    const a0=-Math.PI/2+i*2*Math.PI/d, a1=-Math.PI/2+(i+1)*2*Math.PI/d, big=(a1-a0)>Math.PI?1:0;\n    const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);\n    const path=d===1?`M${cx-R},${cy}a${R},${R} 0 1,0 ${2*R},0a${R},${R} 0 1,0 ${-2*R},0`:`M${cx},${cy}L${x0.toFixed(2)},${y0.toFixed(2)}A${R},${R} 0 ${big},1 ${x1.toFixed(2)},${y1.toFixed(2)}Z`;\n    h+=`<path class=\"part${on.has(base+i)?' on':''}\" data-t=\"${tag}\" data-i=\"${base+i}\" d=\"${path}\"/>`;\n  }\n  return h+'<\/svg>';\n}\nfunction rectSVG(d,on,base,tag){\n  const w=Math.min(260,Math.max(180,d*30)), pw=w/d; let h=`<svg viewBox=\"0 0 ${w+6} 66\" width=\"${w+6}\" height=\"66\">`;\n  for(let i=0;i<d;i++) h+=`<rect class=\"part${on.has(base+i)?' on':''}\" data-t=\"${tag}\" data-i=\"${base+i}\" x=\"${3+i*pw}\" y=\"3\" width=\"${pw}\" height=\"60\"/>`;\n  return h+'<\/svg>';\n}\nfunction shapesRow(kind,d,W,on,tag){ let h='<div class=\"nrow\">'; for(let k=0;k<W;k++) h+=(kind==='circle'?pieSVG:rectSVG)(d,on,k*d,tag); return h+'<\/div>'; }\nfunction describe(n,d,gathered){\n  if(!n) return '';\n  const w=Math.floor(n/d), q=n%d;\n  let t=`\uc0c9\uce60\ud55c \ubd80\ubd84\uc740 ${fr(1,d)}\uc774 <b>${n}<\/b>\uac1c \u2192 ${fr(n,d)} `;\n  if(n<d) return t+'<b>(\uc9c4\ubd84\uc218)<\/b>';\n  t+='<b>(\uac00\ubd84\uc218)<\/b>';\n  if(gathered) t+= q? `<br>\uaf49 \ucc2c \uac83 <b>${w}<\/b>\uac1c\uc640 \ub0a8\uc740 ${q}\uce78 \u2192 ${mx(w,q,d)} <b>(\ub300\ubd84\uc218)<\/b>` : `<br>\uaf49 \ucc2c \uac83 <b>${w}<\/b>\uac1c \u2192 \uc790\uc5f0\uc218 <b>${w}<\/b>`;\n  else t+='<br><span style=\"font-size:15px\">\ud83e\uddfa \u201c\uc55e\uc5d0\uc11c\ubd80\ud130 \ubaa8\uc73c\uae30\u201d\ub97c \ub20c\ub7ec \uaf49 \ucc2c \uac83\uc774 \uba87 \uac1c\uc778\uc9c0 \uc54c\uc544\ubcf4\uc544\uc694.<\/span>';\n  return t;\n}\nconst isGathered=(on,d)=>{ const n=on.size; for(let i=0;i<n;i++) if(!on.has(i)) return false; return true; };\nfunction numLine(d,marks){\n  const N=3*d, Wd=640, x=i=>30+i*(Wd-60)/N; let h=`<svg viewBox=\"0 0 ${Wd} 150\" style=\"width:100%;max-width:720px\">`;\n  h+=`<line x1=\"${x(0)}\" y1=\"80\" x2=\"${x(N)}\" y2=\"80\" stroke=\"#3D5A80\" stroke-width=\"3\"/>`;\n  marks.forEach(m=>{ if(m.arcs) for(let i=1;i<=m.p;i++){ const a=x(i-1),b=x(i),mid=(a+b)/2; h+=`<path d=\"M${a},76 Q${mid},${m.h||34} ${b},76\" fill=\"none\" stroke=\"${m.c}\" stroke-width=\"3\" marker-end=\"none\"/>`; } });\n  for(let i=0;i<=N;i++){ const big=i%d===0; h+=`<line x1=\"${x(i)}\" y1=\"${big?62:68}\" x2=\"${x(i)}\" y2=\"${big?98:92}\" stroke=\"#3D5A80\" stroke-width=\"${big?3:2}\"/>`; if(big) h+=`<text x=\"${x(i)}\" y=\"124\" text-anchor=\"middle\" font-size=\"20\" fill=\"#3D5A80\">${i/d}<\/text>`; }\n  marks.forEach(m=>{ h+=`<circle cx=\"${x(m.p)}\" cy=\"80\" r=\"10\" fill=\"${m.c}\" stroke=\"#fff\" stroke-width=\"3\"/>`; if(m.l) h+=`<text x=\"${x(m.p)}\" y=\"${m.ly||46}\" text-anchor=\"middle\" font-size=\"18\" fill=\"${m.c}\">${m.l}<\/text>`; });\n  for(let i=0;i<=N;i++) h+=`<circle class=\"tick\" data-p=\"${i}\" cx=\"${x(i)}\" cy=\"80\" r=\"${Math.min(14,(Wd-60)/N/2)}\" fill=\"transparent\"/>`;\n  return h+'<\/svg>';\n}\n\nfunction view(){\n  let stage='',ctl='',info='';\n  if(tab==='shape'){\n    const s=S.shape, n=s.on.size, g=isGathered(s.on,s.d);\n    stage=`<div class=\"nlbl\">\ubd80\ubd84\uc744 \ub20c\ub7ec \uc0c9\uce60\ud574 \ubcf4\uc544\uc694 (${s.d}\ub4f1\ubd84)<\/div>`+shapesRow(s.kind,s.d,s.W,s.on,'s')+`<div class=\"nlbl\" style=\"font-size:14px;color:#6B7690\">${s.kind==='circle'?'\ud30c\uc774 \ubaa8\uc591':'\ub760 \ubaa8\uc591'} ${s.W}\uac1c<\/div>`;\n    ctl=`<div class=\"tg\">${btn('kind:circle','\ud83e\udd67 \uc6d0(\ud30c\uc774)',s.kind==='circle'?'on':'')}${btn('kind:rect','\u25ad \ub760',s.kind==='rect'?'on':'')}<\/div>`+stp('\ub611\uac19\uc774 \ub098\ub208 \uc218(\ubd84\ubaa8)','d',s.d)+stp('\uc804\uccb4 \uac1c\uc218','W',s.W)+`<div class=\"tg\">${btn('gather','\ud83e\uddfa \uc55e\uc5d0\uc11c\ubd80\ud130 \ubaa8\uc73c\uae30','pri',n?'':'disabled')}${btn('clear','\ud83e\uddfd \uc9c0\uc6b0\uae30','warn',n?'':'disabled')}<\/div>`;\n    info=EMBED?'\uce78\uc744 \ub20c\ub7ec \uc0c9\uce60\ud574 \ubcf4\uc544\uc694. \uc0c9\uce60\ud55c \uce78\uc744 \ub2e4\uc2dc \ub204\ub974\uba74 \uc9c0\uc6cc\uc838\uc694.':(!n?'\uc870\uac01\uc744 \ub20c\ub7ec \uc0c9\uce60\ud574 \ubcf4\uc544\uc694.':(showNum?describe(n,s.d,g):`\uc0c9\uce60\ud55c \uce78\uc740 <b>${n}<\/b>\uce78\uc774\uc5d0\uc694.`));\n  } else if(tab==='nline'){\n    const s=S.nline, p=s.p, w=Math.floor(p/s.d), q=p%s.d;\n    stage=`<div class=\"nlbl\">0\uc5d0\uc11c ${fr(1,s.d)}\uc529 \ub6f0\uc5b4 \uc138\uc5b4 \ubcf4\uc544\uc694 (\ub208\uae08\uc744 \ub20c\ub7ec\ub3c4 \ub3fc\uc694)<\/div>`+numLine(s.d,[{p,c:'#E8873A',arcs:true,l:(p&&!EMBED)?`${p}\ubc88`:'' ,h:30}]);\n    ctl=stp('0\uacfc 1 \uc0ac\uc774\ub97c \ub098\ub208 \uce78 \uc218','d',s.d)+`<div class=\"tg\">${btn('jmp-','\u25c0 \ud55c \uce78 \ub4a4\ub85c','',p>0?'':'disabled')}${btn('jmp+','\ud55c \uce78 \uc55e\uc73c\ub85c \u25b6','pri',p<3*s.d?'':'disabled')}${btn('zero','0\uc73c\ub85c','',p?'':'disabled')}<\/div>`;\n    info=EMBED?'\u25b6\ub97c \ub20c\ub7ec \ud55c \uce78\uc529 \ub6f0\uc5b4 \ubcf4\uac70\ub098, \ub208\uae08\uc744 \ub20c\ub7ec \ubcf4\uc544\uc694.':p===0?'0\uc5d0 \uc788\uc5b4\uc694. \u25b6\ub97c \ub20c\ub7ec \ud55c \uce78\uc529 \ub6f0\uc5b4 \ubcf4\uc544\uc694.':!showNum?`\ud55c \uce78\uc529 <b>${p}<\/b>\ubc88 \ub6f0\uc5c8\uc5b4\uc694.`:`${fr(1,s.d)}\uc529 <b>${p}<\/b>\ubc88 \ub6f0\uc5c8\uc5b4\uc694 \u2192 ${fr(p,s.d)} `+(p<s.d?'<b>(\uc9c4\ubd84\uc218)<\/b>':'<b>(\uac00\ubd84\uc218)<\/b>'+(q?`<br>1\uc744 ${w}\ubc88 \uc9c0\ub098\uace0 ${q}\uce78 \ub354 \u2192 ${mx(w,q,s.d)} <b>(\ub300\ubd84\uc218)<\/b>`:`<br>\uc790\uc5f0\uc218 <b>${w}<\/b>`));\n  } else {\n    const s=S.cmp, a=s.A.size, b=s.B.size, sg=a>b?'>':(a<b?'<':'=');\n    stage=`<div class=\"nlbl\">\uc67c\ucabd(A)<\/div>${shapesRow('rect',s.d,s.W,s.A,'A')}<div class=\"nlbl\">\uc624\ub978\ucabd(B)<\/div>${shapesRow('rect',s.d,s.W,s.B,'B')}`+numLine(s.d,[{p:Math.min(a,3*s.d),c:'#E8873A',l:'A',ly:56},{p:Math.min(b,3*s.d),c:'#3D5A80',l:'B',ly:30}]);\n    ctl=stp('\ub611\uac19\uc774 \ub098\ub208 \uc218(\ubd84\ubaa8)','d',s.d)+stp('\uac01 \uc904 \uac1c\uc218','W',s.W)+`<div class=\"tg\">${btn('gather','\ud83e\uddfa \uc55e\uc5d0\uc11c\ubd80\ud130 \ubaa8\uc73c\uae30','',(a||b)?'':'disabled')}${btn('clear','\ud83e\uddfd \uc9c0\uc6b0\uae30','warn',(a||b)?'':'disabled')}<\/div>`;\n    info=EMBED?'\ub450 \uc904\uc744 \uac01\uac01 \uc0c9\uce60\ud558\uace0, \uc218\uc9c1\uc120\uc5d0\uc11c \ub450 \uc704\uce58\ub97c \uacac\uc8fc\uc5b4 \ubcf4\uc544\uc694.':(a||b)&&!showNum?`A\ub294 <b>${a}<\/b>\uce78, B\ub294 <b>${b}<\/b>\uce78 \uc0c9\uce60\ud588\uc5b4\uc694. \uc218\uc9c1\uc120\uc5d0\uc11c \ub450 \uc704\uce58\ub97c \uacac\uc8fc\uc5b4 \ubcf4\uc544\uc694.`:(a||b)?`${fr(a,s.d)} <span class=\"signbig\">${sg}<\/span> ${fr(b,s.d)}<br>${fr(1,s.d)}\uc774 A\ub294 <b>${a}<\/b>\uac1c, B\ub294 <b>${b}<\/b>\uac1c \u2192 ${a===b?'\uac19\uc544\uc694':(a>b?'A\uac00 \ub354 \ucee4\uc694':'B\uac00 \ub354 \ucee4\uc694')}`:'A, B\ub97c \uac01\uac01 \uc0c9\uce60\ud574\uc11c \ud06c\uae30\ub97c \uacac\uc8fc\uc5b4 \ubcf4\uc544\uc694. \uc218\uc9c1\uc120\uc5d0\ub3c4 \ub450 \uc704\uce58\uac00 \ub098\ud0c0\ub098\uc694.';\n  }\n  const numBtn=EMBED?'':`<div class=\"tg\">${btn('num','\ud83d\udd22 \uc22b\uc790\ub85c \ubcf4\uae30',showNum?'on':'')}<\/div>`; ctl+=numBtn;\n  root.innerHTML=`<div class=\"npanel\"><div class=\"nstage\">${stage}<\/div><div class=\"nside\"><div class=\"ctl\" style=\"display:flex;flex-wrap:wrap;gap:8px 12px\">${ctl}<\/div><div class=\"nt-info\">${info}<\/div><\/div><\/div>`;\n}\nfunction gatherSet(set,max){ const n=set.size; set.clear(); for(let i=0;i<n&&i<max;i++) set.add(i); }\nroot.addEventListener('click',e=>{\n  const part=e.target.closest('.part');\n  if(part){ const i=+part.dataset.i, t=part.dataset.t, set=t==='s'?S.shape.on:(t==='A'?S.cmp.A:S.cmp.B); set.has(i)?set.delete(i):set.add(i); view(); return; }\n  const tk=e.target.closest('.tick'); if(tk){ S.nline.p=+tk.dataset.p; view(); return; }\n  const b=e.target.closest('button[data-act]'); if(!b||b.disabled) return; const a=b.dataset.act;\n  const s=S[tab];\n  if(a.indexOf('kind:')===0){ s.kind=a.slice(5); }\n  else if(a==='d-'||a==='d+'){ s.d=cl(s.d+(a==='d+'?1:-1),2,10); if(tab==='shape') s.on=new Set([...s.on].filter(i=>i<s.d*s.W)); if(tab==='cmp'){ s.A=new Set([...s.A].filter(i=>i<s.d*s.W)); s.B=new Set([...s.B].filter(i=>i<s.d*s.W)); } if(tab==='nline') s.p=Math.min(s.p,3*s.d); }\n  else if(a==='W-'||a==='W+'){ s.W=cl(s.W+(a==='W+'?1:-1),1,5); if(tab==='shape') s.on=new Set([...s.on].filter(i=>i<s.d*s.W)); if(tab==='cmp'){ s.A=new Set([...s.A].filter(i=>i<s.d*s.W)); s.B=new Set([...s.B].filter(i=>i<s.d*s.W)); } }\n  else if(a==='gather'){ if(tab==='shape') gatherSet(s.on,s.d*s.W); else { gatherSet(s.A,s.d*s.W); gatherSet(s.B,s.d*s.W); } }\n  else if(a==='clear'){ if(tab==='shape') s.on.clear(); else { s.A.clear(); s.B.clear(); } }\n  else if(a==='num'){ showNum=!showNum; }\n  else if(a==='jmp+'){ s.p=Math.min(3*s.d,s.p+1); } else if(a==='jmp-'){ s.p=Math.max(0,s.p-1); } else if(a==='zero'){ s.p=0; }\n  view();\n});\nwindow.NT={show(name){ tab=name; view(); },\n  set(name,o){ tab=name; const s=S[name]; if(!s) return; if(o.d) s.d=cl(o.d,2,10); if(o.W&&s.W!==undefined) s.W=cl(o.W,1,5);\n    if(s.on) s.on=new Set(); if(s.A){ s.A=new Set(); s.B=new Set(); } if(s.p!==undefined) s.p=0; if(s.kind&&o.kind) s.kind=o.kind; view(); }};\n})();\n<\/script>\n<\/body>\n<\/html>\n";</script>
 <script>
 (function(){
 'use strict';
@@ -328,7 +359,7 @@ function gen1(){
 function gen2(){
   let b,m; do{ b=rand(2,8); m=rand(2,9); }while(b*m>48);
   const a = rand(1,b-1), T=b*m, [item,unit] = pick(ITEMS);
-  return {lv:2, manip:{t:'dots',T,G:b}, plain:`${T}의 ${a}/${b}`, q:`${item} ${T}${unit}의 ${fr(a,b)}는 몇 ${unit}일까요?`,
+  return {lv:2, manip:{t:'dots',T,G:b,skin:({'쿠키':'cookie','딸기':'berry'})[item]}, plain:`${T}의 ${a}/${b}`, q:`${item} ${T}${unit}의 ${fr(a,b)}는 몇 ${unit}일까요?`,
     vis:(st)=> dotsHTML(T, m, st>=2?a:0, st>=1), essential:false,
     steps:[
       one(`${T}${unit}을 ${b}묶음으로 똑같이 나누면 한 묶음은 몇 ${unit}일까요?`, m, unit, `${T}을 ${b}묶음으로 똑같이 나누는 거예요. 그림을 보며 나누어 보아요.`),
@@ -346,7 +377,7 @@ function gen3(){
   const help = '분자가 분모보다 작으면 진분수, 분자가 분모와 같거나 더 크면 가분수, 자연수와 진분수로 이루어지면 대분수예요.';
   if(Math.random()<.6){
     const k = pick(['p','i','m']), x = mk(k);
-    return {lv:3, manip:{t:'bar',d:x.d,W:Math.ceil(x.cells/x.d)}, plain:`${x.plain}의 이름`, q:`다음 분수의 이름을 골라 보세요. <span style="font-size:1.5em">${x.h}</span>`,
+    return {lv:3, hintVis:true, manip:{t:'bar',d:x.d}, plain:`${x.plain}의 이름`, q:`다음 분수의 이름을 골라 보세요. <span style="font-size:1.5em">${x.h}</span>`,
       vis:()=>barHTML(x.d,x.cells), essential:false,
       steps:[choice('이 분수는 무엇일까요?',[{v:'p',h:'진분수'},{v:'i',h:'가분수'},{v:'m',h:'대분수'}],k,help)], final:0,
       explain:`${x.h} 는 ${NAMES3[k]}예요.`};
@@ -370,7 +401,7 @@ function gen4(){
       explain:`눈금 한 칸이 ${fr(1,d)}이고 0에서 ${p}칸이므로 ${fr(p,d)} = ${mx(w,q,d)} 이에요.`}; }
   const d=rand(2,8), w=rand(1,4), q=rand(1,d-1), n=w*d+q;
   if(Math.random()<.5){
-    return {lv:4, manip:{t:'bar',d,W:Math.ceil(n/d)}, plain:`${w}과 ${q}/${d} → 가분수`, q:`대분수 ${mx(w,q,d)} 을(를) 가분수로 나타내 보세요.`,
+    return {lv:4, hintVis:true, manip:{t:'bar',d}, plain:`${w}과 ${q}/${d} → 가분수`, q:`대분수 ${mx(w,q,d)} 을(를) 가분수로 나타내 보세요.`,
       vis:()=>barHTML(d,n), essential:false,
       steps:[
         one(`자연수 ${w}은(는) ${fr(1,d)}이 몇 개일까요? (그림의 꽉 찬 ${w}줄을 보아요)`, w*d, '개', `1은 ${fr(d,d)}이에요. 그림에서 꽉 찬 줄 하나가 ${fr(1,d)}이 몇 개인지 세어 보아요.`),
@@ -378,7 +409,7 @@ function gen4(){
       ], final:1,
       explain:`${mx(w,q,d)} 은(는) ${fr(1,d)}이 ${w*d}+${q}=${n}개이므로 ${fr(n,d)} 이에요.`};
   }
-  return {lv:4, manip:{t:'bar',d,W:Math.ceil(n/d)}, plain:`${n}/${d} → 대분수`, q:`가분수 ${fr(n,d)} 을(를) 대분수로 나타내 보세요.`,
+  return {lv:4, hintVis:true, manip:{t:'bar',d}, plain:`${n}/${d} → 대분수`, q:`가분수 ${fr(n,d)} 을(를) 대분수로 나타내 보세요.`,
     vis:()=>barHTML(d,n), essential:false,
     steps:[
       one(`${fr(n,d)}에서 ${fr(d,d)}(=1)이 몇 번 들어 있을까요? (자연수 부분)`, w, '', `그림에서 꽉 찬 줄이 몇 개인지 세어 보아요.`),
@@ -387,6 +418,22 @@ function gen4(){
     explain:`${fr(n,d)} 은(는) 자연수 ${w}과(와) 진분수 ${fr(q,d)}만큼이므로 ${mx(w,q,d)} 이에요.`};
 }
 function gen5(){
+  const r=Math.random(), d=rand(3,9), box='<span class="signbox" id="signBox">□</span>';
+  const fm=p=>{ const w=Math.floor(p/d), q=p%d; return (p>d&&q&&Math.random()<.5)?{h:mx(w,q,d),t:`${w}과 ${q}/${d}`}:{h:fr(p,d),t:`${p}/${d}`}; };
+  if(r<.25){ const a=rand(1,2*d), b=Math.random()<.12?a:rand(1,2*d), A=fm(a), B=fm(b), sg=a>b?'>':(a<b?'<':'=');
+    return {lv:5, manip:{t:'bar',d}, plain:`그림 비교 ${A.t} ? ${B.t}`, q:`그림을 보고 두 분수의 크기를 비교해요. <span style="font-size:1.4em">${A.h}${box}${B.h}</span>`,
+      vis:()=>barHTML(d,a,'왼쪽')+barHTML(d,b,'오른쪽'), essential:true, sign:true,
+      steps:[choice('색칠한 칸을 비교해서 알맞은 기호를 골라 보세요.',SIGNS,sg,`${fr(1,d)}이 몇 개인지 각각 세어 보아요.`)], final:0,
+      explain:`${fr(1,d)}이 ${a}개와 ${b}개이므로 ${A.h} ${sg} ${B.h} 이에요.`}; }
+  if(r<.5){ const a=rand(d+1,3*d), b=Math.random()<.1?a:rand(1,3*d), A=fm(a), B=fm(b), sg=a>b?'>':(a<b?'<':'=');
+    const sa=pointStep(`먼저 ${A.h}의 위치에 점을 찍어 보세요.`,a,`눈금 한 칸은 ${fr(1,d)}이에요. 0에서 몇 칸일까요?`), sb=pointStep(`이번에는 ${B.h}의 위치에 점을 찍어 보세요.`,b,`눈금 한 칸은 ${fr(1,d)}이에요. 0에서 몇 칸일까요?`);
+    sa.d=d; sb.d=d;
+    return {lv:5, plain:`수직선 비교 ${A.t} ? ${B.t}`, q:`수직선에 각각 나타내고 크기를 비교해요. <span style="font-size:1.4em">${A.h}${box}${B.h}</span>`, vis:()=>'', essential:false, sign:true,
+      steps:[sa,sb,choice('오른쪽에 있는 수가 더 커요. 알맞은 기호를 골라 보세요.',SIGNS,sg,'수직선에서 더 오른쪽에 있는 쪽이 더 커요.')], final:2,
+      explain:`수직선에서 ${A.h}는 ${a}칸, ${B.h}는 ${b}칸이므로 ${A.h} ${sg} ${B.h} 이에요.`}; }
+  return gen5base();
+}
+function gen5base(){
   const d=rand(3,9), t=pick(['ii','mm','im','mm']);
   let A,B; // {n,w,h,val,plain}
   const imp = n => ({n, h:fr(n,d), val:n, plain:`${n}/${d}`, kind:'i'});
@@ -406,7 +453,7 @@ function gen5(){
     steps.push({prompt:`먼저 가분수 ${impSide.h} 을(를) 대분수로 바꾸어 볼까요?`, layout:'mixed', ans:{w:w0,n:q0}, stat:d, help:`${impSide.h} 에서 ${fr(d,d)}(=1)이 몇 번 들어 있는지 세어 보아요.`}); }
   help = t==='mm' ? '대분수는 자연수 부분부터 비교하고, 같으면 진분수 부분을 비교해요.' : '분모가 같으면 분자가 큰 쪽이 더 커요. 1/'+d+'이 몇 개인지 비교해 보아요.';
   steps.push(choice('□ 안에 알맞은 기호를 골라 보세요.', SIGNS, ans, help));
-  return {lv:5, manip:{t:'bar',d,W:Math.ceil(Math.max(A.val,B.val)/d)}, plain:`${A.plain} ? ${B.plain}`, q:`분수의 크기를 비교해요. <span style="font-size:1.4em">${A.h}<span class="signbox" id="signBox">□</span>${B.h}</span>`,
+  return {lv:5, hintVis:true, manip:{t:'bar',d}, plain:`${A.plain} ? ${B.plain}`, q:`분수의 크기를 비교해요. <span style="font-size:1.4em">${A.h}<span class="signbox" id="signBox">□</span>${B.h}</span>`,
     vis:()=>barHTML(d,A.val,'왼쪽')+barHTML(d,B.val,'오른쪽'), essential:false,
     steps, final:steps.length-1, sign:true,
     explain:`${A.h} ${ans==='='?'과 ':'와 '}${B.h} 를 비교하면 ${A.h} ${ans} ${B.h} 이에요.`};
@@ -430,9 +477,9 @@ function gen6(){
     const hx = mixLeft? mx(w,q,d):fr(n,d), hy = mixLeft? fr(n,d):mx(w,q,d);
     const vx = mixLeft? w*d+q : n, vy = mixLeft? n : w*d+q;
     const win = vx>vy?x:y;
-    return {lv:6, manip:{t:'bar',d,W:Math.ceil(Math.max(vx,vy)/d)}, plain:`나무 높이 ${x}네 ${mixLeft?w+'과 '+q+'/'+d:n+'/'+d}m, ${y}네 ${mixLeft?n+'/'+d:w+'과 '+q+'/'+d}m`,
+    return {lv:6, hintVis:true, manip:{t:'bar',d}, plain:`나무 높이 ${x}네 ${mixLeft?w+'과 '+q+'/'+d:n+'/'+d}m, ${y}네 ${mixLeft?n+'/'+d:w+'과 '+q+'/'+d}m`,
       q:`푸른 숲 만들기 행사에서 ${x}네 모둠은 높이가 ${hx}m인 나무를, ${y}네 모둠은 높이가 ${hy}m인 나무를 심었어요. 더 높은 나무를 심은 모둠은 어디일까요?`,
-      vis:()=>'', essential:false,
+      vis:()=>(Math.random()<2?barHTML(d,vx,x+'네 나무')+barHTML(d,vy,y+'네 나무'):''), essential:false,
       steps:[
         {prompt:`먼저 대분수 ${mx(w,q,d)} 을(를) 가분수로 나타내 볼까요?`, layout:'imp', ans:{n:w*d+q}, stat:d, help:`${w}은(는) ${fr(1,d)}이 몇 개인지 먼저 생각해 보아요.`},
         choice('더 높은 나무를 심은 모둠을 골라 보세요.',[{v:x,h:x+'네'},{v:y,h:y+'네'}],win,'분모가 같으니 분자가 큰 쪽이 더 커요.')
@@ -441,7 +488,7 @@ function gen6(){
   }
   let b,m; do{ b=rand(2,6); m=rand(2,8); }while(b*m>36);
   const a=rand(1,b-1), T=b*m, [item,unit]=pick(ITEMS.slice(0,4));
-  return {lv:6, manip:{t:'dots',T,G:b}, plain:`${item} ${T}${unit} 중 ${a}/${b} 먹고 남은 수`, q:`${item} ${T}${unit} 중 ${fr(a,b)}을(를) 먹었어요. 남은 ${item}은 몇 ${unit}일까요?`,
+  return {lv:6, manip:{t:'dots',T,G:b,skin:({'쿠키':'cookie','딸기':'berry'})[item]}, plain:`${item} ${T}${unit} 중 ${a}/${b} 먹고 남은 수`, q:`${item} ${T}${unit} 중 ${fr(a,b)}을(를) 먹었어요. 남은 ${item}은 몇 ${unit}일까요?`,
     vis:(st)=>dotsHTML(T,m,st>=2?a:0,st>=1), essential:false,
     steps:[
       one(`${T}${unit}을 ${b}묶음으로 똑같이 나누면 한 묶음은 몇 ${unit}일까요?`, m, unit, `그림의 ${T}${unit}을 ${b}묶음으로 나누어 보아요.`),
@@ -459,6 +506,48 @@ let prac={}, moves=[];
 const els = {assess:$('assessScreen'),stats:$('statsBar'),card:$('card'),lvl:$('levelIndicator'),prob:$('problemRow'),vis:$('visual'),steps:$('stepsArea'),
   check:$('btnCheck'),next:$('btnNext'),reset:$('btnReset'),fb:$('feedback'),ex:$('explain'),res:$('resultBlock'),score:$('statScore'),streak:$('statStreak'),
   num:$('numInput'),name:$('nameInputField'),submit:$('btnSubmit'),status:$('submitStatus')};
+
+/* ── 학생 프로필·경험치·배지 ── */
+const LV_XP=[0,30,80,150,250,380,550,750,1000,1300];
+const TITLES=['분수 씨앗 🌱','분수 새싹 🌿','분수 줄기 🪴','분수 꽃봉오리 🌷','분수 꽃 🌸','분수 열매 🍎','분수 탐험가 🧭','분수 달인 🏆','분수 박사 🎓','분수 대왕 👑'];
+const BADGES={first:['🎉','첫 정답'],s5:['🔥','5연속 정답'],s10:['⚡','10연속 정답'],c1:['🎯','1단계 클리어'],c2:['🎯','2단계 클리어'],c3:['🎯','3단계 클리어'],c4:['🎯','4단계 클리어'],c5:['🎯','5단계 클리어'],c6:['🎯','6단계 클리어'],w50:['💪','문제 50개 풀기'],m1:['🧩','조작판 써 보기'],t1:['📝','종합 테스트 완주'],t100:['💯','종합 테스트 만점']};
+let prof=null, profKey='', who=null, pend={n:0,c:0,by:{},moves:[],badges:[],lv0:1}, sending=false;
+const lvOf=xp=>{ let l=1; LV_XP.forEach((t,i)=>{ if(xp>=t) l=i+1; }); return l; };
+function loadProf(){ try{ const s=localStorage.getItem(profKey); if(s) return Object.assign({xp:0,badges:[],lvl:1,att:0,cor:0},JSON.parse(s)); }catch(e){} return {xp:0,badges:[],lvl:1,att:0,cor:0}; }
+function saveProf(){ try{ localStorage.setItem(profKey,JSON.stringify(prof)); }catch(e){} }
+function toast(t,cls){ const d=document.createElement('div'); d.className='toast '+(cls||''); d.textContent=t; $('toasts').appendChild(d); setTimeout(()=>d.remove(),3300); }
+function renderProf(){
+  if(!prof) return; const l=lvOf(prof.xp), lo=LV_XP[l-1], hi=LV_XP[l]; 
+  $('profLv').textContent='Lv.'+l; $('profTitle').textContent=TITLES[l-1]; $('profXp').textContent=prof.xp;
+  $('profFill').style.width = hi===undefined ? '100%' : Math.round((prof.xp-lo)/(hi-lo)*100)+'%';
+}
+function giveBadge(id){ if(!prof||prof.badges.indexOf(id)>=0) return; prof.badges.push(id); pend.badges.push(BADGES[id][1]); saveProf(); toast('🏅 새 배지: '+BADGES[id][0]+' '+BADGES[id][1]); }
+let bxp=0;
+function boardPost(xp){ if(!who||!who.matched||xp<=0) return; try{ fetch(`${SUPABASE_URL}/rest/v1/class_board_events`,{method:'POST',keepalive:true,headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({num:who.num,name:who.recordName,xp:Math.min(200,xp),src:'practice'})}).catch(()=>{}); }catch(e){} }
+function addXP(n){ if(!prof||!n) return; bxp+=n; const b=lvOf(prof.xp); prof.xp+=n; const a2=lvOf(prof.xp); saveProf(); renderProf();
+  if(a2>b){ toast('🎉 레벨 업! Lv.'+a2+' '+TITLES[a2-1],'lv'); sendProgress('levelup'); } }
+function openBadges(){ $('badgeGrid').innerHTML=Object.keys(BADGES).map(k=>`<div class="bdg${prof.badges.indexOf(k)>=0?' on':''}"><i>${BADGES[k][0]}</i>${BADGES[k][1]}</div>`).join(''); $('badgeSum').textContent=`모은 배지 ${prof.badges.length} / ${Object.keys(BADGES).length}`; $('badgeModal').style.display='flex'; }
+$('profChip').addEventListener('click',()=>{ if(prof) openBadges(); });
+$('badgeClose').addEventListener('click',()=>{ $('badgeModal').style.display='none'; });
+$('badgeModal').addEventListener('click',e=>{ if(e.target.id==='badgeModal') $('badgeModal').style.display='none'; });
+function todayStr0(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+async function sendProgress(reason){
+  if(!who||!pend.n||sending) return; if(reason!=='exit' && pend.n<(reason==='tick'?10:5)) return;
+  const snap={n:pend.n,c:pend.c,by:JSON.parse(JSON.stringify(pend.by)),moves:pend.moves.slice(),badges:pend.badges.slice()};
+  const rate=Math.round(snap.c/snap.n*100), pos=rate>=80?'긍정✅':(rate>=50?'중립📋':'관찰필요🔍'), l=lvOf(prof.xp);
+  const by=Object.keys(snap.by).sort().map(k=>`${k}단계 ${snap.by[k].c}/${snap.by[k].n}`).join(', ');
+  const rec={'기록제목':'분수 연습 기록','날짜':todayStr0(),'분야':'학습능력','긍정도':pos,'출처':'학생직접제출','과목':'수학',
+    '내용':`${who.note}분수 연습: ${snap.n}문제 중 ${snap.c}문제 정답(정답률 ${rate}%). 단계별: ${by}.${snap.moves.length?' 단계이동: '+snap.moves.join(' ')+'.':''}${snap.badges.length?' 새 배지: '+snap.badges.join(', ')+'.':''} 현재 Lv.${l} ${TITLES[l-1]} (누적 ${prof.xp}XP, 누적 정답 ${prof.cor}/${prof.att}문제, 진행 ${prof.lvl}단계).`,
+    '🧑‍🎓 이름':who.recordName};
+  sending=true;
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/class-manage`,{method:'POST',keepalive:true,headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(rec)});
+    if(res.ok){ if(bxp>0){ boardPost(bxp); bxp=0; } pend.n-=snap.n; pend.c-=snap.c; Object.keys(snap.by).forEach(k=>{ if(pend.by[k]){ pend.by[k].n-=snap.by[k].n; pend.by[k].c-=snap.by[k].c; if(pend.by[k].n<=0) delete pend.by[k]; } }); pend.moves=pend.moves.slice(snap.moves.length); pend.badges=pend.badges.slice(snap.badges.length); }
+  }catch(e){}
+  sending=false;
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') sendProgress('exit'); });
+addEventListener('pagehide',()=>sendProgress('exit'));
 
 function practiceSummary(){
   const ks = Object.keys(prac).sort(); if(!ks.length) return '';
@@ -493,10 +582,13 @@ function drawPW(i){ const s=P.steps[i], el=$('pw'+i); if(!el) return;
 function setVisual(st){
   stage = st;
   if(inTest && !P.essential){ els.vis.innerHTML=''; return; }
+  if(P.hintVis && !P.hintShown && !done){ els.vis.innerHTML=''; hintBtnUpdate(); return; }
+  hintBtnUpdate();
   els.vis.innerHTML = P.vis ? P.vis(st) : '';
 }
+function hintBtnUpdate(){ const b=$('btnHint'); if(b) b.style.display=(P&&P.hintVis&&!P.hintShown&&!done&&!inTest)?'':'none'; }
 function renderProblem(){
-  done=false; curStep=0; stage=0; P.miss=0; P.stepMiss=P.steps.map(()=>0); P.stepDone=P.steps.map(()=>false);
+  done=false; P.hintShown=false; curStep=0; stage=0; P.miss=0; P.stepMiss=P.steps.map(()=>0); P.stepDone=P.steps.map(()=>false);
   els.lvl.textContent = inTest ? `종합 테스트 · ${testIdx+1} / ${TEST_TOTAL}` : LEVEL_NAME[P.lv];
   els.lvl.className = 'level-indicator'+(inTest?' test':'');
   els.prob.innerHTML = P.q;
@@ -562,20 +654,24 @@ function finishProblem(){
   if(ok){ score++; streak++; bestStreak=Math.max(bestStreak,streak); prac[P.lv].c++; lvlRun++; lvlMiss=0; }
   else { streak=0; lvlRun=0; lvlMiss++; }
   updateStats();
-  setFb(ok?'ok':'info', ok ? pick(PRAISE) : '끝까지 풀었어요! 다음엔 한 번에 맞혀 봐요.');
+  let gain=ok?(streak>=3?15:10):5;
+  if(prof){ prof.att++; if(ok) prof.cor++; pend.n++; if(ok) pend.c++; pend.by[P.lv]=pend.by[P.lv]||{n:0,c:0}; pend.by[P.lv].n++; if(ok) pend.by[P.lv].c++;
+    if(ok) giveBadge('first'); if(streak>=5) giveBadge('s5'); if(streak>=10) giveBadge('s10'); if(prof.att>=50) giveBadge('w50'); saveProf(); }
+  setFb(ok?'ok':'info', (ok ? pick(PRAISE) : '끝까지 풀었어요! 다음엔 한 번에 맞혀 봐요.')+'  +'+gain+' XP');
+  addXP(gain);
   els.ex.innerHTML = P.explain; els.ex.className='explain show';
   els.next.disabled=false; els.check.disabled=true;
-  decideNext();
+  decideNext(); sendProgress('tick');
   els.next.focus && els.next.focus({preventScroll:true});
 }
 function decideNext(){
   nextAction='next'; els.next.textContent='다음 문제';
-  if(returnTo && lvlRun>=2){ level=returnTo; returnTo=null; lvlRun=0; lvlMiss=0; moves.push('↩'+level); pendingMsg=`잘했어요! 다시 ${level}단계로 돌아가요.`; }
+  if(returnTo && lvlRun>=2){ pend.moves.push('↩'+returnTo); level=returnTo; returnTo=null; lvlRun=0; lvlMiss=0; moves.push('↩'+level); pendingMsg=`잘했어요! 다시 ${level}단계로 돌아가요.`; }
   else if(lvlRun>=3 && !returnTo){
-    if(level<6){ level++; lvlRun=0; lvlMiss=0; moves.push('↑'+level); pendingMsg=`🎉 ${level}단계로 올라가요!`; }
-    else { nextAction='test'; els.next.textContent='종합 테스트 시작 ▶'; pendingMsg=''; }
+    if(level<6){ giveBadge('c'+level); pend.moves.push('↑'+(level+1)); level++; lvlRun=0; lvlMiss=0; moves.push('↑'+level); pendingMsg=`🎉 ${level}단계로 올라가요!`; if(prof){ prof.lvl=Math.max(prof.lvl,level); saveProf(); } addXP(30); sendProgress('clear'); }
+    else { giveBadge('c6'); nextAction='test'; els.next.textContent='종합 테스트 시작 ▶'; pendingMsg=''; addXP(30); sendProgress('clear'); }
   }
-  else if(lvlMiss>=3 && level>1){ returnTo = returnTo||level; level--; lvlMiss=0; lvlRun=0; moves.push('↓'+level); pendingMsg=`괜찮아요, ${level}단계에서 한 번 더 다져 볼까요?`; }
+  else if(lvlMiss>=3 && level>1){ pend.moves.push('↓'+(level-1)); returnTo = returnTo||level; level--; lvlMiss=0; lvlRun=0; moves.push('↓'+level); pendingMsg=`괜찮아요, ${level}단계에서 한 번 더 다져 볼까요?`; }
   else if(lvlMiss>=3){ lvlMiss=0; }
 }
 function newProblem(){ P = GENS[level](); renderProblem(); }
@@ -601,6 +697,7 @@ els.steps.addEventListener('click', e=>{
   if(v===String(s.ans.v)){ b.classList.add('ok'); const sb=$('signBox'); if(sb){ sb.textContent=b.textContent; sb.classList.add('set'); } stepCorrect(i); }
   else { P.miss++; P.stepMiss[i]++; b.classList.add('bad'); setTimeout(()=>b.classList.remove('bad'),600); setFb('bad',pick(NUDGE)); const h=$('step'+i).querySelector('.step-help'); h.textContent='💡 '+(s.help||''); h.classList.add('show'); }
 });
+$('btnHint').addEventListener('click',()=>{ if(!P||done||P.hintShown) return; P.hintShown=true; P.miss++; setVisual(stage); setFb('info','그림 힌트를 열었어요. 그림을 보고 생각해 보아요.'); });
 els.check.addEventListener('click', ()=>{ if(inTest) submitTestQ(); else checkStep(curStep,true); });
 els.next.addEventListener('click', ()=>{ if(!done) return; if(nextAction==='test') startTest(); else newProblem(); });
 els.reset.addEventListener('click', ()=>{ if(P){ const keep=P; P.miss=0; renderProblem(); } });
@@ -611,9 +708,23 @@ document.addEventListener('keydown', e=>{
   if(inTest){ submitTestQ(); return; }
   if(done){ els.next.click(); } else checkStep(curStep,true);
 });
+const gNum=$('gNum'), gName=$('gName');
+function gateCheck(){ $('gStart').disabled=!(gNum.value.trim()&&gName.value.trim()); }
+gNum.addEventListener('input',gateCheck); gName.addEventListener('input',gateCheck);
+$('gStart').addEventListener('click',()=>{
+  const nr=gNum.value.trim(), nm=gName.value.trim(), n=parseInt(nr,10), ok=(n>=1&&n<=ROSTER.length&&ROSTER[n-1]===nm);
+  who={matched:ok,num:parseInt(nr,10),recordName:ok?ROSTER[n-1]:'미분류',note:ok?'':`[확인필요 · 학생 입력: 번호 ${nr} / 이름 ${nm}] `};
+  profKey='fracProf:'+nr+':'+nm; prof=loadProf(); els.num.value=nr; els.name.value=nm; updateSubmitEnabled();
+  const wc=document.querySelector('#resultBlock .who-card'); if(wc) wc.style.display='none';
+  $('gateScreen').style.display='none'; els.assess.style.display='block';
+  const l=lvOf(prof.xp); $('helloLine').textContent=`${nm}, 어서 와요! Lv.${l} ${TITLES[l-1]} · ${prof.xp} XP`;
+  if(prof.att>0){ $('btnResume').style.display='block'; $('resumeMain').textContent=`이어서 하기 (${prof.lvl}단계)`; }
+  renderProf();
+});
+$('btnResume').addEventListener('click',()=>{ els.assess.style.display='none'; els.stats.style.display='flex'; els.card.style.display='block'; level=prof.lvl||1; newProblem(); });
 document.querySelectorAll('[data-start-level]').forEach(b=>b.addEventListener('click', ()=>{
   const v=b.getAttribute('data-start-level'); els.assess.style.display='none'; els.stats.style.display='flex'; els.card.style.display='block';
-  if(v==='test'){ startTest(); } else { level=+v; newProblem(); }
+  if(v==='test'){ startTest(); } else { level=+v; if(prof){ prof.lvl=Math.max(prof.lvl,level); saveProf(); } newProblem(); }
 }));
 $('btnToTest').addEventListener('click', ()=>{ if(inTest) return; startTest(); });
 
@@ -637,9 +748,8 @@ function finishTest(){
   const n=testResults.filter(r=>r.correct).length;
   $('resultBlock').querySelector('.result-title').textContent = `🎉 종합 테스트가 끝났어요! ${TEST_TOTAL}문제 중 ${n}문제를 맞혔어요. 번호와 이름을 쓰고 제출해주세요.`;
   updateSubmitEnabled();
+  if(prof){ giveBadge('t1'); if(n===TEST_TOTAL) giveBadge('t100'); addXP(20+n*5); }
 }
-
-/* ── 제출 ── */
 function updateSubmitEnabled(){ els.submit.disabled = !(els.num.value.trim() && els.name.value.trim()); }
 els.num.addEventListener('input', updateSubmitEnabled); els.name.addEventListener('input', updateSubmitEnabled);
 function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -670,60 +780,30 @@ async function submitResult(){
 }
 els.submit.addEventListener('click', submitResult);
 
-/* ── 분수 조작판 (직접 칠하고 나누어 보는 연습 도구) ── */
-const MP = {tab:'bar', d:4, W:2, n:0, T:12, G:3, a:0};
-const mpEl = {ov:$('mpOverlay'), stage:$('mpStage'), ctl:$('mpCtl'), info:$('mpInfo'), hint:$('mpHint')};
-const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
-function mpStepper(label,key,lo,hi){ return `<div class="grp2">${label}<button type="button" data-k="${key}" data-dx="-1">−</button><b>${MP[key]}</b><button type="button" data-k="${key}" data-dx="1">＋</button></div>`; }
-function mpRender(){
-  document.querySelectorAll('.mp-tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===MP.tab));
-  if(MP.tab==='bar'){
-    const {d,W,n}=MP; let h='';
-    for(let w=0; w<W; w++){ h+='<div class="barrow"><span class="cells">'; for(let c=0;c<d;c++){ const i=w*d+c; h+=`<span class="bc${i<n?' on':''}" data-i="${i}"></span>`; } h+=`<span class="bw">${w+1}</span></div>`; }
-    mpEl.stage.innerHTML=h;
-    mpEl.ctl.innerHTML = mpStepper('한 칸 나누기 (분모)','d',2,10)+mpStepper('막대 수','W',1,5)+'<div class="grp2"><button type="button" id="mpClear">🧽 지우기</button></div>';
-    let t;
-    if(n===0) t='칸을 눌러 앞에서부터 색칠해 보아요.';
-    else{
-      const w=Math.floor(n/d), q=n%d;
-      t=`색칠한 칸은 ${fr(1,d)}이 <b>${n}</b>개 → ${fr(n,d)}`;
-      if(n<d) t+=` <b>(진분수)</b>`;
-      else if(q===0) t+=` <b>(가분수)</b> = 자연수 <b>${w}</b>`;
-      else t+=` <b>(가분수)</b> = ${mx(w,q,d)} <b>(대분수)</b>`;
-    }
-    mpEl.info.innerHTML=t; mpEl.hint.textContent='칸을 누르면 그 칸까지 색칠돼요. 마지막으로 칠한 칸을 다시 누르면 한 칸 지워져요.';
-  } else {
-    const {T,G,a}=MP, ok = T%G===0, m=ok?T/G:0;
-    mpEl.stage.innerHTML = ok ? dotsHTML(T,m,a,true).replace(/class="grp/g,'data-g="" class="grp') : dotsHTML(T,1,0,false);
-    if(ok){ mpEl.stage.querySelectorAll('.grp').forEach((g,i)=>g.dataset.g=i); }
-    mpEl.ctl.innerHTML = mpStepper('전체 개수','T',2,48)+mpStepper('몇 묶음으로 나눌까','G',2,10)+'<div class="grp2"><button type="button" id="mpClear">🧽 지우기</button></div>';
-    if(!ok) mpEl.info.innerHTML=`${T}개를 ${G}묶음으로 똑같이 나눌 수 없어요. 숫자를 바꿔 보아요.`;
-    else if(a===0) mpEl.info.innerHTML=`${T}개를 ${G}묶음으로 나누면 한 묶음은 <b>${m}</b>개예요. 묶음을 눌러 색칠해 보아요.`;
-    else mpEl.info.innerHTML=`한 묶음 ${m}개 · 색칠한 것은 ${a}묶음 → ${T}의 ${fr(a,G)} = ${a}×${m} = <b>${a*m}</b>`;
-    mpEl.hint.textContent='묶음을 누르면 그 묶음까지 색칠돼요.';
-  }
+/* ── 분수 조작판 (별도로 만든 조작판을 그대로 열어 줌: 재료만 놓고 답은 보여주지 않음) ── */
+const mpOv=$('mpOverlay'); let mpFrame=null, mpPending=null;
+function mpMessage(){
+  const m=P&&P.manip, pt=P&&P.steps.find(s=>s.layout==='point'); let msg={type:'setup',tab:'bead'};
+  if(pt) msg={type:'setup',tab:'nline',d:pt.d};
+  else if(m&&m.t==='dots') msg={type:'setup',tab:'bead',T:m.T,G:m.G,skin:m.skin||'go'};
+  else if(m) msg={type:'setup',tab:(P.lv===5||(P.lv===6&&/나무/.test(P.plain)))?'cmp':'shape',d:m.d,W:(P.lv===5||(P.lv===6&&/나무/.test(P.plain)))?4:5};  /* 막대 수는 답 힌트가 되지 않게 넉넉히 고정 */
+  return msg;
 }
 function mpOpen(){
-  const m = P && P.manip;
-  if(m){ if(m.t==='bar'){ MP.tab='bar'; MP.d=clamp(m.d,2,10); MP.W=clamp(m.W,1,5); MP.n=0; } else { MP.tab='dots'; MP.T=clamp(m.T,2,48); MP.G=clamp(m.G,2,10); MP.a=0; } }
+  if(prof) giveBadge('m1');
   try{ document.activeElement && document.activeElement.blur(); }catch(e){}
-  window.__btOpen=true; mpEl.ov.classList.add('on'); mpEl.ov.setAttribute('aria-hidden','false'); mpRender();
+  window.__btOpen=true; mpOv.classList.add('on'); mpOv.setAttribute('aria-hidden','false');
+  const msg=mpMessage();
+  if(!mpFrame){
+    mpFrame=document.createElement('iframe'); mpFrame.title='분수 조작판'; mpPending=msg;
+    mpFrame.onload=()=>{ try{ mpFrame.contentWindow.postMessage(mpPending,'*'); }catch(e){} };
+    mpFrame.srcdoc=window.__BOARD_HTML; $('mpHost').appendChild(mpFrame);
+  } else { try{ mpFrame.contentWindow.postMessage(msg,'*'); }catch(e){} }
 }
-function mpClose(){ window.__btOpen=false; mpEl.ov.classList.remove('on'); mpEl.ov.setAttribute('aria-hidden','true'); if(P && !done && !inTest) focusStep(curStep); }
+function mpClose(){ window.__btOpen=false; mpOv.classList.remove('on'); mpOv.setAttribute('aria-hidden','true'); if(P && !done && !inTest) focusStep(curStep); }
 $('mpOpen').addEventListener('click', mpOpen);
 $('mpClose').addEventListener('click', mpClose);
-mpEl.ov.addEventListener('click', e=>{ if(e.target===mpEl.ov) mpClose(); });
-document.querySelectorAll('.mp-tab').forEach(b=>b.addEventListener('click', ()=>{ MP.tab=b.dataset.tab; mpRender(); }));
-mpEl.ctl.addEventListener('click', e=>{
-  const b=e.target.closest('button'); if(!b) return;
-  if(b.id==='mpClear'){ MP.n=0; MP.a=0; mpRender(); return; }
-  const k=b.dataset.k, dx=+b.dataset.dx; const lim={d:[2,10],W:[1,5],T:[2,48],G:[2,10]}[k];
-  MP[k]=clamp(MP[k]+dx,lim[0],lim[1]); MP.n=Math.min(MP.n,MP.d*MP.W); MP.a=Math.min(MP.a,MP.G); mpRender();
-});
-mpEl.stage.addEventListener('click', e=>{
-  const c=e.target.closest('.bc'); if(c){ const i=+c.dataset.i; MP.n = (i===MP.n-1) ? i : i+1; mpRender(); return; }
-  const g=e.target.closest('.grp'); if(g && g.dataset.g!==undefined){ const j=+g.dataset.g; MP.a = (j===MP.a-1) ? j : j+1; mpRender(); }
-});
+mpOv.addEventListener('click', e=>{ if(e.target===mpOv) mpClose(); });
 window.__frac = {gens:GENS, get P(){return P;}};
 })();
 </script>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분수 놀이터</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F8FC;--ink:#25324A;--sub:#6B7690;--blue:#3D5A80;--blue-soft:#DCE6F2;--org:#E8873A;--org-soft:#FBE6D2;--line:#D7E3EE}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Gowun Batang",serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
+.app{max-width:900px;margin:0 auto;padding:16px 12px 40px}
+h1{font-family:"Jua",sans-serif;font-weight:400;font-size:34px;margin:0;color:var(--blue);text-align:center}
+.sub{text-align:center;color:var(--sub);font-size:15px;margin:4px 0 14px}
+h2{font-family:"Jua",sans-serif;font-weight:400;font-size:21px;color:var(--blue);margin:20px 4px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+a.card{display:block;text-decoration:none;color:inherit;background:#fff;border:2px solid var(--line);border-radius:20px;padding:14px 16px;box-shadow:0 3px 12px rgba(61,90,128,.08);transition:transform .12s,border-color .12s}
+a.card:hover,a.card:active{transform:translateY(-2px);border-color:var(--org)}
+.card .ic{font-size:36px;line-height:1}
+.card b{display:block;font-family:"Jua",sans-serif;font-weight:400;font-size:21px;color:var(--blue);margin:4px 0 2px}
+.card span{display:block;font-size:14px;color:var(--sub);line-height:1.5}
+.tags{margin-top:6px}.card span.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;background:var(--blue-soft);color:var(--blue);margin-right:4px}.tag.o{background:var(--org-soft);color:#b4560f}
+.note{background:#fff;border:1.5px dashed var(--line);border-radius:16px;padding:12px 16px;font-size:14px;color:var(--sub);line-height:1.7;margin-top:22px}
+.note input{height:38px;width:100%;border:2px solid var(--blue);border-radius:10px;font-size:14px;padding:0 10px;margin-top:6px;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎪 분수 놀이터</h1>
+  <p class="sub">3학년 2학기 4단원 분수 · 배우고, 만지고, 놀면서 익혀요</p>
+  <div id="root"></div>
+  <div class="note">📌 <b>선생님께</b> · 이 쪽지의 파일들을 <b>같은 폴더</b>에 두면 카드를 눌러 바로 열려요. 인터넷에 올려 둔 곳이 있다면 아래에 앞부분 주소를 쓰세요. (예: <code>https://내주소/</code>)<br>
+   <input id="base" placeholder="주소 앞부분 (비워 두면 같은 폴더)"><br>
+   ※ 기록·순위가 있는 앱은 인터넷이 필요해요. 파일은 미리보기가 아니라 <b>Chrome 주소창</b>에서 열어 주세요.</div>
+</div>
+<script>
+(function(){
+const SECTIONS=[
+ {t:'📚 배우고 연습해요',items:[
+  {f:'fraction-practice.html',i:'📘',n:'분수 연습',d:'6단계 연습 · 10문제 테스트 · 경험치와 배지',tg:['혼자','기록 있음']},
+  {f:'fraction.html',i:'🥧',n:'분수 조작판',d:'구슬 나누기 · 색칠 · 수직선 · 크기 비교 · 조각 맞추기',tg:['혼자','기록 없음']}]},
+ {t:'🎮 혼자 도전해요',items:[
+  {f:'분수_짝맞추기.html',i:'🃏',n:'분수 짝 맞추기',d:'가분수와 값이 같은 대분수 카드 찾기',tg:['혼자/친구','기록 있음']}]},
+ {t:'⚔️ 친구와 겨뤄요',items:[
+  {f:'분수_대결.html',i:'⚔️',n:'분수 대결',d:'가분수·대분수 카드 크기 비교 대결',tg:['컴퓨터/친구','기록 있음']},
+  {f:'분수_짝맞추기.html',i:'🃏',n:'분수 짝 맞추기',d:'가분수와 값이 같은 대분수 카드 찾기',tg:['혼자/친구','기록 있음']},
+  {f:'분수_빙고대결.html',i:'🎯',n:'분수 빙고 대결',d:'미션에 맞는 칸을 차지해 한 줄 완성 (3×3~5×5)',tg:['컴퓨터/친구','기록 있음']},
+  {f:'분수_수직선사냥.html',i:'🏹',n:'분수 수직선 사냥',d:'수직선에서 분수의 자리를 먼저 정확히 찾기',tg:['컴퓨터/친구','기록 있음']}]},
+ {t:'🏫 우리 반 함께',items:[
+  {f:'분수_순위표.html',i:'🏅',n:'학급 순위표',d:'꾸준히 연습한 날 · 우리 반 경험치',tg:['모두','읽기 전용']}]}
+];
+const root=document.getElementById('root'); let base=''; try{ base=localStorage.getItem('fracHubBase')||''; }catch(e){}
+function href(f){ return (base?base.replace(/\/?$/,'/'):'')+encodeURI(f); }
+function draw(){ root.innerHTML=SECTIONS.map(s=>`<h2>${s.t}</h2><div class="grid">${s.items.map(x=>`<a class="card" href="${href(x.f)}"><span class="ic" style="font-size:36px;color:inherit">${x.i}</span><b>${x.n}</b><span>${x.d}</span><div class="tags">${x.tg.map((t,k)=>`<span class="tag ${t.includes('기록 있음')?'o':''}">${t}</span>`).join('')}</div></a>`).join('')}</div>`).join(''); }
+const inp=document.getElementById('base'); inp.value=base; inp.oninput=()=>{ base=inp.value.trim(); try{ localStorage.setItem('fracHubBase',base); }catch(e){} draw(); };
+draw();
+})();
+</script>
+</body>
+</html>
