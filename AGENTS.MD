@@ -28,6 +28,7 @@
 | 📚 교육 | 한붓그리기 (오일러 그래프) | `onedraw.html` |
 | 📚 교육 | 교사 셀프스터디 플랫폼 | `selfstudy.html` |
 | 📚 교육 | 단원평가 플랫폼 (학생 평가 & 교사 채점) | `tests/index.html` |
+| 📚 교육 | 오답노트·채점 결과 (나눗셈 기본1) | `tests/notebook_math-3-2-2-basic1.html` |
 | 📚 교육 | 분수 조작판 | `fraction.html` |
 | 📚 교육 | 분수 연습 | `fraction-practice.html` |
 | 🏃 웰니스 | 항당분해 훈련(AGT) 관리 | `exercise.html` |
@@ -205,13 +206,17 @@
   - HWPX 원본에서 문항 삽화(`math2_q1_blocks.png`, `soc12_q3_graph.png`, `soc12_q7_lunch.png`) 자동 추출 및 Base64 인라인 패키징
   - 정답 비공개 학생용 단일 파일 HTML 및 정답/루브릭 탑재 교사용 채점 HTML 자동 빌드
   - 빌드 산출물 배포 경로: `tests/` 디렉터리
-- **단원평가 허브 (`tests/index.html`):** 시험지 목록 및 교사용 채점실 링크 제공 (홈페이지 메인 네비게이션 "📚 교육" 탭 연동 완료)
+- **단원평가 허브 (`tests/index.html`):** 시험지 목록, 오답노트, 교사용 채점실 링크 제공 (`education.html` 연동 완료)
 - **학생용 평가 페이지:**
   - `student_math-3-2-2-basic1.html`: 3-2 수학 2단원 나눗셈(기본1) 20문항 (100점 만점, 캔버스 필기 연습장 탑재)
   - `student_soc-3-2-1-1.html`: 3-2 사회 1단원 1주제 10문항 (100점 만점)
   - `student_soc-3-2-1-2.html`: 3-2 사회 1단원 2주제 10문항 (100점 만점)
   - 문항 인터랙션: 객관식, 단답형, O/X표, 선 잇기(SVG 동적 렌더링), 풀이과정 서술형 등
   - 답안 보존 및 제출: LocalStorage 임시저장 + 제출 시 기기 다운로드(.json) + Supabase `unit_test_submissions` 실시간 전송 (RLS 보안 적용)
+- **학생용 오답노트 (`tests/notebook_math-3-2-2-basic1.html`):**
+  - 번호·이름 조회(`unit_test_my_submission` / `unit_test_my_score`) 또는 답안 JSON 파일로 기록 불러오기
+  - 자동 채점 결과, 평가 요소별 취약점, 틀린 문항 해설·교정 조언
+  - 숫자 바꿔 풀기 연습 및 LocalStorage 연속 정답 기록
 - **교사용 채점실 (`tests/teacher.html`):**
   - Supabase 연동 답안 일괄 조회 또는 학생 답안 JSON 파일 드래그 앤 드롭 지원
   - 객관식/단답형 자동 채점 및 서술형 단계별 수동 채점 (기준 루브릭 제공)
@@ -222,6 +227,7 @@
 **청사진 (업그레이드 방향)**
 - [ ] 신규 단원평가지(HWPX) 자동 변환 파이프라인(스킬)을 통한 신규 시험 지속 추가
 - [ ] 교사용 채점 편의를 위한 Supabase 익명 조회(학교 내부망용) 또는 교사 계정 RLS 연동 고도화
+- [x] 학생용 오답노트(나눗셈 기본1) 페이지 연동
 - [ ] 학생 로그인 및 개인별 오답노트 기능 연동
 
 ---
