@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>분수 막대·수직선 조작판</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#3D5A80;--blue2:#cfe3f5;--orange:#E8873A;--orange2:#f8cfa3;--ok:#4C8C5C;--bad:#C0503F;--bg:#e8f5fb;--ink:#22303f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;overflow-x:hidden}
+body{background:linear-gradient(#e8f5fb,#eef9ee);color:var(--ink);font-family:"Gowun Batang","Malgun Gothic",serif;font-size:18px;min-height:100vh;touch-action:manipulation}
+h1,.jua,button,.chip{font-family:"Jua","Malgun Gothic",sans-serif}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px 0;max-width:1060px;margin:0 auto}
+header a.home{font-size:.9rem;color:var(--blue);text-decoration:none;border:2px solid var(--blue);border-radius:12px;padding:6px 10px;background:#fff;white-space:nowrap}
+header h1{font-size:1.35rem;margin:0;color:var(--blue);flex:1 1 auto}
+.chips{display:flex;gap:8px;flex-wrap:wrap;max-width:1060px;margin:8px auto 0;padding:0 16px}
+.chip{border:3px solid var(--blue);background:#fff;color:var(--blue);border-radius:16px;padding:8px 14px;font-size:1.05rem;min-height:46px;cursor:pointer}
+.chip.on{background:var(--blue);color:#fff}
+.chip[disabled]{opacity:.45;border-style:dashed;cursor:default}
+.card{background:#fff;border:3px solid #cfe0ec;border-radius:22px;max-width:1060px;margin:10px auto;padding:14px 16px}
+.prompt{font-size:1.2rem;line-height:1.55;min-height:3.2em;font-weight:700}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 2px;font-family:"Jua",sans-serif}
+.fr i{font-style:normal;padding:0 3px}.fr i:first-child{border-bottom:2px solid currentColor}
+#wrap{overflow:visible;padding:0 22px}
+#stage{position:relative;margin:6px auto 0}
+#refBar{height:44px;border:3px solid var(--blue);background:#dbe8f6;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:"Jua",sans-serif;color:var(--blue);font-size:1.3rem;position:relative}
+.refx{position:absolute;top:0;height:44px;border:3px dashed #9db5cf;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:"Jua",sans-serif;color:#9db5cf;font-size:1.2rem}
+#row{position:relative;height:64px;margin-top:30px;border-bottom:2px solid #b8c9d8}
+.slot{position:absolute;top:0;height:64px;border:2px dashed #cbd9e6;border-radius:4px}
+.pc{position:absolute;top:0;height:64px;border:3px solid var(--blue);background:var(--blue2);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.05rem;cursor:grab;touch-action:none;user-select:none;border-radius:6px;transition:background .25s}
+.pc.w{background:var(--orange2);border-color:var(--orange);color:#9a4d0a}
+.pc.pop{animation:pop .6s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.wt{position:absolute;top:-24px;height:16px;border:3px solid var(--orange);border-bottom:none;border-radius:6px 6px 0 0;text-align:center;font-family:"Jua",sans-serif;color:#9a4d0a;line-height:12px;font-size:.95rem;transform:translateY(-4px)}
+.guide{position:absolute;top:0;bottom:34px;border-left:3px dashed #7f9bb8;pointer-events:none;z-index:2}
+svg{display:block;overflow:visible}
+#notation{min-height:70px;font-size:1.5rem;text-align:center;margin-top:8px;font-family:"Jua",sans-serif;color:var(--blue)}
+#notation .arrow{color:var(--orange)}
+#tray{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+#tray .src{height:64px;border:3px solid var(--blue);background:var(--blue2);color:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none;font-size:1.05rem;box-shadow:0 3px 0 #9db5cf}
+.btn{border:0;border-radius:14px;background:var(--orange);color:#fff;padding:10px 20px;font-size:1.1rem;min-height:48px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--blue);border:3px solid var(--blue)}
+.btn[disabled]{opacity:.5}
+#ghost{position:fixed;pointer-events:none;z-index:50;display:none;border:3px solid var(--blue);background:var(--blue2);color:var(--blue);border-radius:6px;align-items:center;justify-content:center;opacity:.9;height:64px}
+.q{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;font-size:1.2rem}
+.ans{width:70px;height:54px;font-size:1.5rem;text-align:center;border:3px solid var(--blue);border-radius:12px;font-family:"Jua",sans-serif}
+.ans.act{border-color:var(--orange);box-shadow:0 0 0 4px #f8cfa366}
+.ch{min-width:150px}
+.ch.sel{background:var(--blue);color:#fff}
+#fb{min-height:3.4em;font-size:1.15rem;line-height:1.5;margin-top:6px;padding:8px 12px;border-radius:12px;background:#f4f8fb}
+#fb.ok{background:#e4f3e8;color:#2d6b40}#fb.bad{background:#fbeae6;color:#8a3a2c}
+#pad{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin-top:6px;max-width:680px}
+#pad button{min-height:46px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-size:1.25rem}
+.shake{animation:sh .4s}
+@keyframes sh{20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+.pulse{animation:pu 1s 3}
+@keyframes pu{50%{box-shadow:0 0 0 8px #e8873a66}}
+#modal{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:80;padding:12px}
+#modal .box{background:#fff;border-radius:20px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:18px}
+#modal select,#modal input{font-size:1.1rem;padding:6px 8px;border:2px solid var(--blue);border-radius:8px;width:auto}
+#modal textarea{width:100%;font-size:.9rem}
+.small{font-size:.9rem;color:#5b6b7b}
+@media (max-width:600px){.prompt{font-size:1.05rem}#notation{font-size:1.25rem}.chip{padding:6px 10px;font-size:.95rem;min-height:42px}.ch{min-width:0;flex:1 1 30%;padding:8px 6px;font-size:1rem}#wrap{padding:0 14px}}
+@media (max-height:520px) and (orientation:landscape){.prompt{min-height:0;font-size:1rem}#notation{min-height:40px;font-size:1.15rem}body{font-size:16px}}
+</style>
+</head>
+<body>
+<header><a class="home" href="education.html">← 교육 도구</a><h1>🧩 분수 막대·수직선 조작판</h1><button class="chip" id="btnT" title="선생님">⚙ 선생님</button></header>
+<div class="chips" id="chips"></div>
+<div class="card">
+  <div class="prompt" id="prompt"></div>
+  <div id="wrap"><div id="stage">
+    <div id="refBar">1</div>
+    <div id="row"></div>
+    <svg id="nl" height="96"></svg>
+  </div></div>
+  <div id="notation"></div>
+  <div id="tray">
+    <div class="src" id="src"></div>
+    <button class="btn ghost" id="btnUndo">조각 하나 빼기</button>
+    <button class="btn ghost" id="btnClear">모두 치우기</button>
+    <label id="lblFr" class="small" style="display:none"><input type="checkbox" id="chkFr"> 눈금 분수 보기</label>
+  </div>
+  <div id="qpane"></div>
+  <div id="fb"></div>
+  <div id="pad"></div>
+</div>
+<div id="ghost"></div>
+<div id="modal"><div class="box" id="mbox"></div></div>
+<script>
+(()=>{
+const $=s=>document.querySelector(s), el=(t,c)=>{const e=document.createElement(t); if(c) e.className=c; return e;};
+const fr=(a,b)=>`<span class="fr"><i>${a}</i><i>${b}</i></span>`;
+const rnd=n=>Math.floor(Math.random()*n), shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const KEY='fracBoard:v1', LOG='fracBoard:log';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const NAMES={1:'① 만들기',2:'② 견주기',3:'③ 수직선'};
+const TYPEN={build:'1을 조각으로 나누기',cmp:'1과 견주기',cells:'칸 세기',frac:'분수로 쓰기',loc:'점까지 놓기'};
+let S={mode:'stage',stage:1,idx:0,qs:[],phase:'A',d:3,k:0,tries:0,done:false,reveal:false,fracLabels:false,custom:false,unlocked:1,choice:null,vals:{a:'',b:''},act:'a'};
+let U=300,pw=100,prevWholes=0,L={};
+const mu=()=>S.mode==='free'?3:(S.stage===1?1:2);
+const cap=()=>mu()*S.d;
+const P=()=>S.qs[S.idx]||null;
+
+/* ---------- 문제 만들기 ---------- */
+function genStage(n){
+  if(n===1) return shuf([3,4,5]).map(d=>({type:'build',d}));
+  if(n===2){
+    const ds=shuf([3,4,5,3,4]), kinds=shuf(['s','b','s','b','e']);
+    return ds.map((d,i)=>({type:'cmp',d,k:kinds[i]==='s'?1+rnd(d-1):kinds[i]==='b'?d+1+rnd(d-1):d}));
+  }
+  const ds=shuf([3,4,5,3,4]), m=d=>{let x;do{x=1+rnd(2*d-1);}while(x===d);return x;};
+  return [{type:'cells',d:ds[0]},{type:'frac',d:ds[1],j:m(ds[1])},{type:'loc',d:ds[2],m:m(ds[2])},{type:'frac',d:ds[3],j:m(ds[3])},{type:'loc',d:ds[4],m:m(ds[4])}];
+}
+function target(p){return p.type==='cmp'?p.k:p.type==='frac'?p.j:p.type==='loc'?p.m:p.type==='cells'?2*p.d:p.d;}
+
+/* ---------- 시작·저장 ---------- */
+function save(){ if(S.mode==='stage'&&!S.custom) store.set(KEY,{unlocked:S.unlocked,stage:S.stage,idx:S.idx,qs:S.qs,phase:S.phase,d:S.d,k:S.k,tries:S.tries,done:S.done,reveal:S.reveal}); else store.set(KEY,Object.assign(store.get(KEY,{}),{unlocked:S.unlocked})); }
+function startStage(n,fresh){
+  S.mode='stage';S.stage=n;S.custom=false;S.idx=0;S.qs=genStage(n);S.done=false;S.choice=null;S.vals={a:'',b:''};S.act='a';
+  loadProblem(); save();
+}
+function loadProblem(){
+  const p=P(); S.d=p.d;S.k=0;S.tries=0;S.phase='A';S.done=false;S.reveal=false;S.choice=null;S.vals={a:'',b:''};S.act='a';prevWholes=0;
+  if(p.type==='cells'||p.type==='frac'||p.type==='cmp'||p.type==='loc') S.phase='B'; // 놓기와 답을 한 화면에서
+  fb('','');render();
+}
+function startFree(){S.mode='free';S.stage=0;S.d=S.d||3;S.k=0;S.reveal=true;S.done=false;S.qs=[];prevWholes=0;fb('','');render();}
+function startCustom(h){
+  const st=+h.s||1,t=h.t||'cmp',d=+h.d||3,v=+h.v||1;
+  const p={type:t,d};if(t==='cmp')p.k=v;if(t==='frac')p.j=v;if(t==='loc')p.m=v;
+  S.mode='stage';S.stage=st;S.custom=true;S.qs=[p];S.idx=0;loadProblem();
+}
+
+/* ---------- 화면 ---------- */
+function layout(){
+  const W=Math.max(250,Math.min(window.innerWidth-64,980));
+  U=W/mu(); pw=U/S.d;
+  const st=$('#stage'); st.style.width=W+'px';
+}
+function render(){
+  layout(); drawChips(); drawPrompt(); drawRef(); drawRow(); drawLine(); drawNotation(); drawQ(); drawSrc();
+  $('#lblFr').style.display=S.mode==='free'?'inline':'none';
+  $('#chkFr').checked=S.fracLabels;
+  const free=S.mode==='free'; $('#fb').style.display=free?'none':'block';
+  $('#pad').style.display=(!free&&needsPad()&&!S.done)?'grid':'none';
+  save();
+}
+function drawChips(){
+  const c=$('#chips');c.innerHTML='';
+  [1,2,3].forEach(n=>{const b=el('button','chip'+((S.mode==='stage'&&S.stage===n)?' on':''));b.textContent=(n>S.unlocked?'🔒 ':'')+NAMES[n];b.disabled=n>S.unlocked;b.onclick=()=>startStage(n);c.appendChild(b);});
+  const f=el('button','chip'+(S.mode==='free'?' on':''));f.textContent='🧸 자유롭게 놀기';f.onclick=startFree;c.appendChild(f);
+}
+function drawPrompt(){
+  const p=P(),e=$('#prompt'),d=S.d;
+  if(S.mode==='free'){e.innerHTML='조각을 끌어다 놓아 보세요. 놓은 만큼 막대, 수직선, 수 표기가 함께 바뀌어요.';return;}
+  if(!p){return;}
+  const n=`${S.idx+1}/${S.qs.length}`;
+  let t='';
+  if(p.type==='build') t=S.phase==='A'?`1을 똑같이 ${d}조각으로 나눈 한 조각은 ${fr(1,d)}이에요. 조각을 끌어다 맨 위 <b>1</b> 막대만큼 채워 보세요.`:`${fr(1,d)} 조각이 몇 개 모이면 1이 될까요?`;
+  if(p.type==='cmp') t=`${fr(1,d)} 조각을 <b>${p.k}개</b> 놓아 보세요. 맨 위 1 막대와 견주어 보세요.`;
+  if(p.type==='cells') t=`${fr(1,d)} 조각을 수직선의 <b>2</b>까지 놓아 보세요. 그리고 호의 번호를 보고 칸을 세어 보세요.`;
+  if(p.type==='frac') t=`${fr(1,d)} 조각을 <b>${p.j}개</b> 놓아 보세요. 조각이 끝나는 곳을 분수로 쓰면 얼마일까요?`;
+  if(p.type==='loc') t=`수직선의 <span style="color:var(--bad)">●빨간 점</span>까지 ${fr(1,d)} 조각을 놓아 보세요.`;
+  e.innerHTML=`<span class="small">${S.custom?'선생님이 낸 문제':NAMES[S.stage]+' · '+n}</span><br>${t}`;
+}
+function drawRef(){
+  const rb=$('#refBar');rb.style.width=U+'px';rb.textContent='1';
+  document.querySelectorAll('.refx,.guide').forEach(x=>x.remove());
+  const st=$('#stage');
+  if(mu()>1){
+    for(let u=1;u<mu();u++){
+      if(S.stage>=3||S.mode==='free'){const r=el('div','refx');r.style.left=(u*U)+'px';r.style.width=U+'px';r.textContent='1';st.appendChild(r);}
+      const g=el('div','guide');g.style.left=(u*U-1)+'px';st.appendChild(g);
+    }
+  }
+}
+function pieceHTML(){return fr(1,S.d);}
+function drawRow(){
+  const row=$('#row');row.style.width=(mu()*U)+'px';row.innerHTML='';
+  for(let i=0;i<cap();i++){const s=el('div','slot');s.style.left=(i*pw)+'px';s.style.width=pw+'px';row.appendChild(s);}
+  const wholes=Math.floor(S.k/S.d);
+  for(let i=0;i<S.k;i++){
+    const g=Math.floor(i/S.d),w=(g+1)*S.d<=S.k;
+    const p=el('div','pc'+(w?' w':'')+(w&&g>=prevWholes?' pop':''));
+    p.style.left=(i*pw)+'px';p.style.width=pw+'px';p.dataset.i=i;p.innerHTML=pieceHTML();
+    if(pw<46)p.style.fontSize='.8rem';
+    p.addEventListener('pointerdown',e=>dragStart(e,true));
+    row.appendChild(p);
+  }
+  for(let g=0;g<wholes;g++){const t=el('div','wt');t.style.left=(g*U)+'px';t.style.width=U+'px';t.textContent='1';row.appendChild(t);}
+  prevWholes=wholes;
+}
+function drawLine(){
+  const svg=$('#nl'),W=mu()*U;svg.setAttribute('width',W);svg.setAttribute('viewBox',`0 0 ${W} 96`);
+  const y=52;let h=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#3D5A80" stroke-width="3"/>`;
+  const showFr=S.reveal||S.fracLabels;
+  for(let i=0;i<=cap();i++){
+    const x=i*pw,int=i%S.d===0;
+    h+=`<line x1="${x}" y1="${y-(int?12:7)}" x2="${x}" y2="${y+(int?12:7)}" stroke="#3D5A80" stroke-width="${int?4:2.5}"/>`;
+    if(int) h+=`<text x="${x}" y="${y+34}" text-anchor="middle" font-family="Jua" font-size="22" fill="#3D5A80">${i/S.d}</text>`;
+    else if(showFr&&S.mode==='free') h+=`<text x="${x}" y="${y+30}" text-anchor="middle" font-family="Jua" font-size="${pw<46?10:13}" fill="#7b8fa3">${i}/${S.d}</text>`;
+  }
+  for(let i=0;i<S.k;i++){
+    const g=Math.floor(i/S.d),w=(g+1)*S.d<=S.k,col=w?'#E8873A':'#3D5A80',x1=i*pw,x2=(i+1)*pw,m=(x1+x2)/2;
+    h+=`<path d="M${x1+2} ${y-6} Q${m} ${y-44} ${x2-2} ${y-6}" fill="none" stroke="${col}" stroke-width="3"/>`;
+    h+=`<text x="${m}" y="${y-26}" text-anchor="middle" font-family="Jua" font-size="${pw<46?13:17}" fill="${col}">${i+1}</text>`;
+  }
+  const p=P();
+  if(S.mode==='stage'&&p&&p.type==='loc') h+=`<circle cx="${p.m*pw}" cy="${y}" r="10" fill="#C0503F" stroke="#fff" stroke-width="3"/>`;
+  if(S.k>0){const x=S.k*pw;h+=`<polygon points="${x-8},${y+22} ${x+8},${y+22} ${x},${y+8}" fill="#E8873A"/><line x1="${x}" y1="${y-8}" x2="${x}" y2="0" stroke="#E8873A" stroke-width="2" stroke-dasharray="4 4"/>`;}
+  svg.innerHTML=h;
+}
+function drawNotation(){
+  const n=$('#notation'),d=S.d,k=S.k;
+  if(k===0){n.innerHTML='<span class="small">조각을 놓으면 여기에 수가 나타나요.</span>';return;}
+  let t=`${fr(1,d)} 조각이 <b>${k}개</b>`;
+  if(S.reveal) t+=` <span class="arrow">→</span> ${fr(k,d)}`+(k===d?' = 1':'');
+  n.innerHTML=t;
+}
+function drawSrc(){const s=$('#src');s.style.width=Math.max(pw,64)+'px';s.innerHTML=pieceHTML();}
+
+/* ---------- 질문 영역 ---------- */
+function needsPad(){const p=P();return p&&(p.type==='cells'||p.type==='frac'||(p.type==='build'&&S.phase==='B'));}
+function drawQ(){
+  const q=$('#qpane');q.innerHTML='';const p=P();
+  if(S.mode==='free'){
+    const d=el('div','q');d.innerHTML='<span>1을 똑같이</span>';
+    [2,3,4,5,6,8].forEach(n=>{const b=el('button','chip'+(S.d===n?' on':''));b.textContent=n+'조각';b.onclick=()=>{S.d=n;S.k=0;prevWholes=0;render();};d.appendChild(b);});
+    q.appendChild(d);return;
+  }
+  if(!p) return;
+  const add=h=>{const d=el('div','q');d.innerHTML=h;q.appendChild(d);return d;};
+  const inp=(id)=>`<input class="ans${S.act===id?' act':''}" data-id="${id}" readonly value="${S.vals[id]}">`;
+  if(S.done){
+    const last=S.idx===S.qs.length-1;
+    const d=add('');const b=el('button','btn');b.textContent=S.custom?'일반 연습으로 가기 →':last?'단계 마치기 🎉':'다음 문제 →';b.onclick=next;d.appendChild(b);return;
+  }
+  if(p.type==='build'&&S.phase==='A'){add('<span class="small">조각을 끌어 놓거나 조각을 눌러 보세요.</span>');return;}
+  if(p.type==='build') add(`${fr(1,S.d)} 조각이 ${inp('a')} 개 모이면 1이 돼요.`);
+  if(p.type==='cmp'){
+    const d=add('');[['s','1보다 작다'],['e','1과 같다'],['b','1보다 크다']].forEach(([v,t])=>{const b=el('button','btn ghost ch'+(S.choice===v?' sel':''));b.textContent=t;b.onclick=()=>{S.choice=v;drawQ();};d.appendChild(b);});
+  }
+  if(p.type==='cells') add(`0에서 1까지는 ${inp('a')} 칸, 1에서 2까지는 ${inp('b')} 칸`);
+  if(p.type==='frac') add(`조각이 끝나는 곳은 <span class="fr"><i>${inp('a')}</i><i>${inp('b')}</i></span>`);
+  const d=add('');const b=el('button','btn');b.textContent='확인';b.onclick=check;d.appendChild(b);
+  q.querySelectorAll('.ans').forEach(i=>i.addEventListener('pointerdown',e=>{e.preventDefault();S.act=i.dataset.id;q.querySelectorAll('.ans').forEach(x=>x.classList.toggle('act',x===i));}));
+}
+function buildPad(){
+  const pd=$('#pad');pd.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','0','⌫'].forEach(k=>{const b=el('button');b.textContent=k;b.onmousedown=e=>e.preventDefault();b.onclick=()=>key(k);pd.appendChild(b);});
+}
+function key(k){
+  if(!needsPad()||S.done) return;
+  let v=S.vals[S.act]||'';
+  if(k==='⌫') v=v.slice(0,-1); else if(v.length<2) v+=k;
+  S.vals[S.act]=v;
+  const i=document.querySelector(`.ans[data-id="${S.act}"]`);if(i) i.value=v;
+}
+document.addEventListener('keydown',e=>{
+  if($('#modal').style.display==='flex') return;
+  if(e.key>='0'&&e.key<='9') key(e.key); else if(e.key==='Backspace') key('⌫'); else if(e.key==='Enter'){const b=document.querySelector('#qpane .btn');if(b)b.click();}
+  else if(e.key==='Tab'&&P()&&P().type!=='build'){const ids=[...document.querySelectorAll('.ans')].map(x=>x.dataset.id);if(ids.length>1){e.preventDefault();S.act=ids[(ids.indexOf(S.act)+1)%ids.length];drawQ();}}
+  if(e.ctrlKey&&e.shiftKey&&e.key==='4'){S.unlocked=3;drawChips();save();}
+});
+
+/* ---------- 판정 ---------- */
+function fb(t,c){const f=$('#fb');f.className=c||'';f.innerHTML=t;}
+function logAttempt(ok,ans){const p=P();const a=store.get(LOG,[]);a.push({ts:Date.now(),stage:S.stage,type:p.type,d:p.d,k:S.k,t:target(p),ans,ok});store.set(LOG,a.slice(-80));}
+function check(){
+  const p=P();if(!p||S.done)return;
+  const need=target(p);let ok=false,ans='',gate=null;
+  if(p.type==='build'){ans=S.vals.a;if(S.vals.a==='')return fb('칸에 숫자를 써 보세요.','bad');ok=+S.vals.a===p.d;}
+  else{
+    if(p.type!=='build'&&S.k!==need){gate=p.type==='loc'?`아직 빨간 점에 닿지 않았어요. 조각 끝(주황 삼각형)과 빨간 점을 견주어 보세요. 점보다 ${S.k<need?'왼쪽':'오른쪽'}에 있나요?`:`먼저 ${fr(1,p.d)} 조각을 ${need}개 놓아 볼까요? 지금은 ${S.k}개예요.`;}
+    if(gate){shakeRow();return fb(gate,'bad');}
+    if(p.type==='cmp'){ans=S.choice;if(!S.choice)return fb('알맞은 것을 골라 보세요.','bad');ok=S.choice===(p.k<p.d?'s':p.k>p.d?'b':'e');}
+    if(p.type==='cells'){ans=S.vals.a+'/'+S.vals.b;if(S.vals.a===''||S.vals.b==='')return fb('두 칸에 모두 숫자를 써 보세요.','bad');ok=+S.vals.a===p.d&&+S.vals.b===p.d;}
+    if(p.type==='frac'){ans=S.vals.a+'/'+S.vals.b;if(S.vals.a===''||S.vals.b==='')return fb('분자와 분모를 모두 써 보세요.','bad');ok=+S.vals.a===p.j&&+S.vals.b===p.d;}
+    if(p.type==='loc'){ans=S.k;ok=true;}
+  }
+  logAttempt(ok,ans);
+  if(ok) return success(p);
+  S.tries++;wrong(p);
+}
+function wrong(p){
+  const t=S.tries,H={
+    build:['막대에 조각이 모두 몇 개 들어갔나요? 호의 번호를 따라 세어 볼까요?','조각을 하나씩 짚으며 세어 보세요. 마지막 호의 번호는 몇 번이에요?'],
+    cmp:p.k<p.d?['조각이 끝나는 곳이 맨 위 1 막대의 끝(점선)보다 안쪽인가요, 바깥쪽인가요?','1이 되려면 조각이 몇 개 필요했지요? 지금은 몇 개인가요?']:p.k>p.d?['완전히 채운 줄이 몇 개인가요? 한 줄이 넘게 놓았나요?','조각 끝이 점선을 넘었나요? 넘었다면 1보다 어떻게 되지요?']:['조각 끝이 점선과 딱 맞닿았나요?','1이 되려면 조각이 몇 개 필요했지요?'],
+    cells:['0에서 1까지 호의 번호를 하나씩 따라가 보세요. 1에 닿는 호는 몇 번이에요?','1에서 2까지는 호의 번호가 몇 번부터 몇 번까지예요? 0에서 1까지와 견주어 보세요.'],
+    frac:['조각 한 칸은 얼마였지요? 그 조각이 몇 칸을 갔나요?','분모는 1을 똑같이 나눈 조각의 수, 분자는 놓은 조각의 수예요. 어디에서 찾을 수 있을까요?'],
+    loc:[]
+  };
+  const m=H[p.type][Math.min(t-1,1)]||'';
+  let h=m;if(t>=3){h+='<br>여러 번 어려웠지요. 선생님과 함께 천천히 해 봐요.';const b='<br><button class="btn ghost" id="skip">다음으로 넘어가기</button>';h+=b;}
+  fb(h,'bad');const s=$('#skip');if(s)s.onclick=()=>{S.done=true;S.reveal=false;render();};
+  if(t>=2) document.querySelector('#stage')&&document.querySelector('#nl').classList.add('pulse');
+}
+function success(p){
+  S.done=true;S.reveal=true;let t='';
+  if(p.type==='build')t=`맞아요! ${fr(1,p.d)}이 ${p.d}개 모이면 1이 돼요.`;
+  if(p.type==='cmp')t=`맞아요! ${fr(1,p.d)}이 ${p.k}개이면 ${fr(p.k,p.d)}이고, ${p.k<p.d?'1보다 작아요':p.k>p.d?'1보다 커요':'1과 같아요'}.`;
+  if(p.type==='cells')t=`맞아요! 0에서 1까지도, 1에서 2까지도 한 칸 한 칸이 ${fr(1,p.d)}씩 ${p.d}칸이에요. 둘 다 같은 1이에요.`;
+  if(p.type==='frac')t=`맞아요! ${fr(1,p.d)}이 ${p.j}개이면 ${fr(p.j,p.d)}이에요.`;
+  if(p.type==='loc')t=`맞아요! 점은 ${fr(1,p.d)}이 ${p.m}개인 곳, 곧 ${fr(p.m,p.d)}이에요.`;
+  fb(t,'ok');render();
+}
+function shakeRow(){const r=$('#row');r.classList.remove('shake');void r.offsetWidth;r.classList.add('shake');}
+function next(){
+  if(S.custom){startStage(S.stage);return;}
+  if(S.idx<S.qs.length-1){S.idx++;loadProblem();save();return;}
+  const n=S.stage;if(n<3){if(S.unlocked<n+1)S.unlocked=n+1;save();fb(`${NAMES[n]} 단계를 모두 마쳤어요! 🎉 다음 단계가 열렸어요.`,'ok');startStage(n+1);}
+  else{fb('1~3단계를 모두 마쳤어요! 🎉 자유롭게 놀기에서 마음껏 만져 보세요.','ok');save();startFree();}
+}
+
+/* ---------- 끌어놓기 ---------- */
+let drag=null;
+function dragStart(e,fromRow){
+  if(S.mode==='stage'&&S.done&&!fromRow)return; if(S.done&&fromRow)return;
+  e.preventDefault();
+  const g=$('#ghost');g.style.display='flex';g.style.width=Math.max(pw,64)+'px';g.innerHTML=pieceHTML();
+  drag={fromRow,i:fromRow?+e.currentTarget.dataset.i:-1,x0:e.clientX,y0:e.clientY,moved:false};
+  moveGhost(e);
+  window.addEventListener('pointermove',onMove);window.addEventListener('pointerup',onUp);window.addEventListener('pointercancel',onUp);
+}
+function moveGhost(e){const g=$('#ghost');g.style.left=(e.clientX-g.offsetWidth/2)+'px';g.style.top=(e.clientY-32)+'px';}
+function onMove(e){if(!drag)return;if(Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0)>8)drag.moved=true;moveGhost(e);}
+function inBoard(e){const r=$('#stage').getBoundingClientRect(),r2=$('#row').getBoundingClientRect();return e.clientY>r.top-30&&e.clientY<r2.bottom+60&&e.clientX>r.left-30&&e.clientX<r.right+30;}
+function onUp(e){
+  window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);window.removeEventListener('pointercancel',onUp);
+  $('#ghost').style.display='none';const d=drag;drag=null;if(!d)return;
+  if(d.fromRow){ if(!d.moved||!inBoard(e)) removeAt(d.i); return; }
+  if(!d.moved||inBoard(e)) addPiece();
+}
+function addPiece(){
+  if(S.k>=cap()){shakeRow();if(S.mode==='stage')fb(S.stage===1?'1이 다 채워졌어요. 더 놓을 수 없어요.':'수직선 끝까지 놓았어요.','bad');return;}
+  S.k++;
+  if(S.mode==='stage'){const p=P();if(p&&p.type==='build'&&S.phase==='A'&&S.k===p.d){render();fb('조각 '+p.d+'개가 모여 1이 되었어요! 색이 바뀌었지요?','ok');setTimeout(()=>{S.phase='B';fb('','');render();},1300);return;}
+    if(!S.done)$('#fb').className==='ok'&&fb('','');}
+  render();
+}
+function removeAt(i){if(S.k>0){S.k--;S.reveal=S.mode==='free';if(S.mode==='stage'&&S.done){return;}render();}}
+$('#src').addEventListener('pointerdown',e=>dragStart(e,false));
+$('#btnUndo').onclick=()=>{if(S.done)return;if(S.k>0){S.k--;render();}};
+$('#btnClear').onclick=()=>{if(S.done)return;S.k=0;prevWholes=0;render();};
+$('#chkFr').onchange=e=>{S.fracLabels=e.target.checked;render();};
+window.addEventListener('resize',()=>render());
+
+/* ---------- 선생님 메뉴 ---------- */
+$('#btnT').onclick=openT;
+function closeM(){$('#modal').style.display='none';}
+function openT(){
+  const m=$('#modal'),b=$('#mbox');m.style.display='flex';
+  const log=store.get(LOG,[]),wrong={};log.filter(x=>!x.ok).forEach(x=>{const k=x.stage+'단계 '+(TYPEN[x.type]||x.type);wrong[k]=(wrong[k]||0)+1;});
+  const lines=log.slice(-25).reverse().map(x=>{const t=new Date(x.ts);return `${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')} · ${x.stage}단계 ${TYPEN[x.type]||x.type} (조각 ${x.d}등분, 놓은 ${x.k}개, 답 ${x.ans}) → ${x.ok?'맞음':'틀림'}`;});
+  b.innerHTML=`<h2 class="jua" style="margin-top:0">선생님 메뉴</h2>
+  <b>📌 문제 상황 만들어 학생에게 주기</b>
+  <p class="small">학생이 링크를 열면 이 문제부터 풀어요. (놓은 조각은 학생이 직접 놓아요.)</p>
+  <div class="q">종류 <select id="tT"><option value="cmp">견주기(1보다 작다/크다)</option><option value="cells">칸 세기</option><option value="frac">분수로 쓰기</option><option value="loc">점까지 놓기</option></select></div>
+  <div class="q">1을 <input id="tD" type="number" min="2" max="8" value="${S.mode==='free'?S.d:4}" style="width:70px"> 조각으로 나눈 조각 <input id="tV" type="number" min="1" max="16" value="${S.mode==='free'&&S.k?S.k:5}" style="width:70px"> 개 (칸 세기는 무시)</div>
+  <div class="q"><button class="btn" id="tGo">이 문제 풀어 보기</button><button class="btn ghost" id="tLink">링크 만들기</button></div>
+  <textarea id="tOut" rows="2" readonly style="display:none"></textarea>
+  <hr><b>📋 학생이 막힌 곳 (이 기기)</b>
+  <p class="small">${Object.keys(wrong).length?Object.entries(wrong).map(([k,v])=>`${k}: 틀림 ${v}번`).join(' · '):'아직 기록이 없어요.'}</p>
+  <div class="small" style="max-height:200px;overflow:auto">${lines.join('<br>')||''}</div>
+  <div class="q"><button class="btn ghost" id="tClr">기록 지우기</button><button class="btn" id="tClose">닫기</button></div>`;
+  const mk=()=>({s:3,t:$('#tT').value,d:Math.max(2,Math.min(8,+$('#tD').value||3)),v:Math.max(1,Math.min(16,+$('#tV').value||1))});
+  $('#tGo').onclick=()=>{const h=mk();h.s=h.t==='cmp'?2:3;closeM();startCustom(h);};
+  $('#tLink').onclick=()=>{const h=mk();h.s=h.t==='cmp'?2:3;const u=location.href.split('#')[0]+'#'+new URLSearchParams(h).toString();const o=$('#tOut');o.style.display='block';o.value=u;o.select();try{navigator.clipboard&&navigator.clipboard.writeText(u).catch(()=>{});}catch(e){}};
+  $('#tClr').onclick=()=>{store.set(LOG,[]);openT();};
+  $('#tClose').onclick=closeM;
+}
+$('#modal').addEventListener('pointerdown',e=>{if(e.target.id==='modal')closeM();});
+
+/* ---------- 시작 ---------- */
+buildPad();
+(function init(){
+  const sv=store.get(KEY,null);if(sv&&sv.unlocked)S.unlocked=Math.min(3,sv.unlocked);
+  if(/open=all/.test(location.search)) S.unlocked=3;
+  const h=Object.fromEntries(new URLSearchParams(location.hash.replace(/^#/,'')));
+  if(h.t){startCustom(h);return;}
+  if(sv&&sv.qs&&sv.qs.length&&sv.stage){Object.assign(S,{mode:'stage',custom:false,stage:sv.stage,idx:sv.idx,qs:sv.qs,phase:sv.phase,d:sv.d,k:sv.k,tries:sv.tries,done:sv.done,reveal:sv.reveal,choice:null,vals:{a:'',b:''},act:'a'});prevWholes=Math.floor(S.k/S.d);render();return;}
+  startStage(1);
+})();
+window.__S=()=>S;
+})();
+</script>
+</body>
+</html>
