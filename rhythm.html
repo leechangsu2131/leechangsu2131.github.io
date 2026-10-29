@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내가 만드는 리듬 - 3학년 음악</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<style>
+:root{--bg:#eef3fb;--card:#fff;--ink:#1b2a41;--sub:#5a6b85;--line:#c9d6ee;--acc:#0b63b8;--acc2:#ffd25e;--hot:#ff7a59;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a2a;--card:#1c2740;--ink:#e8eefb;--sub:#9fb0cc;--line:#33446a;--acc:#6bb2ff;--acc2:#e0b73f;--hot:#ff9276;--on:#0b1424}}
+:root[data-theme="dark"]{--bg:#121a2a;--card:#1c2740;--ink:#e8eefb;--sub:#9fb0cc;--line:#33446a;--acc:#6bb2ff;--acc2:#e0b73f;--hot:#ff9276;--on:#0b1424}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px 14px 40px}
+h1{font:400 28px/1.2 "Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;margin:6px 0 2px;color:var(--acc)}
+.goal{color:var(--sub);margin:0 0 14px;font-size:14px}
+nav{display:flex;gap:6px;margin-bottom:12px}
+nav button{flex:1;padding:10px 4px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:var(--on)}
+section{display:none;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px}
+section.on{display:block}
+h2{font:400 20px "Jua","Malgun Gothic",sans-serif;margin:0 0 4px}
+p.t{margin:0 0 10px;color:var(--sub);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+button.b,select{font:inherit;padding:9px 14px;border-radius:12px;border:2px solid var(--acc);background:var(--card);color:var(--acc);font-weight:700;cursor:pointer}
+button.b.p{background:var(--acc);color:var(--on)}
+button:focus-visible,select:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:380px;margin:8px auto}
+.cell,.slot{background:var(--bg);border:2px solid var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;cursor:pointer;color:var(--ink);font:inherit;min-height:84px}
+.cell svg,.slot svg{width:44px;height:44px}
+.cell small,.slot small{font-size:13px;color:var(--sub)}
+.cell.hit,.slot.hit{background:var(--acc2);border-color:var(--hot)}
+.cell .n{font-size:11px;color:var(--hot);min-height:14px}
+.bars{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.bar{display:flex;gap:4px}
+.bar .slot{width:64px}
+.mt{font:400 22px "Jua",sans-serif;align-self:center;color:var(--acc);line-height:1}
+.read{text-align:center;font:400 20px "Jua","Malgun Gothic",sans-serif;margin:8px 0;min-height:30px;word-break:keep-all}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:6px;align-items:center;justify-content:center;border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:8px;color:var(--ink);font:inherit;cursor:pointer}
+.opt svg{width:36px;height:36px}
+.opt.ok{background:#bfeccb;border-color:#2e9e57;color:#0e3a1d}
+.opt.no{background:#ffd3c8;border-color:var(--hot);color:#5a1a0c}
+.msg{text-align:center;min-height:26px;font-weight:700}
+.staff{display:flex;align-items:center;justify-content:space-around;gap:6px;height:64px;padding:0 8px;background:linear-gradient(var(--ink),var(--ink)) center/100% 2px no-repeat;color:var(--ink)}
+.staff b{font:400 18px/1 "Jua",sans-serif;background:var(--card);padding:0 4px}
+.staff svg{background:var(--card);width:40px;height:40px}
+.staff i{width:8px;height:40px;border-left:2px solid var(--ink);border-right:5px solid var(--ink);background:var(--card)}
+.key{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:13px;color:var(--sub)}
+.key span{display:flex;align-items:center;gap:4px}.key svg{width:24px;height:24px}
+.dirs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0}.dc{display:flex;flex-direction:column;align-items:center;min-width:64px;padding:8px 6px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;cursor:pointer}.dc b{font-size:26px;line-height:1.1}.dc span{font-size:12px}.dc[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--on)}details.more{margin:6px 0;font-size:14px;color:var(--sub)}details.more summary{cursor:pointer;text-align:center}
+#dir,#ln,label[for=dir],#lnL{display:none!important}
+nav button{font-size:14px}
+.kt{width:100%;border-collapse:collapse}.kt th,.kt td{border-bottom:1px solid var(--line);padding:6px;text-align:center}.kt th{font-size:13px;color:var(--sub)}.kt svg{width:34px;height:34px;vertical-align:middle}.kn{font-size:12px;color:var(--sub)}.ks{font:400 20px "Jua","Malgun Gothic",sans-serif;color:var(--acc)}
+</style>
+</head>
+<body>
+<main>
+<h1>내가 만드는 리듬</h1>
+<p class="goal">3학년 음악 3단원 · 교과서 60~61쪽 · 4분음표와 8분음표, 쉼표로 4/4박자 리듬을 만들어 연주해 봅시다.</p>
+<nav role="tablist">
+<button role="tab" aria-selected="true" data-t="a">리듬판 놀이</button>
+<button role="tab" aria-selected="false" data-t="b">리듬 만들기</button>
+<button role="tab" aria-selected="false" data-t="c">듣고 맞히기</button>
+<button role="tab" aria-selected="false" data-t="d">코다이 읽기</button>
+</nav>
+
+<section id="a" class="on">
+<h2>리듬판 읽기</h2>
+<p class="t">아래 화살표 카드로 읽는 방향을 고르고, 리듬판에서 읽고 싶은 줄을 눌러 보세요. 선택한 4칸이 오선 한 줄 한 마디로 나타납니다.</p>
+<div class="key"><span id="k1"></span><span id="k2"></span><span id="k3"></span></div>
+<div class="row"><label for="dir">읽는 방향</label>
+<select id="dir"><optgroup label="교과서 60쪽: 4칸 고르기"><option value="l-down">아래로</option><option value="l-up">위로</option><option value="l-right">오른쪽으로</option><option value="l-left">왼쪽으로</option></optgroup><optgroup label="내가 정하기"><option value="custom">칸을 눌러 순서 정하기</option></optgroup><optgroup label="보충 자료: 16칸 모두 읽기"><option value="row">가로로</option><option value="down">비가 내리듯 아래로</option><option value="zig">지그재그로</option><option value="spiral">달팽이처럼</option><option value="snake">ㄹ자로</option></optgroup></select>
+<label for="ln" id="lnL">몇 번째 줄</label><select id="ln"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+<label for="bpmA">빠르기</label>
+<select id="bpmA"><option value="70">느리게</option><option value="100" selected>보통</option><option value="140">빠르게</option></select></div>
+<div class="dirs" id="dirs"></div>
+<details class="more"><summary>더 도전해 보기 (보충 자료)</summary><div class="dirs" id="dirs2"></div></details>
+<p class="t" id="hintA" style="text-align:center;font-weight:700;color:var(--hot)"></p>
+<div class="board" id="board"></div>
+<div class="read" id="readA"></div>
+<div class="row" style="justify-content:center"><button class="b p" id="playA">재생</button><button class="b" id="clrPath">순서 다시 정하기</button><button class="b" id="edMode">✏️ 리듬 바꾸기</button><button class="b" id="resetA">처음 리듬판으로</button></div>
+</section>
+
+<section id="b">
+<h2>4/4박자 리듬꼴 만들기</h2>
+<p class="t">한 마디는 4박입니다. 칸을 누르면 타 → 티티 → 쉼 순서로 바뀝니다.</p>
+<div class="bars"><span class="mt">4<br>4</span><div class="bar" id="m0"></div><div class="bar" id="m1"></div></div>
+<div class="read" id="readB"></div>
+<div class="row"><label for="tempo">빠르기</label>
+<select id="tempo"><option value="70">느리게</option><option value="100" selected>보통</option><option value="140">빠르게</option><option value="up">점점 빠르게</option><option value="down">점점 느리게</option></select>
+<label for="dyn">셈여림</label>
+<select id="dyn"><option value="0.25">여리게</option><option value="0.6" selected>보통</option><option value="1">세게</option><option value="up">점점 세게</option><option value="down">점점 여리게</option></select></div>
+<div class="row" style="justify-content:center"><button class="b p" id="playB">연주하기</button><button class="b" id="randB">무작위로 만들기</button><button class="b" id="clrB">모두 지우기</button></div>
+<p class="t">연주한 뒤 느낌을 친구에게 이야기해 보세요. 같은 리듬도 빠르기와 셈여림에 따라 다르게 들립니다.</p>
+</section>
+
+<section id="c">
+<h2>듣고 맞히기</h2>
+<p class="t">한 마디를 듣고, 같은 리듬을 골라 보세요.</p>
+<div class="row" style="justify-content:center"><button class="b p" id="newC">새 문제 듣기</button><button class="b" id="againC">다시 듣기</button></div>
+<div class="opts" id="optsC"></div>
+<div class="msg" id="msgC"></div>
+<div class="msg" id="scoreC" style="color:var(--sub);font-weight:400"></div>
+</section>
+<section id="d">
+<h2>코다이 리듬 읽기</h2>
+<p class="t">리듬을 말로 읽으면서 치면 점음표와 쉼표도 정확하게 표현할 수 있어요. 「듣기」를 눌러 소리를 들으며 따라 읽어 보세요. 한 박은 4분음표 하나의 길이입니다.</p>
+<div style="overflow-x:auto"><table class="kt" id="kt"></table></div>
+<p class="t">리듬판 놀이와 리듬 만들기에 나오는 읽기 글자(타, 티 티, 쉼)도 같은 코다이 리듬말입니다.</p>
+</section>
+</main>
+<script>
+(function(){
+var NAMES=["타","티 티","(쉼)"],HITS=[[0],[0,.5],[],[0],[0],[.5],[0,.75],[0,.25,.5,.75],[0,1/3,2/3],[0,.5],[.5]];
+function svg(k){
+ var h='<svg viewBox="0 0 44 44" fill="currentColor" aria-hidden="true">';
+ if(k==0)h+='<ellipse cx="16" cy="34" rx="7" ry="5" transform="rotate(-20 16 34)"/><rect x="21" y="8" width="2.6" height="26"/>';
+ if(k==1)h+='<ellipse cx="9" cy="34" rx="6" ry="4.4" transform="rotate(-20 9 34)"/><ellipse cx="31" cy="34" rx="6" ry="4.4" transform="rotate(-20 31 34)"/><rect x="13.5" y="10" width="2.4" height="24"/><rect x="35.5" y="10" width="2.4" height="24"/><rect x="13.5" y="8" width="24.4" height="5"/>';
+ if(k==3)h+='<ellipse cx="22" cy="26" rx="11" ry="7" fill="none" stroke="currentColor" stroke-width="3" transform="rotate(-20 22 26)"/>';
+ if(k==4)h+='<ellipse cx="16" cy="34" rx="7" ry="5" fill="none" stroke="currentColor" stroke-width="2.6" transform="rotate(-20 16 34)"/><rect x="21" y="8" width="2.6" height="26"/>';
+ if(k==5)h+='<ellipse cx="6" cy="34" rx="4" ry="3"/><ellipse cx="16" cy="34" rx="4" ry="3"/><ellipse cx="26" cy="34" rx="4" ry="3"/><ellipse cx="36" cy="34" rx="4" ry="3"/><rect x="8.6" y="10" width="1.8" height="24"/><rect x="18.6" y="10" width="1.8" height="24"/><rect x="28.6" y="10" width="1.8" height="24"/><rect x="38.6" y="10" width="1.8" height="24"/><rect x="8.6" y="8" width="31.8" height="3.4"/><rect x="8.6" y="14" width="31.8" height="3.4"/>';
+ if(k==2)h+='<path d="M17 8L27 18L18 27L28 36C21 34 17 37 20 41" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>';
+ return h+'</svg>';
+}
+var A=null,master=null,timers=[];
+var U=null;function ctx(){if(!A)A=new(window.AudioContext||window.webkitAudioContext)();if(A.state!=="running")A.resume();if(!U){try{U=new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=");U.loop=true;var pr=U.play();if(pr&&pr.catch)pr.catch(function(){})}catch(e){}}return A}
+function tick(t,v,out){var o=A.createOscillator(),g=A.createGain();o.type="triangle";o.frequency.value=900;g.gain.setValueAtTime(Math.max(v,.2)*1.4,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);o.connect(g);g.connect(out);o.start(t);o.stop(t+.16)}
+function stop(){timers.forEach(clearTimeout);timers=[];if(master){try{master.disconnect()}catch(e){}master=null}document.querySelectorAll(".hit").forEach(function(e){e.classList.remove("hit")});document.querySelectorAll("[data-play]").forEach(function(b){b.textContent=b.dataset.label;delete b.dataset.play})}
+function play(beats,bpmAt,volAt,onBeat,btn,done){
+ stop();ctx();master=A.createGain();master.connect(A.destination);
+ var t=A.currentTime+.1,t0=t;
+ btn.dataset.play=1;btn.dataset.label=btn.dataset.label||btn.textContent;btn.textContent="멈추기";
+ beats.forEach(function(k,i){
+  var d=60/bpmAt(i,beats.length),v=volAt(i,beats.length);
+  HITS[k].forEach(function(o){tick(t+o*d,v,master)});
+  (function(tt,ii){timers.push(setTimeout(function(){onBeat(ii)},(tt-A.currentTime)*1000))})(t,i);
+  t+=d;
+ });
+ timers.push(setTimeout(function(){stop();if(done)done()},(t-A.currentTime)*1000+150));
+}
+function note(t,d,v,out){var o=A.createOscillator(),g=A.createGain();o.type="triangle";o.frequency.value=523;var e=t+Math.max(d-.05,.08);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.setValueAtTime(v,Math.max(e-.04,t+.03));g.gain.linearRampToValueAtTime(0,e);o.connect(g);g.connect(out);o.start(t);o.stop(e+.02)}
+function playNotes(ns,total,bpm,btn){stop();ctx();master=A.createGain();master.gain.value=1.2;master.connect(A.destination);var s=60/bpm,t=A.currentTime+.1;btn.dataset.play=1;btn.dataset.label=btn.dataset.label||btn.textContent;btn.textContent="멈추기";ns.forEach(function(n){note(t+n[0]*s,n[1]*s,.6,master)});timers.push(setTimeout(stop,total*s*1000+250))}
+var KN=[[[[0,4]],4],[[[0,2]],2],[[[0,1]],1],[[[0,.5],[.5,.5]],1],[[[0,1.5],[1.5,.5]],2],[[[0,.75],[.75,.25]],1],[[[0,.25],[.25,.25],[.5,.25],[.75,.25]],1],[[],1],[[[0,1/3],[1/3,1/3],[2/3,1/3]],1],[[[0,.5],[.5,1],[1.5,.5]],2]];
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){stop();
+ document.querySelectorAll("nav button").forEach(function(x){x.setAttribute("aria-selected",x===b)});
+ document.querySelectorAll("section").forEach(function(s){s.classList.toggle("on",s.id===b.dataset.t)})}});
+["k1","k2","k3"].forEach(function(id,i){document.getElementById(id).innerHTML=svg(i)+NAMES[i].replace(/[()]/g,"")});
+document.getElementById("k3").lastChild.textContent="쉼";
+
+/* A. 리듬판 */
+var INIT=[1,1,1,0, 0,0,0,0, 1,1,2,1, 0,1,1,0],cells=INIT.slice(),bd=document.getElementById("board"),dirSel=document.getElementById("dir");
+var path=[],edit=false;
+function order(m){var r=[],i,j;if(m=="custom")return path.slice();
+ if(m.indexOf("l-")==0){var L=+document.getElementById("ln").value-1;for(i=0;i<4;i++){var q=(m=="l-up"||m=="l-left")?3-i:i;r.push((m=="l-down"||m=="l-up")?q*4+L:L*4+q)}return r}
+ if(m=="row")for(i=0;i<16;i++)r.push(i);
+ if(m=="down"||m=="zig")for(j=0;j<4;j++)for(i=0;i<4;i++){var rr=(m=="zig"&&j%2)?3-i:i;r.push(rr*4+j)}
+ if(m=="snake")for(i=0;i<4;i++)for(j=0;j<4;j++){var c=i%2?3-j:j;r.push(i*4+c)}
+ if(m=="spiral"){var t=0,b=3,l=0,rt=3;while(t<=b&&l<=rt){for(j=l;j<=rt;j++)r.push(t*4+j);t++;for(i=t;i<=b;i++)r.push(i*4+rt);rt--;if(t<=b){for(j=rt;j>=l;j--)r.push(b*4+j);b--}if(l<=rt){for(i=b;i>=t;i--)r.push(i*4+l);l++}}}
+ return r}
+function markDirs(){document.querySelectorAll(".dc").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.v==dirSel.value)});var v=dirSel.value;document.getElementById("hintA").textContent=edit?"칸을 눌러 리듬을 바꾸세요.":v=="custom"?"읽을 칸을 순서대로 누르세요.":v.indexOf("l-")==0?"리듬판에서 읽고 싶은 줄을 눌러 보세요.":""}
+function drawA(){markDirs();var o=order(dirSel.value),pos={};o.forEach(function(c,i){pos[c]=i+1});
+ bd.innerHTML="";cells.forEach(function(k,i){var b=document.createElement("button");b.className="cell";b.setAttribute("aria-label",NAMES[k]+(pos[i]?", "+pos[i]+"번째":""));if(!pos[i]&&dirSel.value!="custom")b.style.opacity=.4;
+  b.innerHTML='<span class="n">'+(pos[i]||"")+'</span>'+svg(k)+'<small>'+NAMES[k]+'</small>';
+  b.onclick=function(){stop();var v=dirSel.value;if(!edit&&v=="custom"){var p=path.indexOf(i);if(p>=0&&p==path.length-1)path.pop();else if(p<0&&path.length<4)path.push(i);drawA();return}if(!edit&&v.indexOf("l-")==0){document.getElementById("ln").value=(v=="l-down"||v=="l-up")?i%4+1:Math.floor(i/4)+1;drawA();return}cells[i]=(cells[i]+1)%3;drawA()};bd.appendChild(b)});
+ var ra=document.getElementById("readA"),tx=o.map(function(c){return NAMES[cells[c]]}).join("  ");
+ if(o.length==4)ra.innerHTML='<div class="staff"><b>4<br>4</b>'+o.map(function(c){return svg(cells[c])}).join("")+'<i></i></div><div>'+tx+'</div>';else ra.textContent=dirSel.value=="custom"?(edit?"칸을 눌러 리듬을 바꾸세요.":"읽을 칸을 순서대로 누르세요 ("+o.length+"/4). 마지막 칸을 다시 누르면 취소돼요.")+"  "+tx:tx}
+function lnShow(){var s=dirSel.value.indexOf("l-")==0,cu=dirSel.value=="custom";document.getElementById("clrPath").style.display=cu?"":"none";document.getElementById("ln").style.display=s?"":"none";document.getElementById("lnL").style.display=s?"":"none"}
+dirSel.onchange=function(){stop();lnShow();drawA()};document.getElementById("ln").onchange=function(){stop();drawA()};
+document.getElementById("resetA").onclick=function(){stop();cells=INIT.slice();drawA()};
+document.getElementById("playA").onclick=function(){var b=this;if(b.dataset.play==1){stop();return}
+ var o=order(dirSel.value),bpm=+document.getElementById("bpmA").value;
+ play(o.map(function(c){return cells[c]}),function(){return bpm},function(){return .6},function(i){document.querySelectorAll(".hit").forEach(function(e){e.classList.remove("hit")});bd.children[o[i]].classList.add("hit")},b)};
+
+/* B. 리듬 만들기 */
+var mk=[[0,1,0,0],[0,1,2,0]];
+function drawB(){["m0","m1"].forEach(function(id,m){var e=document.getElementById(id);e.innerHTML="";mk[m].forEach(function(k,i){
+  var b=document.createElement("button");b.className="slot";b.id="s"+(m*4+i);b.setAttribute("aria-label",(m+1)+"마디 "+(i+1)+"박 "+NAMES[k]);
+  b.innerHTML=svg(k)+'<small>'+NAMES[k]+'</small>';b.onclick=function(){stop();mk[m][i]=(k+1)%3;drawB()};e.appendChild(b)})});
+ document.getElementById("readB").textContent=mk[0].map(function(k){return NAMES[k]}).join(" ")+"  |  "+mk[1].map(function(k){return NAMES[k]}).join(" ")}
+document.getElementById("randB").onclick=function(){stop();mk=mk.map(function(){return[0,0,0,0].map(function(){return Math.floor(Math.random()*3)})});drawB()};
+document.getElementById("clrB").onclick=function(){stop();mk=[[0,0,0,0],[0,0,0,0]];drawB()};
+document.getElementById("playB").onclick=function(){var b=this;if(b.dataset.play==1){stop();return}
+ var tp=document.getElementById("tempo").value,dy=document.getElementById("dyn").value;
+ var bpm=function(i,n){return tp=="up"?70+70*i/(n-1):tp=="down"?140-70*i/(n-1):+tp};
+ var vol=function(i,n){return dy=="up"?.2+.8*i/(n-1):dy=="down"?1-.8*i/(n-1):+dy};
+ play(mk[0].concat(mk[1]),bpm,vol,function(i){document.querySelectorAll(".hit").forEach(function(e){e.classList.remove("hit")});document.getElementById("s"+i).classList.add("hit")},b)};
+
+/* C. 듣고 맞히기 */
+var cur=null,got=0,tot=0,answered=true;
+function rnd(){var r=[],i;for(i=0;i<4;i++)r.push(Math.floor(Math.random()*3));return r}
+function listen(){if(!cur)return;var b=document.getElementById("againC");if(b.dataset.play==1){stop();return}
+ play(cur.ans,function(){return 90},function(){return .7},function(){},b)}
+function newQ(){stop();var ans=rnd(),opts=[ans],g=0;
+ while(opts.length<3&&g++<50){var v=ans.slice();v[Math.floor(Math.random()*4)]=Math.floor(Math.random()*3);if(!opts.some(function(o){return o.join()==v.join()}))opts.push(v)}
+ opts.sort(function(){return Math.random()-.5});cur={ans:ans,opts:opts};answered=false;
+ var box=document.getElementById("optsC");box.innerHTML="";document.getElementById("msgC").textContent="";
+ opts.forEach(function(o){var b=document.createElement("button");b.className="opt";b.innerHTML=o.map(function(k){return svg(k)}).join("");b.setAttribute("aria-label",o.map(function(k){return NAMES[k]}).join(" "));
+  b.onclick=function(){if(answered)return;answered=true;tot++;var ok=o.join()==ans.join();if(ok)got++;b.classList.add(ok?"ok":"no");
+   if(!ok)Array.prototype.forEach.call(box.children,function(x,j){if(opts[j].join()==ans.join())x.classList.add("ok")});
+   document.getElementById("msgC").textContent=ok?"정답입니다! 잘 들었어요.":"다시 한번 들어 보세요. 정답은 초록색 칸입니다.";
+   document.getElementById("scoreC").textContent=tot+"문제 중 "+got+"문제 맞혔어요."};box.appendChild(b)});
+ listen()}
+document.getElementById("newC").onclick=newQ;
+document.getElementById("againC").onclick=listen;
+document.getElementById("clrPath").onclick=function(){stop();path=[];edit=false;document.getElementById("edMode").textContent="✏️ 리듬 바꾸기";drawA()};
+document.getElementById("edMode").onclick=function(){stop();edit=!edit;this.textContent=edit?"👆 읽는 길 고르기로 돌아가기":"✏️ 리듬 바꾸기";drawA()};
+var KD=[["온음표",3,"타아아아",[0,2,2,2]],["2분음표",4,"타아",[0,2]],["4분음표",0,"타",[0]],["8분음표 2개",1,"티티",[1]],["점4분음표 + 8분음표",null,"타-이티",[4,5]],["점8분음표 + 16분음표",null,"팀리",[6]],["16분음표 4개",5,"티리티리",[7]],["4분쉼표",2,"쉼",[2]],["셋잇단음표",null,"트리올라",[8]],["당김음(싱코파)",null,"싱코파 (티타티)",[9,10]]];
+var kt=document.getElementById("kt");kt.innerHTML='<tr><th>리듬</th><th>음절</th><th></th></tr>';
+KD.forEach(function(r,ix){var tr=document.createElement("tr");tr.innerHTML='<td>'+(r[1]===null?'':svg(r[1]))+'<div class="kn">'+r[0]+'</div></td><td class="ks">'+r[2]+'</td><td></td>';
+ var b=document.createElement("button");b.className="b";b.textContent="듣기";b.setAttribute("aria-label",r[0]+" 듣기");
+ b.onclick=function(){if(b.dataset.play==1){stop();return}playNotes(KN[ix][0],KN[ix][1],80,b)};
+ tr.lastChild.appendChild(b);kt.appendChild(tr)});
+function mkDirs(box,list){list.forEach(function(d){var b=document.createElement("button");b.className="dc";b.dataset.v=d[0];b.innerHTML="<b>"+d[1]+"</b><span>"+d[2]+"</span>";b.onclick=function(){stop();dirSel.value=d[0];edit=false;document.getElementById("edMode").textContent="✏️ 리듬 바꾸기";lnShow();drawA()};box.appendChild(b)})}
+mkDirs(document.getElementById("dirs"),[["l-down","↓","아래로"],["l-up","↑","위로"],["l-right","→","오른쪽"],["l-left","←","왼쪽"],["custom","✋","내가 정하기"]]);
+mkDirs(document.getElementById("dirs2"),[["row","→→","가로로"],["down","↓↓","비처럼"],["zig","↓↑","지그재그"],["spiral","🌀","달팽이"],["snake","ㄹ","ㄹ자"]]);
+lnShow();drawA();drawB();
+})();
+</script>
+</body>
+</html>
