@@ -212,6 +212,7 @@
   - `student_math-3-2-2-basic1.html`: 3-2 수학 2단원 나눗셈(기본1) 20문항 (100점 만점, 캔버스 필기 연습장 탑재)
   - `student_soc-3-2-1-1.html`: 3-2 사회 1단원 1주제 10문항 (100점 만점)
   - `student_soc-3-2-1-2.html`: 3-2 사회 1단원 2주제 10문항 (100점 만점)
+  - `student_soc-3-2-1-process.html`: 3-2 사회 1단원 과정 중심 평가 8문항 (100점 만점, 서술형 중심, light 빌더로 제작·Supabase 문항 기준표 등록, 평가 요소별 3단계 판정은 `unit_test_topic_results`에 저장). 오답노트·점수 확인 페이지는 시험 종료 후 공개 예정
   - 문항 인터랙션: 객관식, 단답형, O/X표, 선 잇기(SVG 동적 렌더링), 풀이과정 서술형 등
   - 답안 보존 및 제출: LocalStorage 임시저장 + 제출 시 기기 다운로드(.json) + Supabase `unit_test_submissions` 실시간 전송 (RLS 보안 적용)
 - **학생용 오답노트 (`tests/notebook_math-3-2-2-basic1.html`):**
