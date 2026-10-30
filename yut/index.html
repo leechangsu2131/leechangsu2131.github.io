@@ -19,6 +19,7 @@
         </div>
       </div>
       <div class="top-actions">
+      <button id="help-btn" class="btn btn-ghost" type="button">❓ <span>놀이 방법</span></button>
       <button id="sound-btn" class="btn btn-ghost" type="button" aria-pressed="true">
         <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12 1.5a3.5 3.5 0 0 1 0 3M18.5 8a7 7 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="sound-label">소리 켬</span>
@@ -113,6 +114,17 @@
       <div class="throw-sticks" id="throw-sticks"></div>
       <div class="throw-mat" aria-hidden="true"></div>
       <p class="throw-hint" id="throw-hint">화면을 누르면 넘어가요</p>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="help-modal" hidden>
+    <div class="modal help" role="dialog" aria-modal="true" aria-label="윷놀이 방법">
+      <div class="help-dots" id="help-dots" aria-hidden="true"></div>
+      <div id="help-body"></div>
+      <div class="help-nav">
+        <button id="help-prev" class="btn btn-ghost" type="button">◀ 이전</button>
+        <button id="help-next" class="btn btn-primary" type="button">다음 ▶</button>
+      </div>
     </div>
   </div>
 

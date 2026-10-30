@@ -605,6 +605,7 @@ body {
   .control-actions { justify-content: center; width: 100%; }
   .btn { font-size: 15px; }
   .top-actions .btn { padding: 9px 12px; }
+  .hp-rt li { grid-template-columns: 70px 44px 1fr; padding: 5px 8px; font-size: 14px; }
   .stat-value { font-size: 20px; }
 }
 
@@ -840,6 +841,80 @@ body {
   transition: opacity 0.3s ease;
 }
 .throw-hint.show { opacity: 1; }
+
+/* ---------- 놀이 방법 ---------- */
+.modal.help {
+  max-width: 480px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  padding: 22px 20px 18px;
+  font-size: 17px;
+}
+.modal.help p { color: var(--ink); font-size: 17px; line-height: 1.55; margin: 8px 0; }
+.help-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.help-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); }
+.help-dots i.on { background: var(--red); transform: scale(1.25); }
+.hp-title { font-family: "Jua", var(--font); font-weight: 400; font-size: 28px !important; margin: 0 0 8px !important; color: var(--red-deep); }
+.hp-art { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 8px 0; min-height: 56px; }
+.hp-svg { width: min(230px, 62vw); height: auto; }
+.hp-big { font-size: 19px !important; }
+.hp-sm { font-size: 15px !important; color: var(--ink-soft) !important; }
+.hp-tip { background: rgba(46, 158, 87, 0.13); border-radius: 10px; padding: 8px 12px; color: #1c5c36 !important; font-size: 16px !important; }
+.mst { display: inline-flex; gap: 4px; }
+.ms { width: 13px; height: 40px; border-radius: 8px / 6px; display: inline-block; position: relative; }
+.ms.f { background: linear-gradient(90deg, #f8ecd0, #d9bf8c); box-shadow: inset 0 0 0 1px rgba(110,75,30,0.4); }
+.ms.r { background: linear-gradient(90deg, #6d4a28, #3b2713); }
+.ms.m::after { content: "×"; position: absolute; left: 0; right: 0; top: 4px; text-align: center; color: var(--red); font-size: 15px; font-weight: 900; line-height: 1; }
+.hp-rt { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 5px; text-align: left; }
+.hp-rt li { display: grid; grid-template-columns: 74px 52px 1fr; align-items: center; gap: 8px; background: var(--surface-well); border-radius: 10px; padding: 5px 10px; font-size: 15px; }
+.hp-rt li b { font-family: "Jua", var(--font); font-weight: 400; font-size: 22px; }
+.hp-rt li em { font-style: normal; color: var(--red); font-weight: 700; }
+.hp-two { display: grid; gap: 12px; }
+.hp-two > div { background: var(--surface-well); border-radius: 12px; padding: 8px 10px; }
+.hp-two b { font-family: "Jua", var(--font); font-weight: 400; font-size: 22px; }
+.hp-tk { width: 40px; height: 40px; border-radius: 50%; display: inline-grid; place-items: center; color: #fff; font-weight: 700; font-size: 15px; box-shadow: inset 0 -3px 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3); }
+.hp-tk.p0 { background: radial-gradient(circle at 35% 30%, #e05c4e, var(--red-deep)); }
+.hp-tk.p1 { background: radial-gradient(circle at 35% 30%, #4e85c0, var(--blue-deep)); }
+.hp-tk.big2 { font-size: 20px; }
+.hp-arrow, .hp-plus { font-size: 24px; font-weight: 700; color: var(--ink-soft); }
+.help-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.help-nav .btn { flex: 1; justify-content: center; font-size: 17px; padding: 12px 14px; }
+.help-nav .btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ---------- 처음 놓기 안내 ---------- */
+.token-tray { position: relative; }
+.token-tray.home-ready::after {
+  content: "👆 새 말 놓기";
+  position: absolute;
+  top: -15px;
+  right: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.token-tray.home-ready .tray-token { animation: bob 0.9s ease-in-out infinite; }
+.token-tray.home-ready .tray-token:nth-child(2) { animation-delay: 0.1s; }
+.token-tray.home-ready .tray-token:nth-child(3) { animation-delay: 0.2s; }
+.token-tray.home-ready .tray-token:nth-child(4) { animation-delay: 0.3s; }
+.node.dest .dest-marker::after {
+  content: "👆";
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  font-size: clamp(20px, 4.6cqw, 30px);
+  transform: translateX(-50%);
+  animation: tap 0.8s ease-in-out infinite;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25));
+}
+@keyframes tap {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -7px); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
