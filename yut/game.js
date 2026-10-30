@@ -737,7 +737,8 @@
     clearChipHandlers();
     clearHighlights();
     renderTokens();
-    const result = advance("o0", ROUTES[0], steps - 1);
+    // 출발점(o0)에서 윷 결과만큼 앞으로: 도=첫째 칸, 모=모서리
+    const result = advance("o0", ROUTES[0], steps);
     runMove("o0", result, 1, true);
   }
 
