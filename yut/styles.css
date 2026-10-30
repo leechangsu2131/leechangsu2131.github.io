@@ -235,8 +235,8 @@ body {
 .node {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 10.5%;
-  height: 10.5%;
+  width: 10%;
+  height: 10%;
   border-radius: 50%;
   background: #f3e7cd;
   box-shadow: inset 0 0 0 2px var(--board-line), 0 1px 2px rgba(0,0,0,0.12);
@@ -246,8 +246,8 @@ body {
 
 .node.node-corner,
 .node.node-center {
-  width: 15%;
-  height: 15%;
+  width: 14%;
+  height: 14%;
   background: #f7eccf;
   box-shadow: inset 0 0 0 3px var(--board-line), inset 0 0 0 7px #f7eccf, inset 0 0 0 9px var(--board-line);
 }
@@ -255,6 +255,19 @@ body {
 .node.node-start {
   background: #f7eccf;
   box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 0 7px #f7eccf, inset 0 0 0 9px var(--gold), 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.node-start::after {
+  content: "출발";
+  position: absolute;
+  top: calc(100% + 1px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(10px, 2.4cqw, 13px);
+  font-weight: 700;
+  color: #7a5a1e;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .node-tokens {
@@ -291,7 +304,62 @@ body {
   box-shadow: inset 0 0 0 3px var(--gold), 0 0 0 4px rgba(201,155,63,0.35);
   animation: pulse 1.2s ease-in-out infinite;
 }
-.node.movable .board-token { cursor: pointer; }
+.node.movable .board-token { cursor: pointer; animation: bob 0.9s ease-in-out infinite; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.node.selected {
+  animation: none;
+  box-shadow: inset 0 0 0 4px var(--gold), 0 0 0 6px rgba(201,155,63,0.55);
+}
+.token-tray.selected {
+  background: rgba(201, 155, 63, 0.32);
+  box-shadow: inset 0 0 0 3px var(--gold);
+  animation: none;
+}
+.node.on-path { box-shadow: inset 0 0 0 2px #3f9d62, 0 0 0 2px rgba(63,157,98,0.22); }
+.node.dest {
+  cursor: pointer;
+  z-index: 5;
+  animation: pulse-dest 1s ease-in-out infinite;
+}
+@keyframes pulse-dest {
+  0%, 100% { box-shadow: inset 0 0 0 3px #2e9e57, 0 0 0 4px rgba(46,158,87,0.35); }
+  50% { box-shadow: inset 0 0 0 3px #2e9e57, 0 0 0 10px rgba(46,158,87,0.12); }
+}
+.dest-marker {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.dest-marker::before {
+  content: "";
+  width: 8.4cqw;
+  height: 8.4cqw;
+  border-radius: 50%;
+  border: 3px dashed var(--red);
+  background: rgba(192, 57, 43, 0.25);
+}
+.dest-marker.p1::before { border-color: var(--blue); background: rgba(42, 90, 140, 0.25); }
+.dest-label {
+  position: absolute;
+  bottom: calc(100% + 1px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid #2e9e57;
+  color: #1c6e3b;
+  font-size: clamp(11px, 2.8cqw, 15px);
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 6;
+}
 
 @keyframes pulse {
   0%, 100% { box-shadow: inset 0 0 0 3px var(--gold), 0 0 0 3px rgba(201,155,63,0.3); }
@@ -311,6 +379,19 @@ body {
   outline: 1px solid var(--line);
   outline-offset: -1px;
 }
+
+.guide {
+  flex-basis: 100%;
+  display: none;
+  margin: 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: rgba(46, 158, 87, 0.13);
+  color: #1c5c36;
+  font-weight: 600;
+  font-size: 15px;
+}
+.guide.on { display: block; animation: stage-in 0.25s ease-out; }
 
 .yut-stage {
   display: flex;

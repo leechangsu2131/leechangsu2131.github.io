@@ -20,6 +20,7 @@
     gameOver: false,
     busy: false,
     epoch: 0,
+    selected: null,
   };
 
   const el = {
@@ -55,19 +56,19 @@
     };
 
     add("o0", 92, 92, "start");
-    add("o1", 92, 73.6); add("o2", 92, 55.2); add("o3", 92, 36.8); add("o4", 92, 18.4);
+    add("o1", 92, 75.2); add("o2", 92, 58.4); add("o3", 92, 41.6); add("o4", 92, 24.8);
     add("c_tr", 92, 8, "corner");
-    add("t1", 73.6, 8); add("t2", 55.2, 8); add("t3", 36.8, 8); add("t4", 18.4, 8);
+    add("t1", 75.2, 8); add("t2", 58.4, 8); add("t3", 41.6, 8); add("t4", 24.8, 8);
     add("c_tl", 8, 8, "corner");
-    add("l1", 8, 18.4); add("l2", 8, 36.8); add("l3", 8, 55.2); add("l4", 8, 73.6);
+    add("l1", 8, 24.8); add("l2", 8, 41.6); add("l3", 8, 58.4); add("l4", 8, 75.2);
     add("c_bl", 8, 92, "corner");
-    add("b1", 26.8, 92); add("b2", 45.6, 92); add("b3", 64.4, 92); add("b4", 83.2, 92);
+    add("b1", 24.8, 92); add("b2", 41.6, 92); add("b3", 58.4, 92); add("b4", 75.2, 92);
 
-    add("d1", 73.2, 26.8); add("d2", 57.6, 42.4);
+    add("d1", 78, 22); add("d2", 64, 36);
     add("center", 50, 50, "center");
-    add("d3", 42.4, 57.6); add("d4", 26.8, 73.2);
-    add("e1", 26.8, 26.8); add("e2", 42.4, 42.4);
-    add("e3", 57.6, 57.6); add("e4", 73.2, 73.2);
+    add("d3", 36, 64); add("d4", 22, 78);
+    add("e1", 22, 22); add("e2", 36, 36);
+    add("e3", 64, 64); add("e4", 78, 78);
 
     return nodes;
   }
@@ -645,75 +646,145 @@
     });
   }
 
-  function highlightMovable() {
-    clearHighlights();
-    const steps = state.pendingMoves;
+  const STEP_NAME = { "-1": "백도", 1: "도", 2: "개", 3: "걸", 4: "윷", 5: "모" };
+  const guideEl = document.getElementById("guide");
+
+  function setGuide(text) {
+    guideEl.textContent = text || "";
+    guideEl.classList.toggle("on", !!text);
+  }
+
+  function nodeEl(id) {
+    return el.board.querySelector('.node[data-node="' + id + '"]');
+  }
+
+  function pieceSources() {
     const player = state.players[state.current];
-    const reachableNodes = new Set();
-    const canHome = steps.some((s) => s > 0) && player.home > 0;
+    const list = [];
+    if (player.home > 0 && state.pendingMoves.some((s) => s > 0)) list.push({ kind: "home" });
+    const seen = {};
+    player.tokens.forEach((t) => {
+      if (!seen[t.at]) {
+        seen[t.at] = true;
+        list.push({ kind: "board", at: t.at });
+      }
+    });
+    return list;
+  }
 
-    steps.forEach((s) => {
-      listMovableTokens(s).forEach((m) => {
-        if (m.kind === "board") reachableNodes.add(m.at);
+  function sameSrc(a, b) {
+    return !!a && !!b && a.kind === b.kind && a.at === b.at;
+  }
+
+  function previewMove(src, steps) {
+    const player = state.players[state.current];
+    let r;
+    if (src.kind === "home") {
+      if (steps <= 0 || player.home <= 0) return null;
+      r = advance("o0", ROUTES[0], steps);
+    } else {
+      const tok = player.tokens.find((t) => t.at === src.at);
+      if (!tok) return null;
+      r = computePath(tok, steps);
+    }
+    return { finished: !!r.finished, dest: r.finished ? "o0" : r.dest, nodes: r.nodes || [] };
+  }
+
+  // 던진 뒤 말을 고르는 단계: 말 누르기 → 갈 수 있는 칸이 미리 보임 → 칸 누르기
+  function highlightMovable() {
+    state.selected = null;
+    refreshChoices();
+  }
+
+  function refreshChoices() {
+    clearHighlights(true);
+    if (state.busy) return;
+    const srcs = pieceSources();
+    if (srcs.length === 0) return;
+    if (!state.selected || !srcs.some((x) => sameSrc(x, state.selected))) {
+      state.selected = srcs.length === 1 ? srcs[0] : null;
+    }
+    srcs.forEach((src) => {
+      if (src.kind === "home") {
+        const tray = document.getElementById("tray-" + state.current);
+        tray.classList.add("home-ready");
+        tray.onclick = () => selectPiece(src);
+      } else {
+        const n = nodeEl(src.at);
+        if (n) {
+          n.classList.add("movable");
+          n.onclick = () => selectPiece(src);
+        }
+      }
+    });
+    showDestinations(srcs);
+  }
+
+  function selectPiece(src) {
+    if (state.busy) return;
+    state.selected = sameSrc(state.selected, src) ? null : src;
+    refreshChoices();
+  }
+
+  function showDestinations(srcs) {
+    const sel = state.selected;
+    if (!sel) {
+      const hasHome = srcs.some((x) => x.kind === "home");
+      setGuide(
+        hasHome
+          ? "👆 움직일 말을 눌러 고르세요. (왼쪽·오른쪽 '남은 말'을 누르면 새 말을 판에 놓아요)"
+          : "👆 움직일 말을 눌러 고르세요."
+      );
+      return;
+    }
+    if (sel.kind === "home") {
+      document.getElementById("tray-" + state.current).classList.add("selected");
+    } else {
+      const sn = nodeEl(sel.at);
+      if (sn) sn.classList.add("selected");
+    }
+
+    const player = state.players[state.current];
+    const opp = state.players[1 - state.current];
+    const opts = new Map();
+    [...new Set(state.pendingMoves)].forEach((st) => {
+      const pv = previewMove(sel, st);
+      if (!pv) return;
+      const prev = opts.get(pv.dest);
+      if (!prev || (pv.finished && st < prev.steps)) opts.set(pv.dest, { steps: st, pv });
+    });
+
+    opts.forEach((o, destId) => {
+      const n = nodeEl(destId);
+      if (!n) return;
+      o.pv.nodes.forEach((pid) => {
+        if (pid === destId) return;
+        const pn = nodeEl(pid);
+        if (pn) pn.classList.add("on-path");
       });
+      n.classList.add("dest");
+      let label = STEP_NAME[o.steps] || "";
+      if (o.pv.finished) label += " · 완주";
+      else if (opp.tokens.some((t) => t.at === destId)) label += " · 잡기!";
+      else if (player.tokens.some((t) => t.at === destId && !(sel.kind === "board" && sel.at === destId))) label += " · 업기";
+      const m = document.createElement("div");
+      m.className = "dest-marker p" + state.current;
+      m.innerHTML = '<span class="dest-label">' + label + "</span>";
+      n.appendChild(m);
+      n.onclick = () => executeMove(sel, o.steps);
     });
 
-    reachableNodes.forEach((at) => {
-      const nodeEl = el.board.querySelector(`.node[data-node="${at}"]`);
-      if (nodeEl) {
-        nodeEl.classList.add("movable");
-        nodeEl.onclick = () => chooseToken(at);
-      }
-    });
-
-    if (canHome) {
-      const tray = document.getElementById("tray-" + state.current);
-      tray.classList.add("home-ready");
-      tray.onclick = () => chooseHomeEntry();
-    }
+    setGuide(
+      opts.size > 1
+        ? "가고 싶은 칸을 누르세요. 초록색 칸마다 쓸 윷 결과가 적혀 있어요."
+        : "초록색으로 반짝이는 칸을 누르면 말이 움직여요."
+    );
   }
 
-  function chooseHomeEntry() {
+  function executeMove(src, steps) {
     if (state.busy) return;
-    const usable = state.pendingMoves.filter((s) => s > 0);
-    if (usable.length === 0) return;
-    if (usable.length === 1 || new Set(usable).size === 1) {
-      enterFromHome(usable[0]);
-    } else {
-      pickMove(usable, (s) => enterFromHome(s));
-    }
-  }
-
-  function chooseToken(at) {
-    if (state.busy) return;
-    const usable = state.pendingMoves.slice();
-    if (usable.length === 0) return;
-    if (new Set(usable).size === 1) {
-      moveToken(at, usable[0]);
-    } else {
-      pickMove(usable, (s) => moveToken(at, s));
-    }
-  }
-
-  function pickMove(options, cb) {
-    const unique = [...new Set(options)];
-    highlightChips(unique, cb);
-    log("사용할 윷 결과를 선택하세요.", null);
-  }
-
-  function highlightChips(options, cb) {
-    const chips = el.movesQueue.querySelectorAll(".move-chip");
-    chips.forEach((chip, idx) => {
-      const val = state.pendingMoves[idx];
-      if (options.indexOf(val) !== -1 && !chip.classList.contains("used")) {
-        chip.style.cursor = "pointer";
-        chip.style.outlineColor = "var(--gold)";
-        chip.onclick = () => {
-          clearChipHandlers();
-          cb(val);
-        };
-      }
-    });
+    if (src.kind === "home") enterFromHome(steps);
+    else moveToken(src.at, steps);
   }
 
   function clearChipHandlers() {
@@ -757,16 +828,19 @@
     runMove(at, result, stackCount, false);
   }
 
-  function clearHighlights() {
-    document.querySelectorAll(".node.movable").forEach((n) => {
-      n.classList.remove("movable");
+  function clearHighlights(keepSelected) {
+    document.querySelectorAll(".dest-marker").forEach((m) => m.remove());
+    document.querySelectorAll(".node").forEach((n) => {
+      n.classList.remove("movable", "selected", "dest", "on-path");
       n.onclick = null;
     });
     state.players.forEach((_, i) => {
       const tray = document.getElementById("tray-" + i);
-      tray.classList.remove("home-ready");
+      tray.classList.remove("home-ready", "selected");
       tray.onclick = null;
     });
+    if (!keepSelected) state.selected = null;
+    setGuide("");
   }
 
   function finalizeMove(result, stackCount) {
@@ -899,6 +973,8 @@
     state.captureBonus = false;
     state.epoch += 1;
     state.busy = false;
+    state.selected = null;
+    setGuide("");
     el.throwStage.hidden = true;
     el.throwStage.onclick = null;
     el.banner.className = "board-banner";
