@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>윷놀이 대결</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -16,10 +18,16 @@
           <p>전통 말판에서 겨루는 2인 대결</p>
         </div>
       </div>
+      <div class="top-actions">
+      <button id="sound-btn" class="btn btn-ghost" type="button" aria-pressed="true">
+        <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12 1.5a3.5 3.5 0 0 1 0 3M18.5 8a7 7 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="sound-label">소리 켬</span>
+      </button>
       <button id="restart-btn" class="btn btn-ghost" type="button">
         <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2.34 5.66M4 12V7m0 5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         새 게임
       </button>
+      </div>
     </header>
 
     <main class="layout">
@@ -44,6 +52,7 @@
 
       <section class="board-area" aria-label="윷놀이 말판">
         <div class="board" id="board"></div>
+        <div class="board-banner" id="board-banner" aria-live="assertive"></div>
       </section>
 
       <section class="player-panel" id="panel-1" aria-label="청팀 정보">
@@ -93,6 +102,16 @@
       <h3 class="log-title">진행 기록</h3>
       <ol class="log-list" id="log-list" role="list"></ol>
     </section>
+  </div>
+
+  <div class="throw-stage" id="throw-stage" hidden aria-live="polite">
+    <div class="throw-scene">
+      <p class="throw-title" id="throw-title"></p>
+      <div class="big-result" id="big-result"></div>
+      <div class="throw-sticks" id="throw-sticks"></div>
+      <div class="throw-mat" aria-hidden="true"></div>
+      <p class="throw-hint" id="throw-hint">화면을 누르면 넘어가요</p>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="win-modal" hidden>

@@ -4,12 +4,12 @@
   const BOARD = buildBoard();
   const ROUTES = buildRoutes();
   const YUT_FACES = {
-    backdo: { name: "백도", steps: -1 },
-    do: { name: "도", steps: 1 },
-    gae: { name: "개", steps: 2 },
-    geol: { name: "걸", steps: 3 },
-    yut: { name: "윷", steps: 4, again: true },
-    mo: { name: "모", steps: 5, again: true },
+    backdo: { name: "백도", steps: -1, animal: "뒷도", label: "한 칸 뒤로" },
+    do: { name: "도", steps: 1, animal: "돼지", label: "한 칸" },
+    gae: { name: "개", steps: 2, animal: "개", label: "두 칸" },
+    geol: { name: "걸", steps: 3, animal: "양", label: "세 칸" },
+    yut: { name: "윷", steps: 4, again: true, animal: "소", label: "네 칸" },
+    mo: { name: "모", steps: 5, again: true, animal: "말", label: "다섯 칸" },
   };
 
   const state = {
@@ -18,6 +18,8 @@
     pendingMoves: [],
     captureBonus: false,
     gameOver: false,
+    busy: false,
+    epoch: 0,
   };
 
   const el = {
@@ -33,6 +35,13 @@
     winEmblem: document.getElementById("win-emblem"),
     winText: document.getElementById("win-text"),
     winRestart: document.getElementById("win-restart"),
+    throwStage: document.getElementById("throw-stage"),
+    throwTitle: document.getElementById("throw-title"),
+    throwSticks: document.getElementById("throw-sticks"),
+    bigResult: document.getElementById("big-result"),
+    throwHint: document.getElementById("throw-hint"),
+    banner: document.getElementById("board-banner"),
+    soundBtn: document.getElementById("sound-btn"),
   };
 
   function newPlayer() {
@@ -105,6 +114,11 @@
         route = null;
       }
     }
+    // 모서리 칸에 멈춰 있던 말은 앞으로 갈 때 지름길(대각선)로 들어간다.
+    if (steps > 0 && (fromId === "c_tr" || fromId === "c_tl")) {
+      route = preferShortcut(fromId);
+      idx = route.indexOf(fromId);
+    }
     if (!route) {
       if (isShortcutJunction(fromId)) {
         route = preferShortcut(fromId);
@@ -116,12 +130,13 @@
 
     const target = idx + steps;
     if (target >= route.length - 1) {
-      return { finished: true };
+      return { finished: true, nodes: route.slice(idx + 1, route.length - 1) };
     }
     if (target < 0) {
-      return { finished: false, dest: "o0", route: ROUTES[0] };
+      return { finished: false, dest: "o0", route: ROUTES[0], nodes: ["o0"] };
     }
-    return { finished: false, dest: route[target], route };
+    const nodes = steps > 0 ? route.slice(idx + 1, target + 1) : [route[target]];
+    return { finished: false, dest: route[target], route, nodes };
   }
 
   function isShortcutJunction(nodeId) {
@@ -218,23 +233,350 @@
     document.getElementById("panel-1").classList.toggle("active", state.current === 1 && !state.gameOver);
   }
 
-  function throwYut() {
-    if (state.gameOver) return;
-    if (el.throwBtn.disabled) return;
+  /* =====================================================
+   *  연출: 소리 · 윷 던지기 · 말 걷기
+   * ===================================================== */
+  const REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  const snd = { on: true, ctx: null, noise: null };
+  try {
+    if (localStorage.getItem("yut-sound") === "off") snd.on = false;
+  } catch (e) {}
+
+  function audio() {
+    if (!snd.ctx) {
+      try {
+        snd.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        return null;
+      }
+    }
+    if (snd.ctx.state === "suspended") snd.ctx.resume();
+    return snd.ctx;
+  }
+
+  function tone(c, t, f0, f1, dur, type, vol) {
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g);
+    g.connect(c.destination);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  }
+
+  function click(c, t, dur, vol, hp) {
+    if (!snd.noise) {
+      const len = Math.floor(c.sampleRate * 0.2);
+      const buf = c.createBuffer(1, len, c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      snd.noise = buf;
+    }
+    const s = c.createBufferSource();
+    const f = c.createBiquadFilter();
+    const g = c.createGain();
+    s.buffer = snd.noise;
+    f.type = "highpass";
+    f.frequency.value = hp;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(f);
+    f.connect(g);
+    g.connect(c.destination);
+    s.start(t);
+    s.stop(t + dur + 0.02);
+  }
+
+  function sfx(name) {
+    if (!snd.on) return;
+    const c = audio();
+    if (!c) return;
+    const t = c.currentTime;
+    if (name === "clack") {
+      click(c, t, 0.05, 0.5, 1500);
+      tone(c, t, 240, 110, 0.09, "triangle", 0.35);
+    } else if (name === "soft") {
+      click(c, t, 0.04, 0.22, 1800);
+      tone(c, t, 220, 120, 0.07, "triangle", 0.16);
+    } else if (name === "step") {
+      tone(c, t, 320, 130, 0.1, "sine", 0.4);
+      click(c, t, 0.03, 0.2, 2500);
+    } else if (name === "catch") {
+      tone(c, t, 180, 55, 0.3, "square", 0.2);
+      click(c, t, 0.08, 0.5, 800);
+    } else if (name === "ding") {
+      tone(c, t, 660, 660, 0.35, "sine", 0.22);
+    } else if (name === "fanfare") {
+      [523, 659, 784, 1046].forEach((f, i) => tone(c, t + i * 0.11, f, f, 0.3, "triangle", 0.2));
+    }
+  }
+
+  function syncSoundBtn() {
+    el.soundBtn.setAttribute("aria-pressed", snd.on ? "true" : "false");
+    el.soundBtn.querySelector(".sound-label").textContent = snd.on ? "소리 켬" : "소리 끔";
+  }
+
+  /* ---------- 윷 던지기 (큰 화면 연출) ---------- */
+  const stickEls = [];
+
+  function buildThrowSticks() {
+    el.throwSticks.innerHTML = "";
+    for (let i = 0; i < 4; i++) {
+      const s = document.createElement("div");
+      s.className = "ys";
+      s.innerHTML =
+        '<span class="yf flat' + (i === 0 ? " marked" : "") + '"></span><span class="yf round"></span>';
+      el.throwSticks.appendChild(s);
+      stickEls.push(s);
+    }
+  }
+
+  function tf(x, y, z, rx, ry, rz, sc) {
+    return (
+      "translate3d(" + x + "px," + y + "px," + z + "px) rotateX(" + rx + "deg) rotateY(" + ry +
+      "deg) rotateZ(" + rz + "deg) scale(" + sc + ")"
+    );
+  }
+
+  async function playThrow(flats, face, epoch) {
+    const st = el.throwStage;
+    el.throwTitle.textContent = (state.current === 0 ? "홍(紅)" : "청(靑)") + "팀이 윷을 던집니다!";
+    el.bigResult.innerHTML = "";
+    el.bigResult.className = "big-result";
+    el.throwHint.classList.remove("show");
+    stickEls.forEach((s) => {
+      s.getAnimations().forEach((a) => a.cancel());
+      s.style.transform = tf(0, 400, 0, 0, 0, 0, 0.7);
+    });
+    st.classList.remove("out");
+    st.hidden = false;
+
+    const H = el.throwSticks.clientHeight || 220;
+    const dur = REDUCED ? 350 : 1500;
+    const gap = REDUCED ? 0 : 85;
+    const finals = [];
+
+    stickEls.forEach((s, i) => {
+      const flat = flats[i];
+      const jx = Math.random() * 14 - 7;
+      const jz = Math.random() * 10 - 5;
+      const spinX = (2 + Math.floor(Math.random() * 2)) * 360;
+      const spinY = (flat ? 0 : 180) + (3 + Math.floor(Math.random() * 2)) * 360;
+      const apex = -(H * 1.5 + Math.random() * H * 0.35);
+      const dx = Math.random() * 40 - 20;
+      const fin = tf(jx, 0, 0, spinX, spinY, jz, 1);
+      finals[i] = tf(jx, 0, 0, 0, flat ? 0 : 180, jz, 1);
+      const frames = [
+        { offset: 0, transform: tf(dx * 2, H * 0.9, 0, 0, 0, -25, 0.7), easing: "cubic-bezier(.15,.7,.35,1)" },
+        { offset: 0.42, transform: tf(dx, apex, 140, spinX * 0.62, spinY * 0.62, jz * 3, 1.25), easing: "cubic-bezier(.55,0,.85,.45)" },
+        { offset: 0.72, transform: fin, easing: "cubic-bezier(.2,.6,.4,1)" },
+        { offset: 0.84, transform: tf(jx, -H * 0.14, 0, spinX, spinY, jz, 1), easing: "cubic-bezier(.5,0,.8,.5)" },
+        { offset: 0.92, transform: fin, easing: "cubic-bezier(.2,.6,.4,1)" },
+        { offset: 0.96, transform: tf(jx, -H * 0.04, 0, spinX, spinY, jz, 1), easing: "cubic-bezier(.5,0,.8,.5)" },
+        { offset: 1, transform: fin },
+      ];
+      s.animate(frames, { duration: dur, delay: i * gap, fill: "both", easing: "linear" });
+      setTimeout(() => { if (epoch === state.epoch) sfx("clack"); }, i * gap + dur * 0.72);
+      setTimeout(() => { if (epoch === state.epoch) sfx("soft"); }, i * gap + dur * 0.92);
+    });
+
+    await sleep(dur + 3 * gap + 80);
+    if (epoch !== state.epoch) return;
+
+    stickEls.forEach((s, i) => {
+      s.style.transform = finals[i];
+      s.getAnimations().forEach((a) => a.cancel());
+    });
+
+    el.bigResult.innerHTML =
+      '<b class="br-name">' + face.name + "</b>" +
+      '<span class="br-sub">' + face.animal + " · " + face.label + "</span>" +
+      (face.again ? '<em class="br-again">한 번 더!</em>' : "");
+    el.bigResult.className = "big-result show" + (face.again ? " big" : "");
+    el.throwHint.classList.add("show");
+    sfx(face.again ? "fanfare" : "ding");
+
+    const hold = REDUCED ? 500 : face.again ? 1800 : 1250;
+    await new Promise((res) => {
+      const t = setTimeout(res, hold);
+      st.onclick = () => { clearTimeout(t); res(); };
+    });
+    st.onclick = null;
+    if (epoch !== state.epoch) return;
+    st.classList.add("out");
+    await sleep(230);
+    if (epoch !== state.epoch) return;
+    st.hidden = true;
+  }
+
+  async function throwYut() {
+    if (state.gameOver || state.busy || el.throwBtn.disabled) return;
+    audio();
     el.throwBtn.disabled = true;
-    el.sticks.classList.add("rolling");
+    state.busy = true;
+    const epoch = state.epoch;
 
     const flats = [0, 0, 0, 0].map(() => Math.random() < 0.5);
-    const upCount = flats.filter(Boolean).length;
-    let face = resolveFace(upCount, flats);
+    const face = resolveFace(flats.filter(Boolean).length, flats);
 
-    setTimeout(() => {
-      el.sticks.classList.remove("rolling");
-      el.sticks.querySelectorAll(".stick").forEach((s, i) => {
-        s.dataset.face = flats[i] ? "up" : "down";
-      });
-      applyFace(face);
-    }, 520);
+    await playThrow(flats, face, epoch);
+    if (epoch !== state.epoch) return;
+
+    state.busy = false;
+    el.sticks.querySelectorAll(".stick").forEach((s, i) => {
+      s.dataset.face = flats[i] ? "up" : "down";
+    });
+    applyFace(face);
+  }
+
+  /* ---------- 말 걷기 (한 칸씩 폴짝) ---------- */
+  function banner(text, kind) {
+    const b = el.banner;
+    b.textContent = text;
+    b.className = "board-banner " + (kind || "");
+    void b.offsetWidth;
+    b.classList.add("show");
+  }
+
+  function placeAt(w, id) {
+    w.style.left = BOARD[id].x + "%";
+    w.style.top = BOARD[id].y + "%";
+  }
+
+  function makeWalker(pIdx, stack, id) {
+    const w = document.createElement("div");
+    w.className = "walker";
+    w.innerHTML =
+      '<i class="walker-shadow"></i><b class="walker-body p' + pIdx + '">' + (stack > 1 ? stack : "") + "</b>";
+    placeAt(w, id);
+    el.board.appendChild(w);
+    return w;
+  }
+
+  function ripple(id) {
+    const n = el.board.querySelector('.node[data-node="' + id + '"]');
+    if (!n) return;
+    n.classList.remove("land");
+    void n.offsetWidth;
+    n.classList.add("land");
+    setTimeout(() => n.classList.remove("land"), 500);
+  }
+
+  async function hop(w, fromId, toId) {
+    const a = BOARD[fromId];
+    const b = BOARD[toId];
+    const dur = REDUCED ? 80 : 340;
+    const h = Math.round((el.board.clientHeight || 400) * 0.075);
+    const body = w.querySelector(".walker-body");
+    const sh = w.querySelector(".walker-shadow");
+    w.animate(
+      [{ left: a.x + "%", top: a.y + "%" }, { left: b.x + "%", top: b.y + "%" }],
+      { duration: dur, easing: "cubic-bezier(.4,0,.6,1)", fill: "forwards" }
+    );
+    body.animate(
+      [
+        { transform: "translateY(0) scale(1.12,.86)" },
+        { transform: "translateY(" + -h + "px) scale(.94,1.1)", offset: 0.45 },
+        { transform: "translateY(0) scale(1.18,.82)", offset: 0.9 },
+        { transform: "translateY(0) scale(1,1)" },
+      ],
+      { duration: dur + 90, easing: "ease-out" }
+    );
+    sh.animate(
+      [
+        { transform: "scale(1)", opacity: 0.4 },
+        { transform: "scale(.55)", opacity: 0.15, offset: 0.45 },
+        { transform: "scale(1.12)", opacity: 0.45, offset: 0.9 },
+        { transform: "scale(1)", opacity: 0.4 },
+      ],
+      { duration: dur + 90 }
+    );
+    await sleep(dur);
+    placeAt(w, toId);
+    w.getAnimations().forEach((x) => x.cancel());
+    sfx("step");
+    ripple(toId);
+    await sleep(REDUCED ? 20 : 90);
+  }
+
+  async function runMove(startId, result, stackCount, fromHome) {
+    const epoch = state.epoch;
+    const pIdx = state.current;
+    state.busy = true;
+    const w = makeWalker(pIdx, stackCount, startId);
+    const body = w.querySelector(".walker-body");
+
+    if (fromHome) {
+      body.animate(
+        [
+          { transform: "translateY(-70px) scale(1.5)", opacity: 0 },
+          { transform: "translateY(0) scale(1.15,.85)", opacity: 1, offset: 0.7 },
+          { transform: "translateY(0) scale(1)", opacity: 1 },
+        ],
+        { duration: REDUCED ? 80 : 380, easing: "ease-in" }
+      );
+      await sleep(REDUCED ? 80 : 400);
+      sfx("step");
+      ripple(startId);
+      await sleep(REDUCED ? 20 : 90);
+    }
+
+    let prev = startId;
+    for (const id of result.nodes) {
+      if (id !== prev) {
+        await hop(w, prev, id);
+        if (epoch !== state.epoch) return;
+      }
+      prev = id;
+    }
+
+    const player = state.players[pIdx];
+    if (result.finished) {
+      await hop(w, prev, "o0");
+      if (epoch !== state.epoch) return;
+      banner("완주!", "done");
+      sfx("fanfare");
+      body.animate(
+        [
+          { transform: "translateY(0) scale(1)", opacity: 1 },
+          { transform: "translateY(-30px) scale(1.7)", opacity: 0 },
+        ],
+        { duration: REDUCED ? 80 : 600, fill: "forwards", easing: "ease-out" }
+      );
+      await sleep(REDUCED ? 100 : 700);
+    } else {
+      const dest = result.dest;
+      const opp = state.players[1 - pIdx];
+      if (opp.tokens.some((t) => t.at === dest)) {
+        banner("잡았다!", "catch");
+        sfx("catch");
+        el.board.querySelectorAll('.node[data-node="' + dest + '"] .board-token').forEach((v) => {
+          v.animate(
+            [
+              { transform: "none", opacity: 1 },
+              { transform: "translate(-20px,-46px) rotate(300deg) scale(1.3)", opacity: 0 },
+            ],
+            { duration: REDUCED ? 80 : 650, fill: "forwards", easing: "ease-in" }
+          );
+        });
+        await sleep(REDUCED ? 100 : 750);
+      } else if (player.tokens.some((t) => t.at === dest)) {
+        banner("업었다!", "stack");
+        sfx("ding");
+        await sleep(REDUCED ? 100 : 450);
+      }
+    }
+    if (epoch !== state.epoch) return;
+
+    w.remove();
+    state.busy = false;
+    finalizeMove(result, stackCount);
   }
 
   function resolveFace(upCount, flats) {
@@ -332,6 +674,7 @@
   }
 
   function chooseHomeEntry() {
+    if (state.busy) return;
     const usable = state.pendingMoves.filter((s) => s > 0);
     if (usable.length === 0) return;
     if (usable.length === 1 || new Set(usable).size === 1) {
@@ -342,6 +685,7 @@
   }
 
   function chooseToken(at) {
+    if (state.busy) return;
     const usable = state.pendingMoves.slice();
     if (usable.length === 0) return;
     if (new Set(usable).size === 1) {
@@ -390,8 +734,11 @@
     const player = state.players[state.current];
     player.home -= 1;
     consumeMove(steps);
+    clearChipHandlers();
+    clearHighlights();
+    renderTokens();
     const result = advance("o0", ROUTES[0], steps - 1);
-    finalizeMove(result, 1);
+    runMove("o0", result, 1, true);
   }
 
   function moveToken(at, steps) {
@@ -403,7 +750,10 @@
     const stackCount = token.stack;
     player.tokens = player.tokens.filter((t) => t !== token);
     consumeMove(steps);
-    finalizeMove(result, stackCount);
+    clearChipHandlers();
+    clearHighlights();
+    renderTokens();
+    runMove(at, result, stackCount, false);
   }
 
   function clearHighlights() {
@@ -546,6 +896,11 @@
     state.pendingMoves = [];
     state.gameOver = false;
     state.captureBonus = false;
+    state.epoch += 1;
+    state.busy = false;
+    el.throwStage.hidden = true;
+    el.throwStage.onclick = null;
+    el.banner.className = "board-banner";
     el.winModal.hidden = true;
     el.throwBtn.disabled = false;
     el.resultName.textContent = "윷을 던지세요";
@@ -557,6 +912,15 @@
     log("새 게임을 시작합니다. 홍 차례!", 0);
   }
 
+  el.soundBtn.addEventListener("click", () => {
+    snd.on = !snd.on;
+    try { localStorage.setItem("yut-sound", snd.on ? "on" : "off"); } catch (e) {}
+    syncSoundBtn();
+    if (snd.on) { audio(); sfx("ding"); }
+  });
+
+  buildThrowSticks();
+  syncSoundBtn();
   el.throwBtn.addEventListener("click", throwYut);
   el.restartBtn.addEventListener("click", restart);
   el.winRestart.addEventListener("click", restart);
