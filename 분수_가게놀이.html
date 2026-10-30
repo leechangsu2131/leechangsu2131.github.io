@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>분수 가게 놀이</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F8FC;--ink:#25324A;--sub:#6B7690;--blue:#3D5A80;--blue-soft:#DCE6F2;--org:#E8873A;--org-soft:#FBE6D2;--ok:#4C8C5C;--ok-soft:#E1F0E3;--bad:#C0503F;--line:#D7E3EE}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Gowun Batang",serif;min-height:100vh;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.app{max-width:900px;margin:0 auto;padding:12px 12px 30px}
+h1{font-family:"Jua",sans-serif;font-weight:400;font-size:30px;margin:0;color:var(--blue);text-align:center}
+.sub{text-align:center;color:var(--sub);font-size:14px;margin:2px 0 10px}
+.box{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:14px 18px;box-shadow:0 3px 14px rgba(61,90,128,.08);margin-bottom:10px}
+.btn{font-family:"Jua",sans-serif;font-size:19px;padding:11px 20px;border-radius:14px;border:0;background:var(--blue);color:#fff;cursor:pointer}
+.btn.org{background:var(--org)}.btn.ghost{background:var(--blue-soft);color:var(--blue)}.btn:disabled{opacity:.4}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-family:"Jua",sans-serif;color:var(--blue);font-size:17px;margin-bottom:6px}
+.top b{color:var(--org);font-weight:400;font-size:21px}
+.order{display:flex;gap:12px;align-items:center}
+.cust{font-size:54px;line-height:1}
+.bub{flex:1;background:var(--org-soft);border:2.5px solid var(--org);border-radius:18px;padding:10px 16px;font-family:"Jua",sans-serif;font-size:22px;line-height:1.6;position:relative}
+.bub .big{font-size:26px;color:#b4560f}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-family:"Jua",sans-serif}
+.fr .n{border-bottom:3px solid currentColor;padding:0 6px}.fr .d{padding:0 6px}
+.zone{margin-top:10px}
+.zt{font-family:"Jua",sans-serif;font-size:17px;color:var(--blue);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.shelf,.basket{border-radius:16px;padding:10px;min-height:84px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.shelf{background:#fff;border:2.5px solid var(--blue)}
+.basket{background:var(--ok-soft);border:2.5px dashed var(--ok)}
+.it{width:56px;height:56px;font-size:38px;border:0;background:transparent;cursor:pointer;border-radius:12px;padding:0;line-height:1}
+.it:active{background:var(--blue-soft)}.it.g{outline:3px solid var(--org);background:var(--org-soft)}
+.it.sm{width:46px;height:46px;font-size:32px}.it.lg{width:68px;height:68px;font-size:46px}
+.grp{border:3px solid var(--org);border-radius:14px;padding:4px;display:flex;flex-wrap:wrap;gap:2px;background:var(--org-soft);position:relative;max-width:100%;cursor:pointer}
+.grp .nm{position:absolute;top:-12px;left:8px;background:var(--org);color:#fff;border-radius:99px;font-family:"Jua",sans-serif;font-size:13px;padding:0 8px}
+.grp.done{opacity:.25;pointer-events:none}
+.hintbar{font-size:14.5px;color:var(--sub);margin-top:4px}
+.fb{text-align:center;font-family:"Jua",sans-serif;font-size:20px;min-height:28px;margin-top:8px;color:var(--blue)}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+.ctl{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{font-family:"Jua",sans-serif;font-size:17px;padding:8px 14px;border-radius:99px;border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer}.chip.on{background:var(--org);border-color:var(--org);color:#fff}
+.step{display:inline-flex;flex-direction:column;align-items:center;gap:4px;margin:0 6px;font-family:"Jua",sans-serif}
+.step button{width:52px;height:40px;border-radius:10px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-size:22px;cursor:pointer;font-family:inherit}
+.step .v{font-size:36px;min-width:52px;text-align:center;color:var(--ink)}
+.step .line{width:70px;border-top:3px solid var(--ink)}
+.res{text-align:center}.res .big{font-family:"Jua",sans-serif;font-size:34px;color:var(--org)}
+.stars{font-size:34px;letter-spacing:4px}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.15)}100%{transform:scale(1)}}.pop{animation:pop .4s}
+@media (max-height:520px) and (orientation:landscape){.app{padding:4px 8px}h1,.sub{display:none}.cust{font-size:36px}.bub{font-size:16px;padding:6px 10px}.bub .big{font-size:19px}.it{width:40px;height:40px;font-size:28px}.it.lg,.it.sm{width:40px;height:40px;font-size:28px}.shelf,.basket{min-height:52px;padding:5px}.box{padding:6px 10px;margin-bottom:4px}.fb{min-height:18px;font-size:15px;margin-top:2px}.top{margin-bottom:2px;font-size:14px}.zt{font-size:14px}.hintbar{display:none}.btn{padding:7px 14px;font-size:16px}.ctl{margin-top:4px}.zone{margin-top:4px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🛒 분수 가게 놀이</h1><p class="sub">손님의 주문대로 물건을 담아 드려요 · 기록 없이 마음껏 놀아요</p>
+  <div id="main"></div>
+</div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rand(0,a.length-1)];
+const fr=(n,d)=>`<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const ITEMS=[{e:'🍪',n:'쿠키'},{e:'🍓',n:'딸기'},{e:'🍎',n:'사과'},{e:'🍬',n:'사탕'},{e:'🍊',n:'귤'},{e:'🥚',n:'달걀'}];
+const CUST=['🐻','🐰','🦊','🐼','🐯','🐸','🐶','🐱','🦁','🐧'];
+const CNT=5;
+const LVS={'쉬움':{label:'🌱 쉬움',dens:[2,3,4],per:[2,3,4],unit:true,group:'auto',rev:0},
+  '보통':{label:'🌿 보통',dens:[2,3,4,5],per:[2,3,4],unit:false,group:'btn',rev:.3},
+  '어려움':{label:'🌳 어려움',dens:[3,4,5,6,7,8],per:[2,3,4,5],unit:false,group:'btn',rev:.4}};
+let lvName='쉬움', Q=null, st=null;
+const main=$('main');
+function loadBest(){ try{ return JSON.parse(localStorage.getItem('fracShop')||'{}'); }catch(e){ return {}; } }
+function saveBest(lv,stars){ try{ const o=loadBest(); o[lv]=Math.max(o[lv]||0,stars); localStorage.setItem('fracShop',JSON.stringify(o)); }catch(e){} }
+
+function genOrder(){
+  const L=LVS[lvName]; const d=pick(L.dens), per=pick(L.per);
+  let a=L.unit?1:rand(1,d-1); const total=d*per; const it=pick(ITEMS), cu=pick(CUST);
+  let rev=Math.random()<L.rev;
+  if(rev&&a===1&&!L.unit&&d>2) a=rand(2,d-1);
+  return {d,per,a,total,it,cu,rev,ans:a*per,miss:0,grouped:L.group==='auto',done:false,shelf:Array.from({length:total},(_,i)=>i),basket:[],gv:{n:1,d:2}};
+}
+function home(){
+  Q=null; st=null; const best=loadBest();
+  main.innerHTML=`<div class="box"><div class="zt">난이도를 골라요</div><div class="row" style="margin:8px 0" id="lvs">${Object.keys(LVS).map(k=>`<button class="btn ${k===lvName?'org':'ghost'}" data-lv="${k}">${LVS[k].label}${best[k]?` <span style="font-size:14px">⭐${best[k]}</span>`:''}</button>`).join('')}</div>
+   <div class="hintbar" id="lvh"></div><div class="row" style="margin-top:12px"><button class="btn org" id="go" style="font-size:22px">가게 문 열기 🛒</button></div></div>
+   <div class="box"><div class="zt">놀이 방법</div><div class="hintbar" style="font-size:15.5px;line-height:1.8">① 손님이 "물건 ○개의 <b>분수</b>만큼 주세요" 하고 말해요.<br>② 선반의 물건을 눌러서 바구니에 담아요. 바구니의 물건을 누르면 다시 선반으로 돌아가요.<br>③ <b>똑같이 나누기</b>를 누르면 선반의 물건이 똑같은 묶음으로 나뉘어요. 묶음을 누르면 한꺼번에 담겨요.<br>④ 다 담았으면 <b>드릴게요</b>를 눌러요. 손님이 ${CNT}명이에요!</div></div>`;
+  const desc=()=>{ const L=LVS[lvName]; $('lvh').textContent=({'쉬움':'1/2, 1/3, 1/4 만큼 담기 · 묶음이 미리 나뉘어 있어요','보통':'여러 개의 분수만큼 담기 · 가끔 "전체의 얼마?" 문제가 나와요','어려움':'분모가 큰 분수 · 물건이 많아요 · "전체의 얼마?" 문제가 자주 나와요'})[lvName]; };
+  desc();
+  $('lvs').onclick=e=>{ const b=e.target.closest('[data-lv]'); if(!b) return; lvName=b.dataset.lv; document.querySelectorAll('#lvs .btn').forEach(x=>x.className='btn '+(x.dataset.lv===lvName?'org':'ghost')); desc(); };
+  $('go').onclick=()=>{ st={n:0,stars:0,hist:[]}; next(); };
+}
+function next(){
+  if(st.n>=CNT) return end();
+  Q=genOrder(); st.n++; draw();
+}
+function sizeCls(){ const t=Q.total; return t<=12?'lg':(t<=24?'':'sm'); }
+function itemBtn(i,where){ return `<button class="it ${sizeCls()}" data-i="${i}" data-w="${where}">${Q.it.e}</button>`; }
+function groupsOf(arr){ // 선반 아이템을 d개 묶음으로 (원래 번호 순서 기준)
+  const g=[]; for(let k=0;k<Q.d;k++) g.push([]); Q.shelf.forEach(i=>g[Math.min(Q.d-1,Math.floor(i/Q.per))].push(i)); return g; }
+function draw(){
+  const L=LVS[lvName], q=Q;
+  const sc='⭐'.repeat(st.stars)+'☆'.repeat(Math.max(0,st.n-1-st.stars));
+  let order;
+  if(!q.rev) order=`<b class="big">${q.it.n} ${q.total}개</b>의 ${fr(q.a,q.d)} 만큼 주세요!`;
+  else order=`전체 ${q.it.n} <b class="big">${q.total}개</b> 중에서 <b class="big">${q.ans}개</b>를 샀어요. 전체의 얼마일까요? 분수로 나타내 보세요.`;
+  let h=`<div class="top"><span>${LVS[lvName].label} · 손님 <b>${st.n}</b> / ${CNT}</span><span>${sc||'&nbsp;'}</span></div>
+   <div class="box"><div class="order"><div class="cust">${q.cu}</div><div class="bub">${order}</div></div>`;
+  if(q.rev){
+    // 사 간 물건은 바구니에 이미 담겨 있다
+    h+=`<div class="zone"><div class="zt">전체 ${q.total}개 (샀어요 <b style="color:var(--org)">${q.ans}</b>개는 색깔 테두리)</div><div class="shelf">${Array.from({length:q.total},(_,i)=>`<span class="it ${sizeCls()}${i<q.ans?' g':''}" style="display:inline-flex;align-items:center;justify-content:center">${q.it.e}</span>`).join('')}</div></div>
+     <div class="ctl" style="align-items:center"><span class="step"><button data-s="n+">▲</button><span class="v" id="vn">${q.gv.n}</span><button data-s="n-">▼</button></span><span class="step"><span class="line"></span></span><span class="step"><button data-s="d+">▲</button><span class="v" id="vd">${q.gv.d}</span><button data-s="d-">▼</button></span></div>
+     <div class="hintbar" style="text-align:center">위쪽은 산 개수에 해당하는 수, 아래쪽은 전체를 똑같이 나눈 묶음 수예요</div>
+     <div class="ctl"><button class="btn org" id="ok">이렇게 답할게요</button></div>`;
+  } else {
+    h+=`<div class="zone"><div class="zt"><span>선반 (남은 ${q.shelf.length}개)</span>${(L.group==='btn')?`<button class="btn ghost" id="gbtn" style="font-size:15px;padding:6px 12px">${q.grouped?'묶음 풀기':'똑같이 나누기 ✂️'}</button>`:''}</div>`;
+    if(q.grouped){ const g=groupsOf(); h+=`<div class="shelf" style="gap:14px">${g.map((arr,k)=>`<div class="grp${arr.length?'':' done'}" data-g="${k}"><span class="nm">${k+1}묶음</span>${arr.map(i=>itemBtn(i,'s')).join('')||'<span class="it sm"></span>'}</div>`).join('')}</div>`; }
+    else h+=`<div class="shelf">${q.shelf.map(i=>itemBtn(i,'s')).join('')||'<span class="hintbar">선반이 비었어요</span>'}</div>`;
+    h+=`</div><div class="zone"><div class="zt"><span>바구니 🧺</span><span class="hintbar" style="margin:0">물건을 누르면 돌아가요</span></div><div class="basket">${q.basket.map(i=>itemBtn(i,'b')).join('')}</div></div>
+     <div class="ctl"><button class="btn ghost" id="clr">모두 비우기</button><button class="btn org" id="ok">드릴게요 🎁</button></div>`;
+  }
+  h+=`<div class="fb ${q.fbc||''}" id="fb">${q.fb||'&nbsp;'}</div></div>`;
+  main.innerHTML=h;
+  const bk=document.querySelector('.basket'); if(bk&&q.popped){ bk.classList.add('pop'); q.popped=false; }
+}
+main.addEventListener('click',e=>{
+  if(!Q||Q.done) return;
+  const it=e.target.closest('.it[data-i]'), gp=e.target.closest('.grp');
+  if(it){ const i=+it.dataset.i;
+    if(it.dataset.w==='s'){ if(Q.grouped&&gp&&e.target.closest('.grp')&&false) return; Q.shelf=Q.shelf.filter(x=>x!==i); Q.basket.push(i); }
+    else { Q.basket=Q.basket.filter(x=>x!==i); Q.shelf.push(i); Q.shelf.sort((a,b)=>a-b); }
+    Q.fb=''; Q.fbc=''; Q.popped=true; draw(); return; }
+  if(gp&&Q.grouped){ const k=+gp.dataset.g, g=groupsOf()[k]; if(!g.length) return; Q.shelf=Q.shelf.filter(x=>!g.includes(x)); Q.basket.push(...g); Q.fb=''; Q.fbc=''; Q.popped=true; draw(); return; }
+  if(e.target.id==='gbtn'){ Q.grouped=!Q.grouped; draw(); return; }
+  if(e.target.id==='clr'){ Q.shelf=Array.from({length:Q.total},(_,i)=>i); Q.basket=[]; Q.fb=''; draw(); return; }
+  const s=e.target.closest('[data-s]');
+  if(s){ const v=s.dataset.s; const g=Q.gv; if(v==='n+') g.n=Math.min(40,g.n+1); if(v==='n-') g.n=Math.max(1,g.n-1); if(v==='d+') g.d=Math.min(12,g.d+1); if(v==='d-') g.d=Math.max(2,g.d-1); $('vn').textContent=g.n; $('vd').textContent=g.d; return; }
+  if(e.target.id==='ok') check();
+});
+function nudge(over){
+  const q=Q; q.miss++;
+  if(!q.rev){
+    if(q.miss===1){ q.fb='🤔 다시 생각해 볼까요? "똑같이 나누기"로 '+q.total+'개를 '+q.d+'묶음으로 나누어 보세요.'; if(LVS[lvName].group==='btn') q.grouped=true; }
+    else if(q.miss===2){ q.fb=(q.basket.length>q.ans?'바구니에 조금 많이 담았어요. ':'바구니에 조금 더 담아야 해요. ')+`한 묶음에 몇 개씩 들어 있는지 세어 보세요.`; }
+    else { q.fb='😊 분자는 몇 묶음을 가져가는지 알려 줘요. 묶음을 눌러서 담아 보세요.'; if(LVS[lvName].group==='btn') q.grouped=true; }
+  } else {
+    if(q.miss===1) q.fb='🤔 분모는 전체를 똑같이 나눈 수예요. 전체 '+q.total+'개를 몇 개씩 묶어 볼까요?';
+    else q.fb='😊 색깔 테두리 물건이 몇 묶음인지 세어 보세요.';
+  }
+  q.fbc='bad'; draw();
+}
+function check(){
+  const q=Q; let good;
+  if(q.rev){ const n=q.gv.n, d=q.gv.d; good=(n*q.total===q.ans*d); }
+  else good=(q.basket.length===q.ans);
+  if(good){
+    q.done=true; const got=q.miss===0?1:0; st.stars+=got; st.hist.push(q.miss);
+    q.fb='🎉 손님이 아주 좋아해요! '+(got?'⭐ 별 1개':'(다음엔 한 번에 성공해 봐요)'); q.fbc='ok'; draw();
+    const nb=document.createElement('div'); nb.className='ctl'; nb.innerHTML='<button class="btn org" id="nx">'+(st.n>=CNT?'결과 보기':'다음 손님 👉')+'</button>';
+    document.querySelector('.box').appendChild(nb); $('nx').onclick=next;
+  } else nudge();
+}
+function end(){
+  saveBest(lvName,st.stars);
+  const msg=st.stars>=5?'가게 사장님이에요! 👑':st.stars>=3?'멋진 점원이에요! 😊':'조금씩 늘고 있어요! 💪';
+  const lvs=Object.keys(LVS), nxt=lvs[lvs.indexOf(lvName)+1];
+  main.innerHTML=`<div class="box res"><div class="big">${msg}</div><div class="stars">${'⭐'.repeat(st.stars)}${'☆'.repeat(CNT-st.stars)}</div><div style="font-size:17px;margin:6px 0">한 번에 성공한 손님: ${st.stars} / ${CNT}명</div><div class="row" style="justify-content:center;margin-top:8px"><button class="btn org" id="again">다시 하기</button>${(st.stars>=4&&nxt)?`<button class="btn" id="up">${LVS[nxt].label} 도전! 👆</button>`:''}<button class="btn ghost" id="hm">처음으로</button></div></div>`;
+  $('again').onclick=()=>{ st={n:0,stars:0,hist:[]}; next(); }; $('hm').onclick=home;
+  if($('up')) $('up').onclick=()=>{ lvName=nxt; st={n:0,stars:0,hist:[]}; next(); };
+}
+window.__shop={get Q(){return Q;},get st(){return st;},get lv(){return lvName;}};
+home();
+})();
+</script>
+</body>
+</html>
