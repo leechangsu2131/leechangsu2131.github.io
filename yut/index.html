@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>윷놀이 대결</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-text">
+          <h1>윷놀이 대결</h1>
+          <p>전통 말판에서 겨루는 2인 대결</p>
+        </div>
+      </div>
+      <button id="restart-btn" class="btn btn-ghost" type="button">
+        <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2.34 5.66M4 12V7m0 5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        새 게임
+      </button>
+    </header>
+
+    <main class="layout">
+      <section class="player-panel" id="panel-0" aria-label="홍팀 정보">
+        <div class="player-head">
+          <span class="dot dot-red" aria-hidden="true"></span>
+          <h2>홍(紅)</h2>
+          <span class="turn-flag" id="flag-0">차례</span>
+        </div>
+        <div class="player-stats">
+          <div class="stat">
+            <span class="stat-label">남은 말</span>
+            <span class="stat-value" id="home-0">4</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">완주</span>
+            <span class="stat-value" id="done-0">0</span>
+          </div>
+        </div>
+        <ul class="token-tray" id="tray-0" role="list" aria-label="홍팀 대기 말"></ul>
+      </section>
+
+      <section class="board-area" aria-label="윷놀이 말판">
+        <div class="board" id="board"></div>
+      </section>
+
+      <section class="player-panel" id="panel-1" aria-label="청팀 정보">
+        <div class="player-head">
+          <span class="dot dot-blue" aria-hidden="true"></span>
+          <h2>청(靑)</h2>
+          <span class="turn-flag" id="flag-1">차례</span>
+        </div>
+        <div class="player-stats">
+          <div class="stat">
+            <span class="stat-label">남은 말</span>
+            <span class="stat-value" id="home-1">4</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">완주</span>
+            <span class="stat-value" id="done-1">0</span>
+          </div>
+        </div>
+        <ul class="token-tray" id="tray-1" role="list" aria-label="청팀 대기 말"></ul>
+      </section>
+    </main>
+
+    <section class="control-bar" aria-label="게임 조작">
+      <div class="yut-stage">
+        <div class="yut-sticks" id="yut-sticks" aria-live="polite">
+          <div class="stick" data-face="up"></div>
+          <div class="stick" data-face="up"></div>
+          <div class="stick" data-face="up"></div>
+          <div class="stick" data-face="up"></div>
+        </div>
+        <div class="throw-result" id="throw-result">
+          <span class="result-name" id="result-name">윷을 던지세요</span>
+          <span class="result-steps" id="result-steps"></span>
+        </div>
+      </div>
+
+      <div class="control-actions">
+        <button id="throw-btn" class="btn btn-primary" type="button">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2 2m8 8l2 2m0-12l-2 2M8 16l-2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          윷 던지기
+        </button>
+        <div class="moves-queue" id="moves-queue" aria-label="사용 가능한 이동" role="list"></div>
+      </div>
+    </section>
+
+    <section class="log-area" aria-label="진행 기록">
+      <h3 class="log-title">진행 기록</h3>
+      <ol class="log-list" id="log-list" role="list"></ol>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="win-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="win-title">
+      <span class="win-emblem" id="win-emblem" aria-hidden="true"></span>
+      <h2 id="win-title">승리!</h2>
+      <p id="win-text">홍팀이 모든 말을 완주했습니다.</p>
+      <button id="win-restart" class="btn btn-primary" type="button">다시 대결</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
