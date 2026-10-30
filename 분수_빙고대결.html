@@ -65,7 +65,7 @@ const SUPA_HOST='erzdvlcbjneabxqwnwfy.supabase.co', SUPA_KEY='sb_publishable_29w
 const ROSTER=['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
 const MOCK=new URLSearchParams(location.search).get('mock')==='1';
 const EASY={dens:[2,3,4],types:['proper','improper','mixed','same'],cpu:.3}, HARD={dens:[2,3,4,5,6,7,8,9],types:['proper','improper','mixed','same','gt','lt'],cpu:.15};
-function mkCfg(N,hard){ const b=hard?HARD:EASY; return {N,line:N===5?4:3,dens:b.dens,types:b.types,cpu:b.cpu,hard,label:`${N}×${N} · ${hard?'어려운 분수 포함':'쉬운 분수만'}`}; }
+function mkCfg(N,hard){ const b=hard?HARD:EASY; return {N,line:N,dens:b.dens,types:b.types,cpu:b.cpu,hard,label:`${N}×${N} · ${hard?'어려운 분수 포함':'쉬운 분수만'}`}; }
 let sizeN=3, hardF=false, fast=false;
 const fr=(n,d)=>`<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
 const mx=(w,n,d)=>`<span class="mx"><b>${w}</b>${fr(n,d)}</span>`;
@@ -154,8 +154,8 @@ function home(){
     <button class="mode" id="mLocal"><b>🤝 한 기기로 둘이서</b><span>번갈아 한 칸씩 골라요.</span></button>
     <button class="mode" id="mHost"><b>📱 방 만들기 (두 기기)</b><span>방 번호가 나와요. 친구가 그 번호로 들어오면 시작해요.</span></button>
     <button class="mode" id="mGuest"><b>📲 방 번호로 들어가기 (두 기기)</b><span>친구가 알려 준 4자리 번호를 입력해요.</span></button>
-    <div class="hint">방법: 차례마다 미션이 나와요. 미션에 맞는 칸을 누르면 내 칸! 틀리면 차례가 넘어가요. 가로·세로·대각선으로 먼저 줄을 만들면 이겨요.</div></div>`;
-  const d=()=>{ const L=mkCfg(sizeN,hardF); $('lvh').textContent=`${L.N}×${L.N} 판 · ${L.line}칸을 한 줄로 이으면 승리 · ${hardF?'분모가 큰 분수와 크기 비교 미션도 나와요':'분모 2·3·4인 분수로 진·가·대분수, 같은 값 찾기'}`; }; d();
+    <div class="hint">방법: 차례마다 미션이 나와요. 미션에 맞는 칸을 누르면 내 칸! 틀리면 차례가 넘어가요. 가로·세로·대각선 한 줄을 모두 내 칸으로 채우면 이겨요.</div></div>`;
+  const d=()=>{ const L=mkCfg(sizeN,hardF); $('lvh').textContent=`${L.N}×${L.N} 판 · 가로·세로·대각선 한 줄(${L.N}칸)을 모두 내 칸으로 채우면 승리 · ${hardF?'분모가 큰 분수와 크기 비교 미션도 나와요':'분모 2·3·4인 분수로 진·가·대분수, 같은 값 찾기'}`; }; d();
   const sync=()=>{ document.querySelectorAll('#szs .btn').forEach(x=>x.className='btn '+(+x.dataset.sz===sizeN?'org':'ghost')); document.querySelectorAll('#hds .btn').forEach(x=>x.className='btn '+((x.dataset.hd==='1')===hardF?'org':'ghost')); d(); };
   $('szs').onclick=e=>{ const b=e.target.closest('[data-sz]'); if(!b) return; sizeN=+b.dataset.sz; sync(); };
   $('hds').onclick=e=>{ const b=e.target.closest('[data-hd]'); if(!b) return; hardF=b.dataset.hd==='1'; sync(); };
