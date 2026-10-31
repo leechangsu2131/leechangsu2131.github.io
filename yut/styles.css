@@ -164,7 +164,7 @@ body {
 .token-tray {
   list-style: none;
   margin: 14px 0 0;
-  padding: 6px;
+  padding: 6px 0;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
