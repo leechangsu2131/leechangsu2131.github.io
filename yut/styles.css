@@ -932,6 +932,51 @@ body {
   50% { transform: translate(-50%, -7px); }
 }
 
+/* ---------- 힘 조절 · 낙 ---------- */
+.throw-pad { display: none; width: 100%; margin-top: 44px; text-align: center; position: relative; z-index: 4; }
+.throw-stage.ready .throw-pad { display: block; }
+.throw-stage.ready { touch-action: none; cursor: grab; }
+.throw-stage.ready .throw-hint { display: none; }
+.pad-msg { margin: 0 0 8px; font-family: "Jua", var(--font); font-size: clamp(19px, 4.6vw, 26px); color: #ffe27a; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+.gauge { position: relative; height: 26px; border-radius: 999px; overflow: hidden; border: 2px solid rgba(255,255,255,0.35);
+  background: linear-gradient(90deg, rgba(180,190,200,0.35) 0 12%, rgba(120,200,140,0.35) 12% 78%, rgba(240,150,140,0.4) 78% 100%); }
+.gauge i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; transition: background 0.1s; }
+.gauge i.weak { background: #9fb0bd; }
+.gauge i.good { background: #3fbf6a; }
+.gauge i.over { background: #e5483b; }
+.gauge-labels { display: flex; margin-top: 4px; font-size: 13px; color: #f6e8c8; }
+.gauge-labels .z1 { width: 12%; text-align: left; }
+.gauge-labels .z2 { width: 66%; text-align: center; }
+.gauge-labels .z3 { width: 22%; text-align: right; white-space: nowrap; }
+.pad-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+.big-result.bad .br-name { color: #ffb4a8; -webkit-text-stroke-color: #6e1a12; text-shadow: 0 6px 0 #6e1a12, 0 12px 28px rgba(0,0,0,0.5); }
+
+/* ---------- 팀 · 설정 ---------- */
+.turn-who { flex-basis: 100%; font-family: "Jua", var(--font); font-size: 22px; padding: 6px 12px; border-radius: 10px; }
+.turn-who:empty { display: none; }
+.turn-who.p0 { background: rgba(192, 57, 43, 0.12); color: var(--red-deep); }
+.turn-who.p1 { background: rgba(42, 90, 140, 0.12); color: var(--blue-deep); }
+.roster { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.roster[hidden] { display: none; }
+.roster li { padding: 3px 9px; border-radius: 999px; background: var(--surface-well); font-size: 13px; color: var(--ink-soft); }
+.roster li.now { background: var(--gold); color: #fff; font-weight: 700; }
+.roster li.next { outline: 2px dashed var(--gold); outline-offset: -2px; color: var(--ink); }
+.modal.setup { max-width: 480px; max-height: 92dvh; overflow-y: auto; }
+.modal.setup h2 { font-family: "Jua", var(--font); font-weight: 400; font-size: 28px; color: var(--red-deep); }
+.size-choice { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+.size-btn { font: inherit; border: 2px solid var(--line-strong); background: var(--surface-well); border-radius: 12px; padding: 10px 4px; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 2px; }
+.size-btn b { font-family: "Jua", var(--font); font-weight: 400; font-size: 22px; }
+.size-btn span { font-size: 12px; color: var(--ink-soft); }
+.size-btn.on { background: var(--red); border-color: var(--red-deep); color: #fff; }
+.size-btn.on span { color: #fff; }
+.setup-note { font-size: 15px !important; }
+.names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-top: 6px; }
+.names-col { display: grid; gap: 6px; align-content: start; }
+.names-col b { font-size: 15px; }
+.names-col.p0 b { color: var(--red-deep); }
+.names-col.p1 b { color: var(--blue-deep); }
+.names-col input { font: inherit; font-size: 15px; width: 100%; padding: 8px 10px; border-radius: 9px; border: 2px solid var(--line-strong); background: #fff; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -50,6 +50,7 @@
           </div>
         </div>
         <ul class="token-tray" id="tray-0" role="list" aria-label="홍팀 대기 말"></ul>
+        <ul class="roster" id="roster-0" aria-label="홍팀 친구들" hidden></ul>
       </section>
 
       <section class="board-area" aria-label="윷놀이 말판">
@@ -74,10 +75,12 @@
           </div>
         </div>
         <ul class="token-tray" id="tray-1" role="list" aria-label="청팀 대기 말"></ul>
+        <ul class="roster" id="roster-1" aria-label="청팀 친구들" hidden></ul>
       </section>
     </main>
 
     <section class="control-bar" aria-label="게임 조작">
+      <div class="turn-who" id="turn-who" aria-live="polite"></div>
       <div class="yut-stage">
         <div class="yut-sticks" id="yut-sticks" aria-live="polite">
           <div class="stick" data-face="up"></div>
@@ -115,6 +118,15 @@
       <div class="throw-sticks" id="throw-sticks"></div>
       <div class="throw-mat" aria-hidden="true"></div>
       <p class="throw-hint" id="throw-hint">화면을 누르면 넘어가요</p>
+      <div class="throw-pad" id="throw-pad">
+        <p class="pad-msg" id="pad-msg">화면을 아래로 쭉 끌었다가 놓으면 던져요!</p>
+        <div class="gauge" aria-hidden="true"><i id="gauge-fill" class="weak"></i></div>
+        <div class="gauge-labels" aria-hidden="true"><span class="z1">약함</span><span class="z2">알맞아요</span><span class="z3">너무 세면 낙!</span></div>
+        <div class="pad-actions">
+          <button id="pad-normal" class="btn btn-primary pad-btn" type="button">보통 힘으로 던지기</button>
+          <button id="pad-cancel" class="btn btn-ghost pad-btn" type="button">취소</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -126,6 +138,24 @@
       <div class="help-nav">
         <button id="help-prev" class="btn btn-ghost" type="button">◀ 이전</button>
         <button id="help-next" class="btn btn-primary" type="button">다음 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="setup-modal" hidden>
+    <div class="modal setup" role="dialog" aria-modal="true" aria-label="게임 설정">
+      <h2>몇 명씩 겨룰까요?</h2>
+      <div class="size-choice" id="size-choice">
+        <button class="size-btn on" data-n="1" type="button"><b>1 : 1</b><span>1명씩</span></button>
+        <button class="size-btn" data-n="2" type="button"><b>2 : 2</b><span>2명씩</span></button>
+        <button class="size-btn" data-n="3" type="button"><b>3 : 3</b><span>3명씩</span></button>
+        <button class="size-btn" data-n="4" type="button"><b>4 : 4</b><span>4명씩</span></button>
+      </div>
+      <p class="setup-note">팀 친구들이 <b>자기 차례에</b> 윷을 던지고 말을 옮겨요.<br>이름은 안 써도 되고, 쓰면 차례에 이름이 나와요.</p>
+      <div class="names" id="names"></div>
+      <div class="help-nav">
+        <button id="setup-cancel" class="btn btn-ghost" type="button" hidden>취소</button>
+        <button id="setup-start" class="btn btn-primary" type="button">게임 시작!</button>
       </div>
     </div>
   </div>

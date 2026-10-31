@@ -22,6 +22,9 @@
     epoch: 0,
     selected: null,
     autoTimer: null,
+    teamSize: 1,
+    names: [[], []],
+    member: [0, 0],
   };
 
   const el = {
@@ -233,6 +236,24 @@
     });
     document.getElementById("panel-0").classList.toggle("active", state.current === 0 && !state.gameOver);
     document.getElementById("panel-1").classList.toggle("active", state.current === 1 && !state.gameOver);
+    renderRoster();
+    const tw = document.getElementById("turn-who");
+    tw.textContent = state.gameOver ? "" : "👤 " + actorFull(state.current) + " 차례";
+    tw.className = "turn-who p" + state.current;
+  }
+
+  function renderRoster() {
+    [0, 1].forEach((t) => {
+      const ul = document.getElementById("roster-" + t);
+      ul.innerHTML = "";
+      ul.hidden = state.teamSize <= 1;
+      for (let i = 0; i < state.teamSize; i++) {
+        const li = document.createElement("li");
+        li.textContent = state.names[t][i] || i + 1 + "번";
+        if (i === state.member[t]) li.className = state.current === t ? "now" : "next";
+        ul.appendChild(li);
+      }
+    });
   }
 
   /* =====================================================
@@ -312,6 +333,9 @@
     } else if (name === "catch") {
       tone(c, t, 180, 55, 0.3, "square", 0.2);
       click(c, t, 0.08, 0.5, 800);
+    } else if (name === "out") {
+      tone(c, t, 320, 70, 0.5, "sawtooth", 0.16);
+      click(c, t, 0.1, 0.35, 700);
     } else if (name === "ding") {
       tone(c, t, 660, 660, 0.35, "sine", 0.22);
     } else if (name === "fanfare") {
@@ -346,46 +370,174 @@
     );
   }
 
-  async function playThrow(flats, face, epoch) {
+  /* ---------- 팀 · 친구 이름 ---------- */
+  function actorFull(team) {
+    const t = team === 0 ? "홍팀" : "청팀";
+    const i = state.teamSize <= 1 ? 0 : state.member[team];
+    const nm = state.names[team][i];
+    if (nm) return t + " " + nm;
+    return state.teamSize <= 1 ? t : t + " " + (i + 1) + "번 친구";
+  }
+
+  function actor() {
+    return actorFull(state.current);
+  }
+
+  /* ---------- 힘 조절 (끌었다 놓아 던지기) ---------- */
+  const POWER_MIN = 0.12;
+  const POWER_SAFE = 0.78;
+  const FACE_OUT = { name: "낙", steps: 0, out: true, animal: "윷이 판 밖으로 나갔어요", label: "이번 던지기는 무효" };
+  let padAbort = null;
+
+  function outChance(power) {
+    if (power <= POWER_SAFE) return 0;
+    return Math.min(0.85, Math.pow((power - POWER_SAFE) / (1 - POWER_SAFE), 1.2) * 0.85);
+  }
+
+  function heldPose(offset, i) {
+    return tf((i - 1.5) * -5, offset, 0, 0, 0, (i - 1.5) * 4, 0.82);
+  }
+
+  function readyPad(epoch) {
+    return new Promise((resolve) => {
+      const st = el.throwStage;
+      const fill = document.getElementById("gauge-fill");
+      const msg = document.getElementById("pad-msg");
+      const maxPull = Math.min(230, Math.round(window.innerHeight * 0.32));
+      let y0 = null;
+      let pull = 0;
+
+      el.throwTitle.textContent = actor() + " 차례! 윷을 던져요";
+      el.bigResult.innerHTML = "";
+      el.bigResult.className = "big-result";
+      el.throwHint.classList.remove("show");
+      stickEls.forEach((s, i) => {
+        s.getAnimations().forEach((a) => a.cancel());
+        s.style.transform = heldPose(20, i);
+      });
+      st.classList.remove("out");
+      st.classList.add("ready");
+      st.hidden = false;
+      fill.style.width = "0%";
+      fill.className = "weak";
+      msg.textContent = "화면을 아래로 쭉 끌었다가 놓으면 던져요!";
+
+      const paint = () => {
+        const pw = pull / maxPull;
+        fill.style.width = Math.round(pw * 100) + "%";
+        fill.className = pw < POWER_MIN ? "weak" : pw > POWER_SAFE ? "over" : "good";
+        stickEls.forEach((s, i) => { s.style.transform = heldPose(20 + pull * 0.3, i); });
+        msg.textContent =
+          pw < POWER_MIN ? "조금 더 끌어 보세요" : pw > POWER_SAFE ? "너무 세요! 윷이 나갈 수 있어요" : "좋아요! 손을 놓으면 던져요";
+      };
+
+      const finish = (val) => {
+        st.removeEventListener("pointerdown", onDown);
+        st.removeEventListener("pointermove", onMove);
+        st.removeEventListener("pointerup", onUp);
+        st.removeEventListener("pointercancel", onCancel);
+        document.removeEventListener("keydown", onKey);
+        document.getElementById("pad-normal").onclick = null;
+        document.getElementById("pad-cancel").onclick = null;
+        st.classList.remove("ready");
+        padAbort = null;
+        resolve(val);
+      };
+      const onDown = (e) => {
+        if (e.target.closest(".pad-btn")) return;
+        y0 = e.clientY;
+        try { st.setPointerCapture(e.pointerId); } catch (err) {}
+      };
+      const onMove = (e) => {
+        if (y0 === null) return;
+        pull = Math.max(0, Math.min(maxPull, e.clientY - y0));
+        paint();
+      };
+      const onUp = () => {
+        if (y0 === null) return;
+        y0 = null;
+        const pw = pull / maxPull;
+        if (pw < POWER_MIN) {
+          pull = 0;
+          paint();
+          msg.textContent = "너무 약해요! 더 길게 끌었다가 놓아 보세요";
+          return;
+        }
+        finish(pw);
+      };
+      const onCancel = () => { y0 = null; pull = 0; paint(); };
+      const onKey = (e) => { if (e.key === "Escape") finish("cancel"); };
+
+      st.addEventListener("pointerdown", onDown);
+      st.addEventListener("pointermove", onMove);
+      st.addEventListener("pointerup", onUp);
+      st.addEventListener("pointercancel", onCancel);
+      document.addEventListener("keydown", onKey);
+      document.getElementById("pad-normal").onclick = () => finish(0.55);
+      document.getElementById("pad-cancel").onclick = () => finish("cancel");
+      padAbort = () => finish("cancel");
+    });
+  }
+
+  async function playThrow(flats, face, epoch, power, outSet) {
     const st = el.throwStage;
-    el.throwTitle.textContent = (state.current === 0 ? "홍(紅)" : "청(靑)") + "팀이 윷을 던집니다!";
+    el.throwTitle.textContent = actor() + " 던졌어요!";
     el.bigResult.innerHTML = "";
     el.bigResult.className = "big-result";
     el.throwHint.classList.remove("show");
-    stickEls.forEach((s) => {
-      s.getAnimations().forEach((a) => a.cancel());
-      s.style.transform = tf(0, 400, 0, 0, 0, 0, 0.7);
-    });
-    st.classList.remove("out");
+    st.classList.remove("out", "ready");
     st.hidden = false;
 
     const H = el.throwSticks.clientHeight || 220;
-    const dur = REDUCED ? 350 : 1500;
-    const gap = REDUCED ? 0 : 85;
+    const W = st.clientWidth || 400;
+    const dur = REDUCED ? 350 : Math.round(1100 + 700 * power);
+    const gap = REDUCED ? 0 : 80;
+    const lift = 0.6 + 1.4 * power;
     const finals = [];
 
     stickEls.forEach((s, i) => {
       const flat = flats[i];
+      const isOut = outSet.has(i);
+      const dir = Math.random() < 0.5 ? -1 : 1;
       const jx = Math.random() * 14 - 7;
       const jz = Math.random() * 10 - 5;
-      const spinX = (2 + Math.floor(Math.random() * 2)) * 360;
-      const spinY = (flat ? 0 : 180) + (3 + Math.floor(Math.random() * 2)) * 360;
-      const apex = -(H * 1.5 + Math.random() * H * 0.35);
-      const dx = Math.random() * 40 - 20;
-      const fin = tf(jx, 0, 0, spinX, spinY, jz, 1);
-      finals[i] = tf(jx, 0, 0, 0, flat ? 0 : 180, jz, 1);
-      const frames = [
-        { offset: 0, transform: tf(dx * 2, H * 0.9, 0, 0, 0, -25, 0.7), easing: "cubic-bezier(.15,.7,.35,1)" },
-        { offset: 0.42, transform: tf(dx, apex, 140, spinX * 0.62, spinY * 0.62, jz * 3, 1.25), easing: "cubic-bezier(.55,0,.85,.45)" },
-        { offset: 0.72, transform: fin, easing: "cubic-bezier(.2,.6,.4,1)" },
-        { offset: 0.84, transform: tf(jx, -H * 0.14, 0, spinX, spinY, jz, 1), easing: "cubic-bezier(.5,0,.8,.5)" },
-        { offset: 0.92, transform: fin, easing: "cubic-bezier(.2,.6,.4,1)" },
-        { offset: 0.96, transform: tf(jx, -H * 0.04, 0, spinX, spinY, jz, 1), easing: "cubic-bezier(.5,0,.8,.5)" },
-        { offset: 1, transform: fin },
-      ];
+      const turns = 1 + Math.floor(power * 3) + (Math.random() < 0.5 ? 1 : 0);
+      const spinX = turns * 360;
+      const spinY = (flat ? 0 : 180) + (2 + Math.floor(power * 2) + (Math.random() < 0.5 ? 1 : 0)) * 360;
+      const apex = -(H * lift + Math.random() * H * 0.25);
+      const dx = (Math.random() * 40 - 20) * (0.6 + power);
+      const start = tf(dx * 0.5, H * 0.45, 0, 0, 0, -10, 0.82);
+      const bounce = H * (0.07 + 0.12 * power);
+      let frames;
+      if (isOut) {
+        finals[i] = tf(dir * W * 0.95, H * 0.15, 0, 0, 0, dir * 60, 1);
+        frames = [
+          { offset: 0, transform: start, easing: "cubic-bezier(.15,.7,.35,1)" },
+          { offset: 0.4, transform: tf(dx, apex, 140, spinX * 0.6, spinY * 0.6, jz * 3, 1.25), easing: "cubic-bezier(.55,0,.85,.45)" },
+          { offset: 0.62, transform: tf(dir * W * 0.18, 0, 0, spinX, spinY, jz * 3, 1), easing: "cubic-bezier(.2,.6,.4,1)" },
+          { offset: 0.8, transform: tf(dir * W * 0.45, -H * 0.18, 0, spinX * 1.2, spinY, jz * 8, 1), easing: "ease-in" },
+          { offset: 1, transform: finals[i] },
+        ];
+      } else {
+        const fin = tf(jx, 0, 0, spinX, spinY, jz, 1);
+        finals[i] = tf(jx, 0, 0, 0, flat ? 0 : 180, jz, 1);
+        frames = [
+          { offset: 0, transform: start, easing: "cubic-bezier(.15,.7,.35,1)" },
+          { offset: 0.42, transform: tf(dx, apex, 140, spinX * 0.62, spinY * 0.62, jz * 3, 1.25), easing: "cubic-bezier(.55,0,.85,.45)" },
+          { offset: 0.72, transform: fin, easing: "cubic-bezier(.2,.6,.4,1)" },
+          { offset: 0.84, transform: tf(jx, -bounce, 0, spinX, spinY, jz, 1), easing: "cubic-bezier(.5,0,.8,.5)" },
+          { offset: 0.92, transform: fin, easing: "cubic-bezier(.2,.6,.4,1)" },
+          { offset: 0.96, transform: tf(jx, -bounce * 0.3, 0, spinX, spinY, jz, 1), easing: "cubic-bezier(.5,0,.8,.5)" },
+          { offset: 1, transform: fin },
+        ];
+      }
       s.animate(frames, { duration: dur, delay: i * gap, fill: "both", easing: "linear" });
-      setTimeout(() => { if (epoch === state.epoch) sfx("clack"); }, i * gap + dur * 0.72);
-      setTimeout(() => { if (epoch === state.epoch) sfx("soft"); }, i * gap + dur * 0.92);
+      if (isOut) {
+        setTimeout(() => { if (epoch === state.epoch) sfx("out"); }, i * gap + dur * 0.62);
+      } else {
+        setTimeout(() => { if (epoch === state.epoch) sfx("clack"); }, i * gap + dur * 0.72);
+        setTimeout(() => { if (epoch === state.epoch) sfx("soft"); }, i * gap + dur * 0.92);
+      }
     });
 
     await sleep(dur + 3 * gap + 80);
@@ -397,14 +549,14 @@
     });
 
     el.bigResult.innerHTML =
-      '<b class="br-name">' + face.name + "</b>" +
+      '<b class="br-name">' + face.name + (face.out ? "!" : "") + "</b>" +
       '<span class="br-sub">' + face.animal + " · " + face.label + "</span>" +
       (face.again ? '<em class="br-again">한 번 더!</em>' : "");
-    el.bigResult.className = "big-result show" + (face.again ? " big" : "");
+    el.bigResult.className = "big-result show" + (face.again ? " big" : "") + (face.out ? " bad" : "");
     el.throwHint.classList.add("show");
-    sfx(face.again ? "fanfare" : "ding");
+    sfx(face.out ? "out" : face.again ? "fanfare" : "ding");
 
-    const hold = REDUCED ? 500 : face.again ? 1800 : 1250;
+    const hold = REDUCED ? 500 : face.out ? 1700 : face.again ? 1800 : 1250;
     await new Promise((res) => {
       const t = setTimeout(res, hold);
       st.onclick = () => { clearTimeout(t); res(); };
@@ -424,17 +576,52 @@
     state.busy = true;
     const epoch = state.epoch;
 
-    const flats = [0, 0, 0, 0].map(() => Math.random() < 0.5);
-    const face = resolveFace(flats.filter(Boolean).length, flats);
+    const power = await readyPad(epoch);
+    if (epoch !== state.epoch) return;
+    if (power === "cancel") {
+      el.throwStage.hidden = true;
+      state.busy = false;
+      el.throwBtn.disabled = false;
+      return;
+    }
 
-    await playThrow(flats, face, epoch);
+    const flats = [0, 0, 0, 0].map(() => Math.random() < 0.5);
+    const isOut = Math.random() < outChance(power);
+    const outSet = new Set();
+    if (isOut) {
+      const n = power > 0.92 && Math.random() < 0.5 ? 2 : 1;
+      const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+      for (let k = 0; k < n; k++) outSet.add(order[k]);
+    }
+    const face = isOut ? FACE_OUT : resolveFace(flats.filter(Boolean).length, flats);
+
+    await playThrow(flats, face, epoch, power, outSet);
     if (epoch !== state.epoch) return;
 
     state.busy = false;
+    if (isOut) {
+      applyOut();
+      return;
+    }
     el.sticks.querySelectorAll(".stick").forEach((s, i) => {
       s.dataset.face = flats[i] ? "up" : "down";
     });
     applyFace(face);
+  }
+
+  // 낙: 윷이 판 밖으로 나가면 이번 던지기는 없던 일로 한다.
+  function applyOut() {
+    el.resultName.textContent = "낙";
+    el.resultSteps.textContent = "이번 던지기는 무효";
+    log(`${actor()} 윷이 판 밖으로 나갔어요! 낙 (이번 던지기는 무효)`, state.current);
+    el.throwBtn.disabled = true;
+    if (state.pendingMoves.length > 0 && hasAnyMove()) {
+      highlightMovable();
+      return;
+    }
+    state.pendingMoves = [];
+    renderMovesQueue();
+    finishOrBonus();
   }
 
   /* ---------- 말 걷기 (한 칸씩 폴짝) ---------- */
@@ -628,7 +815,7 @@
   function applyFace(face) {
     el.resultName.textContent = face.name;
     el.resultSteps.textContent = face.steps > 0 ? `+${face.steps}칸` : `${face.steps}칸`;
-    log(`${who(state.current)} ${face.name}${face.again ? " (한 번 더!)" : ""}`, state.current);
+    log(`${actor()} ${face.name}${face.again ? " (한 번 더!)" : ""}`, state.current);
 
     state.pendingMoves.push(face.steps);
     renderMovesQueue();
@@ -1001,10 +1188,11 @@
   }
 
   function endTurn() {
+    if (state.teamSize > 1) state.member[state.current] = (state.member[state.current] + 1) % state.teamSize;
     state.current = 1 - state.current;
     state.pendingMoves = [];
     renderMovesQueue();
-    el.resultName.textContent = `${who(state.current)} 차례`;
+    el.resultName.textContent = `${actorFull(state.current)} 차례`;
     el.resultSteps.textContent = "";
     state.bonusThrows = 0;
     enableThrow("윷 던지기");
@@ -1039,7 +1227,9 @@
   }
 
   function restart() {
+    if (padAbort) padAbort();
     state.current = 0;
+    state.member = [0, 0];
     state.players = [newPlayer(), newPlayer()];
     state.pendingMoves = [];
     state.gameOver = false;
@@ -1061,7 +1251,7 @@
     el.sticks.querySelectorAll(".stick").forEach((s) => (s.dataset.face = "up"));
     renderBoard();
     renderMovesQueue();
-    log("새 게임을 시작합니다. 홍 차례!", 0);
+    log(`새 게임을 시작합니다. ${actorFull(0)} 차례!`, 0);
   }
 
   /* =====================================================
@@ -1117,7 +1307,8 @@
       body:
         '<div class="hp-art">' + sticks("frfr") + "</div>" +
         '<p class="hp-big">옛날에는 <b>설날</b>이나 <b>정월 대보름</b> 같은 명절에<br>가족과 이웃이 모여 윷놀이를 했어요.</p>' +
-        '<p>홍팀과 청팀이 말을 <b>4개</b>씩 가지고,<br>먼저 <b>한 바퀴</b> 돌려 보내는 팀이 이겨요.</p>',
+        '<p>홍팀과 청팀이 말을 <b>4개</b>씩 가지고,<br>먼저 <b>한 바퀴</b> 돌려 보내는 팀이 이겨요.</p>' +
+        '<p class="hp-tip">1:1부터 4:4까지 할 수 있어요.<br>팀 친구들이 <b>자기 차례에</b> 윷을 던지고 말을 옮겨요.</p>',
     },
     {
       title: "① 윷을 던져요",
@@ -1130,7 +1321,8 @@
         "<li>" + sticks("ffff") + "<b>윷</b><span>4칸 · 소 · <em>한 번 더!</em></span></li>" +
         "<li>" + sticks("rrrr") + "<b>모</b><span>5칸 · 말 · <em>한 번 더!</em></span></li>" +
         "<li>" + sticks("Frrr") + "<b>백도</b><span>×표 윷만 평평하면 1칸 뒤로</span></li>" +
-        "</ul>",
+        "</ul>" +
+        '<p class="hp-tip">던질 때는 화면을 <b>아래로 쭉 끌었다가 놓아요</b>.<br>너무 세게 던지면 윷이 판 밖으로 나가 <b>낙</b>! (그 던지기는 없던 일이 돼요)</p>',
     },
     {
       title: "② 말을 움직여요",
@@ -1185,9 +1377,86 @@
     document.getElementById("help-modal").hidden = false;
   }
 
+  let helpAutoSetup = true;
+
   function closeHelp() {
-    document.getElementById("help-modal").hidden = true;
+    const m = document.getElementById("help-modal");
+    if (m.hidden) return;
+    m.hidden = true;
+    if (helpAutoSetup) {
+      helpAutoSetup = false;
+      openSetup(true);
+    }
   }
+
+  /* ---------- 게임 설정 (1:1 ~ 4:4) ---------- */
+  const setupUI = { n: 1, fromStart: true };
+
+  function cleanName(v) {
+    return String(v || "").replace(/[<>&"'`]/g, "").trim().slice(0, 6);
+  }
+
+  function buildNames() {
+    const box = document.getElementById("names");
+    box.innerHTML = "";
+    [0, 1].forEach((t) => {
+      const col = document.createElement("div");
+      col.className = "names-col p" + t;
+      const h = document.createElement("b");
+      h.textContent = t === 0 ? "홍팀" : "청팀";
+      col.appendChild(h);
+      for (let i = 0; i < setupUI.n; i++) {
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.maxLength = 6;
+        inp.placeholder = i + 1 + "번 이름 (안 써도 돼요)";
+        inp.dataset.team = t;
+        inp.dataset.idx = i;
+        inp.value = state.names[t][i] || "";
+        col.appendChild(inp);
+      }
+      box.appendChild(col);
+    });
+  }
+
+  function syncSizeButtons() {
+    document.querySelectorAll(".size-btn").forEach((b) => {
+      b.classList.toggle("on", Number(b.dataset.n) === setupUI.n);
+    });
+  }
+
+  function openSetup(fromStart) {
+    setupUI.fromStart = fromStart;
+    setupUI.n = state.teamSize;
+    document.getElementById("setup-cancel").hidden = fromStart;
+    syncSizeButtons();
+    buildNames();
+    document.getElementById("setup-modal").hidden = false;
+  }
+
+  document.querySelectorAll(".size-btn").forEach((b) => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#names input").forEach((inp) => {
+        state.names[Number(inp.dataset.team)][Number(inp.dataset.idx)] = cleanName(inp.value);
+      });
+      setupUI.n = Number(b.dataset.n);
+      syncSizeButtons();
+      buildNames();
+    });
+  });
+  document.getElementById("setup-cancel").addEventListener("click", () => {
+    document.getElementById("setup-modal").hidden = true;
+  });
+  document.getElementById("setup-start").addEventListener("click", () => {
+    const names = [[], []];
+    document.querySelectorAll("#names input").forEach((inp) => {
+      names[Number(inp.dataset.team)][Number(inp.dataset.idx)] = cleanName(inp.value);
+    });
+    state.names = names;
+    state.teamSize = setupUI.n;
+    document.getElementById("setup-modal").hidden = true;
+    restart();
+  });
 
   document.getElementById("help-btn").addEventListener("click", openHelp);
   document.getElementById("help-skip").addEventListener("click", closeHelp);
@@ -1199,7 +1468,7 @@
     else { helpState.i += 1; renderHelp(); }
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeHelp();
+    if (e.key === "Escape" && !document.getElementById("help-modal").hidden) closeHelp();
   });
 
   el.soundBtn.addEventListener("click", () => {
@@ -1212,7 +1481,7 @@
   buildThrowSticks();
   syncSoundBtn();
   el.throwBtn.addEventListener("click", throwYut);
-  el.restartBtn.addEventListener("click", restart);
+  el.restartBtn.addEventListener("click", () => openSetup(false));
   el.winRestart.addEventListener("click", restart);
 
   restart();
