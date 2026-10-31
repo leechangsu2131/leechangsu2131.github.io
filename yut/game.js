@@ -389,13 +389,14 @@
 
   /* ---------- 힘 조절 (끌었다 놓아 던지기) ---------- */
   const POWER_MIN = 0.12;
-  const POWER_SAFE = 0.78;
+  const POWER_LOW = 0.3; // 이보다 약하면 "약함"
+  const POWER_SAFE = 0.68; // 이보다 세면 낙 위험
   const FACE_OUT = { name: "낙", steps: 0, out: true, animal: "윷이 판 밖으로 나갔어요", label: "이번 던지기는 무효" };
   let padAbort = null;
 
   function outChance(power) {
     if (power <= POWER_SAFE) return 0;
-    return Math.min(0.85, Math.pow((power - POWER_SAFE) / (1 - POWER_SAFE), 1.2) * 0.85);
+    return Math.min(0.9, ((power - POWER_SAFE) / (1 - POWER_SAFE)) * 0.9);
   }
 
   function heldPose(offset, i) {
@@ -429,10 +430,10 @@
       const paint = () => {
         const pw = pull / maxPull;
         fill.style.width = Math.round(pw * 100) + "%";
-        fill.className = pw < POWER_MIN ? "weak" : pw > POWER_SAFE ? "over" : "good";
+        fill.className = pw < POWER_LOW ? "weak" : pw > POWER_SAFE ? "over" : "good";
         stickEls.forEach((s, i) => { s.style.transform = heldPose(20 + pull * 0.3, i); });
         msg.textContent =
-          pw < POWER_MIN ? "조금 더 끌어 보세요" : pw > POWER_SAFE ? "너무 세요! 윷이 나갈 수 있어요" : "좋아요! 손을 놓으면 던져요";
+          pw < POWER_MIN ? "조금 더 끌어 보세요" : pw < POWER_LOW ? "약해요. 조금 더!" : pw > POWER_SAFE ? "너무 세요! 윷이 나갈 수 있어요" : "좋아요! 손을 놓으면 던져요 (손이 떨릴 수 있어요)";
       };
 
       const finish = (val) => {
@@ -467,7 +468,8 @@
           msg.textContent = "너무 약해요! 더 길게 끌었다가 놓아 보세요";
           return;
         }
-        finish(pw);
+        // 손이 떨려서 놓는 순간 힘이 조금 달라진다.
+        finish(Math.max(POWER_MIN, Math.min(1, pw + (Math.random() - 0.5) * 0.16)));
       };
       const onCancel = () => { y0 = null; pull = 0; paint(); };
       const onKey = (e) => { if (e.key === "Escape") finish("cancel"); };
@@ -477,7 +479,7 @@
       st.addEventListener("pointerup", onUp);
       st.addEventListener("pointercancel", onCancel);
       document.addEventListener("keydown", onKey);
-      document.getElementById("pad-normal").onclick = () => finish(0.55);
+      document.getElementById("pad-normal").onclick = () => finish(0.25 + Math.random() * 0.65);
       document.getElementById("pad-cancel").onclick = () => finish("cancel");
       padAbort = () => finish("cancel");
     });
@@ -485,7 +487,7 @@
 
   async function playThrow(flats, face, epoch, power, outSet) {
     const st = el.throwStage;
-    el.throwTitle.textContent = actor() + " 던졌어요!";
+    el.throwTitle.textContent = actor() + " 던졌어요! (힘 " + Math.round(power * 100) + "%)";
     el.bigResult.innerHTML = "";
     el.bigResult.className = "big-result";
     el.throwHint.classList.remove("show");

@@ -948,15 +948,15 @@ body {
 .throw-stage.ready .throw-hint { display: none; }
 .pad-msg { margin: 0 0 8px; font-family: "Jua", var(--font); font-size: clamp(19px, 4.6vw, 26px); color: #ffe27a; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
 .gauge { position: relative; height: 26px; border-radius: 999px; overflow: hidden; border: 2px solid rgba(255,255,255,0.35);
-  background: linear-gradient(90deg, rgba(180,190,200,0.35) 0 12%, rgba(120,200,140,0.35) 12% 78%, rgba(240,150,140,0.4) 78% 100%); }
+  background: linear-gradient(90deg, rgba(180,190,200,0.35) 0 30%, rgba(120,200,140,0.35) 30% 68%, rgba(240,150,140,0.4) 68% 100%); }
 .gauge i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; transition: background 0.1s; }
 .gauge i.weak { background: #9fb0bd; }
 .gauge i.good { background: #3fbf6a; }
 .gauge i.over { background: #e5483b; }
 .gauge-labels { display: flex; margin-top: 4px; font-size: 13px; color: #f6e8c8; }
-.gauge-labels .z1 { width: 12%; text-align: left; }
-.gauge-labels .z2 { width: 66%; text-align: center; }
-.gauge-labels .z3 { width: 22%; text-align: right; white-space: nowrap; }
+.gauge-labels .z1 { width: 30%; text-align: left; }
+.gauge-labels .z2 { width: 38%; text-align: center; }
+.gauge-labels .z3 { width: 32%; text-align: right; white-space: nowrap; }
 .pad-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
 .big-result.bad .br-name { color: #ffb4a8; -webkit-text-stroke-color: #6e1a12; text-shadow: 0 6px 0 #6e1a12, 0 12px 28px rgba(0,0,0,0.5); }
 
