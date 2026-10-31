@@ -403,14 +403,17 @@
     return tf((i - 1.5) * -5, offset, 0, 0, 0, (i - 1.5) * 4, 0.82);
   }
 
+  // 타이밍 방식: 화면을 꾹 누르면 게이지가 오르락내리락하고, 손을 놓는 순간의 힘으로 던진다.
   function readyPad(epoch) {
     return new Promise((resolve) => {
       const st = el.throwStage;
       const fill = document.getElementById("gauge-fill");
       const msg = document.getElementById("pad-msg");
-      const maxPull = Math.min(230, Math.round(window.innerHeight * 0.32));
-      let y0 = null;
-      let pull = 0;
+      let charging = false;
+      let t0 = 0;
+      let period = 1000;
+      let raf = 0;
+      let pw = 0;
 
       el.throwTitle.textContent = actor() + " 차례! 윷을 던져요";
       el.bigResult.innerHTML = "";
@@ -425,20 +428,27 @@
       st.hidden = false;
       fill.style.width = "0%";
       fill.className = "weak";
-      msg.textContent = "화면을 아래로 쭉 끌었다가 놓으면 던져요!";
+      msg.textContent = "화면을 꾹 누르고 있다가, 게이지가 초록색일 때 손을 놓으세요!";
 
       const paint = () => {
-        const pw = pull / maxPull;
         fill.style.width = Math.round(pw * 100) + "%";
         fill.className = pw < POWER_LOW ? "weak" : pw > POWER_SAFE ? "over" : "good";
-        stickEls.forEach((s, i) => { s.style.transform = heldPose(20 + pull * 0.3, i); });
-        msg.textContent =
-          pw < POWER_MIN ? "조금 더 끌어 보세요" : pw < POWER_LOW ? "약해요. 조금 더!" : pw > POWER_SAFE ? "너무 세요! 윷이 나갈 수 있어요" : "좋아요! 손을 놓으면 던져요 (손이 떨릴 수 있어요)";
+        stickEls.forEach((s, i) => { s.style.transform = heldPose(20 + pw * 40, i); });
+        msg.textContent = pw < POWER_LOW ? "아직 약해요…" : pw > POWER_SAFE ? "너무 세요! 윷이 나갈 수 있어요" : "지금이에요! 손을 놓으세요!";
+      };
+
+      const tick = (now) => {
+        if (!charging) return;
+        const ph = ((now - t0) / period) % 1;
+        pw = ph < 0.5 ? ph * 2 : (1 - ph) * 2;
+        paint();
+        raf = requestAnimationFrame(tick);
       };
 
       const finish = (val) => {
+        charging = false;
+        cancelAnimationFrame(raf);
         st.removeEventListener("pointerdown", onDown);
-        st.removeEventListener("pointermove", onMove);
         st.removeEventListener("pointerup", onUp);
         st.removeEventListener("pointercancel", onCancel);
         document.removeEventListener("keydown", onKey);
@@ -449,33 +459,35 @@
         resolve(val);
       };
       const onDown = (e) => {
-        if (e.target.closest(".pad-btn")) return;
-        y0 = e.clientY;
+        if (e.target.closest(".pad-btn") || charging) return;
         try { st.setPointerCapture(e.pointerId); } catch (err) {}
-      };
-      const onMove = (e) => {
-        if (y0 === null) return;
-        pull = Math.max(0, Math.min(maxPull, e.clientY - y0));
-        paint();
+        charging = true;
+        period = 800 + Math.random() * 600; // 던질 때마다 눈금 속도가 달라요
+        t0 = performance.now();
+        raf = requestAnimationFrame(tick);
       };
       const onUp = () => {
-        if (y0 === null) return;
-        y0 = null;
-        const pw = pull / maxPull;
+        if (!charging) return;
+        charging = false;
+        cancelAnimationFrame(raf);
         if (pw < POWER_MIN) {
-          pull = 0;
+          pw = 0;
           paint();
-          msg.textContent = "너무 약해요! 더 길게 끌었다가 놓아 보세요";
+          msg.textContent = "너무 빨리 놓았어요! 다시 꾹 눌러 보세요";
           return;
         }
-        // 손이 떨려서 놓는 순간 힘이 조금 달라진다.
-        finish(Math.max(POWER_MIN, Math.min(1, pw + (Math.random() - 0.5) * 0.16)));
+        finish(pw);
       };
-      const onCancel = () => { y0 = null; pull = 0; paint(); };
+      const onCancel = () => {
+        charging = false;
+        cancelAnimationFrame(raf);
+        pw = 0;
+        paint();
+        msg.textContent = "화면을 꾹 누르고 있다가, 게이지가 초록색일 때 손을 놓으세요!";
+      };
       const onKey = (e) => { if (e.key === "Escape") finish("cancel"); };
 
       st.addEventListener("pointerdown", onDown);
-      st.addEventListener("pointermove", onMove);
       st.addEventListener("pointerup", onUp);
       st.addEventListener("pointercancel", onCancel);
       document.addEventListener("keydown", onKey);
@@ -1355,7 +1367,7 @@
         "<li>" + sticks("rrrr") + "<b>모</b><span>5칸 · 말 · <em>한 번 더!</em></span></li>" +
         "<li>" + sticks("Frrr") + "<b>백도</b><span>×표 윷만 평평하면 1칸 뒤로</span></li>" +
         "</ul>" +
-        '<p class="hp-tip">던질 때는 화면을 <b>아래로 쭉 끌었다가 놓아요</b>.<br>너무 세게 던지면 윷이 판 밖으로 나가 <b>낙</b>! (그 던지기는 없던 일이 돼요)</p>',
+        '<p class="hp-tip">던질 때는 화면을 <b>꾹 누르고</b> 있다가 게이지가 <b>초록색</b>일 때 손을 놓아요.<br>너무 세게 던지면 윷이 판 밖으로 나가 <b>낙</b>! (그 던지기는 없던 일이 돼요)</p>',
     },
     {
       title: "② 말을 움직여요",
