@@ -23,6 +23,7 @@
     selected: null,
     autoTimer: null,
     teamSize: 1,
+    borderBack: false,
     names: [[], []],
     member: [0, 0],
   };
@@ -135,6 +136,22 @@
         route = routesThrough(fromId)[0].route;
       }
       idx = route.indexOf(fromId);
+    }
+
+    // 지역 규칙: 뒷도는 테두리로만 돌아간다 (샛길 안쪽 칸은 갈라진 모서리로, 테두리 칸은 테두리 앞 칸으로)
+    if (steps < 0 && state.borderBack) {
+      const outer = ROUTES[0];
+      const INNER_BRANCH = { d1: "c_tr", d2: "c_tr", d3: "c_tr", d4: "c_tr", e1: "c_tl", e2: "c_tl", e3: "c_tl", e4: "c_tl" };
+      let branch = INNER_BRANCH[fromId] || null;
+      if (fromId === "center") branch = route === ROUTES[1] ? "c_tr" : "c_tl";
+      if (branch) {
+        const bi = outer.indexOf(branch);
+        return { finished: false, dest: branch, route: outer, idx: bi, atEnd: false, nodes: [branch] };
+      }
+      let oi = outer.indexOf(fromId);
+      if (fromId === "o0" && idx > 0) oi = outer.length - 2;
+      const ti = Math.max(0, oi + steps);
+      return { finished: false, dest: outer[ti], route: outer, idx: ti, atEnd: false, nodes: [outer[ti]] };
     }
 
     const target = idx + steps;
@@ -1473,6 +1490,7 @@
   function openSetup(fromStart) {
     setupUI.fromStart = fromStart;
     setupUI.n = state.teamSize;
+    document.getElementById("opt-border-back").checked = state.borderBack;
     document.getElementById("setup-cancel").hidden = fromStart;
     syncSizeButtons();
     buildNames();
@@ -1499,6 +1517,7 @@
     });
     state.names = names;
     state.teamSize = setupUI.n;
+    state.borderBack = document.getElementById("opt-border-back").checked;
     document.getElementById("setup-modal").hidden = true;
     restart();
   });
