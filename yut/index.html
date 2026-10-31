@@ -94,7 +94,7 @@
       <div class="control-actions">
         <button id="throw-btn" class="btn btn-primary" type="button">
           <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2 2m8 8l2 2m0-12l-2 2M8 16l-2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          윷 던지기
+          <span id="throw-label">윷 던지기</span>
         </button>
         <div class="moves-queue" id="moves-queue" aria-label="사용 가능한 이동" role="list"></div>
       </div>
@@ -120,6 +120,7 @@
 
   <div class="modal-backdrop" id="help-modal" hidden>
     <div class="modal help" role="dialog" aria-modal="true" aria-label="윷놀이 방법">
+      <button id="help-skip" class="help-skip" type="button">건너뛰기 ✕</button>
       <div class="help-dots" id="help-dots" aria-hidden="true"></div>
       <div id="help-body"></div>
       <div class="help-nav">

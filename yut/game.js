@@ -16,7 +16,7 @@
     current: 0,
     players: [newPlayer(), newPlayer()],
     pendingMoves: [],
-    captureBonus: false,
+    bonusThrows: 0,
     gameOver: false,
     busy: false,
     epoch: 0,
@@ -537,7 +537,7 @@
     await sleep(REDUCED ? 20 : 120);
   }
 
-  async function runMove(startId, result, stackCount, fromHome, fromPos) {
+  async function runMove(startId, result, stackCount, fromHome, fromPos, usedSteps) {
     const epoch = state.epoch;
     const pIdx = state.current;
     state.busy = true;
@@ -611,7 +611,7 @@
 
     w.remove();
     state.busy = false;
-    finalizeMove(result, stackCount);
+    finalizeMove(result, stackCount, usedSteps);
   }
 
   function resolveFace(upCount, flats) {
@@ -634,7 +634,7 @@
     renderMovesQueue();
 
     if (face.again) {
-      el.throwBtn.disabled = false;
+      enableThrow("한 번 더 던지기!");
       log(`${who(state.current)} 한 번 더 던지세요.`, state.current);
       return;
     }
@@ -647,7 +647,7 @@
       log("움직일 수 있는 말이 없어 차례를 넘깁니다.", null);
       state.pendingMoves = [];
       renderMovesQueue();
-      endTurn();
+      finishOrBonus();
     }
   }
 
@@ -866,7 +866,7 @@
     renderTokens();
     // 출발점(o0)에서 윷 결과만큼 앞으로: 도=첫째 칸, 모=모서리
     const result = advance("o0", ROUTES[0], steps);
-    runMove("o0", result, 1, true, fromPos);
+    runMove("o0", result, 1, true, fromPos, steps);
   }
 
   function moveToken(at, steps) {
@@ -881,7 +881,7 @@
     clearChipHandlers();
     clearHighlights();
     renderTokens();
-    runMove(at, result, stackCount, false);
+    runMove(at, result, stackCount, false, null, steps);
   }
 
   function clearHighlights(keepSelected) {
@@ -901,7 +901,7 @@
     setGuide("");
   }
 
-  function finalizeMove(result, stackCount) {
+  function finalizeMove(result, stackCount, usedSteps) {
     clearChipHandlers();
     clearHighlights();
 
@@ -915,7 +915,7 @@
     }
 
     const dest = result.dest;
-    captured(dest);
+    captured(dest, usedSteps);
 
     const existing = player.tokens.filter((t) => t.at === dest);
     if (existing.length > 0) {
@@ -930,7 +930,9 @@
     afterMove();
   }
 
-  function captured(dest) {
+  // 잡기 보너스: 윷·모로 잡으면 (윷·모로 이미 받은 '한 번 더'와 합쳐) 따로 더 주지 않는다.
+  // 도·개·걸로 잡으면 한 번 더. 한 번에 여러 말을 잡거나 잡으면서 업어도 한 번만.
+  function captured(dest, usedSteps) {
     const opp = state.players[1 - state.current];
     const victims = opp.tokens.filter((t) => t.at === dest);
     if (victims.length > 0) {
@@ -938,8 +940,12 @@
       victims.forEach((v) => (count += v.stack));
       opp.tokens = opp.tokens.filter((t) => t.at !== dest);
       opp.home += count;
-      log(`${who(state.current)} 상대 말 ${count}개를 잡았습니다! (한 번 더)`, state.current);
-      state.captureBonus = true;
+      if (usedSteps >= 4) {
+        log(`${who(state.current)} 상대 말 ${count}개를 잡았습니다! (윷·모로 잡아서 '한 번 더'는 이미 받았어요)`, state.current);
+      } else {
+        state.bonusThrows += 1;
+        log(`${who(state.current)} 상대 말 ${count}개를 잡았습니다! (한 번 더)`, state.current);
+      }
     }
   }
 
@@ -961,19 +967,27 @@
       renderMovesQueue();
     }
 
-    if (state.captureBonus) {
-      state.captureBonus = false;
-      el.throwBtn.disabled = false;
-      log(`${who(state.current)} 보너스! 한 번 더 던지세요.`, state.current);
+    finishOrBonus();
+  }
+
+  // 말을 다 움직인 뒤: 남은 던질 기회가 있으면 던지게 하고, 없으면 차례를 넘긴다.
+  function finishOrBonus() {
+    if (state.bonusThrows > 0) {
+      state.bonusThrows -= 1;
+      enableThrow("한 번 더 던지기!");
+      log(`${who(state.current)} 잡아서 한 번 더! 윷을 던지세요.`, state.current);
       return;
     }
-
     if (!el.throwBtn.disabled) {
       log(`${who(state.current)} 한 번 더 던지세요.`, state.current);
       return;
     }
-
     endTurn();
+  }
+
+  function enableThrow(label) {
+    el.throwBtn.disabled = false;
+    document.getElementById("throw-label").textContent = label || "윷 던지기";
   }
 
   function checkWin() {
@@ -992,7 +1006,8 @@
     renderMovesQueue();
     el.resultName.textContent = `${who(state.current)} 차례`;
     el.resultSteps.textContent = "";
-    el.throwBtn.disabled = false;
+    state.bonusThrows = 0;
+    enableThrow("윷 던지기");
     updateStats();
   }
 
@@ -1028,7 +1043,7 @@
     state.players = [newPlayer(), newPlayer()];
     state.pendingMoves = [];
     state.gameOver = false;
-    state.captureBonus = false;
+    state.bonusThrows = 0;
     state.epoch += 1;
     state.busy = false;
     state.selected = null;
@@ -1039,7 +1054,7 @@
     el.throwStage.onclick = null;
     el.banner.className = "board-banner";
     el.winModal.hidden = true;
-    el.throwBtn.disabled = false;
+    enableThrow("윷 던지기");
     el.resultName.textContent = "윷을 던지세요";
     el.resultSteps.textContent = "";
     el.logList.innerHTML = "";
@@ -1128,7 +1143,7 @@
       title: "③ 잡기와 업기",
       body:
         '<div class="hp-two">' +
-        '<div><div class="hp-art"><span class="hp-tk p0">홍</span><span class="hp-arrow">→</span><span class="hp-tk p1">청</span></div><b>잡기</b><p>상대 말이 있는 칸에 멈추면 잡아요.<br>잡힌 말은 <b>남은 말</b>로 돌아가고,<br>나는 <b>한 번 더</b> 던져요!</p></div>' +
+        '<div><div class="hp-art"><span class="hp-tk p0">홍</span><span class="hp-arrow">→</span><span class="hp-tk p1">청</span></div><b>잡기</b><p>상대 말이 있는 칸에 멈추면 잡아요.<br>잡힌 말은 <b>남은 말</b>로 돌아가고,<br>나는 <b>한 번 더</b> 던져요!<br><span class="hp-sm">(윷·모로 잡으면 이미 받은 “한 번 더”와 합쳐서 한 번만이에요.)</span></p></div>' +
         '<div><div class="hp-art"><span class="hp-tk p0">홍</span><span class="hp-plus">+</span><span class="hp-tk p0">홍</span><span class="hp-arrow">=</span><span class="hp-tk p0 big2">2</span></div><b>업기</b><p>내 말끼리 한 칸에 만나면<br>함께 업고 가요. 숫자가 말의 개수예요.</p></div>' +
         "</div>",
     },
@@ -1175,6 +1190,7 @@
   }
 
   document.getElementById("help-btn").addEventListener("click", openHelp);
+  document.getElementById("help-skip").addEventListener("click", closeHelp);
   document.getElementById("help-prev").addEventListener("click", () => {
     if (helpState.i > 0) { helpState.i -= 1; renderHelp(); }
   });
