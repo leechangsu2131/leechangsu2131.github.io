@@ -84,7 +84,7 @@
       "c_tl", "l1", "l2", "l3", "l4",
       "c_bl", "b1", "b2", "b3", "b4",
     ];
-    const OUTER = outerLoop.concat(["FIN"]);
+    const OUTER = outerLoop.concat(["o0", "FIN"]);
 
     const tr = outerLoop.indexOf("c_tr");
     const tl = outerLoop.indexOf("c_tl");
@@ -93,10 +93,10 @@
     const SC_TR = outerLoop.slice(0, tr + 1)
       .concat(["d1", "d2", "center", "d3", "d4"])
       .concat(outerLoop.slice(bl))
-      .concat(["FIN"]);
+      .concat(["o0", "FIN"]);
 
     const SC_TL = outerLoop.slice(0, tl + 1)
-      .concat(["e1", "e2", "center", "e3", "e4", "FIN"]);
+      .concat(["e1", "e2", "center", "e3", "e4", "o0", "FIN"]);
 
     return [OUTER, SC_TR, SC_TL];
   }
@@ -110,17 +110,21 @@
     return result;
   }
 
-  function advance(fromId, fromRoute, steps) {
+  // 길 끝에는 결승 칸(출발 칸과 같은 자리)이 한 칸 더 있고, 그 칸을 지나가야 완주(FIN)이다.
+  function advance(fromId, fromRoute, steps, fromIdx) {
     let route = fromRoute;
-    let idx;
+    let idx = null;
     if (route) {
-      idx = route.indexOf(fromId);
-      if (idx === -1) {
-        route = null;
+      if (typeof fromIdx === "number" && route[fromIdx] === fromId) {
+        idx = fromIdx;
+      } else {
+        idx = route.indexOf(fromId);
+        if (idx === -1) route = null;
       }
     }
-    // 모서리 칸에 멈춰 있던 말은 앞으로 갈 때 지름길(대각선)로 들어간다.
-    if (steps > 0 && (fromId === "c_tr" || fromId === "c_tl")) {
+    // 모서리·가운데 칸에 멈춰 있던 말은 앞으로 갈 때 지름길(대각선)로 들어간다.
+    // 가운데에서는 결승(출발) 쪽 대각선으로 간다.
+    if (steps > 0 && (fromId === "c_tr" || fromId === "c_tl" || fromId === "center")) {
       route = preferShortcut(fromId);
       idx = route.indexOf(fromId);
     }
@@ -138,10 +142,10 @@
       return { finished: true, nodes: route.slice(idx + 1, route.length - 1) };
     }
     if (target < 0) {
-      return { finished: false, dest: "o0", route: ROUTES[0], nodes: ["o0"] };
+      return { finished: false, dest: "o0", route: ROUTES[0], idx: 0, atEnd: false, nodes: ["o0"] };
     }
     const nodes = steps > 0 ? route.slice(idx + 1, target + 1) : [route[target]];
-    return { finished: false, dest: route[target], route, nodes };
+    return { finished: false, dest: route[target], route, idx: target, atEnd: target === route.length - 2, nodes };
   }
 
   function isShortcutJunction(nodeId) {
@@ -151,14 +155,14 @@
   function preferShortcut(nodeId) {
     if (nodeId === "c_tr") return ROUTES[1];
     if (nodeId === "c_tl") return ROUTES[2];
-    if (nodeId === "center") return ROUTES[1];
+    if (nodeId === "center") return ROUTES[2];
     return ROUTES[0];
   }
 
   function computePath(token, steps) {
     const fromId = token.at;
     const fromRoute = token.route || null;
-    return advance(fromId, fromRoute, steps);
+    return advance(fromId, fromRoute, steps, token.idx);
   }
 
   function renderBoard() {
@@ -760,7 +764,7 @@
 
     const player = state.players[pIdx];
     if (result.finished) {
-      await hop(w, prev, "o0");
+      if (prev !== "o0") await hop(w, prev, "o0");
       if (epoch !== state.epoch) return;
       banner("완주!", "done");
       sfx("fanfare");
@@ -902,13 +906,13 @@
     let r;
     if (src.kind === "home") {
       if (steps <= 0 || player.home <= 0) return null;
-      r = advance("o0", ROUTES[0], steps);
+      r = advance("o0", ROUTES[0], steps, 0);
     } else {
       const tok = player.tokens.find((t) => t.at === src.at);
       if (!tok) return null;
       r = computePath(tok, steps);
     }
-    return { finished: !!r.finished, dest: r.finished ? "o0" : r.dest, nodes: r.nodes || [] };
+    return { finished: !!r.finished, atEnd: !!r.atEnd, dest: r.finished ? "o0" : r.dest, nodes: r.nodes || [] };
   }
 
   // 던진 뒤 말을 고르는 단계: 말 누르기 → 갈 수 있는 칸이 미리 보임 → 칸 누르기
@@ -977,32 +981,58 @@
 
     const player = state.players[state.current];
     const opp = state.players[1 - state.current];
-    const opts = new Map();
+    const list = [];
     [...new Set(state.pendingMoves)].forEach((st) => {
       const pv = previewMove(sel, st);
       if (!pv) return;
-      const prev = opts.get(pv.dest);
-      if (!prev || (pv.finished && st < prev.steps)) opts.set(pv.dest, { steps: st, pv });
+      const same = list.find((x) => x.pv.dest === pv.dest && x.pv.finished === pv.finished);
+      if (!same) list.push({ steps: st, pv });
+      else if (pv.finished && st < same.steps) {
+        same.steps = st;
+        same.pv = pv;
+      }
     });
+    const byNode = new Map();
+    list.forEach((o) => {
+      if (!byNode.has(o.pv.dest)) byNode.set(o.pv.dest, []);
+      byNode.get(o.pv.dest).push(o);
+    });
+    const opts = { size: list.length, values: () => list };
 
-    opts.forEach((o, destId) => {
+    byNode.forEach((group, destId) => {
       const n = nodeEl(destId);
       if (!n) return;
-      o.pv.nodes.forEach((pid) => {
-        if (pid === destId) return;
-        const pn = nodeEl(pid);
-        if (pn) pn.classList.add("on-path");
+      group.forEach((o) => {
+        o.pv.nodes.forEach((pid) => {
+          if (pid === destId) return;
+          const pn = nodeEl(pid);
+          if (pn) pn.classList.add("on-path");
+        });
       });
       n.classList.add("dest");
-      let label = STEP_NAME[o.steps] || "";
-      if (o.pv.finished) label += " · 완주";
-      else if (opp.tokens.some((t) => t.at === destId)) label += " · 잡기!";
-      else if (player.tokens.some((t) => t.at === destId && !(sel.kind === "board" && sel.at === destId))) label += " · 업기";
       const m = document.createElement("div");
       m.className = "dest-marker p" + state.current;
-      m.innerHTML = '<span class="dest-label">' + label + "</span>";
+      const wrap = document.createElement("div");
+      wrap.className = "dest-labels";
+      group.forEach((o) => {
+        let label = STEP_NAME[o.steps] || "";
+        if (o.pv.finished) label += " · 완주!";
+        else if (opp.tokens.some((t) => t.at === destId)) label += " · 잡기!";
+        else if (o.pv.atEnd) label += " · 결승 칸 도착";
+        else if (player.tokens.some((t) => t.at === destId && !(sel.kind === "board" && sel.at === destId))) label += " · 업기";
+        const sp = document.createElement("span");
+        sp.className = "dest-label";
+        sp.textContent = label;
+        if (group.length > 1) {
+          sp.classList.add("pick");
+          sp.style.pointerEvents = "auto";
+          sp.onclick = (ev) => { ev.stopPropagation(); executeMove(sel, o.steps); };
+        }
+        wrap.appendChild(sp);
+      });
+      m.appendChild(wrap);
       n.appendChild(m);
-      n.onclick = () => executeMove(sel, o.steps);
+      if (group.length === 1) n.onclick = () => executeMove(sel, group[0].steps);
     });
 
     setGuide(
@@ -1010,7 +1040,7 @@
         ? "가고 싶은 칸을 누르세요. 초록색 칸마다 쓸 윷 결과가 적혀 있어요."
         : "초록색으로 반짝이는 칸을 누르면 말이 움직여요."
     );
-    const only = opts.size === 1 ? [...opts.values()][0] : null;
+    const only = opts.size === 1 ? list[0] : null;
     return { count: opts.size, steps: only ? only.steps : 0 };
   }
 
@@ -1052,7 +1082,7 @@
     clearHighlights();
     renderTokens();
     // 출발점(o0)에서 윷 결과만큼 앞으로: 도=첫째 칸, 모=모서리
-    const result = advance("o0", ROUTES[0], steps);
+    const result = advance("o0", ROUTES[0], steps, 0);
     runMove("o0", result, 1, true, fromPos, steps);
   }
 
@@ -1108,9 +1138,10 @@
     if (existing.length > 0) {
       existing[0].stack += stackCount;
       existing[0].route = result.route;
+      existing[0].idx = result.idx;
       log(`${who(state.current)} 말을 업었습니다.`, state.current);
     } else {
-      player.tokens.push({ at: dest, stack: stackCount, route: result.route });
+      player.tokens.push({ at: dest, stack: stackCount, route: result.route, idx: result.idx });
     }
 
     renderTokens();
@@ -1351,7 +1382,7 @@
       body:
         '<div class="hp-art"><span class="hp-tk p0">홍</span><span class="hp-tk p0">홍</span><span class="hp-tk p0">홍</span><span class="hp-tk p0">홍</span></div>' +
         '<p class="hp-big">말 <b>4개</b>를 모두 한 바퀴 돌려<br><b>출발점을 지나가면</b> 승리!</p>' +
-        '<p class="hp-tip">잡히지 않게 조심하고, 잡을 수 있으면 잡아 보세요.</p>',
+        '<p class="hp-tip">출발점에 딱 맞게 서면 아직 안 난 거예요.<br>한 칸 더 가야 나요! (가운데 점에 서면 결승으로 가는 지름길로 가요)</p>',
     },
   ];
 
