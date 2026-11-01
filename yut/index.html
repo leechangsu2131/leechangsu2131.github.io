@@ -16,10 +16,11 @@
         <span class="brand-mark" aria-hidden="true"></span>
         <div class="brand-text">
           <h1>윷놀이 대결</h1>
-          <p>전통 말판에서 겨루는 2인 대결</p>
+          <p>전통 말판에서 겨루는 대결 · 온라인 방도 있어요</p>
         </div>
       </div>
       <div class="top-actions">
+      <button id="online-btn" class="btn btn-primary" type="button">🌐 <span>온라인 방</span></button>
       <button id="help-btn" class="btn btn-ghost" type="button">❓ <span>놀이 방법</span></button>
       <button id="sound-btn" class="btn btn-ghost" type="button" aria-pressed="true">
         <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12 1.5a3.5 3.5 0 0 1 0 3M18.5 8a7 7 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -33,6 +34,39 @@
     </header>
 
     <main class="layout">
+
+      <div class="net-chip" id="net-chip" hidden></div>
+      <section class="board-area" aria-label="윷놀이 말판">
+        <div class="board" id="board"></div>
+        <div class="board-banner" id="board-banner" aria-live="assertive"></div>
+      </section>
+
+        <section class="control-bar" aria-label="게임 조작">
+        <div class="turn-who" id="turn-who" aria-live="polite"></div>
+        <div class="yut-stage">
+          <div class="yut-sticks" id="yut-sticks" aria-live="polite">
+            <div class="stick" data-face="up"></div>
+            <div class="stick" data-face="up"></div>
+            <div class="stick" data-face="up"></div>
+            <div class="stick" data-face="up"></div>
+          </div>
+          <div class="throw-result" id="throw-result">
+            <span class="result-name" id="result-name">윷을 던지세요</span>
+            <span class="result-steps" id="result-steps"></span>
+          </div>
+        </div>
+
+        <div class="control-actions">
+          <button id="throw-btn" class="btn btn-primary" type="button">
+            <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2 2m8 8l2 2m0-12l-2 2M8 16l-2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span id="throw-label">윷 던지기</span>
+          </button>
+          <div class="moves-queue" id="moves-queue" aria-label="사용 가능한 이동" role="list"></div>
+        </div>
+
+        <p class="guide" id="guide" aria-live="polite"></p>
+      </section>
+    <div class="teams">
       <section class="player-panel" id="panel-0" aria-label="홍팀 정보">
         <div class="player-head">
           <span class="dot dot-red" aria-hidden="true"></span>
@@ -51,11 +85,6 @@
         </div>
         <ul class="token-tray" id="tray-0" role="list" aria-label="홍팀 대기 말"></ul>
         <ul class="roster" id="roster-0" aria-label="홍팀 친구들" hidden></ul>
-      </section>
-
-      <section class="board-area" aria-label="윷놀이 말판">
-        <div class="board" id="board"></div>
-        <div class="board-banner" id="board-banner" aria-live="assertive"></div>
       </section>
 
       <section class="player-panel" id="panel-1" aria-label="청팀 정보">
@@ -77,33 +106,9 @@
         <ul class="token-tray" id="tray-1" role="list" aria-label="청팀 대기 말"></ul>
         <ul class="roster" id="roster-1" aria-label="청팀 친구들" hidden></ul>
       </section>
+    </div>
     </main>
 
-    <section class="control-bar" aria-label="게임 조작">
-      <div class="turn-who" id="turn-who" aria-live="polite"></div>
-      <div class="yut-stage">
-        <div class="yut-sticks" id="yut-sticks" aria-live="polite">
-          <div class="stick" data-face="up"></div>
-          <div class="stick" data-face="up"></div>
-          <div class="stick" data-face="up"></div>
-          <div class="stick" data-face="up"></div>
-        </div>
-        <div class="throw-result" id="throw-result">
-          <span class="result-name" id="result-name">윷을 던지세요</span>
-          <span class="result-steps" id="result-steps"></span>
-        </div>
-      </div>
-
-      <div class="control-actions">
-        <button id="throw-btn" class="btn btn-primary" type="button">
-          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2 2m8 8l2 2m0-12l-2 2M8 16l-2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <span id="throw-label">윷 던지기</span>
-        </button>
-        <div class="moves-queue" id="moves-queue" aria-label="사용 가능한 이동" role="list"></div>
-      </div>
-
-      <p class="guide" id="guide" aria-live="polite"></p>
-    </section>
 
     <section class="log-area" aria-label="진행 기록">
       <h3 class="log-title">진행 기록</h3>
@@ -112,10 +117,12 @@
   </div>
 
   <div class="throw-stage" id="throw-stage" hidden aria-live="polite">
+    <div class="fx-layer" id="fx-layer"></div>
     <div class="throw-scene">
       <p class="throw-title" id="throw-title"></p>
       <div class="big-result" id="big-result"></div>
       <div class="throw-sticks" id="throw-sticks"></div>
+      <div class="fx-ring" id="fx-ring"></div>
       <div class="throw-mat" aria-hidden="true"></div>
       <p class="throw-hint" id="throw-hint">화면을 누르면 넘어가요</p>
       <div class="throw-pad" id="throw-pad">
@@ -139,6 +146,49 @@
         <button id="help-prev" class="btn btn-ghost" type="button">◀ 이전</button>
         <button id="help-next" class="btn btn-primary" type="button">다음 ▶</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="room-modal" hidden>
+    <div class="modal room" role="dialog" aria-modal="true" aria-label="온라인 방">
+      <button id="room-close" class="help-skip" type="button">닫기 ✕</button>
+      <h2>🌐 온라인 윷놀이</h2>
+      <div id="room-home">
+        <label class="room-lab">내 이름 <input id="room-name" maxlength="8" placeholder="예: 민준" autocomplete="off" /></label>
+        <div class="room-box">
+          <h3>① 방 만들기 (방장)</h3>
+          <div class="size-choice" id="room-size">
+            <button class="size-btn on" data-n="1" type="button"><b>1 : 1</b></button>
+            <button class="size-btn" data-n="2" type="button"><b>2 : 2</b></button>
+            <button class="size-btn" data-n="3" type="button"><b>3 : 3</b></button>
+            <button class="size-btn" data-n="4" type="button"><b>4 : 4</b></button>
+          </div>
+          <label class="opt-row"><input type="checkbox" id="room-border" /> <span>뒷도일 때 <b>테두리로만</b> 돌아가기</span></label>
+          <button id="room-create" class="btn btn-primary room-big" type="button">방 만들기</button>
+        </div>
+        <div class="room-box">
+          <h3>② 방 들어가기</h3>
+          <div class="room-join-row">
+            <input id="room-code-in" inputmode="numeric" maxlength="4" placeholder="방번호 4자리" autocomplete="off" />
+            <button id="room-join" class="btn btn-primary room-big" type="button">들어가기</button>
+          </div>
+        </div>
+      </div>
+      <div id="room-lobby" hidden>
+        <div class="room-code">방번호 <b id="room-code">0000</b></div>
+        <p class="room-hint">친구들에게 이 번호를 알려 주세요. 앉고 싶은 자리를 눌러요.</p>
+        <div class="room-slots">
+          <div class="slot-col p0"><h3>🔴 홍팀</h3><div id="slots-0"></div></div>
+          <div class="slot-col p1"><h3>🔵 청팀</h3><div id="slots-1"></div></div>
+        </div>
+        <p class="room-status" id="room-status"></p>
+        <p class="room-wait" id="room-wait"></p>
+        <div class="help-nav">
+          <button id="room-leave" class="btn btn-ghost" type="button">나가기</button>
+          <button id="room-start" class="btn btn-primary" type="button" disabled>게임 시작!</button>
+        </div>
+      </div>
+      <p class="room-err" id="room-err" role="alert"></p>
     </div>
   </div>
 

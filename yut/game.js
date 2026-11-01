@@ -4,12 +4,12 @@
   const BOARD = buildBoard();
   const ROUTES = buildRoutes();
   const YUT_FACES = {
-    backdo: { name: "백도", steps: -1, animal: "뒷도", label: "한 칸 뒤로" },
-    do: { name: "도", steps: 1, animal: "돼지", label: "한 칸" },
-    gae: { name: "개", steps: 2, animal: "개", label: "두 칸" },
-    geol: { name: "걸", steps: 3, animal: "양", label: "세 칸" },
-    yut: { name: "윷", steps: 4, again: true, animal: "소", label: "네 칸" },
-    mo: { name: "모", steps: 5, again: true, animal: "말", label: "다섯 칸" },
+    backdo: { name: "백도", steps: -1, animal: "뒷도", emoji: "🔙", label: "한 칸 뒤로" },
+    do: { name: "도", steps: 1, animal: "돼지", emoji: "🐖", label: "한 칸" },
+    gae: { name: "개", steps: 2, animal: "개", emoji: "🐕", label: "두 칸" },
+    geol: { name: "걸", steps: 3, animal: "양", emoji: "🐑", label: "세 칸" },
+    yut: { name: "윷", steps: 4, again: true, animal: "소", emoji: "🐄", label: "네 칸" },
+    mo: { name: "모", steps: 5, again: true, animal: "말", emoji: "🐎", label: "다섯 칸" },
   };
 
   const state = {
@@ -27,6 +27,8 @@
     names: [[], []],
     member: [0, 0],
   };
+
+  const NET = { on: false, host: false, code: "", me: null, q: 0, queue: {}, net: null, slots: null, size: 1, pid: Math.random().toString(36).slice(2, 8) };
 
   const el = {
     board: document.getElementById("board"),
@@ -259,8 +261,13 @@
     document.getElementById("panel-1").classList.toggle("active", state.current === 1 && !state.gameOver);
     renderRoster();
     const tw = document.getElementById("turn-who");
-    tw.textContent = state.gameOver ? "" : "👤 " + actorFull(state.current) + " 차례";
+    tw.textContent = state.gameOver ? "" : turnLabel();
     tw.className = "turn-who p" + state.current;
+  }
+
+  function turnLabel() {
+    if (NET.on) return isMyTurn() ? "🎯 내 차례예요! (" + actorFull(state.current) + ")" : "⏳ " + actorFull(state.current) + " 차례";
+    return "👤 " + actorFull(state.current) + " 차례";
   }
 
   function renderRoster() {
@@ -357,6 +364,12 @@
     } else if (name === "out") {
       tone(c, t, 320, 70, 0.5, "sawtooth", 0.16);
       click(c, t, 0.1, 0.35, 700);
+    } else if (name === "thud") {
+      tone(c, t, 170, 38, 0.32, "sine", 0.85);
+      click(c, t, 0.06, 0.55, 700);
+    } else if (name === "boom") {
+      tone(c, t, 120, 30, 0.5, "sawtooth", 0.4);
+      click(c, t, 0.18, 0.7, 400);
     } else if (name === "ding") {
       tone(c, t, 660, 660, 0.35, "sine", 0.22);
     } else if (name === "fanfare") {
@@ -371,6 +384,7 @@
 
   /* ---------- 윷 던지기 (큰 화면 연출) ---------- */
   const stickEls = [];
+  let handEl = null;
 
   function buildThrowSticks() {
     el.throwSticks.innerHTML = "";
@@ -382,6 +396,10 @@
       el.throwSticks.appendChild(s);
       stickEls.push(s);
     }
+    handEl = document.createElement("div");
+    handEl.className = "throw-hand";
+    handEl.textContent = "✊";
+    el.throwSticks.appendChild(handEl);
   }
 
   function tf(x, y, z, rx, ry, rz, sc) {
@@ -389,6 +407,99 @@
       "translate3d(" + x + "px," + y + "px," + z + "px) rotateX(" + rx + "deg) rotateY(" + ry +
       "deg) rotateZ(" + rz + "deg) scale(" + sc + ")"
     );
+  }
+
+
+  /* ---------- 타격감 연출 도구 ---------- */
+  function shake(node, amp, dur) {
+    if (REDUCED || !node || !node.animate) return;
+    const fr = [{ transform: "translate(0,0)" }];
+    for (let k = 1; k <= 7; k++) {
+      const f = 1 - k / 8;
+      fr.push({ transform: "translate(" + ((Math.random() * 2 - 1) * amp * f).toFixed(1) + "px," + ((Math.random() * 2 - 1) * amp * f).toFixed(1) + "px) rotate(" + ((Math.random() * 2 - 1) * amp * 0.06 * f).toFixed(2) + "deg)" });
+    }
+    fr.push({ transform: "translate(0,0)" });
+    node.animate(fr, { duration: dur, easing: "ease-out" });
+  }
+
+  function burst(host, x, y, n, items, power) {
+    if (REDUCED || !host) return;
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement("span");
+      p.className = "fx-p";
+      const it = items[i % items.length];
+      p.textContent = it;
+      p.style.fontSize = 14 + Math.random() * 26 + "px";
+      host.appendChild(p);
+      const a = Math.random() * Math.PI * 2;
+      const d = (60 + Math.random() * 160) * (power || 1);
+      const dx = Math.cos(a) * d;
+      const dy = Math.sin(a) * d - 60 * (power || 1);
+      p.animate(
+        [
+          { transform: "translate(" + x + "px," + y + "px) scale(0.3) rotate(0deg)", opacity: 1 },
+          { transform: "translate(" + (x + dx * 0.7) + "px," + (y + dy * 0.7) + "px) scale(1.2) rotate(" + (Math.random() * 360 - 180) + "deg)", opacity: 1, offset: 0.55 },
+          { transform: "translate(" + (x + dx) + "px," + (y + dy + 80) + "px) scale(0.7) rotate(" + (Math.random() * 540 - 270) + "deg)", opacity: 0 },
+        ],
+        { duration: 700 + Math.random() * 500, easing: "cubic-bezier(.2,.7,.4,1)" }
+      ).onfinish = () => p.remove();
+    }
+  }
+
+  function flash(color, op) {
+    if (REDUCED) return;
+    const layer = document.getElementById("fx-layer");
+    if (!layer) return;
+    const f = document.createElement("div");
+    f.className = "fx-flash";
+    f.style.background = color;
+    layer.appendChild(f);
+    f.animate([{ opacity: op }, { opacity: 0 }], { duration: 420, easing: "ease-out" }).onfinish = () => f.remove();
+  }
+
+  function ringPulse(power) {
+    const r = document.getElementById("fx-ring");
+    if (!r || REDUCED) return;
+    r.animate(
+      [
+        { transform: "scale(0.2)", opacity: 0.95 },
+        { transform: "scale(" + (2.2 + 2.2 * power) + ")", opacity: 0 },
+      ],
+      { duration: 520, easing: "ease-out" }
+    );
+  }
+
+  // 윷이 바닥에 닿는 순간
+  function landingImpact(power) {
+    const scene = el.throwStage.querySelector(".throw-scene");
+    shake(scene, 8 + 20 * power, 420);
+    ringPulse(power);
+    const mat = el.throwStage.querySelector(".throw-mat");
+    if (mat) {
+      const hr = el.throwStage.getBoundingClientRect();
+      const mr = mat.getBoundingClientRect();
+      burst(document.getElementById("fx-layer"), mr.left - hr.left + mr.width / 2, mr.top - hr.top + 6, 12 + Math.round(10 * power), ["•", "·", "●"], 1 + power);
+    }
+    sfx("thud");
+    try { if (navigator.vibrate) navigator.vibrate(25 + 40 * power); } catch (e) {}
+  }
+
+  function throwHandSwing(power) {
+    if (!handEl || REDUCED) return;
+    handEl.textContent = "🖐️";
+    handEl.getAnimations().forEach((a) => a.cancel());
+    handEl.animate(
+      [
+        { transform: handEl.style.transform || "translateY(20px)", opacity: 1 },
+        { transform: "translateY(-" + (60 + 120 * power) + "px) rotate(-18deg) scale(1.15)", opacity: 1, offset: 0.35 },
+        { transform: "translateY(-" + (120 + 160 * power) + "px) rotate(10deg) scale(1.05)", opacity: 0 },
+      ],
+      { duration: 480, easing: "cubic-bezier(.2,.9,.3,1)", fill: "forwards" }
+    );
+  }
+
+  function boardPunch(amp) {
+    shake(el.board, amp, 380);
   }
 
   /* ---------- 팀 · 친구 이름 ---------- */
@@ -440,6 +551,12 @@
         s.getAnimations().forEach((a) => a.cancel());
         s.style.transform = heldPose(20, i);
       });
+      if (handEl) {
+        handEl.getAnimations().forEach((a) => a.cancel());
+        handEl.textContent = "✊";
+        handEl.style.opacity = "1";
+        handEl.style.transform = "translateY(20px)";
+      }
       st.classList.remove("out");
       st.classList.add("ready");
       st.hidden = false;
@@ -451,6 +568,7 @@
         fill.style.width = Math.round(pw * 100) + "%";
         fill.className = pw < POWER_LOW ? "weak" : pw > POWER_SAFE ? "over" : "good";
         stickEls.forEach((s, i) => { s.style.transform = heldPose(20 + pw * 40, i); });
+        if (handEl) handEl.style.transform = "translateY(" + (20 + pw * 40) + "px) rotate(" + ((Math.random() - 0.5) * pw * 8) + "deg)";
         msg.textContent = pw < POWER_LOW ? "아직 약해요…" : pw > POWER_SAFE ? "너무 세요! 윷이 나갈 수 있어요" : "지금이에요! 손을 놓으세요!";
       };
 
@@ -523,6 +641,8 @@
     st.classList.remove("out", "ready");
     st.hidden = false;
 
+    throwHandSwing(power);
+    setTimeout(() => { if (epoch === state.epoch) landingImpact(power); }, REDUCED ? 100 : Math.round((1100 + 700 * power) * 0.72 + 120));
     const H = el.throwSticks.clientHeight || 220;
     const W = st.clientWidth || 400;
     const dur = REDUCED ? 350 : Math.round(1100 + 700 * power);
@@ -584,9 +704,28 @@
     });
 
     el.bigResult.innerHTML =
-      '<b class="br-name">' + face.name + (face.out ? "!" : "") + "</b>" +
+      '<div class="br-row">' +
+      (face.emoji ? '<span class="br-animal' + (face.again ? " again" : "") + '">' + face.emoji + "</span>" : face.out ? '<span class="br-animal">💨</span>' : "") +
+      '<b class="br-name">' + face.name + (face.out ? "!" : "") + "</b></div>" +
       '<span class="br-sub">' + face.animal + " · " + face.label + "</span>" +
       (face.again ? '<em class="br-again">한 번 더!</em>' : "");
+    {
+      const sc = el.throwStage.querySelector(".throw-scene");
+      const hr = el.throwStage.getBoundingClientRect();
+      if (face.out) {
+        flash("#ff3b2f", 0.45);
+        shake(sc, 26, 520);
+        sfx("boom");
+      } else if (face.again) {
+        flash("#ffe27a", 0.6);
+        shake(sc, 22, 520);
+        sfx("boom");
+        burst(document.getElementById("fx-layer"), hr.width / 2, hr.height * 0.32, 34, ["🎉", "✨", "⭐", "🎊", "💫"], 1.6);
+      } else {
+        flash("#fff3c9", 0.3);
+        shake(sc, 10, 360);
+      }
+    }
     el.bigResult.className = "big-result show" + (face.again ? " big" : "") + (face.out ? " bad" : "");
     el.throwHint.classList.add("show");
     sfx(face.out ? "out" : face.again ? "fanfare" : "ding");
@@ -606,6 +745,7 @@
 
   async function throwYut() {
     if (state.gameOver || state.busy || el.throwBtn.disabled) return;
+    if (NET.on && !isMyTurn()) return;
     audio();
     el.throwBtn.disabled = true;
     state.busy = true;
@@ -628,6 +768,20 @@
       const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
       for (let k = 0; k < n; k++) outSet.add(order[k]);
     }
+    if (NET.on) netSend({ t: "throw", flats: flats, out: [...outSet], power: power });
+    await resolveThrow(flats, outSet, power, epoch);
+  }
+
+  // 다른 친구가 던진 것을 똑같이 보여 주고 적용한다 (온라인)
+  function remoteThrow(m) {
+    audio();
+    el.throwBtn.disabled = true;
+    state.busy = true;
+    return resolveThrow(m.flats, new Set(m.out || []), m.power, state.epoch);
+  }
+
+  async function resolveThrow(flats, outSet, power, epoch) {
+    const isOut = outSet.size > 0;
     const face = isOut ? FACE_OUT : resolveFace(flats.filter(Boolean).length, flats);
 
     await playThrow(flats, face, epoch, power, outSet);
@@ -848,7 +1002,7 @@
   }
 
   function applyFace(face) {
-    el.resultName.textContent = face.name;
+    el.resultName.innerHTML = '<span class="res-animal">' + (face.emoji || "") + "</span>" + face.name;
     el.resultSteps.textContent = face.steps > 0 ? `+${face.steps}칸` : `${face.steps}칸`;
     log(`${actor()} ${face.name}${face.again ? " (한 번 더!)" : ""}`, state.current);
 
@@ -897,11 +1051,12 @@
     state.pendingMoves.forEach((s) => {
       const chip = document.createElement("div");
       chip.className = "move-chip";
-      chip.textContent = s > 0 ? "+" + s : s;
+      chip.innerHTML = '<span class="mc-a">' + (STEP_EMOJI[s] || "") + "</span>" + (STEP_NAME[s] || "") + " " + (s > 0 ? "+" + s : s);
       el.movesQueue.appendChild(chip);
     });
   }
 
+  const STEP_EMOJI = { "-1": "🔙", 1: "🐖", 2: "🐕", 3: "🐑", 4: "🐄", 5: "🐎" };
   const STEP_NAME = { "-1": "백도", 1: "도", 2: "개", 3: "걸", 4: "윷", 5: "모" };
   const guideEl = document.getElementById("guide");
 
@@ -955,6 +1110,11 @@
   function refreshChoices() {
     clearHighlights(true);
     if (state.busy) return;
+    if (NET.on && !isMyTurn()) {
+      state.selected = null;
+      setGuide("👀 " + actor() + " 차례예요. 말이 움직이는 걸 지켜봐요!");
+      return;
+    }
     const srcs = pieceSources();
     if (srcs.length === 0) return;
     if (!state.selected || !srcs.some((x) => sameSrc(x, state.selected))) {
@@ -1077,6 +1237,16 @@
 
   function executeMove(src, steps) {
     if (state.busy) return;
+    if (NET.on) {
+      if (!isMyTurn()) return;
+      netSend({ t: "move", src: { kind: src.kind, at: src.at || null }, steps: steps });
+    }
+    doMove(src, steps);
+  }
+
+  function doMove(src, steps) {
+    clearTimeout(state.autoTimer);
+    state.autoTimer = null;
     if (src.kind === "home") enterFromHome(steps);
     else moveToken(src.at, steps);
   }
@@ -1189,6 +1359,15 @@
       victims.forEach((v) => (count += v.stack));
       opp.tokens = opp.tokens.filter((t) => t.at !== dest);
       opp.home += count;
+      boardPunch(18);
+      sfx("boom");
+      try {
+        const nb = nodeEl(dest);
+        if (nb) {
+          const br = el.board.getBoundingClientRect(), r2 = nb.getBoundingClientRect();
+          burst(el.board, r2.left - br.left + r2.width / 2, r2.top - br.top + r2.height / 2, 18, ["💥", "⭐", "✨"], 1.2);
+        }
+      } catch (e) {}
       if (usedSteps >= 4) {
         log(`${who(state.current)} 상대 말 ${count}개를 잡았습니다! (윷·모로 잡아서 '한 번 더'는 이미 받았어요)`, state.current);
       } else {
@@ -1236,7 +1415,9 @@
 
   function enableThrow(label) {
     el.throwBtn.disabled = false;
-    document.getElementById("throw-label").textContent = label || "윷 던지기";
+    document.getElementById("throw-label").textContent =
+      NET.on && !isMyTurn() ? "기다려요…" : label || "윷 던지기";
+    el.throwBtn.classList.toggle("waiting", NET.on && !isMyTurn());
   }
 
   function checkWin() {
@@ -1545,8 +1726,365 @@
   buildThrowSticks();
   syncSoundBtn();
   el.throwBtn.addEventListener("click", throwYut);
-  el.restartBtn.addEventListener("click", () => openSetup(false));
-  el.winRestart.addEventListener("click", restart);
+  el.restartBtn.addEventListener("click", () => { if (!onlineRestart()) openSetup(false); });
+  el.winRestart.addEventListener("click", () => { if (!onlineRestart()) restart(); });
+
+  /* =====================================================
+   *  온라인 방 (방번호로 만나서 함께 하기)
+   *  - 같은 서버(분수 대결과 같은 방식)를 쓰고, 던진 결과와 말 고르기만 주고받아요.
+   * ===================================================== */
+  const SUPA_URL = "https://erzdvlcbjneabxqwnwfy.supabase.co";
+  const SUPA_KEY = "sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz";
+  const MOCK = new URLSearchParams(location.search).get("mock") === "1";
+  const $ = (id) => document.getElementById(id);
+
+  function isMyTurn() {
+    if (!NET.on || !NET.me) return true;
+    if (state.current !== NET.me.team) return false;
+    return state.teamSize <= 1 ? true : state.member[NET.me.team] === NET.me.idx;
+  }
+
+  function Transport(code, onMsg, onStatus) {
+    const room = "yut" + code;
+    const H = { apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY };
+    const base = SUPA_URL + "/rest/v1/battle_msgs";
+    let last = 0, alive = false, fails = 0, bc = null, timer = null;
+    async function poll() {
+      if (!alive) return;
+      try {
+        const r = await fetch(base + "?room=eq." + room + "&id=gt." + last + "&order=id.asc&limit=80&select=id,body", { headers: H, cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const rows = await r.json();
+        fails = 0;
+        for (const x of rows) {
+          last = Math.max(last, x.id);
+          if (x.body && x.body._s !== NET.pid) onMsg(x.body);
+        }
+      } catch (e) {
+        fails++;
+        if (fails >= 15) { alive = false; onStatus("closed"); return; }
+      }
+      if (alive) timer = setTimeout(poll, 450);
+    }
+    this.open = async function () {
+      if (MOCK) {
+        bc = new BroadcastChannel("yut-" + code);
+        bc.onmessage = (e) => { if (e.data && e.data._s !== NET.pid) onMsg(e.data); };
+        alive = true;
+        setTimeout(() => onStatus("ok"), 30);
+        return;
+      }
+      try {
+        const r = await fetch(base + "?room=eq." + room + "&order=id.desc&limit=1&select=id,created_at", { headers: H, cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const rows = await r.json();
+        last = rows.length ? rows[0].id : 0;
+        this.lastAge = rows.length ? Date.now() - new Date(rows[0].created_at).getTime() : Infinity;
+        alive = true;
+        onStatus("ok");
+        poll();
+      } catch (e) {
+        onStatus("error");
+      }
+    };
+    let q = Promise.resolve();
+    this.send = function (o) {
+      const body = Object.assign({ _s: NET.pid }, o);
+      if (bc) { bc.postMessage(body); return; }
+      q = q.then(async () => {
+        for (let k = 0; k < 3; k++) {
+          try {
+            const r = await fetch(base, { method: "POST", headers: Object.assign({ "Content-Type": "application/json", Prefer: "return=minimal" }, H), body: JSON.stringify({ room: room, body: body }), keepalive: true });
+            if (r.ok) return;
+          } catch (e) {}
+          await sleep(400);
+        }
+      });
+    };
+    this.close = () => { alive = false; clearTimeout(timer); try { if (bc) bc.close(); } catch (e) {} };
+  }
+
+  function netSend(o) {
+    if (!NET.net) return;
+    o.q = NET.q;
+    NET.q += 1;
+    NET.net.send(o);
+  }
+
+  /* ---------- 게임 중 주고받기 ---------- */
+  function onGameMsg(m) {
+    if (m.t === "throw" || m.t === "move") {
+      if (m.q >= NET.q) NET.queue[m.q] = m;
+    } else if (m.t === "again" && !NET.host) {
+      beginGame(NET.cfg);
+    } else if (m.t === "bye") {
+      banner((m.name || "친구") + " 친구가 나갔어요", "bad");
+    }
+  }
+
+  setInterval(() => {
+    if (!NET.on || state.gameOver) return;
+    const m = NET.queue[NET.q];
+    if (!m || state.busy) return;
+    if (m.t === "throw" && !el.throwBtn.disabled) {
+      delete NET.queue[NET.q];
+      NET.q += 1;
+      remoteThrow(m);
+    } else if (m.t === "move" && el.throwBtn.disabled && state.pendingMoves.length > 0) {
+      delete NET.queue[NET.q];
+      NET.q += 1;
+      doMove(m.src, m.steps);
+    }
+  }, 90);
+
+  function beginGame(cfg) {
+    NET.cfg = cfg;
+    NET.on = true;
+    NET.q = 0;
+    NET.queue = {};
+    clearInterval(NET.hb);
+    NET.me = null;
+    cfg.slots.forEach((col, t) => col.forEach((sl, i) => { if (sl && sl.id === NET.pid) NET.me = { team: t, idx: i }; }));
+    state.teamSize = cfg.size;
+    state.names = cfg.slots.map((col) => col.map((sl) => (sl && sl.name) || ""));
+    state.borderBack = !!cfg.bb;
+    $("room-modal").hidden = true;
+    restart();
+    updateStats();
+    const chip = $("net-chip");
+    chip.hidden = false;
+    chip.textContent = "🌐 방번호 " + NET.code + " · 나는 " + (NET.me.team === 0 ? "홍팀" : "청팀") + (cfg.size > 1 ? " " + (NET.me.idx + 1) + "번" : "");
+    chip.className = "net-chip p" + NET.me.team;
+  }
+
+  function leaveRoom(silent) {
+    if (NET.net && NET.on && !silent) netSend({ t: "bye", name: NET.me ? state.names[NET.me.team][NET.me.idx] : "" });
+    else if (NET.net && !silent) NET.net.send({ t: "bye", id: NET.pid });
+    clearInterval(NET.hb);
+    clearInterval(NET.wantTimer);
+    if (NET.net) setTimeout(((n) => () => n.close())(NET.net), 600);
+    NET.net = null;
+    NET.on = false;
+    NET.host = false;
+    NET.me = null;
+    NET.queue = {};
+    $("net-chip").hidden = true;
+    $("room-modal").hidden = true;
+    restart();
+    updateStats();
+  }
+
+  /* ---------- 방 만들기 · 들어가기 (대기실) ---------- */
+  let roomSize = 1;
+  const lobby = { slots: null, status: "" };
+
+  function showRoomHome() {
+    $("room-home").hidden = false;
+    $("room-lobby").hidden = true;
+    $("room-modal").hidden = false;
+    $("room-err").textContent = "";
+    try { $("room-name").value = localStorage.getItem("yut-name") || ""; } catch (e) {}
+    document.querySelectorAll("#room-size .size-btn").forEach((b) => b.classList.toggle("on", Number(b.dataset.n) === roomSize));
+  }
+
+  function myName() {
+    const v = ($("room-name").value || "").trim().slice(0, 8) || "친구";
+    try { localStorage.setItem("yut-name", v); } catch (e) {}
+    return v;
+  }
+
+  function emptySlots(n) {
+    return [Array(n).fill(null), Array(n).fill(null)];
+  }
+
+  function renderLobby() {
+    const sl = lobby.slots;
+    $("room-code").textContent = NET.code;
+    let filled = 0;
+    [0, 1].forEach((t) => {
+      const col = $("slots-" + t);
+      col.innerHTML = "";
+      sl[t].forEach((x, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "slot-btn" + (x ? " full" : "");
+        if (x) {
+          filled++;
+          b.textContent = (x.id === NET.pid ? "⭐ " : "🙂 ") + x.name + (x.id === NET.pid ? " (나)" : "");
+          if (x.id === NET.pid) b.classList.add("me");
+        } else {
+          b.textContent = "＋ 여기 앉기";
+          b.onclick = () => wantSeat(t, i);
+        }
+        col.appendChild(b);
+      });
+    });
+    const total = lobby.size * 2;
+    $("room-status").textContent = filled + " / " + total + "명 모였어요";
+    const st = $("room-start");
+    st.hidden = !NET.host;
+    st.disabled = filled < total;
+    $("room-wait").hidden = NET.host;
+    $("room-wait").textContent = filled < total ? "친구들을 기다려요…" : "방장이 시작하면 게임이 열려요!";
+    st.textContent = filled < total ? "모두 모이면 시작할 수 있어요" : "🎲 게임 시작!";
+  }
+
+  function hostBroadcast() {
+    NET.net.send({ t: "lobby", size: lobby.size, slots: lobby.slots });
+  }
+
+  function hostPlace(id, name, team, idx) {
+    const sl = lobby.slots;
+    // 이미 앉아 있으면 이름만 갱신 (자리를 옮기려는 게 아니면)
+    let cur = null;
+    sl.forEach((col, t) => col.forEach((x, i) => { if (x && x.id === id) cur = { t, i }; }));
+    if (team == null) {
+      if (cur) { sl[cur.t][cur.i].name = name; return; }
+      const order = [0, 1].sort((a, b) => sl[a].filter(Boolean).length - sl[b].filter(Boolean).length);
+      for (const t of order) { const i = sl[t].findIndex((x) => !x); if (i >= 0) { sl[t][i] = { id, name }; return; } }
+      return;
+    }
+    if (sl[team][idx]) return;
+    if (cur) sl[cur.t][cur.i] = null;
+    sl[team][idx] = { id, name };
+  }
+
+  function onLobbyMsg(m) {
+    if (NET.host) {
+      if (m.t === "want") {
+        hostPlace(m.id, m.name, m.team, m.idx);
+        renderLobby();
+        hostBroadcast();
+      } else if (m.t === "bye" && m.id) {
+        lobby.slots.forEach((col, t) => col.forEach((x, i) => { if (x && x.id === m.id) col[i] = null; }));
+        renderLobby();
+        hostBroadcast();
+      }
+      return;
+    }
+    if (m.t === "lobby") {
+      lobby.size = m.size;
+      lobby.slots = m.slots;
+      NET.gotLobby = true;
+      const inIt = m.slots.some((col) => col.some((x) => x && x.id === NET.pid));
+      if (!inIt && NET.wantSent > 3 && m.slots.every((col) => col.every(Boolean))) {
+        $("room-err").textContent = "자리가 모두 찼어요.";
+      }
+      $("room-home").hidden = true;
+      $("room-lobby").hidden = false;
+      renderLobby();
+    } else if (m.t === "start") {
+      NET.cfg = { size: m.size, slots: m.slots, bb: m.bb };
+      if (m.slots.some((col) => col.some((x) => x && x.id === NET.pid))) beginGame(NET.cfg);
+      else { $("room-err").textContent = "이미 시작된 방이에요."; leaveRoom(true); showRoomHome(); }
+    }
+  }
+
+  function wantSeat(team, idx) {
+    if (NET.host) {
+      hostPlace(NET.pid, myName(), team, idx);
+      renderLobby();
+      hostBroadcast();
+    } else {
+      NET.net.send({ t: "want", id: NET.pid, name: myName(), team: team, idx: idx });
+    }
+  }
+
+  function onNetMsg(m) {
+    if (NET.on) onGameMsg(m);
+    else onLobbyMsg(m);
+  }
+
+  async function createRoom() {
+    const name = myName();
+    $("room-err").textContent = "";
+    let code = "", tries = 0, tp = null;
+    while (tries++ < 6) {
+      code = String(Math.floor(1000 + Math.random() * 9000));
+      tp = new Transport(code, onNetMsg, () => {});
+      await tp.open();
+      if (MOCK || tp.lastAge === undefined || tp.lastAge > 20 * 60 * 1000) break;
+      tp.close();
+      tp = null;
+    }
+    if (!tp) { $("room-err").textContent = "방을 만들지 못했어요. 다시 눌러 주세요."; return; }
+    NET.net = tp;
+    NET.code = code;
+    NET.host = true;
+    NET.on = false;
+    lobby.size = roomSize;
+    lobby.slots = emptySlots(roomSize);
+    lobby.slots[0][0] = { id: NET.pid, name: name };
+    $("room-home").hidden = true;
+    $("room-lobby").hidden = false;
+    renderLobby();
+    hostBroadcast();
+    NET.hb = setInterval(hostBroadcast, 2000);
+  }
+
+  async function joinRoom() {
+    const code = ($("room-code-in").value || "").replace(/\D/g, "").slice(0, 4);
+    if (code.length !== 4) { $("room-err").textContent = "방번호 4자리를 써 주세요."; return; }
+    const name = myName();
+    $("room-err").textContent = "방을 찾는 중…";
+    const tp = new Transport(code, onNetMsg, (st) => {
+      if (st === "error") $("room-err").textContent = "서버에 연결하지 못했어요. 인터넷을 확인해 주세요.";
+      if (st === "closed" && NET.net === tp) $("room-err").textContent = "연결이 끊겼어요.";
+    });
+    NET.net = tp;
+    NET.code = code;
+    NET.host = false;
+    NET.on = false;
+    NET.gotLobby = false;
+    NET.wantSent = 0;
+    await tp.open();
+    const ask = () => {
+      NET.net.send({ t: "want", id: NET.pid, name: name });
+      NET.wantSent += 1;
+      if (NET.wantSent >= 5 && !NET.gotLobby) $("room-err").textContent = "그 방번호의 방을 찾지 못했어요. 번호를 다시 확인해 주세요.";
+    };
+    ask();
+    NET.wantTimer = setInterval(() => {
+      const inIt = lobby.slots && lobby.slots.some((col) => col.some((x) => x && x.id === NET.pid));
+      if (NET.on || inIt) { clearInterval(NET.wantTimer); return; }
+      if (NET.wantSent < 40) ask();
+    }, 1500);
+  }
+
+  function hostStart() {
+    const total = lobby.size * 2;
+    const filled = lobby.slots.reduce((a, c) => a + c.filter(Boolean).length, 0);
+    if (filled < total) return;
+    clearInterval(NET.hb);
+    const cfg = { size: lobby.size, slots: lobby.slots, bb: $("room-border").checked };
+    NET.net.send({ t: "start", size: cfg.size, slots: cfg.slots, bb: cfg.bb });
+    beginGame(cfg);
+  }
+
+  $("online-btn").addEventListener("click", () => {
+    if (NET.on) { if (confirm("온라인 방에서 나갈까요?")) leaveRoom(); return; }
+    showRoomHome();
+  });
+  document.querySelectorAll("#room-size .size-btn").forEach((b) => {
+    b.addEventListener("click", () => {
+      roomSize = Number(b.dataset.n);
+      document.querySelectorAll("#room-size .size-btn").forEach((x) => x.classList.toggle("on", x === b));
+    });
+  });
+  $("room-create").addEventListener("click", createRoom);
+  $("room-join").addEventListener("click", joinRoom);
+  $("room-start").addEventListener("click", hostStart);
+  $("room-leave").addEventListener("click", () => leaveRoom());
+  $("room-close").addEventListener("click", () => { if (!NET.on && NET.net) leaveRoom(true); $("room-modal").hidden = true; });
+
+  // 온라인 중 '새 게임': 방장만 같은 사람들로 다시 시작
+  function onlineRestart() {
+    if (!NET.on) return false;
+    if (!NET.host) { banner("방장만 다시 시작할 수 있어요", "bad"); return true; }
+    NET.net.send({ t: "again" });
+    beginGame(NET.cfg);
+    return true;
+  }
 
   restart();
   openHelp();
