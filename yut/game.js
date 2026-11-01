@@ -1655,8 +1655,32 @@
     if (helpAutoSetup) {
       helpAutoSetup = false;
       openSetup(true);
+    } else if (helpToStart) {
+      helpToStart = false;
+      openStart();
     }
   }
+
+  /* ---------- 처음 화면: 어떻게 시작할까요? ---------- */
+  let helpToStart = false;
+  let startPending = true;
+  function openStart() {
+    document.getElementById("start-modal").hidden = false;
+  }
+  document.getElementById("start-local").addEventListener("click", () => {
+    document.getElementById("start-modal").hidden = true;
+    openSetup(true);
+  });
+  document.getElementById("start-online").addEventListener("click", () => {
+    document.getElementById("start-modal").hidden = true;
+    showRoomHome();
+  });
+  document.getElementById("start-help").addEventListener("click", () => {
+    document.getElementById("start-modal").hidden = true;
+    helpAutoSetup = false;
+    helpToStart = true;
+    openHelp();
+  });
 
   /* ---------- 게임 설정 (1:1 ~ 4:4) ---------- */
   const setupUI = { n: 1, fromStart: true };
@@ -1723,6 +1747,7 @@
       names[Number(inp.dataset.team)][Number(inp.dataset.idx)] = cleanName(inp.value);
     });
     state.names = names;
+    startPending = false;
     state.teamSize = setupUI.n;
     state.borderBack = document.getElementById("opt-border-back").checked;
     document.getElementById("setup-modal").hidden = true;
@@ -1912,6 +1937,7 @@
   }, 90);
 
   function beginGame(cfg) {
+    startPending = false;
     NET.cfg = cfg;
     NET.on = true;
     NET.q = 0;
@@ -2021,6 +2047,7 @@
   function renderLobby() {
     const sl = lobby.slots;
     $("room-code").textContent = NET.code;
+    $("room-kind").textContent = (NET.host ? (NET.priv ? "🙈 비공개 방 · " : "🌐 공개 방 · ") : "") + (NET.pw || NET.joinPw ? "🔒 비밀번호 있음" : "비밀번호 없음");
     let filled = 0;
     [0, 1].forEach((t) => {
       const col = $("slots-" + t);
@@ -2056,7 +2083,7 @@
   }
 
   function announceRoom(gone) {
-    if (!NET.host || !NET.code) return;
+    if (!NET.host || !NET.code || NET.priv) return;
     const filled = lobby.slots ? lobby.slots.reduce((a, c) => a + c.filter(Boolean).length, 0) : 0;
     listPublish({
       t: "room",
@@ -2166,6 +2193,7 @@
     NET.host = true;
     NET.on = false;
     NET.pw = ($("room-pw").value || "").trim() ? pwHash($("room-pw").value.trim()) : "";
+    NET.priv = document.querySelector('input[name="roomvis"]:checked').value === "priv";
     lobby.size = roomSize;
     lobby.slots = emptySlots(roomSize);
     lobby.slots[0][0] = { id: NET.pid, name: name };
@@ -2233,7 +2261,12 @@
   $("room-join").addEventListener("click", joinRoom);
   $("room-start").addEventListener("click", hostStart);
   $("room-leave").addEventListener("click", () => leaveRoom());
-  $("room-close").addEventListener("click", () => { if (!NET.on && NET.net) leaveRoom(true); $("room-modal").hidden = true; });
+  $("room-close").addEventListener("click", () => {
+    if (!NET.on && NET.net) leaveRoom(true);
+    $("room-modal").hidden = true;
+    clearInterval(LIST.timer);
+    if (startPending) openStart();
+  });
 
   // 온라인 중 '새 게임': 방장만 같은 사람들로 다시 시작
   function onlineRestart() {
@@ -2245,5 +2278,5 @@
   }
 
   restart();
-  openHelp();
+  openStart();
 })();

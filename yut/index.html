@@ -149,6 +149,16 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="start-modal" hidden>
+    <div class="modal start" role="dialog" aria-modal="true" aria-label="어떻게 시작할까요?">
+      <h2>🎲 윷놀이 대결</h2>
+      <p>어떻게 시작할까요?</p>
+      <button id="start-local" class="start-btn s1" type="button"><b>👫 한 기기에서 같이 하기</b><small>한 화면을 돌려 가며 해요</small></button>
+      <button id="start-online" class="start-btn s2" type="button"><b>🌐 온라인으로 하기</b><small>방을 만들거나, 열린 방에 들어가요</small></button>
+      <button id="start-help" class="start-btn s3" type="button"><b>❓ 놀이 방법 보기</b><small>처음이라면 먼저 봐요</small></button>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="room-modal" hidden>
     <div class="modal room" role="dialog" aria-modal="true" aria-label="온라인 방">
       <button id="room-close" class="help-skip" type="button">닫기 ✕</button>
@@ -168,6 +178,10 @@
             <button class="size-btn" data-n="3" type="button"><b>3 : 3</b></button>
             <button class="size-btn" data-n="4" type="button"><b>4 : 4</b></button>
           </div>
+          <div class="vis-choice" role="radiogroup" aria-label="공개 여부">
+            <label class="vis on"><input type="radio" name="roomvis" value="pub" checked /> <span><b>🌐 공개</b><small>열린 방 목록에 보여요</small></span></label>
+            <label class="vis"><input type="radio" name="roomvis" value="priv" /> <span><b>🙈 비공개</b><small>방번호를 아는 친구만</small></span></label>
+          </div>
           <label class="room-lab pw">🔒 비밀번호 <input id="room-pw" maxlength="12" placeholder="없으면 비워 두세요" autocomplete="off" /></label>
           <label class="opt-row"><input type="checkbox" id="room-border" /> <span>뒷도일 때 <b>테두리로만</b> 돌아가기</span></label>
           <button id="room-create" class="btn btn-primary room-big" type="button">방 만들기</button>
@@ -181,7 +195,7 @@
         </div>
       </div>
       <div id="room-lobby" hidden>
-        <div class="room-code">방번호 <b id="room-code">0000</b></div>
+        <div class="room-code">방번호 <b id="room-code">0000</b><span class="room-kind" id="room-kind"></span></div>
         <p class="room-hint">친구들에게 이 번호를 알려 주세요. 앉고 싶은 자리를 눌러요.</p>
         <div class="room-slots">
           <div class="slot-col p0"><h3>🔴 홍팀</h3><div id="slots-0"></div></div>

@@ -1149,3 +1149,22 @@ body {
 .rr-n { font-family: "Jua", var(--font); font-size: 20px; color: var(--red-deep); white-space: nowrap; }
 .room-lab.pw { margin: 10px 0 4px; font-size: 16px; }
 .room-join-row input { min-width: 0; font-size: 22px; letter-spacing: 0.15em; }
+
+/* ---------- 처음 화면 · 공개/비공개 ---------- */
+.modal.start { max-width: 460px; text-align: center; }
+.modal.start h2 { font-family: "Jua", var(--font); font-weight: 400; font-size: 36px; color: var(--red-deep); margin-bottom: 4px; }
+.modal.start p { font-size: 20px; margin: 0 0 16px; }
+.start-btn { display: grid; gap: 2px; width: 100%; margin-top: 10px; padding: 16px 18px; border-radius: 18px; border: 0; font: inherit; cursor: pointer; text-align: center; color: #fff; box-shadow: 0 5px 0 rgba(0,0,0,0.22); }
+.start-btn b { font-family: "Jua", var(--font); font-weight: 400; font-size: 26px; }
+.start-btn small { font-size: 15px; opacity: 0.92; }
+.start-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.22); }
+.start-btn.s1 { background: var(--red); }
+.start-btn.s2 { background: var(--blue); }
+.start-btn.s3 { background: #8a7a5c; }
+.vis-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
+.vis { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line-strong); background: #fff; cursor: pointer; }
+.vis input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
+.vis b { display: block; font-size: 17px; }
+.vis small { display: block; font-size: 13px; color: var(--ink-soft); }
+.vis:has(input:checked) { border-color: var(--gold); background: #fff7e0; box-shadow: 0 0 0 3px rgba(201,155,63,0.3); }
+.room-kind { display: block; font-size: 15px; font-weight: 700; color: var(--ink-soft); margin-top: 2px; }
