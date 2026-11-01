@@ -400,22 +400,22 @@
     handEl.className = "throw-hand";
     handEl.innerHTML = `<svg viewBox="0 0 360 330" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 <defs><linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8d3ac"/><stop offset="1" stop-color="#e6a87c"/></linearGradient></defs>
-<g class="h-sleeve"><path d="M118 262 L242 262 L250 296 L110 296 Z" fill="#f7f2e6" stroke="#b9ad92" stroke-width="4" stroke-linejoin="round"/><path d="M118 262 L242 262" stroke="#c0392b" stroke-width="10" stroke-linecap="round"/></g>
+<g class="h-sleeve"><path d="M118 262 L242 262 L250 296 L110 296 Z" fill="#f7f2e6" stroke="#cdbf9f" stroke-width="4" stroke-linejoin="round"/><path d="M118 262 L242 262" stroke="#c0392b" stroke-width="10" stroke-linecap="round"/></g>
 <g class="h-fist">
-<rect x="112" y="228" width="136" height="48" rx="20" fill="url(#skin)" stroke="#b27a52" stroke-width="4"/>
-<rect x="46" y="98" width="268" height="150" rx="52" fill="url(#skin)" stroke="#b27a52" stroke-width="4"/>
-<g fill="url(#skin)" stroke="#b27a52" stroke-width="4"><rect x="58" y="108" width="244" height="36" rx="18"/><rect x="58" y="140" width="244" height="36" rx="18"/><rect x="58" y="172" width="244" height="36" rx="18"/><rect x="66" y="204" width="228" height="34" rx="17"/></g>
-<path d="M40 150 C14 160 18 214 66 232 C96 226 98 190 78 172 Z" fill="url(#skin)" stroke="#b27a52" stroke-width="4" stroke-linejoin="round"/>
-<g stroke="#c98d62" stroke-width="3" stroke-linecap="round" opacity=".8"><path d="M84 126h30M84 158h30M84 190h30M246 126h30M246 158h30M246 190h30"/></g>
+<rect x="124" y="226" width="112" height="56" rx="24" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
+<rect x="52" y="112" width="256" height="136" rx="64" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
+<g fill="none" stroke="#d29a70" stroke-width="3.5" stroke-linecap="round"><path d="M92 152 Q180 166 268 152"/><path d="M88 186 Q180 200 272 186"/><path d="M96 218 Q180 230 264 218"/></g>
+<ellipse cx="92" cy="168" rx="38" ry="46" fill="url(#skin)" stroke="#c48a5e" stroke-width="3" transform="rotate(18 92 168)"/>
+<path d="M66 178 Q86 196 112 186" fill="none" stroke="#d29a70" stroke-width="3" stroke-linecap="round"/>
 </g>
 <g class="h-open">
-<rect x="104" y="150" width="152" height="118" rx="40" fill="url(#skin)" stroke="#b27a52" stroke-width="4"/>
-<g fill="url(#skin)" stroke="#b27a52" stroke-width="4">
-<rect x="96" y="40" width="30" height="132" rx="15" transform="rotate(-20 111 172)"/>
-<rect x="132" y="12" width="30" height="150" rx="15" transform="rotate(-7 147 172)"/>
-<rect x="170" y="6" width="30" height="156" rx="15" transform="rotate(5 185 172)"/>
-<rect x="206" y="22" width="30" height="142" rx="15" transform="rotate(17 221 172)"/>
-<rect x="36" y="128" width="30" height="110" rx="15" transform="rotate(-58 70 238)"/>
+<rect x="108" y="170" width="144" height="110" rx="46" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
+<g fill="url(#skin)" stroke="#c48a5e" stroke-width="3">
+<rect x="106" y="76" width="36" height="112" rx="18" transform="rotate(-13 124 188)"/>
+<rect x="142" y="58" width="36" height="124" rx="18" transform="rotate(-4 160 188)"/>
+<rect x="180" y="58" width="36" height="124" rx="18" transform="rotate(5 198 188)"/>
+<rect x="216" y="78" width="34" height="108" rx="17" transform="rotate(15 233 188)"/>
+<rect x="64" y="146" width="40" height="84" rx="20" transform="rotate(-52 100 220)"/>
 </g></g>
 </svg>`;
     el.throwSticks.appendChild(handEl);
