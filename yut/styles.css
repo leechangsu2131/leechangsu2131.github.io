@@ -1092,3 +1092,11 @@ body {
 #room-start:disabled { opacity: 0.5; }
 .brand-text h1 { white-space: nowrap; }
 @media (max-width: 560px) { .brand-mark { display: none; } .topbar { flex-wrap: wrap; gap: 8px; } }
+
+/* 윷을 쥔 손 */
+.throw-hand { left: 50%; bottom: auto; top: 3%; margin-left: 0; width: min(118%, 440px); font-size: 0; line-height: 0; translate: -50% 0; z-index: 3; transform-origin: 50% 85%; }
+.throw-hand svg { width: 100%; height: auto; display: block; }
+.throw-hand .h-open { display: none; }
+.throw-hand.open .h-open { display: inline; }
+.throw-hand.open .h-fist { display: none; }
+.throw-pad .pad-msg { text-shadow: 0 2px 8px rgba(0,0,0,0.85), 0 0 14px rgba(0,0,0,0.8); position: relative; z-index: 5; }

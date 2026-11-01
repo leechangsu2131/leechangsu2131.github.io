@@ -398,7 +398,26 @@
     }
     handEl = document.createElement("div");
     handEl.className = "throw-hand";
-    handEl.textContent = "✊";
+    handEl.innerHTML = `<svg viewBox="0 0 360 330" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs><linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8d3ac"/><stop offset="1" stop-color="#e6a87c"/></linearGradient></defs>
+<g class="h-sleeve"><path d="M118 262 L242 262 L250 296 L110 296 Z" fill="#f7f2e6" stroke="#b9ad92" stroke-width="4" stroke-linejoin="round"/><path d="M118 262 L242 262" stroke="#c0392b" stroke-width="10" stroke-linecap="round"/></g>
+<g class="h-fist">
+<rect x="112" y="228" width="136" height="48" rx="20" fill="url(#skin)" stroke="#b27a52" stroke-width="4"/>
+<rect x="46" y="98" width="268" height="150" rx="52" fill="url(#skin)" stroke="#b27a52" stroke-width="4"/>
+<g fill="url(#skin)" stroke="#b27a52" stroke-width="4"><rect x="58" y="108" width="244" height="36" rx="18"/><rect x="58" y="140" width="244" height="36" rx="18"/><rect x="58" y="172" width="244" height="36" rx="18"/><rect x="66" y="204" width="228" height="34" rx="17"/></g>
+<path d="M40 150 C14 160 18 214 66 232 C96 226 98 190 78 172 Z" fill="url(#skin)" stroke="#b27a52" stroke-width="4" stroke-linejoin="round"/>
+<g stroke="#c98d62" stroke-width="3" stroke-linecap="round" opacity=".8"><path d="M84 126h30M84 158h30M84 190h30M246 126h30M246 158h30M246 190h30"/></g>
+</g>
+<g class="h-open">
+<rect x="104" y="150" width="152" height="118" rx="40" fill="url(#skin)" stroke="#b27a52" stroke-width="4"/>
+<g fill="url(#skin)" stroke="#b27a52" stroke-width="4">
+<rect x="96" y="40" width="30" height="132" rx="15" transform="rotate(-20 111 172)"/>
+<rect x="132" y="12" width="30" height="150" rx="15" transform="rotate(-7 147 172)"/>
+<rect x="170" y="6" width="30" height="156" rx="15" transform="rotate(5 185 172)"/>
+<rect x="206" y="22" width="30" height="142" rx="15" transform="rotate(17 221 172)"/>
+<rect x="36" y="128" width="30" height="110" rx="15" transform="rotate(-58 70 238)"/>
+</g></g>
+</svg>`;
     el.throwSticks.appendChild(handEl);
   }
 
@@ -486,16 +505,18 @@
 
   function throwHandSwing(power) {
     if (!handEl || REDUCED) return;
-    handEl.textContent = "🖐️";
     handEl.getAnimations().forEach((a) => a.cancel());
+    const from = handEl.style.transform || "translateY(20px)";
     handEl.animate(
       [
-        { transform: handEl.style.transform || "translateY(20px)", opacity: 1 },
-        { transform: "translateY(-" + (60 + 120 * power) + "px) rotate(-18deg) scale(1.15)", opacity: 1, offset: 0.35 },
-        { transform: "translateY(-" + (120 + 160 * power) + "px) rotate(10deg) scale(1.05)", opacity: 0 },
+        { transform: from, opacity: 1 },
+        { transform: "translateY(-" + (50 + 70 * power) + "px) rotate(-10deg) scale(1.08)", opacity: 1, offset: 0.3 },
+        { transform: "translateY(-" + (90 + 110 * power) + "px) rotate(6deg) scale(1.04)", opacity: 1, offset: 0.55 },
+        { transform: "translateY(" + (120 + 60 * power) + "px) rotate(0deg) scale(1)", opacity: 0 },
       ],
-      { duration: 480, easing: "cubic-bezier(.2,.9,.3,1)", fill: "forwards" }
+      { duration: 900, easing: "cubic-bezier(.3,.8,.4,1)", fill: "forwards" }
     );
+    setTimeout(() => { if (handEl) handEl.classList.add("open"); }, 150);
   }
 
   function boardPunch(amp) {
@@ -553,7 +574,7 @@
       });
       if (handEl) {
         handEl.getAnimations().forEach((a) => a.cancel());
-        handEl.textContent = "✊";
+        handEl.classList.remove("open");
         handEl.style.opacity = "1";
         handEl.style.transform = "translateY(20px)";
       }
