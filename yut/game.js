@@ -478,8 +478,7 @@
 
   // 윷이 바닥에 닿는 순간
   function landingImpact(power) {
-    const scene = el.throwStage.querySelector(".throw-scene");
-    shake(scene, 8 + 20 * power, 420);
+    shake(el.board, 6 + 14 * power, 420);
     ringPulse(power);
     const mat = el.throwStage.querySelector(".throw-mat");
     if (mat) {
@@ -489,6 +488,23 @@
     }
     sfx("thud");
     try { if (navigator.vibrate) navigator.vibrate(25 + 40 * power); } catch (e) {}
+  }
+
+  // 윷이 떨어질 곳을 말판 한가운데로 맞춘다 (말판 위에 던져 넣는 느낌)
+  function placeThrowScene() {
+    const st = el.throwStage;
+    const br = el.board.getBoundingClientRect();
+    const sh = el.throwSticks.offsetHeight || 220;
+    let matTop = br.top + br.height * 0.6;
+    matTop = Math.max(sh + 60, Math.min(window.innerHeight - 190, matTop));
+    st.style.setProperty("--sticks-top", matTop - sh + "px");
+    st.style.setProperty("--mat-top", matTop - 6 + "px");
+  }
+
+  function showThrowStage() {
+    try { el.board.scrollIntoView({ block: "center", behavior: "instant" }); } catch (e) {}
+    el.throwStage.hidden = false;
+    placeThrowScene();
   }
 
   function throwHandSwing(power) {
@@ -568,7 +584,7 @@
       }
       st.classList.remove("out");
       st.classList.add("ready");
-      st.hidden = false;
+      showThrowStage();
       fill.style.width = "0%";
       fill.className = "weak";
       msg.textContent = "화면을 꾹 누르고 있다가, 게이지가 초록색일 때 손을 놓으세요!";
@@ -648,7 +664,8 @@
     el.bigResult.className = "big-result";
     el.throwHint.classList.remove("show");
     st.classList.remove("out", "ready");
-    st.hidden = false;
+    if (st.hidden) showThrowStage();
+    else placeThrowScene();
 
     throwHandSwing(power);
     setTimeout(() => { if (epoch === state.epoch) landingImpact(power); }, REDUCED ? 100 : Math.round((1100 + 700 * power) * 0.72 + 120));
@@ -719,7 +736,7 @@
       '<span class="br-sub">' + face.animal + " · " + face.label + "</span>" +
       (face.again ? '<em class="br-again">한 번 더!</em>' : "");
     {
-      const sc = el.throwStage.querySelector(".throw-scene");
+      const sc = el.board;
       const hr = el.throwStage.getBoundingClientRect();
       if (face.out) {
         flash("#ff3b2f", 0.45);

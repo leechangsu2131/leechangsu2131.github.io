@@ -1119,3 +1119,19 @@ body {
 .throw-hand svg path[fill="none"] { fill: none; }
 .throw-hand.open .h-l { transform: translate(-60px, 24px); }
 .throw-hand.open .h-r { transform: translate(60px, 24px); }
+
+/* ---------- 윷을 말판 위에 던져 넣기 ---------- */
+.throw-stage { display: block; background: rgba(22, 13, 6, 0.45); -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; }
+.throw-stage[hidden] { display: none; }
+.throw-scene { display: contents; }
+.throw-title { position: absolute; left: 0; right: 0; top: 2.5%; margin: 0; z-index: 4; }
+.big-result { position: absolute; left: 0; right: 0; top: 8%; margin: 0; z-index: 5; pointer-events: none; }
+.throw-sticks { position: absolute; left: 50%; translate: -50% 0; width: min(94vw, 600px); top: var(--sticks-top, 30%); }
+.throw-mat { position: absolute; left: 50%; translate: -50% 0; width: min(94vw, 600px); top: var(--mat-top, 60%); margin: 0; opacity: 0; }
+.fx-ring { top: calc(var(--mat-top, 60%) - 50px); }
+.throw-hint { position: absolute; left: 0; right: 0; bottom: 4%; margin: 0; text-align: center; z-index: 4; }
+.throw-pad { position: absolute; left: 0; right: 0; bottom: 2%; margin: 0; padding: 0 16px; z-index: 6; }
+.throw-stage.ready .throw-hint { display: none; }
+.throw-stage { background: linear-gradient(to top, rgba(14, 8, 3, 0.9) 0, rgba(14, 8, 3, 0.55) 26%, rgba(22, 13, 6, 0.38) 60%, rgba(22, 13, 6, 0.5) 100%); }
+.throw-title { left: 50%; right: auto; translate: -50% 0; width: max-content; max-width: 94vw; padding: 6px 18px; border-radius: 999px; background: rgba(20, 11, 5, 0.72); }
+.big-result { top: 9%; height: clamp(120px, 20vh, 170px); }
