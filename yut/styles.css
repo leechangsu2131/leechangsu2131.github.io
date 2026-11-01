@@ -1135,3 +1135,17 @@ body {
 .throw-stage { background: linear-gradient(to top, rgba(14, 8, 3, 0.9) 0, rgba(14, 8, 3, 0.55) 26%, rgba(22, 13, 6, 0.38) 60%, rgba(22, 13, 6, 0.5) 100%); }
 .throw-title { left: 50%; right: auto; translate: -50% 0; width: max-content; max-width: 94vw; padding: 6px 18px; border-radius: 999px; background: rgba(20, 11, 5, 0.72); }
 .big-result { top: 9%; height: clamp(120px, 20vh, 170px); }
+
+.room-list { display: grid; gap: 8px; max-height: 240px; overflow-y: auto; }
+.room-empty { margin: 6px 0 !important; text-align: center; color: var(--ink-soft); font-size: 16px !important; }
+.room-list-err { color: #c0392b !important; font-size: 14px !important; margin: 4px 0 0 !important; text-align: center; }
+.room-row { display: flex; align-items: center; gap: 12px; width: 100%; font: inherit; text-align: left; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line-strong); background: #fff; cursor: pointer; color: var(--ink); }
+.room-row:hover { border-color: var(--gold); background: #fffaf0; }
+.room-row.off { opacity: 0.5; cursor: default; }
+.rr-lock { font-size: 26px; }
+.rr-main { display: grid; flex: 1; min-width: 0; }
+.rr-main b { font-size: 19px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rr-main small { font-size: 14px; color: var(--ink-soft); }
+.rr-n { font-family: "Jua", var(--font); font-size: 20px; color: var(--red-deep); white-space: nowrap; }
+.room-lab.pw { margin: 10px 0 4px; font-size: 16px; }
+.room-join-row input { min-width: 0; font-size: 22px; letter-spacing: 0.15em; }

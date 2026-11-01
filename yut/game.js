@@ -1830,6 +1830,54 @@
     this.close = () => { alive = false; clearTimeout(timer); try { if (bc) bc.close(); } catch (e) {} };
   }
 
+  /* ---------- 열린 방 목록 (스타크래프트처럼 눌러서 들어가기) ---------- */
+  const LISTROOM = "yutLIST";
+  const LIST = { bc: null, mock: new Map(), timer: null, pub: null };
+  const pwHash = (v) => { let x = 5381; for (const c of String(v)) x = ((x << 5) + x + c.charCodeAt(0)) | 0; return String(x); };
+
+  function listPublish(o) {
+    o.ts = Date.now();
+    if (MOCK) {
+      if (!LIST.bc) LIST.bc = new BroadcastChannel("yut-LIST");
+      LIST.bc.postMessage(o);
+      return;
+    }
+    fetch(SUPA_URL + "/rest/v1/battle_msgs", {
+      method: "POST",
+      headers: { apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ room: LISTROOM, body: o }),
+      keepalive: true,
+    }).catch(() => {});
+  }
+
+  async function listFetch() {
+    const out = new Map();
+    if (MOCK) {
+      if (!LIST.bc) {
+        LIST.bc = new BroadcastChannel("yut-LIST");
+        LIST.bc.onmessage = (e) => { if (e.data && e.data.code) LIST.mock.set(e.data.code, e.data); };
+      }
+      LIST.mock.forEach((v, k) => out.set(k, v));
+    } else {
+      const since = new Date(Date.now() - 20000).toISOString();
+      const r = await fetch(SUPA_URL + "/rest/v1/battle_msgs?room=eq." + LISTROOM + "&created_at=gte." + encodeURIComponent(since) + "&order=id.asc&limit=300&select=body,created_at", {
+        headers: { apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY },
+        cache: "no-store",
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const rows = await r.json();
+      rows.forEach((x) => {
+        if (!x.body || !x.body.code) return;
+        let ct = String(x.created_at || "").replace(" ", "T");
+        if (/[+-]\d\d$/.test(ct)) ct += ":00";
+        x.body.ts = new Date(ct).getTime() || Date.now();
+        out.set(x.body.code, x.body);
+      });
+    }
+    const now = Date.now();
+    return [...out.values()].filter((v) => !v.gone && now - v.ts < 15000 && v.code !== NET.code).sort((a, b) => b.ts - a.ts);
+  }
+
   function netSend(o) {
     if (!NET.net) return;
     o.q = NET.q;
@@ -1884,6 +1932,8 @@
   }
 
   function leaveRoom(silent) {
+    if (NET.host) announceRoom(true);
+    clearInterval(LIST.timer);
     if (NET.net && NET.on && !silent) netSend({ t: "bye", name: NET.me ? state.names[NET.me.team][NET.me.idx] : "" });
     else if (NET.net && !silent) NET.net.send({ t: "bye", id: NET.pid });
     clearInterval(NET.hb);
@@ -1904,7 +1954,52 @@
   let roomSize = 1;
   const lobby = { slots: null, status: "" };
 
+  async function refreshRoomList() {
+    const box = $("room-list");
+    if (!box || $("room-home").hidden || $("room-modal").hidden) return;
+    let rooms = [];
+    try {
+      rooms = await listFetch();
+      $("room-list-err").textContent = "";
+    } catch (e) {
+      $("room-list-err").textContent = "방 목록을 불러오지 못했어요.";
+    }
+    box.innerHTML = "";
+    if (!rooms.length) {
+      const p = document.createElement("p");
+      p.className = "room-empty";
+      p.textContent = "열린 방이 없어요. 아래에서 새로 만들어 보세요!";
+      box.appendChild(p);
+      return;
+    }
+    rooms.forEach((r) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      const playing = r.st === "play";
+      const full = r.filled >= r.size * 2;
+      b.className = "room-row" + (playing || full ? " off" : "");
+      b.innerHTML =
+        '<span class="rr-lock">' + (r.lock ? "🔒" : "🌐") + "</span>" +
+        '<span class="rr-main"><b>' + String(r.host).replace(/[<>&]/g, "") + "의 방</b><small>방번호 " + r.code + " · " + r.size + " : " + r.size + "</small></span>" +
+        '<span class="rr-n">' + (playing ? "게임 중" : full ? "꽉 참" : r.filled + " / " + r.size * 2 + "명") + "</span>";
+      if (!playing && !full) {
+        b.onclick = () => {
+          let pw = "";
+          if (r.lock) {
+            pw = window.prompt("🔒 비밀번호를 입력하세요") || "";
+            if (!pw) return;
+          }
+          joinRoom(r.code, pw);
+        };
+      }
+      box.appendChild(b);
+    });
+  }
+
   function showRoomHome() {
+    clearInterval(LIST.timer);
+    LIST.timer = setInterval(refreshRoomList, 2500);
+    setTimeout(refreshRoomList, 50);
     $("room-home").hidden = false;
     $("room-lobby").hidden = true;
     $("room-modal").hidden = false;
@@ -1957,6 +2052,22 @@
 
   function hostBroadcast() {
     NET.net.send({ t: "lobby", size: lobby.size, slots: lobby.slots });
+    announceRoom();
+  }
+
+  function announceRoom(gone) {
+    if (!NET.host || !NET.code) return;
+    const filled = lobby.slots ? lobby.slots.reduce((a, c) => a + c.filter(Boolean).length, 0) : 0;
+    listPublish({
+      t: "room",
+      code: NET.code,
+      host: (lobby.slots && lobby.slots[0][0] && lobby.slots[0][0].name) || "방장",
+      size: lobby.size,
+      filled: filled,
+      lock: !!NET.pw,
+      st: NET.on ? "play" : "wait",
+      gone: !!gone,
+    });
   }
 
   function hostPlace(id, name, team, idx) {
@@ -1978,6 +2089,11 @@
   function onLobbyMsg(m) {
     if (NET.host) {
       if (m.t === "want") {
+        const known = lobby.slots.some((col) => col.some((x) => x && x.id === m.id));
+        if (NET.pw && !known && m.pw !== NET.pw) {
+          NET.net.send({ t: "deny", id: m.id, why: "pw" });
+          return;
+        }
         hostPlace(m.id, m.name, m.team, m.idx);
         renderLobby();
         hostBroadcast();
@@ -1986,6 +2102,17 @@
         renderLobby();
         hostBroadcast();
       }
+      return;
+    }
+    if (m.t === "deny" && m.id === NET.pid) {
+      clearInterval(NET.wantTimer);
+      const code = NET.code;
+      leaveRoom(true);
+      showRoomHome();
+      const p = window.prompt("🔒 비밀번호를 입력하세요" + (NET.triedPw ? "\n(비밀번호가 달라요)" : ""));
+      NET.triedPw = true;
+      if (p) joinRoom(code, p);
+      else $("room-err").textContent = "비밀번호가 필요한 방이에요.";
       return;
     }
     if (m.t === "lobby") {
@@ -2038,6 +2165,7 @@
     NET.code = code;
     NET.host = true;
     NET.on = false;
+    NET.pw = ($("room-pw").value || "").trim() ? pwHash($("room-pw").value.trim()) : "";
     lobby.size = roomSize;
     lobby.slots = emptySlots(roomSize);
     lobby.slots[0][0] = { id: NET.pid, name: name };
@@ -2048,9 +2176,11 @@
     NET.hb = setInterval(hostBroadcast, 2000);
   }
 
-  async function joinRoom() {
-    const code = ($("room-code-in").value || "").replace(/\D/g, "").slice(0, 4);
+  async function joinRoom(codeArg, pwArg) {
+    const code = (typeof codeArg === "string" ? codeArg : $("room-code-in").value || "").replace(/\D/g, "").slice(0, 4);
     if (code.length !== 4) { $("room-err").textContent = "방번호 4자리를 써 주세요."; return; }
+    NET.joinPw = pwArg ? pwHash(pwArg) : "";
+    if (typeof codeArg !== "string") NET.triedPw = false;
     const name = myName();
     $("room-err").textContent = "방을 찾는 중…";
     const tp = new Transport(code, onNetMsg, (st) => {
@@ -2065,7 +2195,7 @@
     NET.wantSent = 0;
     await tp.open();
     const ask = () => {
-      NET.net.send({ t: "want", id: NET.pid, name: name });
+      NET.net.send({ t: "want", id: NET.pid, name: name, pw: NET.joinPw });
       NET.wantSent += 1;
       if (NET.wantSent >= 5 && !NET.gotLobby) $("room-err").textContent = "그 방번호의 방을 찾지 못했어요. 번호를 다시 확인해 주세요.";
     };
@@ -2085,6 +2215,8 @@
     const cfg = { size: lobby.size, slots: lobby.slots, bb: $("room-border").checked };
     NET.net.send({ t: "start", size: cfg.size, slots: cfg.slots, bb: cfg.bb });
     beginGame(cfg);
+    announceRoom();
+    NET.hb = setInterval(announceRoom, 5000);
   }
 
   $("online-btn").addEventListener("click", () => {

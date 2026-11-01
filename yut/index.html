@@ -156,18 +156,24 @@
       <div id="room-home">
         <label class="room-lab">내 이름 <input id="room-name" maxlength="8" placeholder="예: 민준" autocomplete="off" /></label>
         <div class="room-box">
-          <h3>① 방 만들기 (방장)</h3>
+          <h3>🎮 열린 방 (눌러서 들어가기)</h3>
+          <div id="room-list" class="room-list"><p class="room-empty">방을 찾는 중…</p></div>
+          <p class="room-list-err" id="room-list-err"></p>
+        </div>
+        <div class="room-box">
+          <h3>➕ 방 만들기 (방장)</h3>
           <div class="size-choice" id="room-size">
             <button class="size-btn on" data-n="1" type="button"><b>1 : 1</b></button>
             <button class="size-btn" data-n="2" type="button"><b>2 : 2</b></button>
             <button class="size-btn" data-n="3" type="button"><b>3 : 3</b></button>
             <button class="size-btn" data-n="4" type="button"><b>4 : 4</b></button>
           </div>
+          <label class="room-lab pw">🔒 비밀번호 <input id="room-pw" maxlength="12" placeholder="없으면 비워 두세요" autocomplete="off" /></label>
           <label class="opt-row"><input type="checkbox" id="room-border" /> <span>뒷도일 때 <b>테두리로만</b> 돌아가기</span></label>
           <button id="room-create" class="btn btn-primary room-big" type="button">방 만들기</button>
         </div>
         <div class="room-box">
-          <h3>② 방 들어가기</h3>
+          <h3>🔢 방번호로 들어가기</h3>
           <div class="room-join-row">
             <input id="room-code-in" inputmode="numeric" maxlength="4" placeholder="방번호 4자리" autocomplete="off" />
             <button id="room-join" class="btn btn-primary room-big" type="button">들어가기</button>
