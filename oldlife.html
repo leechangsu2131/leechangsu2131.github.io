@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>옛날 우리나라, 한 사람의 일생</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap">
+<style>
+:root{--bg:#F1F4F6;--card:#FFFFFF;--ink:#1D2733;--sub:#5B6875;--line:#D3DAE0;--green:#2F7D6B;--gold:#E3B341;--gbg:#E3F1EC;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111922;--card:#1A2530;--ink:#EEF2F5;--sub:#A5B1BC;--line:#2F3E4B;--green:#5CC4A9;--gbg:#18332D}}
+:root[data-theme="dark"]{--bg:#111922;--card:#1A2530;--ink:#EEF2F5;--sub:#A5B1BC;--line:#2F3E4B;--green:#5CC4A9;--gbg:#18332D}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:18px;line-height:1.6}
+#app{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:25px;margin:8px 0 4px;line-height:1.3}
+p{margin:8px 0}
+.sub{color:var(--sub);font-size:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+.btn{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:8px 14px;margin:10px 0;border-radius:14px;border:2px solid var(--green);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.go{justify-content:center;background:var(--green);color:#fff;font-size:20px;text-align:center}
+.dim{opacity:.45;border-color:var(--line)}
+.pick{background:var(--gbg)}
+.res{background:var(--gbg);border:1px solid var(--green);border-radius:14px;padding:12px 14px;margin:10px 0}
+.moons{display:flex;gap:6px;align-items:center;margin:4px 0 8px}
+.moons i{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);display:block}
+.moons i.on{background:var(--gold)}
+.moons span{margin-left:auto;color:var(--sub);font-size:15px}
+.tag{display:inline-block;background:var(--gbg);color:var(--green);border-radius:10px;padding:0 10px;font-size:15px}
+.age{font-size:40px;font-weight:700;color:var(--green);line-height:1.2}
+table{width:100%;border-collapse:collapse;font-size:16px}
+td{border-top:1px solid var(--line);padding:6px 4px;vertical-align:top}
+td:first-child{color:var(--sub);white-space:nowrap;padding-right:10px}
+textarea{width:100%;min-height:84px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;padding:10px}
+.ico{flex:none}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+var S=function(b){return '<svg class="ico" viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">'+b+'</svg>'};
+var I={
+tteok:S('<path d="M6 20h28a14 14 0 0 1-28 0z" fill="#d9d4cc" stroke="#7a6f62"/><ellipse cx="14" cy="17" rx="5" ry="2.5" fill="#fff"/><ellipse cx="22" cy="16" rx="5" ry="2.5" fill="#fff"/><ellipse cx="28" cy="18" rx="4" ry="2.2" fill="#fff"/>'),
+yut:S('<rect x="6" y="6" width="5" height="28" rx="2" fill="#c89b5b"/><rect x="15" y="6" width="5" height="28" rx="2" fill="#e2bb7c"/><rect x="24" y="6" width="5" height="28" rx="2" fill="#c89b5b"/><rect x="33" y="6" width="4" height="28" rx="2" fill="#e2bb7c"/>'),
+kite:S('<path d="M20 3l12 12-12 14L8 15z" fill="#e0524a"/><path d="M20 29q-7 4 0 9" stroke="#666" fill="none" stroke-width="2"/>'),
+nut:S('<circle cx="20" cy="21" r="13" fill="#a8743f"/><path d="M20 8v26" stroke="#6b4521" stroke-width="2"/>'),
+talk:S('<path d="M5 7h30v19H20l-8 8v-8H5z" fill="#f4d35e" stroke="#b8962e"/><circle cx="14" cy="16" r="2" fill="#7a5f10"/><circle cx="21" cy="16" r="2" fill="#7a5f10"/><circle cx="28" cy="16" r="2" fill="#7a5f10"/>'),
+moon:S('<circle cx="20" cy="20" r="15" fill="#f5d76e"/><circle cx="15" cy="15" r="3" fill="#e5c04f"/><circle cx="25" cy="24" r="4" fill="#e5c04f"/>'),
+leaf:S('<path d="M14 37C8 26 8 14 14 5c6 9 6 21 0 32z" fill="#4c9a5a"/><path d="M26 37c-6-11-6-23 0-32 6 9 6 21 0 32z" fill="#6fb872"/>'),
+fan:S('<path d="M20 35L3 14a24 24 0 0 1 34 0z" fill="#e8c36a" stroke="#a07a2a"/><path d="M20 35L11 15M20 35l9-20M20 35V12" stroke="#a07a2a"/>'),
+swing:S('<path d="M5 4h30M12 4v22M28 4v22" stroke="#7a5a3a" stroke-width="2.5"/><rect x="9" y="26" width="22" height="5" rx="2" fill="#c0392b"/>'),
+song:S('<path d="M4 29a16 16 0 0 1 32 0z" fill="#f2efe6" stroke="#9c9486"/><path d="M8 20q4-5 8-3" stroke="#7aa874" stroke-width="3" fill="none"/>'),
+ring:S('<circle cx="20" cy="20" r="14" fill="none" stroke="#c0872b" stroke-width="5" stroke-dasharray="4 5"/><circle cx="20" cy="20" r="6" fill="#f5d76e"/>'),
+mound:S('<path d="M3 33a17 17 0 0 1 34 0z" fill="#5d9c59"/><rect x="17" y="12" width="6" height="9" rx="1" fill="#aab"/>'),
+red:S('<path d="M5 18h30a15 15 0 0 1-30 0z" fill="#8f2b26"/><ellipse cx="20" cy="18" rx="15" ry="4" fill="#c8453b"/>'),
+ball:S('<ellipse cx="20" cy="26" rx="16" ry="8" fill="#a8362f"/><circle cx="13" cy="22" r="6" fill="#fff" stroke="#bbb"/><circle cx="24" cy="20" r="6" fill="#fff" stroke="#bbb"/><circle cx="29" cy="27" r="5" fill="#fff" stroke="#bbb"/>'),
+cal:S('<rect x="6" y="6" width="28" height="29" rx="3" fill="#fff" stroke="#888"/><rect x="6" y="6" width="28" height="9" fill="#c8453b"/><path d="M11 22h18M11 28h11" stroke="#888" stroke-width="2"/>'),
+rope:S('<path d="M3 12q17 12 34 0" fill="none" stroke="#c9a15a" stroke-width="3"/><path d="M10 18v8M18 21v8M26 21v8M33 17v8" stroke="#c0392b" stroke-width="3"/>'),
+thread:S('<circle cx="20" cy="20" r="13" fill="#e56f6f"/><path d="M8 20q12 8 24 0M10 14q10 8 20 0" stroke="#fff" fill="none"/>'),
+brush:S('<path d="M10 34L28 8" stroke="#7a5a3a" stroke-width="4" stroke-linecap="round"/><path d="M28 8l6-4-2 8z" fill="#222"/>'),
+rice:S('<path d="M6 24q14 12 28 0v6H6z" fill="#c89b5b"/><ellipse cx="20" cy="24" rx="14" ry="5" fill="#f6f2ea"/>'),
+book:S('<rect x="6" y="8" width="28" height="24" rx="2" fill="#3b6ea5"/><path d="M20 8v24M10 14h7M23 14h7M10 20h7M23 20h7" stroke="#fff" stroke-width="2"/>'),
+goose:S('<path d="M28 21c6-3 5-11 2-14" stroke="#7a5530" stroke-width="6" fill="none" stroke-linecap="round"/><ellipse cx="18" cy="24" rx="13" ry="7" fill="#c89b5b" stroke="#7a5530"/><path d="M31 6l6 2-6 2z" fill="#e8a33c"/><path d="M14 31v5M22 31v5" stroke="#7a5530" stroke-width="2"/>'),
+pal:S('<path d="M6 16l14-9 14 9z" fill="#a23b2a"/><rect x="9" y="16" width="22" height="14" fill="#d9a441" stroke="#8a6a1f"/><path d="M2 34h36" stroke="#6b4a2f" stroke-width="3"/>'),
+jb:S('<ellipse cx="14" cy="22" rx="7" ry="9" fill="#9c2f2a"/><ellipse cx="27" cy="22" rx="7" ry="9" fill="#a8743f"/>')
+};
+var V=[
+{n:'서울 가까운 들 마을',w:'벼농사',s:'모시조개 모양의 작은 송편',t:'f'},
+{n:'강원도 산골 마을',w:'밭농사',s:'도토리·감자로 만든 송편',t:'m'},
+{n:'전라남도 남해안 바닷가 마을',w:'고기잡이',s:'초승달처럼 갸름한 송편',t:'s'},
+{n:'평안도 바닷가 마을',w:'고기잡이',s:'조개가 많이 잡히길 바라며 빚는 조개송편',t:'s'},
+{n:'제주도 마을',w:'농사와 바다일',s:'완두콩 소를 넣은 비행접시 모양 송편',t:'s'}];
+var A={
+b:{g:'태어났어요',a:0,q:'대문에 금줄이 걸렸어요. 아기가 태어났다는 알림이에요. 무엇을 해 볼까요?',c:[
+['금줄 구경하기','rope','대문에 금줄을 치고 21일 동안 밖에 나가지 않았어요. 아기를 지키려는 마음이에요.'],
+['삼신할머니께 빌기','moon','삼신할머니께 아기의 안전과 건강을 빌었어요.'],
+['미역국 먹기','tteok','엄마는 미역국 같은 영양 있는 음식을 먹으며 몸을 돌봤어요.']]},
+h:{g:'백일',a:0,q:'아기가 100일을 무사히 넘겼어요! 잔치를 열어요.',c:[
+['백설기 먹기','tteok','백설기를 나누어 먹으며 아기의 건강과 복을 빌었어요.'],
+['수수팥떡 먹기','red','붉은 수수팥떡은 나쁜 기운을 막아 준다고 믿었어요.'],
+['이웃과 떡 나누기','talk','떡을 이웃과 나누며 기쁨을 함께했어요.']]},
+d:{g:'첫돌',a:1,q:'첫 생일이에요! 돌상 앞에서 돌잡이를 해요. 무엇을 잡을까요?',c:[
+['실','thread','실은 오래오래 건강하게 살라는 뜻이에요.'],
+['붓','brush','붓은 글공부를 잘하라는 뜻이에요.'],
+['쌀','rice','쌀은 먹을 걱정 없이 잘살라는 뜻이에요.']]},
+k:{g:'어린 시절',a:7,q:'마을 아이가 되었어요. 오늘은 무엇을 할까요?',c:[
+['서당에서 글 읽기','book','서당에서 훈장님께 한문과 예절의 기초를 배웠어요.'],
+['친구들과 놀기','yut','제기차기, 팽이치기 같은 놀이를 하며 뛰어놀았어요.'],
+['집안일 돕기','leaf','바쁜 철에는 어린이도 일손을 도왔어요.']]},
+w:{g:'혼례',a:20,q:'혼례 날이에요. 나는 {r}! {x}',c:[
+['나무 기러기','goose','기러기는 한번 짝을 맺으면 평생 함께한다고 해서, 오래 행복하게 살자는 뜻으로 건네요.'],
+['말과 가마','pal','혼례 뒤 신부 집에서 며칠 지낸 뒤 신랑 집으로 가요. 신랑은 말을, 신부는 가마를 타요.'],
+['폐백 드리기','jb','신랑 집안 어른들께 큰절을 올려요. 대추와 밤은 자식을 많이 낳고 부자가 되라는 뜻이에요.']]},
+t:{g:'마을 사람',a:35,q:'일손이 많이 필요한 큰일이 생겼어요. 농사든 고기잡이든 혼자서는 어려워요. 어떻게 할까요?',c:[
+['두레로 함께하기','ring','두레는 많은 일손이 필요한 일을 함께하려고 만든 마을 조직이에요.'],
+['이웃과 품앗이','talk','품앗이는 일손이 모자란 일을 서로 돌아가며 도와주는 거예요.'],
+['노래 부르며 일하기','moon','농요를 부르면 여럿이 힘을 내서 일할 수 있어요.']]},
+r:{g:'회갑',a:60,q:'만 60세 생일이에요! 회갑잔치를 열었어요.',c:[
+['잔칫상 받기','tteok','가족과 마을 사람들이 모여 축하해 주었어요.'],
+['자손들의 절 받기','cal','자손들이 오래오래 건강하시라며 절을 올렸어요.'],
+['음식 나누기','talk','잔치 음식을 이웃과 나누며 고마움을 전했어요.']]}};
+var E=[
+{g:'설날',d:'음력 1월 1일',q:'설빔을 입고 세배를 드렸더니 덕담을 해 주셨어요. 무엇을 할까요?',c:[
+['떡국 먹기','tteok','흰 가래떡은 밝은 한 해를, 긴 모양은 오래 건강하게 살기를 바라는 마음이에요.'],
+['윷놀이','yut','가족과 이웃이 모여 새해 첫 놀이를 즐겨요.'],
+['연날리기','kite','설날 놀이예요. 하늘 높이 연을 띄우며 새해를 시작해요.']]},
+{g:'정월 대보름',d:'음력 1월 15일',q:'대보름 아침, 해뜨기 전이에요. 무엇부터 해 볼까요?',c:[
+['부럼 깨물기','nut','열매를 깨물며 “올해도 부스럼이 나지 않게 해 주세요” 하고 빌어요.'],
+['더위팔기','talk','아침에 처음 만난 사람의 이름을 불러 한 해의 더위를 파는 풍속이에요.'],
+['달맞이','moon','새해 처음 뜨는 보름달을 보며 소원을 빌어요.']]},
+{g:'단오',d:'음력 5월 5일',q:'모내기를 끝내고 한숨 돌리는 날이에요. 더운 여름 전에 무엇을 할까요?',c:[
+['창포물에 머리 감기','leaf','창포 삶은 물로 머리를 감으면 나쁜 기운이 물러간다고 했어요.'],
+['부채 선물하기','fan','더운 여름을 시원하게 보내라고 부채를 주고받았어요.'],
+['그네뛰기·씨름','swing','여자들은 그네뛰기, 남자들은 씨름으로 단오를 즐겼어요.']]},
+{g:'추석',d:'음력 8월 15일',q:'한가위예요. 송편을 빚거나 달 아래에서 놀 수 있어요. 무엇을 할까요?',c:[
+['송편 빚기','song','송편은 마을마다 달랐어요. 내 마을은 {s}! 솔잎을 깔고 쪄서 솔향이 배요.'],
+['강강술래','ring','보름달 아래 손을 잡고 돌아요. 원래는 전라남도 남해안에서 추석 밤에 하던 놀이예요.'],
+['성묘 가기','mound','햇곡식으로 차례를 지내고 조상의 산소를 찾아가 돌보며 감사해요.']]},
+{g:'동지',d:'양력 12월 22일 무렵',q:'한 해 중 밤이 가장 긴 날이에요. 팥죽을 쑤는 날! 무엇을 할까요?',c:[
+['팥죽 뿌리기','red','붉은 팥이 나쁜 기운을 쫓는다고 믿어 마당과 대문에 팥죽을 뿌렸어요.'],
+['새알심 먹기','ball','“동지 팥죽을 먹어야 한 살 더 먹는다”고 했어요. 새알심을 나이 수대로 먹기도 했어요.'],
+['달력 선물하기','cal','새해 달력과 버선을 주고받았어요. 단오에는 부채, 동지에는 달력이에요.']]}];
+var v,rl,seq,x,rec,app=document.getElementById('app');
+function scene(t){var b='<rect width="300" height="90" fill="#bfe0f2"/><circle cx="250" cy="22" r="11" fill="#f5d76e"/>';
+if(t=='f')b+='<path d="M0 90V58q60-24 120 0t180-6v38z" fill="#7fbf6a"/><path d="M0 76q75-14 150 0t150-4V90H0z" fill="#5da24f"/>';
+else if(t=='m')b+='<path d="M0 90L70 22l60 68z" fill="#6e8a73"/><path d="M90 90L170 14l80 76z" fill="#58745d"/><path d="M0 90h300v-12H0z" fill="#4c6a50"/><rect x="40" y="70" width="16" height="12" fill="#c89b5b"/>';
+else b+='<rect y="46" width="300" height="44" fill="#4f9bd0"/><path d="M0 62q15-8 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0" fill="none" stroke="#a9d6ef" stroke-width="3"/><path d="M110 56h50l-8 14h-34z" fill="#9a6b3c"/><path d="M135 56V30l18 22z" fill="#fff"/>';
+return '<svg viewBox="0 0 300 90" width="100%" role="img" aria-label="마을 풍경" style="border-radius:12px;display:block">'+b+'</svg>'}
+function home(){app.innerHTML='<h1>옛날 우리나라, 한 사람의 일생</h1><p class="sub">태어날 마을도, 혼례 날 신랑이 될지 신부가 될지도 고를 수 없어요. 카드가 정해 준 대로 한 사람의 일생을 살아 봐요. 점수는 없고, 선택은 내 마음이에요.</p><button class="btn go" onclick="born()">태어나기</button>'}
+function born(){app.innerHTML='<h1>태어나는 중…</h1><p class="sub">어느 마을에서 태어날까요?</p>';setTimeout(function(){v=V[Math.floor(Math.random()*V.length)];rl=Math.random()<.5?'신랑':'신부';rec=[];x=0;
+var ev=E.filter(function(){return Math.random()<.6});if(ev.length<2)ev=E.slice(1,4);ev=ev.slice(0,3);ev.forEach(function(e,j){e.a=8+j});
+seq=[A.b,A.h,A.d,A.k].concat(ev,[A.w,A.t,A.r]);
+app.innerHTML='<h1>태어났어요!</h1><div class="card">'+scene(v.t)+'<p style="font-size:22px;margin:12px 0 2px"><b>'+v.n+'</b></p><p class="sub" style="margin:0">우리 집은 <b>'+v.w+'</b>을 해요.</p></div><p class="sub">같은 날, 같은 시각에 다른 마을에서도 아기들이 태어났어요. 그 아기들은 어떤 삶을 살까요?</p><button class="btn go" onclick="step()">일생 시작</button>'},900)}
+function moons(){var h='<div class="moons">';for(var k=0;k<seq.length;k++)h+='<i class="'+(k<=x?'on':'')+'"></i>';return h+'</div>'}
+function step(){var m=seq[x],q=m.q.replace('{r}',rl).replace('{x}',rl=='신랑'?'나무 기러기를 들고 말을 타고 신부 집으로 가요.':'신랑이 기러기를 들고 말을 타고 우리 집으로 와요.');
+var h=moons()+'<div class="age">'+m.a+'세</div><h1>'+m.g+(m.d?' <span class="tag">'+m.d+'</span>':'')+'</h1><div class="card"><p style="margin:0">'+q+'</p></div>';
+for(var k=0;k<m.c.length;k++)h+='<button class="btn" id="c'+k+'" onclick="pick('+k+')">'+I[m.c[k][1]]+'<span>'+m.c[k][0]+'</span></button>';
+app.innerHTML=h+'<div id="out"></div>'}
+function pick(k){var m=seq[x],c=m.c[k];rec.push([m.a+'세 '+m.g,c[0]]);
+for(var j=0;j<m.c.length;j++){var b=document.getElementById('c'+j);b.disabled=true;b.className='btn '+(j==k?'pick':'dim')}
+var last=x==seq.length-1;
+document.getElementById('out').innerHTML='<div class="res"><b>'+c[0]+'</b><p style="margin:4px 0 0">'+c[2].replace('{s}',v.s)+'</p></div><button class="btn go" onclick="nx()">'+(last?'일생 마치기':'시간이 흘러요')+'</button>';
+document.getElementById('out').scrollIntoView({behavior:'smooth',block:'nearest'})}
+function nx(){x++;if(x>=seq.length)return end();var d=seq[x].a-seq[x-1].a;if(d>0){app.innerHTML='<div class="age" style="margin-top:40px">'+seq[x].a+'세</div><p class="sub">'+d+'해가 흘러 '+seq[x].a+'세가 되었어요…</p>';setTimeout(step,900)}else step()}
+function end(){var r='',o=V.filter(function(z){return z!==v}).sort(function(){return Math.random()-.5}).slice(0,3),f='';
+rec.forEach(function(e){r+='<tr><td>'+e[0]+'</td><td>'+e[1]+'</td></tr>'});
+o.forEach(function(z){f+='<tr><td>'+z.n+'</td><td>'+z.w+', 추석에는 '+z.s+'를 빚었어요</td></tr>'});
+app.innerHTML='<h1>일생이 끝났어요</h1><p class="sub">'+v.n+'에서 '+v.w+'을 하는 집에 태어나 혼례 날 '+rl+'이 된 사람의 일생이에요.</p><div class="card"><b>내 일생</b><table>'+r+'</table></div><div class="card"><b>같은 날 태어난 사람들</b><table>'+f+'</table></div><div class="card"><b>마지막 인사</b><p class="sub" style="margin:4px 0 8px">일생을 살아 본 이 사람에게 한마디 해 볼까요? “○○야, 한평생 ___했구나. ___해서 고마웠겠다.”</p><textarea aria-label="마지막 인사"></textarea></div><div class="card"><b>친구와 비교해 봐요</b><p style="margin:6px 0 0">1. 친구와 같았던 것과 달랐던 것은?<br>2. 내가 한 일 중에 오늘날 우리도 하는 것은?<br>3. 왜 옛날 사람들은 이렇게 했을까요?</p></div><button class="btn go" onclick="born()">다시 태어나기</button>'}
+home();
+</script>
+</body>
+</html>
