@@ -399,24 +399,16 @@
     handEl = document.createElement("div");
     handEl.className = "throw-hand";
     handEl.innerHTML = `<svg viewBox="0 0 360 330" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-<defs><linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8d3ac"/><stop offset="1" stop-color="#e6a87c"/></linearGradient></defs>
-<g class="h-sleeve"><path d="M118 262 L242 262 L250 296 L110 296 Z" fill="#f7f2e6" stroke="#cdbf9f" stroke-width="4" stroke-linejoin="round"/><path d="M118 262 L242 262" stroke="#c0392b" stroke-width="10" stroke-linecap="round"/></g>
-<g class="h-fist">
-<rect x="124" y="226" width="112" height="56" rx="24" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
-<rect x="52" y="112" width="256" height="136" rx="64" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
-<g fill="none" stroke="#d29a70" stroke-width="3.5" stroke-linecap="round"><path d="M92 152 Q180 166 268 152"/><path d="M88 186 Q180 200 272 186"/><path d="M96 218 Q180 230 264 218"/></g>
-<ellipse cx="92" cy="168" rx="38" ry="46" fill="url(#skin)" stroke="#c48a5e" stroke-width="3" transform="rotate(18 92 168)"/>
-<path d="M66 178 Q86 196 112 186" fill="none" stroke="#d29a70" stroke-width="3" stroke-linecap="round"/>
-</g>
-<g class="h-open">
-<rect x="108" y="170" width="144" height="110" rx="46" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
-<g fill="url(#skin)" stroke="#c48a5e" stroke-width="3">
-<rect x="106" y="76" width="36" height="112" rx="18" transform="rotate(-13 124 188)"/>
-<rect x="142" y="58" width="36" height="124" rx="18" transform="rotate(-4 160 188)"/>
-<rect x="180" y="58" width="36" height="124" rx="18" transform="rotate(5 198 188)"/>
-<rect x="216" y="78" width="34" height="108" rx="17" transform="rotate(15 233 188)"/>
-<rect x="64" y="146" width="40" height="84" rx="20" transform="rotate(-52 100 220)"/>
-</g></g>
+<defs><linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8d3ac"/><stop offset="1" stop-color="#e6a87c"/></linearGradient>
+<g id="hl">
+<path d="M-6 330 L8 252 L74 262 L70 330 Z" fill="#f7f2e6" stroke="#cdbf9f" stroke-width="3" stroke-linejoin="round"/>
+<path d="M8 252 L74 262" stroke="#c0392b" stroke-width="9" stroke-linecap="round"/>
+<rect x="-4" y="128" width="92" height="146" rx="40" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
+<rect x="30" y="64" width="36" height="96" rx="18" transform="rotate(8 48 150)" fill="url(#skin)" stroke="#c48a5e" stroke-width="3"/>
+<g fill="url(#skin)" stroke="#c48a5e" stroke-width="3"><rect x="52" y="136" width="70" height="30" rx="15"/><rect x="52" y="168" width="70" height="30" rx="15"/><rect x="52" y="200" width="70" height="30" rx="15"/><rect x="52" y="232" width="64" height="28" rx="14"/></g>
+</g></defs>
+<g class="h-l"><use href="#hl"/></g>
+<g class="h-r"><use href="#hl" transform="translate(360 0) scale(-1 1)"/></g>
 </svg>`;
     el.throwSticks.appendChild(handEl);
   }

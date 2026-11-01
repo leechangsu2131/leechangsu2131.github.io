@@ -1100,3 +1100,8 @@ body {
 .throw-hand.open .h-open { display: inline; }
 .throw-hand.open .h-fist { display: none; }
 .throw-pad .pad-msg { text-shadow: 0 2px 8px rgba(0,0,0,0.85), 0 0 14px rgba(0,0,0,0.8); position: relative; z-index: 5; }
+
+.throw-hand .h-l, .throw-hand .h-r { transition: transform 0.4s cubic-bezier(.2,.9,.3,1); }
+.throw-hand.open .h-l { transform: translate(-90px, -60px); }
+.throw-hand.open .h-r { transform: translate(90px, -60px); }
+.throw-hand.open .h-open, .throw-hand.open .h-fist { display: none; }
