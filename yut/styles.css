@@ -1168,3 +1168,33 @@ body {
 .vis small { display: block; font-size: 13px; color: var(--ink-soft); }
 .vis:has(input:checked) { border-color: var(--gold); background: #fff7e0; box-shadow: 0 0 0 3px rgba(201,155,63,0.3); }
 .room-kind { display: block; font-size: 15px; font-weight: 700; color: var(--ink-soft); margin-top: 2px; }
+
+/* ---------- 남은 말은 윷판 옆에 ---------- */
+.board-row { display: grid; grid-template-columns: auto minmax(0, 640px) auto; gap: 14px; align-items: center; justify-content: center; }
+.board-row .board-area { min-width: 0; }
+.side-tray { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 10px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); outline: 2px solid var(--line); outline-offset: -2px; align-self: center; }
+.side-tray.p0 { background: linear-gradient(180deg, rgba(192,57,43,0.14), var(--surface)); }
+.side-tray.p1 { background: linear-gradient(180deg, rgba(42,90,140,0.14), var(--surface)); }
+.side-tray.now { outline: 4px solid var(--gold); box-shadow: 0 0 0 6px rgba(201,155,63,0.25), var(--shadow); }
+.side-tray h3 { margin: 0; font-family: "Jua", var(--font); font-weight: 400; font-size: 22px; }
+.side-tray .token-tray { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 10px; margin: 0; padding: 6px; min-height: 120px; min-width: 76px; justify-content: flex-start; }
+.side-tray .tray-token { width: 64px; height: 64px; font-size: 26px; }
+.side-tray .token-tray.home-ready::after { white-space: nowrap; }
+@media (max-width: 700px) {
+  .board-row { gap: 6px; }
+  .side-tray { padding: 8px 4px; gap: 4px; border-radius: 14px; }
+  .side-tray h3 { font-size: 16px; }
+  .side-tray .token-tray { min-width: 48px; gap: 6px; padding: 4px 2px; min-height: 100px; }
+  .side-tray .tray-token { width: 42px; height: 42px; font-size: 18px; }
+}
+.side-tray .token-tray.home-ready::after { content: "👆 눌러요"; top: auto; bottom: -14px; right: 50%; transform: translateX(50%); font-size: 13px; }
+.side-tray .token-tray { position: relative; }
+.board-row .board-area { grid-column: auto; order: 0; }
+@media (max-width: 700px) {
+  .board-row { margin: 0 -8px; gap: 4px; }
+  .side-tray { padding: 6px 2px; }
+  .side-tray h3 { font-size: 14px; }
+  .side-tray .token-tray { min-width: 40px; gap: 5px; }
+  .side-tray .tray-token { width: 36px; height: 36px; }
+}
+@media (max-width: 700px) { .side-tray .token-tray.home-ready::after { right: auto; left: 0; transform: none; font-size: 11px; padding: 2px 6px; } .side-tray.p1 .token-tray.home-ready::after { left: auto; right: 0; } }

@@ -257,6 +257,7 @@
         tray.appendChild(li);
       }
     });
+    document.querySelectorAll(".side-tray").forEach((t) => t.classList.toggle("now", t.classList.contains("p" + state.current) && !state.gameOver));
     document.getElementById("panel-0").classList.toggle("active", state.current === 0 && !state.gameOver);
     document.getElementById("panel-1").classList.toggle("active", state.current === 1 && !state.gameOver);
     renderRoster();

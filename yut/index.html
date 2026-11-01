@@ -36,10 +36,14 @@
     <main class="layout">
 
       <div class="net-chip" id="net-chip" hidden></div>
-      <section class="board-area" aria-label="윷놀이 말판">
-        <div class="board" id="board"></div>
-        <div class="board-banner" id="board-banner" aria-live="assertive"></div>
-      </section>
+      <div class="board-row">
+        <aside class="side-tray p0" aria-label="홍팀 대기 말"><h3>🔴 홍</h3><ul class="token-tray" id="tray-0" role="list"></ul></aside>
+        <section class="board-area" aria-label="윷놀이 말판">
+          <div class="board" id="board"></div>
+          <div class="board-banner" id="board-banner" aria-live="assertive"></div>
+        </section>
+        <aside class="side-tray p1" aria-label="청팀 대기 말"><h3>🔵 청</h3><ul class="token-tray" id="tray-1" role="list"></ul></aside>
+      </div>
 
         <section class="control-bar" aria-label="게임 조작">
         <div class="turn-who" id="turn-who" aria-live="polite"></div>
@@ -83,7 +87,6 @@
             <span class="stat-value" id="done-0">0</span>
           </div>
         </div>
-        <ul class="token-tray" id="tray-0" role="list" aria-label="홍팀 대기 말"></ul>
         <ul class="roster" id="roster-0" aria-label="홍팀 친구들" hidden></ul>
       </section>
 
@@ -103,7 +106,6 @@
             <span class="stat-value" id="done-1">0</span>
           </div>
         </div>
-        <ul class="token-tray" id="tray-1" role="list" aria-label="청팀 대기 말"></ul>
         <ul class="roster" id="roster-1" aria-label="청팀 친구들" hidden></ul>
       </section>
     </div>
