@@ -1105,3 +1105,17 @@ body {
 .throw-hand.open .h-l { transform: translate(-90px, -60px); }
 .throw-hand.open .h-r { transform: translate(90px, -60px); }
 .throw-hand.open .h-open, .throw-hand.open .h-fist { display: none; }
+
+.throw-hand .s-open { display: none; }
+.throw-hand.open .s-open { display: inline; }
+.throw-hand.open .s-hold { display: none; }
+.throw-hand.open .h-l { transform: translate(-50px, 10px); }
+.throw-hand.open .h-r { transform: translate(50px, 10px); }
+
+/* 그림자 손: 가짜 손가락 대신 은은한 그림자로 표현 */
+.throw-hand { top: -33%; width: min(104%, 400px); }
+.throw-hand svg { opacity: 0.52; filter: blur(1.8px); }
+.throw-hand svg path, .throw-hand svg rect { fill: #120804; stroke: #120804; }
+.throw-hand svg path[fill="none"] { fill: none; }
+.throw-hand.open .h-l { transform: translate(-60px, 24px); }
+.throw-hand.open .h-r { transform: translate(60px, 24px); }
