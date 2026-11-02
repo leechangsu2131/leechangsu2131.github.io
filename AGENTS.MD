@@ -34,6 +34,8 @@
 | 📚 교육 | 분수 연습 | `fraction-practice.html` |
 | 📚 교육 (3학년 사회) | 옛날 살아보기 (한 사람의 일생 체험) | `oldlife.html` |
 | 📚 교육 (3학년 사회) | 윷놀이 대결 (온라인 방 대전) | `yut/index.html` |
+| 📚 교육 (3학년 사회) | 우리 반 AI 게임 극장 (AI 사이트 링크·학생 게임 업로드·갤러리) | `games/index.html` |
+| 🛡️ 교사용 | AI 게임 검토실 (승인·숨김·삭제) | `games/teacher.html` |
 | 📚 교육 (3학년 음악) | 내가 만드는 리듬 (코다이 리듬 연습) | `rhythm.html` |
 | 🏃 웰니스 | 항당분해 훈련(AGT) 관리 | `exercise.html` |
 | 🧠 마인드셋 | 레드 파일 기법 | `resetmind.html` |
@@ -358,6 +360,15 @@
 - [ ] 실제 손 사진(투명 PNG) 적용
 
 ---
+
+### 12-2-1. 우리 반 AI 게임 극장 (`games/index.html`, `games/teacher.html`) — 3학년 사회 (옛날 놀이)
+- **흐름:** 학생이 AI 사이트(Claude·Gemini·ChatGPT 링크, `AI_SITES` 배열에서 수정)로 단일 HTML 게임 제작 → 파일 업로드(또는 코드 붙여 넣기) → `pending` 저장 → 교사가 `games/teacher.html`에서 실행해 보고 공개/숨김/삭제 → `approved`만 갤러리에 노출
+- **DB(Supabase `student_games`):** RLS — 익명은 `status='pending'` 삽입만 가능(제목 40자·작성자 20자·소개 200자·HTML 50B~600KB 제한), 조회는 `approved`만. 교사 기능은 `student_games_admin_list/set/delete` RPC(SECURITY DEFINER)가 `student_games_admin`의 해시 비밀번호로 검증. **비밀번호는 저장소에 적지 않음**(공개 저장소)
+- **비밀번호 변경:** SQL로 `update student_games_admin set code_hash = encode(sha256(convert_to('새비밀번호','utf8')),'hex') where id=1;`
+- **안전 실행:** 게임은 `<iframe sandbox="allow-scripts" srcdoc>`로만 실행(부모 접근·쿠키 차단), 주입한 CSP로 **외부 통신 전부 차단**(`default-src 'none'`), localStorage는 메모리 대체물 주입. 게임에서 인터넷 주소/외부 스크립트는 작동하지 않음
+- **교사 화면 점검 표시:** 외부 스크립트·인터넷 주소·네트워크 호출·페이지 이동/팝업·iframe/form 감지 시 ⚠ 표시
+- 진입: `education.html`의 3학년 사회 → "AI로 만드는 옛날 놀이" 패널(옛날 사람들의 놀이 다음)
+- [ ] 학생 게임 수정·재제출, 게임별 "좋아요", 교사 화면 비밀번호 변경 UI
 
 ### 12-3. 내가 만드는 리듬 (`rhythm.html`) — 3학년 음악
 

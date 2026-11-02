@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>AI 게임 검토실 (교사용)</title>
+<style>
+:root{--bg:#050507;--ink:#f5f5f7;--sub:#a1a1aa;--line:rgba(255,255,255,.12);--glass:rgba(255,255,255,.05);--green:#30d158;--orange:#ff9f0a;--red:#ff453a;--blue:#64d2ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.55}
+.wrap{max-width:960px;margin:auto;padding:30px 18px 70px}h1{font-size:28px;letter-spacing:-.04em;margin:0 0 4px}.sub{color:var(--sub);margin:0 0 22px;font-size:14px}
+a{color:var(--blue)}
+input,button{font:inherit;color:var(--ink)}input{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;padding:10px 13px}
+button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.1);border-radius:99px;padding:7px 14px;font-size:13px}button:hover{background:rgba(255,255,255,.2)}
+.p{background:#fff;color:#000;font-weight:700;border-color:#fff}
+.ok{border-color:rgba(48,209,88,.6);color:var(--green)}.no{border-color:rgba(255,159,10,.6);color:var(--orange)}.del{border-color:rgba(255,69,58,.6);color:var(--red)}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.tabs button.on{background:#fff;color:#000}
+.item{border:1px solid var(--line);border-radius:18px;background:var(--glass);padding:16px;margin-bottom:12px}
+.item h3{margin:0;font-size:17px}.meta{color:var(--sub);font-size:13px;margin:2px 0 6px}.d{font-size:14px;color:#d4d4d8;margin:0 0 10px}
+.st{display:inline-block;font-size:11px;border-radius:99px;padding:2px 9px;border:1px solid var(--line);margin-left:8px;vertical-align:2px}
+.st.pending{color:var(--orange)}.st.approved{color:var(--green)}.st.hidden{color:var(--sub)}
+.flags{font-size:13px;color:var(--orange);margin:0 0 10px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.msg{color:var(--red);font-size:14px;min-height:20px;margin:8px 0}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.9);display:none;flex-direction:column}.modal.show{display:flex}
+.mbar{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:#0c0c10}.mbar button{margin-left:auto}
+.modal iframe{flex:1;border:0;width:100%;background:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛡️ AI 게임 검토실</h1>
+  <p class="sub">학생이 올린 게임을 실행해 보고 <b>공개</b> 또는 <b>숨김</b>을 정합니다. <a href="index.html">학생 화면 보기</a></p>
+  <div class="bar" id="login">
+    <input type="password" id="code" placeholder="교사 비밀번호" autocomplete="current-password">
+    <button class="p" id="go">들어가기</button>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div id="panel" style="display:none">
+    <div class="bar tabs" id="tabs">
+      <button data-f="pending" class="on">검토 대기</button><button data-f="approved">공개 중</button><button data-f="hidden">숨김</button><button data-f="all">전체</button>
+      <button id="reload" style="margin-left:auto">새로고침</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+<div class="modal" id="modal"><div class="mbar"><b id="mt"></b><button id="mc">✕ 닫기</button></div><iframe id="frame" sandbox="allow-scripts" title="미리보기"></iframe></div>
+<script>
+(function(){
+  var BASE="https://erzdvlcbjneabxqwnwfy.supabase.co/rest/v1/rpc/";
+  var KEY="sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz";
+  var $=function(i){return document.getElementById(i)};
+  var code="",rows=[],filter="pending";
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function rpc(fn,args){
+    return fetch(BASE+fn,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY,Authorization:"Bearer "+KEY},body:JSON.stringify(args)})
+      .then(function(r){if(!r.ok)throw new Error(r.status);return r.status===204?null:r.text().then(function(t){return t?JSON.parse(t):null})});
+  }
+  function scan(h){
+    var f=[];
+    if(/<script[^>]+src=/i.test(h))f.push("외부 스크립트");
+    if(/https?:\/\//i.test(h))f.push("인터넷 주소");
+    if(/fetch\s*\(|XMLHttpRequest|WebSocket/i.test(h))f.push("네트워크 호출");
+    if(/window\.open|location\s*[=.]|top\./i.test(h))f.push("페이지 이동/팝업");
+    if(/<iframe|<form/i.test(h))f.push("iframe/form");
+    return f;
+  }
+  function render(){
+    var l=rows.filter(function(r){return filter==="all"||r.status===filter});
+    if(!l.length){$("list").innerHTML='<div class="item" style="color:var(--sub);text-align:center">해당하는 게임이 없습니다.</div>';return}
+    $("list").innerHTML=l.map(function(r){
+      var fl=scan(r.html),lab={pending:"대기",approved:"공개",hidden:"숨김"}[r.status];
+      return '<div class="item"><h3>'+esc(r.title)+'<span class="st '+r.status+'">'+lab+'</span></h3>'+
+        '<div class="meta">'+esc(r.author)+' · '+new Date(r.created_at).toLocaleString("ko-KR")+' · '+Math.ceil(r.html.length/1024)+'KB</div>'+
+        (r.description?'<p class="d">'+esc(r.description)+'</p>':'')+
+        (fl.length?'<p class="flags">⚠ 확인 필요: '+fl.join(", ")+'</p>':'')+
+        '<div class="btns" data-id="'+r.id+'"><button data-a="view">▶ 실행해 보기</button>'+
+        (r.status!=="approved"?'<button class="ok" data-a="approved">공개</button>':'')+
+        (r.status!=="hidden"?'<button class="no" data-a="hidden">숨김</button>':'')+
+        '<button class="del" data-a="delete">삭제</button></div></div>';
+    }).join("");
+  }
+  function load(){
+    $("msg").textContent="";
+    return rpc("student_games_admin_list",{p_code:code}).then(function(d){rows=d||[];$("login").style.display="none";$("panel").style.display="block";render()})
+      .catch(function(){$("msg").textContent="비밀번호가 맞지 않거나 불러오지 못했습니다.";$("panel").style.display="none";$("login").style.display="flex"});
+  }
+  $("go").onclick=function(){code=$("code").value;load()};
+  $("code").onkeydown=function(e){if(e.key==="Enter")$("go").click()};
+  $("reload").onclick=load;
+  $("tabs").onclick=function(e){var b=e.target.closest("button[data-f]");if(!b)return;filter=b.dataset.f;[].forEach.call($("tabs").querySelectorAll("button[data-f]"),function(x){x.classList.toggle("on",x===b)});render()};
+  var GUARD='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; img-src data: blob:; media-src data: blob:; font-src data:">';
+  function wrap(h){
+    if(/<head[^>]*>/i.test(h))return h.replace(/<head[^>]*>/i,function(m){return m+GUARD});
+    if(/<html[^>]*>/i.test(h))return h.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+h+"</body></html>";
+  }
+  $("list").onclick=function(e){
+    var b=e.target.closest("button[data-a]");if(!b)return;
+    var id=b.parentNode.dataset.id,a=b.dataset.a,r=rows.filter(function(x){return x.id===id})[0];
+    if(a==="view"){$("mt").textContent=r.title+" — "+r.author;$("frame").srcdoc=wrap(r.html);$("modal").classList.add("show");return}
+    if(a==="delete"){if(!confirm("「"+r.title+"」을(를) 완전히 삭제할까요?"))return;rpc("student_games_admin_delete",{p_code:code,p_id:id}).then(load).catch(function(){$("msg").textContent="삭제하지 못했습니다."});return}
+    rpc("student_games_admin_set",{p_code:code,p_id:id,p_status:a}).then(load).catch(function(){$("msg").textContent="변경하지 못했습니다."});
+  };
+  $("mc").onclick=function(){$("modal").classList.remove("show");$("frame").srcdoc=""};
+})();
+</script>
+</body>
+</html>

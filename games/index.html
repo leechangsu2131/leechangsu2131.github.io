@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>우리 반 AI 게임 극장</title>
+<style>
+:root{--bg:#050507;--ink:#f5f5f7;--sub:#a1a1aa;--line:rgba(255,255,255,.12);--glass:rgba(255,255,255,.05);--blue:#64d2ff;--purple:#bf5af2;--orange:#ff9f0a;--green:#30d158;--red:#ff453a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.glow{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 12% 0%,rgba(94,92,230,.22),transparent 40%),radial-gradient(ellipse at 90% 25%,rgba(255,159,10,.12),transparent 38%)}
+nav{position:sticky;top:12px;z-index:5;width:max-content;max-width:calc(100% - 24px);margin:12px auto 0;padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:rgba(28,28,32,.78);backdrop-filter:blur(18px);display:flex;gap:16px;font-size:13px;color:var(--sub)}
+nav a:hover{color:var(--ink)}
+.wrap{max-width:1080px;margin:auto;padding:0 20px 70px}
+.hero{text-align:center;padding:64px 0 34px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--sub);border:1px solid var(--line);background:var(--glass);padding:7px 14px;border-radius:99px;font-size:13px}
+h1{font-size:clamp(38px,7vw,68px);line-height:1.08;letter-spacing:-.055em;margin:20px 0 10px}
+.hero p{color:var(--sub);font-size:clamp(15px,2vw,18px);margin:0}
+section{scroll-margin-top:80px;margin:30px 0}
+.sh{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.sh h2{font-size:26px;letter-spacing:-.04em;margin:0}.sh p{color:var(--sub);margin:0;font-size:14px}
+.panel{border:1px solid var(--line);border-radius:24px;background:var(--glass);padding:22px}
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.ai{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.04);transition:.2s}
+.ai:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.ai .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:21px;background:rgba(255,255,255,.09);flex:none}
+.ai b{display:block;font-size:15px}.ai small{color:var(--sub);font-size:12px}.ai .out{margin-left:auto;color:var(--sub)}
+.tip{margin-top:16px;border:1px dashed rgba(255,255,255,.2);border-radius:16px;padding:14px 16px;font-size:14px;color:#d4d4d8}
+.tip b{color:var(--orange)}
+.prompt{display:flex;gap:10px;align-items:flex-start;margin-top:10px}
+.prompt pre{flex:1;margin:0;white-space:pre-wrap;word-break:keep-all;font:13.5px/1.6 inherit;font-family:inherit;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:#e4e4e7}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.1);color:var(--ink);border-radius:99px;padding:9px 16px;font-size:14px;transition:.2s}
+button:hover{background:rgba(255,255,255,.2)}
+.btn-p{background:#fff;color:#000;border-color:#fff;font-weight:700}.btn-p:hover{background:#e8e8ea}
+button:disabled{opacity:.5;cursor:default}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.game{border:1px solid var(--line);border-radius:22px;background:var(--glass);padding:18px;display:flex;flex-direction:column;gap:6px;transition:.2s}
+.game:hover{border-color:rgba(255,255,255,.28);transform:translateY(-3px)}
+.game .em{font-size:34px}.game h3{margin:0;font-size:18px;letter-spacing:-.03em}
+.game .by{color:var(--blue);font-size:13px}.game p{margin:0;color:var(--sub);font-size:14px;flex:1;word-break:keep-all}
+.game button{margin-top:10px;align-self:flex-start}
+.empty{color:var(--sub);text-align:center;padding:34px 10px;border:1px dashed var(--line);border-radius:22px}
+form{display:grid;gap:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:grid;gap:6px;font-size:14px;color:#d4d4d8}
+input[type=text],textarea{font:inherit;color:var(--ink);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
+textarea{min-height:120px;resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+input:focus,textarea:focus{outline:2px solid var(--purple);outline-offset:1px}
+.drop{border:2px dashed rgba(255,255,255,.25);border-radius:18px;padding:22px;text-align:center;color:var(--sub);cursor:pointer;transition:.2s}
+.drop:hover,.drop.on{border-color:var(--green);color:var(--ink);background:rgba(48,209,88,.06)}
+.drop b{color:var(--ink)}
+.msg{padding:12px 14px;border-radius:12px;font-size:14px;display:none}
+.msg.show{display:block}.msg.ok{background:rgba(48,209,88,.14);border:1px solid rgba(48,209,88,.4)}
+.msg.err{background:rgba(255,69,58,.14);border:1px solid rgba(255,69,58,.4)}.msg.warn{background:rgba(255,159,10,.14);border:1px solid rgba(255,159,10,.4)}
+.rules{margin:0;padding-left:20px;color:#d4d4d8;font-size:14px}.rules li{margin:3px 0}
+/* 게임 창 */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.88);display:none;flex-direction:column}
+.modal.show{display:flex}
+.mbar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);background:#0c0c10}
+.mbar b{font-size:16px}.mbar span{color:var(--sub);font-size:13px}.mbar button{margin-left:auto}
+.modal iframe{flex:1;width:100%;border:0;background:#fff}
+footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}footer a{color:var(--ink);border-bottom:1px solid var(--line)}
+@media(max-width:700px){.wrap{padding:0 13px 45px}.row{grid-template-columns:1fr}.prompt{flex-direction:column}.panel{padding:17px}}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<nav aria-label="메뉴"><a href="../index.html">홈</a><a href="../education.html#social">3학년 사회</a><a href="#ai">AI 사이트</a><a href="#play">게임 하기</a><a href="#upload">게임 올리기</a></nav>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">🏺 3학년 사회 · 옛날 놀이</div>
+  <h1>우리 반 AI 게임 극장</h1>
+  <p>AI와 함께 옛날 놀이 게임을 만들고, 친구들이 만든 게임도 즐겨 보세요.</p>
+</header>
+
+<section id="ai">
+  <div class="sh"><h2>🤖 1. AI에게 게임 만들어 달라고 하기</h2><p>아래 사이트를 눌러 열어 보세요. (새 창으로 열려요)</p></div>
+  <div class="panel">
+    <div class="ai-grid" id="aiGrid"></div>
+    <div class="tip">
+      <b>이렇게 말해 보세요.</b> 아래 글을 복사해서 AI에게 붙여 넣고, 대괄호 부분만 바꿔 보세요.
+      <div class="prompt">
+        <pre id="promptText">옛날 놀이인 [제기차기]를 주제로 3학년 학생이 하는 간단한 게임을 만들어 줘.
+- HTML 파일 하나로 만들어 줘. (다른 파일, 인터넷 주소는 쓰지 마)
+- 마우스와 터치로 모두 할 수 있게 해 줘.
+- 글자는 크고 쉽게, 한글로 써 줘.
+- 이름, 학교, 전화번호 같은 개인정보를 묻지 마.
+- 게임이 끝나면 점수가 보이게 해 줘.</pre>
+        <button type="button" id="copyBtn">복사하기</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="play">
+  <div class="sh"><h2>🎮 2. 친구들이 만든 게임</h2><p>선생님이 확인한 게임만 보여요.</p></div>
+  <div class="games" id="games"><div class="empty">게임을 불러오는 중…</div></div>
+</section>
+
+<section id="upload">
+  <div class="sh"><h2>📤 3. 내가 만든 게임 올리기</h2><p>올리면 선생님이 확인한 뒤 위 목록에 나타나요.</p></div>
+  <div class="panel">
+    <ul class="rules">
+      <li>게임 이름은 <b>번호나 별명</b>으로 적어요. 진짜 이름·학교·전화번호는 쓰지 않아요.</li>
+      <li>HTML 파일(<code>.html</code>) 하나만 올릴 수 있어요. (최대 500KB)</li>
+      <li>인터넷 주소로 연결되는 게임은 작동하지 않아요. 파일 하나로 만들어 달라고 AI에게 말하세요.</li>
+    </ul>
+    <form id="form" style="margin-top:16px" autocomplete="off">
+      <div class="row">
+        <label>게임 이름<input type="text" id="fTitle" maxlength="40" required placeholder="예) 제기차기 왕"></label>
+        <label>만든 사람 (번호나 별명)<input type="text" id="fAuthor" maxlength="20" required placeholder="예) 7번 / 번개"></label>
+      </div>
+      <label>한 줄 소개 (선택)<input type="text" id="fDesc" maxlength="200" placeholder="예) 제기를 떨어뜨리지 않고 오래 차 보세요!"></label>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="HTML 파일 선택">
+        <div id="dropText">📄 여기를 눌러 <b>HTML 파일</b>을 고르거나, 끌어다 놓으세요</div>
+        <input type="file" id="fFile" accept=".html,.htm,text/html" hidden>
+      </div>
+      <details><summary style="cursor:pointer;color:var(--sub);font-size:14px">파일이 없고 코드가 있나요? 붙여 넣기</summary>
+        <textarea id="fCode" placeholder="&lt;!DOCTYPE html&gt; ... 코드를 여기에 붙여 넣으세요" style="margin-top:10px"></textarea>
+      </details>
+      <div class="msg" id="msg" role="status"></div>
+      <div><button class="btn-p" id="sendBtn" type="submit">선생님께 보내기</button></div>
+    </form>
+  </div>
+</section>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="게임 실행">
+  <div class="mbar"><b id="mTitle"></b><span id="mBy"></span><button type="button" id="mClose">✕ 닫기</button></div>
+  <iframe id="frame" sandbox="allow-scripts" title="학생 게임"></iframe>
+</div>
+
+<footer><a href="../education.html#social">3학년 사회로 돌아가기</a></footer>
+
+<script>
+(function(){
+  var URL="https://erzdvlcbjneabxqwnwfy.supabase.co/rest/v1/student_games";
+  var KEY="sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz";
+  var H={apikey:KEY,Authorization:"Bearer "+KEY};
+  var MAX=500*1024;
+
+  /* AI 사이트 목록 — 바꾸려면 여기만 고치면 됩니다 */
+  var AI_SITES=[
+    {n:"Claude",d:"대화하며 게임 만들기",u:"https://claude.ai",e:"🟠"},
+    {n:"Gemini",d:"구글 AI",u:"https://gemini.google.com",e:"🔷"},
+    {n:"ChatGPT",d:"대화형 AI",u:"https://chatgpt.com",e:"🟢"}
+  ];
+  var $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+  $("aiGrid").innerHTML=AI_SITES.map(function(a){
+    return '<a class="ai" href="'+esc(a.u)+'" target="_blank" rel="noopener noreferrer"><span class="ic">'+a.e+'</span><span><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small></span><span class="out">↗</span></a>';
+  }).join("");
+
+  $("copyBtn").onclick=function(){
+    var t=$("promptText").textContent,b=this;
+    function done(){b.textContent="복사됐어요 ✓";setTimeout(function(){b.textContent="복사하기"},1500)}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){sel()});else sel();
+    function sel(){var r=document.createRange();r.selectNodeContents($("promptText"));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");done()}catch(e){}}
+  };
+
+  /* 게임 목록 */
+  var EM=["🪁","🎲","🏹","🧨","🪀","🎯","🛶","🏮"];
+  function load(){
+    fetch(URL+"?select=id,title,author,description,created_at&status=eq.approved&order=created_at.desc&limit=100",{headers:H})
+      .then(function(r){if(!r.ok)throw 0;return r.json()})
+      .then(function(rows){
+        if(!rows.length){$("games").innerHTML='<div class="empty">아직 올라온 게임이 없어요. 첫 번째 주인공이 되어 보세요! 👇</div>';return}
+        $("games").innerHTML=rows.map(function(g,i){
+          return '<article class="game"><div class="em">'+EM[i%EM.length]+'</div><h3>'+esc(g.title)+'</h3><div class="by">만든 사람 · '+esc(g.author)+'</div><p>'+esc(g.description||"")+'</p><button type="button" data-id="'+esc(g.id)+'" data-t="'+esc(g.title)+'" data-a="'+esc(g.author)+'">▶ 게임 하기</button></article>';
+        }).join("");
+      })
+      .catch(function(){$("games").innerHTML='<div class="empty">목록을 불러오지 못했어요. 잠시 뒤에 다시 눌러 보세요.</div>'});
+  }
+  $("games").addEventListener("click",function(e){
+    var b=e.target.closest("button[data-id]");if(!b)return;
+    b.disabled=true;
+    fetch(URL+"?select=html&id=eq."+encodeURIComponent(b.dataset.id)+"&status=eq.approved",{headers:H})
+      .then(function(r){return r.json()})
+      .then(function(rows){if(!rows[0])throw 0;open(b.dataset.t,b.dataset.a,rows[0].html)})
+      .catch(function(){alert("게임을 열지 못했어요.")})
+      .then(function(){b.disabled=false});
+  });
+
+  /* 안전 실행: 인터넷 연결 차단(CSP) + 저장소 대체 */
+  var GUARD='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; img-src data: blob:; media-src data: blob:; font-src data:">'+
+    '<script>(function(){function M(){var d={};return{getItem:function(k){return k in d?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}'+
+    'try{window.localStorage.getItem("x")}catch(e){try{Object.defineProperty(window,"localStorage",{value:M()});Object.defineProperty(window,"sessionStorage",{value:M()})}catch(_){}}})();<\/script>';
+  function wrap(html){
+    if(/<head[^>]*>/i.test(html))return html.replace(/<head[^>]*>/i,function(m){return m+GUARD});
+    if(/<html[^>]*>/i.test(html))return html.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"</body></html>";
+  }
+  function open(t,a,html){
+    $("mTitle").textContent=t;$("mBy").textContent="만든 사람 · "+a;
+    $("frame").srcdoc=wrap(html);$("modal").classList.add("show");document.body.style.overflow="hidden";
+  }
+  function close(){$("modal").classList.remove("show");$("frame").srcdoc="";document.body.style.overflow=""}
+  $("mClose").onclick=close;
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
+
+  /* 업로드 */
+  var fileText="";
+  function show(cls,text){var m=$("msg");m.className="msg show "+cls;m.textContent=text}
+  function pick(f){
+    if(!f)return;
+    if(!/\.html?$/i.test(f.name)){show("err","HTML 파일(.html)만 올릴 수 있어요.");return}
+    if(f.size>MAX){show("err","파일이 너무 커요. 500KB 이하로 만들어 달라고 AI에게 말해 보세요.");return}
+    var r=new FileReader();
+    r.onload=function(){fileText=String(r.result);$("dropText").innerHTML="✅ <b>"+esc(f.name)+"</b> ("+Math.ceil(f.size/1024)+"KB)";$("msg").className="msg"};
+    r.readAsText(f,"UTF-8");
+  }
+  var drop=$("drop");
+  drop.onclick=function(){$("fFile").click()};
+  drop.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();$("fFile").click()}};
+  $("fFile").onchange=function(){pick(this.files[0])};
+  ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("on")})});
+  ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("on")})});
+  drop.addEventListener("drop",function(e){pick(e.dataTransfer.files[0])});
+
+  $("form").onsubmit=function(e){
+    e.preventDefault();
+    var html=($("fCode").value.trim())||fileText;
+    if(!html){show("err","HTML 파일을 고르거나 코드를 붙여 넣어 주세요.");return}
+    if(html.length<50){show("err","내용이 너무 짧아요. 게임 파일이 맞는지 확인해 주세요.");return}
+    if(new Blob([html]).size>MAX){show("err","내용이 너무 커요. 500KB 이하로 줄여 주세요.");return}
+    if(!/<\s*(html|body|script|canvas|div)/i.test(html)){show("err","HTML 게임 파일이 아닌 것 같아요.");return}
+    var btn=$("sendBtn");btn.disabled=true;btn.textContent="보내는 중…";
+    fetch(URL,{method:"POST",headers:Object.assign({"Content-Type":"application/json",Prefer:"return=minimal"},H),
+      body:JSON.stringify({title:$("fTitle").value.trim(),author:$("fAuthor").value.trim(),description:$("fDesc").value.trim(),html:html,status:"pending"})})
+      .then(function(r){if(!r.ok)throw 0;
+        var warn=/(<script[^>]+src=|https?:\/\/|fetch\s*\(|XMLHttpRequest|window\.open|location\s*=)/i.test(html);
+        show(warn?"warn":"ok",warn?"보냈어요! 그런데 게임에 인터넷 주소가 들어 있는 것 같아요. 그 부분은 작동하지 않을 수 있어요.":"보냈어요! 선생님이 확인하면 게임 목록에 나타나요. 🎉");
+        $("form").reset();fileText="";$("dropText").innerHTML="📄 여기를 눌러 <b>HTML 파일</b>을 고르거나, 끌어다 놓으세요";
+      })
+      .catch(function(){show("err","보내지 못했어요. 잠시 뒤에 다시 해 보세요.")})
+      .then(function(){btn.disabled=false;btn.textContent="선생님께 보내기"});
+  };
+  load();
+})();
+</script>
+</body>
+</html>
