@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>분수 손가락 축구</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F3F8FC;--ink:#25324A;--sub:#6B7690;--blue:#3D5A80;--blue-soft:#DCE6F2;--org:#E8873A;--org-soft:#FBE6D2;--ok:#4C8C5C;--ok-soft:#E1F0E3;--bad:#C0503F;--bad-soft:#FAE4E0;--line:#D7E3EE}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Gowun Batang",serif;min-height:100vh;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.app{max-width:980px;margin:0 auto;padding:14px 12px 30px}
+h1{font-family:"Jua",sans-serif;font-weight:400;font-size:30px;margin:0;color:var(--blue);text-align:center}
+.sub{text-align:center;color:var(--sub);font-size:14px;margin:2px 0 12px}
+.box{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:0 3px 14px rgba(61,90,128,.08);margin-bottom:12px}
+.t{font-family:"Jua",sans-serif;font-size:21px;color:var(--blue);margin-bottom:8px}
+.t2{font-family:"Jua",sans-serif;font-size:17px;color:var(--blue);margin:10px 0 6px}
+.btn{font-family:"Jua",sans-serif;font-size:19px;padding:12px 22px;border-radius:14px;border:0;background:var(--blue);color:#fff;cursor:pointer}
+.btn.org{background:var(--org)}.btn.ghost{background:var(--blue-soft);color:var(--blue)}.btn:disabled{opacity:.4}
+.chip{font-family:"Jua",sans-serif;font-size:16px;padding:9px 15px;border-radius:12px;border:2px solid var(--line);background:#fff;color:var(--blue);cursor:pointer}
+.chip.on{background:var(--org);border-color:var(--org);color:#fff}
+.chip:disabled{opacity:.45}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;font-size:16px}
+.who input{height:44px;border:2px solid var(--blue);border-radius:10px;font-size:17px;padding:0 10px;font-family:inherit;-webkit-user-select:text;user-select:text}
+.who .num{width:80px;text-align:center}.who .nm{width:170px}.who .code{width:120px;text-align:center;font-family:"Jua",sans-serif;font-size:24px;letter-spacing:4px}
+.mode{display:block;width:100%;text-align:left;margin:0 0 10px;padding:14px 18px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink)}
+.mode:hover{border-color:var(--blue);background:var(--blue-soft)}
+.mode b{display:block;font-family:"Jua",sans-serif;font-weight:400;font-size:20px;color:var(--blue)}
+.mode span{font-size:14px;color:var(--sub)}
+.msg{font-size:15px;margin-top:8px;min-height:20px}.msg.err{color:var(--bad)}.msg.ok{color:var(--ok)}
+.hint{font-size:13.5px;color:var(--sub);margin-top:6px;line-height:1.6}
+.opt{display:block;font-size:16px;margin:6px 0;cursor:pointer}.opt input{width:22px;height:22px;vertical-align:middle;margin-right:6px}.opt small{color:var(--sub);font-size:13px}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-family:"Jua",sans-serif}
+.fr .n{border-bottom:3px solid currentColor;padding:0 6px}.fr .d{padding:0 6px}
+.mx{display:inline-flex;align-items:center;vertical-align:middle;font-family:"Jua",sans-serif}.mx b{font-weight:400;font-size:1.15em;margin-right:2px}
+/* 경기 화면 */
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-family:"Jua",sans-serif;font-size:19px;color:var(--blue);margin-bottom:6px}
+.sc{display:flex;align-items:center;gap:10px}
+.sc .p{padding:4px 12px;border-radius:99px;background:#fff;border:2px solid var(--line)}
+.sc .p.cur{border-color:var(--org);background:var(--org-soft)}
+.sc .p.me{box-shadow:0 0 0 3px #cfe0f3}
+.sc b{font-size:28px;color:var(--org)}
+.pill{padding:4px 14px;border-radius:99px;background:var(--org-soft);color:#b4560f;font-size:17px}
+.pill.o{background:var(--blue-soft);color:var(--blue)}
+.tm{font-size:18px}
+.fb{text-align:center;font-family:"Jua",sans-serif;font-size:18px;min-height:28px;margin:6px 0 0;color:var(--blue)}.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+#wrap{position:relative;max-width:940px;margin:0 auto}
+canvas{display:block;width:100%;height:auto;border-radius:18px;background:#9fd27f;touch-action:none;box-shadow:0 4px 18px rgba(61,90,128,.18)}
+#modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(37,50,74,.38);border-radius:18px;padding:8px}
+#modal.on{display:flex}
+.card{background:#fff;border-radius:20px;padding:14px 18px;width:min(100%,520px);max-height:100%;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.25);text-align:center}
+.card .q{font-family:"Jua",sans-serif;font-size:18px;color:var(--blue)}
+.card .big{font-size:46px;margin:2px 0;color:var(--ink)}
+.eq{display:flex;align-items:center;justify-content:center;gap:10px;font-family:"Jua",sans-serif;font-size:36px;margin:4px 0 8px}
+.fld{min-width:62px;height:56px;border:3px solid var(--blue);background:#fff;border-radius:12px;font-family:"Jua",sans-serif;font-size:32px;color:var(--ink);cursor:pointer}
+.fld.sel{border-color:var(--org);background:var(--org-soft)}
+.fix{display:inline-block;min-width:62px;height:56px;line-height:56px;border-radius:12px;background:var(--blue-soft);font-size:32px;color:var(--blue)}
+.fq{display:inline-flex;flex-direction:column;align-items:center;gap:4px}.fq i{display:block;width:100%;height:3px;background:var(--ink)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:300px;margin:6px auto 4px}
+.pad button{height:42px;border-radius:10px;border:0;background:var(--blue-soft);color:var(--blue);font-family:"Jua",sans-serif;font-size:22px;cursor:pointer}
+.pad button.go{background:var(--org);color:#fff}
+.pad button:active{transform:scale(.95)}
+#rot{display:none;text-align:center;background:var(--org-soft);color:#b4560f;border-radius:12px;padding:6px;font-size:14px;margin-bottom:6px}
+@media (max-width:600px) and (orientation:portrait){#rot{display:block}}
+@media (max-width:760px){#modal{position:fixed;z-index:50;border-radius:0;padding:6px}.card{max-height:100%}}
+.pad button.go{white-space:nowrap}
+.card .hd{position:relative}.hbtn{position:absolute;right:0;top:-2px;border:0;border-radius:99px;background:var(--org-soft);color:#b4560f;font-family:"Jua",sans-serif;font-size:14px;padding:5px 10px;cursor:pointer}
+.hbox{background:var(--org-soft);border-radius:12px;padding:6px 10px;margin:4px 0;font-size:15px;color:#7a3f0c;line-height:1.5}
+.jb{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.jb .btn{font-size:20px}
+.res{text-align:center}.res .big{font-family:"Jua",sans-serif;font-size:36px;color:var(--org)}
+.cnt{font-size:16px;line-height:2;margin-top:6px}
+@media (max-height:520px) and (orientation:landscape){
+  .app{padding:4px}h1,.sub{display:none}.hud{font-size:14px;margin-bottom:2px}.sc b{font-size:20px}.pill,.tm{font-size:13px}.fb{font-size:14px;min-height:18px;margin:2px 0 0}
+  #wrap{max-width:calc((100vh - 74px)*1.607)}
+  .card{padding:6px 12px;width:min(100%,640px)}.card .big{font-size:26px}.eq{font-size:26px;margin:2px 0}.fld,.fix{height:40px;font-size:24px;line-height:40px;min-width:48px}
+  .pad{grid-template-columns:repeat(6,1fr);max-width:420px}.pad button{height:34px;font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>⚽ 분수 손가락 축구</h1><p class="sub">바둑돌을 튕기고, 멈춘 칸의 분수를 바꿔 써서 골대까지 가요</p>
+  <div id="main"></div>
+</div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rand(0,a.length-1)];
+const SUPA_HOST='erzdvlcbjneabxqwnwfy.supabase.co', SUPA_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz', SUPA_URL='https://'+SUPA_HOST;
+const ROSTER=['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
+const QS=new URLSearchParams(location.search), MOCK=QS.get('mock')==='1', FAST=QS.get('fast')==='1';
+/* ── 놀이판 ── */
+const W=800,H=500,COLS=8,ROWS=5,R=24,PADX=50,PADY=30,CW=900,CH=560,GOALS=[16,23];
+const START=[{x:50,y:250},{x:750,y:250}];
+const BOOK=['7/5','1 2/3','13/10','1 3/5','8/5','2 3/4','10/3','2 1/3',
+ '6/5','14/3','9/4','7/2','3 1/2','1 3/10','2 1/2','11/9',
+ 'G','3 1/3','9/5','1 2/7','1 2/5','3/2','2 1/5','G',
+ '2 2/9','5/4','1 1/2','8/6','2 1/4','5/3','1 2/6','5/2',
+ '11/5','1 1/4','20/9','1 4/5','7/3','1 2/9','9/7','7/4'];
+function parseCell(s){ if(s==='G') return {k:'g'}; let m=s.match(/^(\d+) (\d+)\/(\d+)$/); if(m) return {k:'m',w:+m[1],q:+m[2],d:+m[3]}; m=s.match(/^(\d+)\/(\d+)$/); return {k:'i',n:+m[1],d:+m[2]}; }
+const DENS={easy:[2,3,4,5],all:[2,3,4,5,6,7,8,9,10]};
+function genCell(dens){ const d=pick(dens); if(Math.random()<.5){ let n; do{ n=rand(d+1,3*d-1); }while(n%d===0); return {k:'i',n,d}; } return {k:'m',w:rand(1,3),q:rand(1,d-1),d}; }
+function makeBoard(kind){
+  if(kind==='book') return BOOK.map(parseCell);
+  const cells=[],seen=new Set(); let g=0;
+  for(let i=0;i<COLS*ROWS;i++){ if(GOALS.includes(i)){ cells.push({k:'g'}); continue; }
+    let c; do{ c=genCell(DENS[kind]); g++; }while(seen.has(txt(c))&&g<5000); seen.add(txt(c)); cells.push(c); }
+  return cells; }
+const txt=c=>c.k==='m'?`${c.w}과 ${c.q}/${c.d}`:`${c.n}/${c.d}`;
+const fr=(n,d)=>`<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const mx=(w,n,d)=>`<span class="mx"><b>${w}</b>${fr(n,d)}</span>`;
+const face=c=>c.k==='m'?mx(c.w,c.q,c.d):fr(c.n,c.d);
+const expected=c=>c.k==='m'?{n:c.w*c.d+c.q,d:c.d}:{w:Math.floor(c.n/c.d),q:c.n%c.d,d:c.d};
+const ansText=c=>{ const e=expected(c); return c.k==='m'?`${c.w}과 ${c.q}/${c.d} = ${e.n}/${e.d}`:`${c.n}/${c.d} = ${e.w}과 ${e.q}/${e.d}`; };
+const cellAt=(x,y)=>Math.min(ROWS-1,Math.max(0,Math.floor(y/100)))*COLS+Math.min(COLS-1,Math.max(0,Math.floor(x/100)));
+/* ── 튕기기 물리 (헤드리스 계산 → 궤적 재생) ── */
+const K_DAMP=2.4, C_FRIC=35, REST=.92, VMAX=1350, PULLMAX=150, PULLMIN=18;
+function simulate(st0,who,vx,vy){
+  const s=st0.map(p=>({x:p.x,y:p.y,vx:0,vy:0,gone:-1}));
+  s[who].vx=vx; s[who].vy=vy;
+  const DT=1/120, frames=[], push=()=>frames.push([Math.round(s[0].x),Math.round(s[0].y),Math.round(s[1].x),Math.round(s[1].y)]);
+  push(); let goal=false;
+  for(let step=1;step<=840;step++){
+    let moving=false;
+    s.forEach(o=>{ if(o.gone>=0) return; const sp=Math.hypot(o.vx,o.vy); if(sp<=0) return;
+      let ns=sp*Math.exp(-K_DAMP*DT)-C_FRIC*DT; if(ns<10) ns=0; const f=ns/sp; o.vx*=f; o.vy*=f; o.x+=o.vx*DT; o.y+=o.vy*DT; if(ns>0) moving=true; });
+    const a=s[0], b=s[1];
+    if(a.gone<0&&b.gone<0){ const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy);
+      if(d<2*R&&d>0){ const nx=dx/d, ny=dy/d, rv=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
+        if(rv>0){ const j=(1+REST)*rv/2; a.vx-=j*nx; a.vy-=j*ny; b.vx+=j*nx; b.vy+=j*ny; }
+        const ov=(2*R-d)/2; a.x-=nx*ov; a.y-=ny*ov; b.x+=nx*ov; b.y+=ny*ov; moving=true; } }
+    s.forEach((o,i)=>{ if(o.gone>=0) return;
+      if(o.x<0||o.x>W||o.y<0||o.y>H){ o.gone=frames.length+(step%4===0?0:0);
+        if(i===who&&o.y>190&&o.y<310&&((who===0&&o.x>W)||(who===1&&o.x<0))) goal=true; o.vx=0; o.vy=0; } });
+    if(step%4===0) push();
+    if(!moving) break;
+  }
+  push();
+  const f2=s.map((o,i)=>o.gone>=0?o.gone:-1);
+  const fl=s[who];
+  if(fl.gone<0&&((who===0&&fl.x>=W-100&&fl.y>=200&&fl.y<=300)||(who===1&&fl.x<=100&&fl.y>=200&&fl.y<=300))) goal=true;
+  return {fr:frames,gone:f2,goal,end:s.map(o=>({x:o.x,y:o.y}))};
+}
+/* ── 네트워크(폴링) ── */
+function Net(code,onMsg,onStatus){
+  const sid=Math.random().toString(36).slice(2,8), HD={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+  let last=0, alive=false, fails=0, bc=null, timer=null;
+  const base=SUPA_URL+'/rest/v1/battle_msgs';
+  async function poll(){
+    if(!alive) return;
+    try{
+      const r=await fetch(base+'?room=eq.'+code+'&id=gt.'+last+'&order=id.asc&limit=50&select=id,body',{headers:HD,cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const rows=await r.json(); fails=0;
+      for(const x of rows){ last=Math.max(last,x.id); if(x.body&&x.body._s!==sid) onMsg(x.body); }
+    }catch(e){ fails++; if(fails>=12){ alive=false; onStatus('closed','연결 끊김'); return; } }
+    if(alive) timer=setTimeout(poll,700);
+  }
+  this.open=async function(){
+    if(MOCK){ bc=new BroadcastChannel('fracsoccer-'+code); bc.onmessage=e=>onMsg(e.data); setTimeout(()=>onStatus('ok'),50); return; }
+    try{
+      const r=await fetch(base+'?room=eq.'+code+'&order=id.desc&limit=1&select=id',{headers:HD,cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const rows=await r.json(); last=rows.length?rows[0].id:0; alive=true; onStatus('ok'); poll();
+    }catch(e){ onStatus('error',String(e&&e.message||e)); }
+  };
+  let q=Promise.resolve();
+  this.send=function(o){
+    if(bc){ bc.postMessage(JSON.parse(JSON.stringify(o))); return; }
+    const body=Object.assign({_s:sid},o);
+    q=q.then(async()=>{ for(let k=0;k<3;k++){ try{ const r=await fetch(base,{method:'POST',headers:Object.assign({'Content-Type':'application/json','Prefer':'return=minimal'},HD),body:JSON.stringify({room:code,body}),keepalive:true}); if(r.ok) return; }catch(e){} await new Promise(z=>setTimeout(z,400)); } });
+  };
+  this.close=()=>{ alive=false; clearTimeout(timer); try{ if(bc) bc.close(); }catch(e){} };
+}
+/* ── 상태 ── */
+const DEF={board:'book',win:'p3',check:'write',denW:false,two:true,cpu:'easy'};
+let opt=Object.assign({},DEF);
+let mode=null, me=[null,null], net=null, code='', names=['',''], S=null, recorded=false, myIdx=0, tmr=null, t0=Date.now(), seq=0, tEnd=0;
+let anim=null, aim=null, ans=null, speakStage=0, waiting=false, pendingS=null, recvAt=0, tick=null, cells=null;
+const main=$('main');
+const mkStat=()=>({fl:0,att:0,ok:0,ok1:0,hint:0,goal:0,out:0,imp:[0,0],mix:[0,0]});
+function resolveStudent(p){ const n=parseInt(p.num,10), ok=(n>=1&&n<=ROSTER.length&&ROSTER[n-1]===p.name);
+  return {recordName:ok?ROSTER[n-1]:'미분류',note:ok?'':`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
+const WINLBL={p3:'먼저 3점',p5:'먼저 5점',t3:'3분 경기',t5:'5분 경기'};
+const BOARDLBL={book:'교과서 놀이판',easy:'새 판(쉬운 분모)',all:'새 판(모든 분모)'};
+const optLabel=o=>`${BOARDLBL[o.board]} · ${WINLBL[o.win]} · ${o.check==='speak'?'말하고 친구가 확인':'직접 쓰기'}${o.denW?' · 분모도 쓰기':''}${o.two?' · 기회 2번':''}`;
+/* ── 처음 화면 ── */
+function chipRow(id,items,cur){ return `<div class="row" id="${id}" style="margin-bottom:4px">${items.map(([v,l])=>`<button class="chip ${v===cur?'on':''}" data-v="${v}">${l}</button>`).join('')}</div>`; }
+function home(){
+  mode=null; S=null; anim=null; clearTimeout(tmr); clearInterval(tick); if(net){ net.close(); net=null; }
+  main.innerHTML=`<div class="box"><div class="t">경기 설정</div>
+    <div class="t2">놀이판</div>${chipRow('oBoard',[['book','📖 교과서 놀이판'],['easy','🎲 새로 섞기 (분모 2~5)'],['all','🎲 새로 섞기 (분모 2~10)']],opt.board)}
+    <div class="t2">이기는 방법</div>${chipRow('oWin',[['p3','⚽ 먼저 3점'],['p5','⚽ 먼저 5점'],['t3','⏱ 3분'],['t5','⏱ 5분']],opt.win)}
+    <div class="t2">분수 바꾸기 확인</div>${chipRow('oCheck',[['write','✏️ 직접 써서 자동 확인'],['speak','🗣 말하고 친구가 확인']],opt.check)}
+    <div class="hint" id="chk"></div>
+    <label class="opt"><input type="checkbox" id="oTwo" ${opt.two?'checked':''}>🍀 틀려도 한 번 더 기회 <small>(두 번 다 틀리면 처음 자리로)</small></label>
+    <label class="opt"><input type="checkbox" id="oDen" ${opt.denW?'checked':''}>✏️ 분모도 직접 쓰기 <small>(끄면 분모는 미리 적혀 있어요)</small></label>
+    <div class="t2">컴퓨터와 할 때 컴퓨터 실력</div>${chipRow('oCpu',[['easy','🌱 쉬움'],['normal','🌳 보통']],opt.cpu)}
+    <div class="t" style="margin-top:12px">누구와 할까요?</div>
+    <button class="mode" id="mSolo"><b>🤖 컴퓨터와</b><span>혼자서 컴퓨터와 경기해요.</span></button>
+    <button class="mode" id="mLocal"><b>🤝 한 기기로 둘이서</b><span>한 화면에서 번갈아 튕겨요.</span></button>
+    <button class="mode" id="mHost"><b>📱 방 만들기 (두 기기)</b><span>방 번호가 나와요. 친구가 그 번호로 들어오면 시작해요.</span></button>
+    <button class="mode" id="mGuest"><b>📲 방 번호로 들어가기 (두 기기)</b><span>친구가 알려 준 4자리 번호를 입력해요.</span></button>
+    <div class="hint"><b>방법</b> ① 내 차례에 화면을 끌었다 놓으면 바둑돌이 반대쪽으로 튕겨요(많이 당길수록 세게). ② 멈춘 칸의 <b>대분수는 가분수로, 가분수는 대분수로</b> 바꿔요. ③ 바르게 바꾸면 바둑돌이 그 자리에 남고, 틀리거나 판 밖으로 나가면 처음 자리로 돌아가요. ④ 친구의 바둑돌을 잘 피해서 튕겨요. ⑤ 상대 골대(주황 칸)로 먼저 들어가면 1점!</div></div>`;
+  const syncChk=()=>{ $('chk').textContent=opt.check==='speak'?'🗣 말하기 방식은 “한 기기로 둘이서”에서만 쓸 수 있어요. 친구가 정답을 보고 확인해 줘요.':''; };
+  const group=(id,key)=>{ $(id).onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b) return; opt[key]=b.dataset.v; [...$(id).children].forEach(x=>x.classList.toggle('on',x===b)); syncChk(); }; };
+  group('oBoard','board'); group('oWin','win'); group('oCheck','check'); group('oCpu','cpu'); syncChk();
+  $('oTwo').onchange=e=>opt.two=e.target.checked; $('oDen').onchange=e=>opt.denW=e.target.checked;
+  $('mSolo').onclick=()=>gate('solo'); $('mLocal').onclick=()=>gate('local'); $('mHost').onclick=()=>gate('host'); $('mGuest').onclick=()=>gate('guest');
+}
+function whoRow(i,label){ return `<div class="who"><b>${label}</b><label>번호</label><input type="number" class="num" id="n${i}" min="1" max="19" inputmode="numeric"><label>이름</label><input type="text" class="nm" id="m${i}" placeholder="이름"></div>`; }
+function gate(md){
+  mode=md; recorded=false;
+  main.innerHTML=`<div class="box"><div class="t">${md==='local'?'두 사람의 번호와 이름':'내 번호와 이름'}</div>
+    ${md==='local'?whoRow(0,'🐯 왼쪽 (흰 바둑돌)')+whoRow(1,'🐻 오른쪽 (검은 바둑돌)'):whoRow(0,'나')}
+    ${md==='guest'?'<div class="who"><b>방 번호</b><input type="text" class="code" id="code" maxlength="4" inputmode="numeric" placeholder="0000"></div>':''}
+    <div class="row"><button class="btn org" id="go">${md==='host'?'방 만들기':md==='guest'?'들어가기':'시작 ⚽'}</button><button class="btn ghost" id="back">← 뒤로</button></div><div class="msg" id="gmsg"></div></div>`;
+  $('back').onclick=home;
+  $('go').onclick=()=>{
+    const ps=(md==='local'?[0,1]:[0]).map(i=>({num:$('n'+i).value.trim(),name:$('m'+i).value.trim()}));
+    if(ps.some(p=>!p.num||!p.name)){ $('gmsg').className='msg err'; $('gmsg').textContent='번호와 이름을 모두 써 주세요.'; return; }
+    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); });
+    if(md==='solo'){ names=[me[0].name,'컴퓨터🤖']; myIdx=0; startGame(); }
+    else if(md==='local'){ names=[me[0].name,me[1].name]; myIdx=0; startGame(); }
+    else if(md==='host'){ names=[me[0].name,'']; myIdx=0; code=String(rand(1000,9999)); connect(true); }
+    else { code=$('code').value.trim(); if(!/^\d{4}$/.test(code)){ $('gmsg').className='msg err'; $('gmsg').textContent='방 번호 4자리를 써 주세요.'; return; } names=['',me[0].name]; myIdx=1; connect(false); }
+  };
+}
+function connect(isHost){
+  main.innerHTML=`<div class="box res"><div class="t">${isHost?'방 번호':'방에 들어가는 중'}</div>${isHost?`<div class="big" style="letter-spacing:6px">${code}</div><div class="msg" id="cmsg">연결 중...</div><div class="hint">친구가 “방 번호로 들어가기”에서 이 번호를 쓰면 시작해요.</div>`:`<div class="msg" id="cmsg">연결 중...</div>`}<div style="margin-top:10px"><button class="btn ghost" id="back">← 뒤로</button></div></div>`;
+  $('back').onclick=home;
+  const cm=t=>{ const e=$('cmsg'); if(e) e.textContent=t; };
+  net=new Net(code,onNet,(s,why)=>{
+    if(s==='error') cm('❌ 연결할 수 없어요. ('+(why||'')+') 한 기기 모드를 이용하세요.');
+    else if(s==='closed'){ if(S&&!S.over) bye('연결이 끊어졌어요.'); }
+    else if(s==='ok'){ cm(isHost?'친구를 기다리는 중...':'방을 찾는 중...'); if(!isHost){ const tj=()=>{ if(mode!=='guest'||S) return; net.send({t:'join',name:me[0].name}); setTimeout(tj,1500); }; tj(); setTimeout(()=>{ if(!S) cm('방을 찾지 못했어요. 번호를 다시 확인해 보세요.'); },9000); } }
+  });
+  net.open();
+}
+function bye(m){ clearTimeout(tmr); clearInterval(tick); if(S) S.over=true; anim=null; main.innerHTML=`<div class="box res"><div class="t">${m}</div><div class="hint">지금까지의 결과는 기록하지 않아요.</div><button class="btn" id="back">처음으로</button></div>`; $('back').onclick=home; }
+addEventListener('pagehide',()=>{ if(net&&(mode==='host'||mode==='guest')) net.send({t:'bye'}); });
+/* ── 진행(한 기기·컴퓨터·방장) ── */
+const strip=s=>{ const c=Object.assign({},s); delete c.cells; return c; };
+const isHostLike=()=>mode!=='guest';
+function newS(){
+  cells=makeBoard(opt.board);
+  const lim=opt.win[0]==='t'?parseInt(opt.win.slice(1),10)*60:0;
+  S={opt:Object.assign({},opt),cells,st:[{x:START[0].x,y:START[0].y},{x:START[1].x,y:START[1].y}],score:[0,0],turn:0,phase:'aim',ask:null,msg:'',cls:'',over:false,winner:-1,seq:0,left:lim,lim,id:0,stat:[mkStat(),mkStat()]};
+  tEnd=Date.now()+lim*1000;
+}
+function startGame(){
+  clearTimeout(tmr); recorded=false; t0=Date.now(); anim=null; ans=null; waiting=false; pendingS=null; newS();
+  if(mode==='host') net.send({t:'init',cells:S.cells,names,S:strip(S)});
+  setupBoardUI(); push(); cpuMaybe();
+}
+function leftNow(){ if(!S||!S.lim) return 0; if(isHostLike()) return Math.max(0,(tEnd-Date.now())/1000); return Math.max(0,S.left-(Date.now()-recvAt)/1000); }
+function push(){ if(!S) return; if(isHostLike()) S.left=leftNow(); if(mode==='host'){ S.seq=++seq; net.send({t:'state',S:strip(S)}); } ui(); }
+function checkTime(){ if(S&&!S.over&&S.lim&&leftNow()<=0&&S.phase!=='fly'){ endGame(); return true; } return false; }
+function endGame(){
+  if(S.over) return; S.over=true; S.phase='over'; S.ask=null; const a=S.score[0], b=S.score[1]; S.winner=a>b?0:(b>a?1:-1);
+  if(mode==='host'){ S.seq=++seq; net.send({t:'state',S:strip(S)}); } finish();
+}
+function checkWin(){ const need=S.opt.win==='p3'?3:(S.opt.win==='p5'?5:0); if(need){ if(S.score[0]>=need||S.score[1]>=need){ endGame(); return true; } } return false; }
+function nextTurn(){ S.turn=1-S.turn; S.phase='aim'; S.ask=null; S.id++; }
+function doFlick(p,vx,vy){
+  if(!S||S.over||S.phase!=='aim'||S.turn!==p) return;
+  const sp=Math.hypot(vx,vy); if(sp<PULLMIN*9*.95) return; if(sp>VMAX){ vx*=VMAX/sp; vy*=VMAX/sp; }
+  S.stat[p].fl++; const res=simulate(S.st,p,vx,vy); S.phase='fly'; S.msg=''; S.cls='';
+  const fps=30; let flat=[]; res.fr.forEach(f=>flat.push(...f)); let rate=fps;
+  if(flat.length>1400){ flat=[]; res.fr.forEach((f,i)=>{ if(i%2===0||i===res.fr.length-1) flat.push(...f); }); rate=15; }
+  startAnim(res.fr,res.gone,1,p);
+  if(mode==='host') net.send({t:'play',S:strip(S),fr:flat,gone:res.gone.map(g=>g<0?-1:(rate===fps?g:Math.ceil(g/2))),rate,p});
+  const dur=FAST?30:((res.fr.length-1)/30*1000+300);
+  clearTimeout(tmr); tmr=setTimeout(()=>afterFly(p,res),dur); ui();
+}
+function afterFly(p,res){
+  if(!S||S.over) return; const o=1-p, nm=names; anim=null;
+  [0,1].forEach(i=>{ if(res.gone[i]>=0){ S.st[i]={x:START[i].x,y:START[i].y}; } else S.st[i]={x:Math.round(res.end[i].x),y:Math.round(res.end[i].y)}; });
+  if(res.goal){ S.score[p]++; S.stat[p].goal++; S.st[0]={x:START[0].x,y:START[0].y}; S.st[1]={x:START[1].x,y:START[1].y};
+    S.msg=`⚽ 골! ${nm[p]} 1점 얻었어요!`; S.cls='ok'; if(checkWin()) return; nextTurn(); if(checkTime()) return; push(); cpuMaybe(); return; }
+  if(res.gone[p]>=0){ S.stat[p].out++; S.msg=`❌ ${nm[p]}의 바둑돌이 판 밖으로 나가서 처음 자리로 돌아가요`; S.cls='bad'; nextTurn(); if(checkTime()) return; push(); cpuMaybe(); return; }
+  const ci=cellAt(S.st[p].x,S.st[p].y), c=S.cells[ci];
+  if(res.gone[o]>=0) S.msg=`친구의 바둑돌이 밖으로 나가서 처음 자리로 돌아갔어요. `; else S.msg='';
+  if(c.k==='g'){ S.msg+=`골대 앞에서 멈췄어요. 한 번 더!`; S.cls=''; nextTurn(); if(checkTime()) return; push(); cpuMaybe(); return; }
+  speakStage=0; S.phase='ask'; S.id++; S.ask={cell:ci,tries:0,hints:0,fb:'',speak:S.opt.check==='speak'&&mode==='local'};
+  S.msg+=`${nm[p]}: ${c.k==='m'?'대분수를 가분수로':'가분수를 대분수로'} 바꿔 보세요`; S.cls=''; push(); cpuMaybe();
+}
+/* 답 확인 */
+function resolveAnswer(p,ok){
+  const A=S.ask; if(!A||S.phase!=='ask'||S.turn!==p) return; const c=S.cells[A.cell], stt=S.stat[p], tgt=c.k==='m'?stt.imp:stt.mix;
+  if(A.tries===0){ stt.att++; tgt[0]++; } A.tries++;
+  if(ok){ stt.ok++; tgt[1]++; if(A.tries===1) stt.ok1++; S.msg=`⭕ ${names[p]}: 바르게 바꿨어요! 바둑돌이 그대로 있어요`; S.cls='ok'; nextTurn(); if(checkTime()) return; push(); cpuMaybe(); return; }
+  if(S.opt.two&&A.tries<2){ A.hints=Math.max(A.hints,1); A.fb='again'; S.msg=`🤔 ${names[p]}: 다시 한 번 생각해 볼까요? 한 번 더 기회가 있어요`; S.cls='bad'; speakStage=0; push(); cpuMaybe(); return; }
+  S.st[p]={x:START[p].x,y:START[p].y}; S.msg=`❌ ${names[p]}: ${ansText(c)} 이에요. 바둑돌이 처음 자리로 돌아가요`; S.cls='bad'; nextTurn(); if(checkTime()) return; push(); cpuMaybe();
+}
+function checkWritten(p,a){ const c=S.cells[S.ask.cell], e=expected(c); return c.k==='m'?(a.n===e.n&&a.d===e.d):(a.w===e.w&&a.q===e.q&&a.d===e.d); }
+function useHint(p){ if(!S||S.phase!=='ask'||S.turn!==p||!S.ask) return; if(S.ask.hints>=2) return; S.ask.hints++; S.stat[p].hint++; push(); }
+/* 컴퓨터 */
+function cpuMaybe(){
+  if(mode!=='solo'||!S||S.over||S.turn!==1) return; clearTimeout(tmr);
+  if(S.phase==='aim') tmr=setTimeout(cpuShot,FAST?20:1100);
+  else if(S.phase==='ask') tmr=setTimeout(()=>{ if(!S||S.over||S.phase!=='ask'||S.turn!==1) return; const pr=S.opt&&opt.cpu==='normal'?.9:.72; resolveAnswer(1,Math.random()<(S.ask.tries>0?Math.min(.95,pr+.12):pr)); },FAST?20:1700);
+}
+function cpuShot(){
+  if(!S||S.over||S.phase!=='aim'||S.turn!==1) return; const me1=S.st[1], tgt={x:0,y:250}; const base=Math.atan2(tgt.y-me1.y,tgt.x-me1.x);
+  let best=null; const sig=(opt.cpu==='normal'?4:9)*Math.PI/180;
+  for(let da=-40;da<=40;da+=5){ for(let pull=40;pull<=150;pull+=10){ const ang=base+da*Math.PI/180, v=pull*9;
+      const r=simulate(S.st,1,Math.cos(ang)*v,Math.sin(ang)*v); let sc;
+      if(r.goal) sc=1000-Math.abs(da); else if(r.gone[1]>=0) sc=-200; else { sc=(me1.x-r.end[1].x)+(r.gone[0]>=0?-40:0); const dd=Math.hypot(r.end[0].x-r.end[1].x,r.end[0].y-r.end[1].y); if(dd<60) sc-=10; if(Math.abs(r.end[1].y-250)>150) sc-=30; }
+      sc+=Math.random()*25; if(!best||sc>best.sc) best={sc,ang,pull}; } }
+  const ang=best.ang+(Math.random()+Math.random()+Math.random()-1.5)*sig*1.2, pull=Math.min(PULLMAX,best.pull*(1+(Math.random()-.5)*(opt.cpu==='normal'?.08:.18)));
+  doFlick(1,Math.cos(ang)*pull*9,Math.sin(ang)*pull*9);
+}
+/* 두 기기 메시지 */
+function onNet(m){
+  if(!m) return;
+  if(mode==='host'){
+    if(m.t==='join'&&!names[1]){ names[1]=m.name||'친구'; startGame(); net.send({t:'names',names}); }
+    else if(m.t==='flick'&&S&&S.turn===1) doFlick(1,+m.vx||0,+m.vy||0);
+    else if(m.t==='ans'&&S&&S.phase==='ask'&&S.turn===1){ const ok=checkWritten(1,m.a||{}); resolveAnswer(1,ok); }
+    else if(m.t==='hint'&&S&&S.turn===1) useHint(1);
+    else if(m.t==='bye'&&S&&!S.over) bye('상대가 나갔어요.');
+  } else if(mode==='guest'){
+    if(m.t==='names') names=m.names;
+    else if(m.t==='init'){ cells=m.cells; names=m.names; S=Object.assign({cells},m.S); recvAt=Date.now(); recorded=false; t0=Date.now(); anim=null; ans=null; waiting=false; pendingS=null; setupBoardUI(); ui(); }
+    else if(m.t==='play'&&S){ pendingS=null; S=Object.assign({cells},m.S); recvAt=Date.now(); const fr=[]; for(let i=0;i<m.fr.length;i+=4) fr.push(m.fr.slice(i,i+4)); startAnim(fr,m.gone,m.rate===15?2:1,m.p); waiting=false; ui(); }
+    else if(m.t==='state'&&S){ if(m.S.seq<=S.seq||(pendingS&&m.S.seq<=pendingS.seq)) return; if(anim){ pendingS=m.S; return; } applyState(m.S); }
+    else if(m.t==='bye'&&S&&!S.over) bye('상대가 나갔어요.');
+  }
+}
+function applyState(s){ if(S&&s.id!==S.id) ans=null; anim=null; S=Object.assign({cells},s); recvAt=Date.now(); waiting=false; if(S.over){ finish(); } else ui(); }
+/* ── 재생(애니메이션) ── */
+function startAnim(frames,gone,step,p){ anim={fr:frames,gone,step:step||1,t0:performance.now(),p,fps:30/(step||1)}; }
+function animPos(){ if(!anim) return null; const f=(performance.now()-anim.t0)/1000*anim.fps, n=anim.fr.length-1; const i=Math.min(n,Math.floor(f)), j=Math.min(n,i+1), u=Math.min(1,f-i);
+  const out=[0,1].map(k=>({x:anim.fr[i][2*k]+(anim.fr[j][2*k]-anim.fr[i][2*k])*u,y:anim.fr[i][2*k+1]+(anim.fr[j][2*k+1]-anim.fr[i][2*k+1])*u,hide:anim.gone[k]>=0&&i>=anim.gone[k]}));
+  return {pos:out,done:f>=n+0.4}; }
+/* ── 화면 ── */
+let canvas=null, ctx=null, raf=0;
+const myTurn=()=>S&&(mode==='local'||((mode==='solo'||mode==='host')?S.turn===0:S.turn===1));
+function setupBoardUI(){
+  clearInterval(tick);
+  main.innerHTML=`<div id="rot">📱 화면을 가로로 돌리면 더 크게 보여요</div><div class="hud" id="hud"></div><div id="wrap"><canvas id="cv" width="${CW*2}" height="${CH*2}"></canvas><div id="modal"></div></div><div class="fb" id="fb">&nbsp;</div>`;
+  canvas=$('cv'); ctx=canvas.getContext('2d'); ctx.setTransform(2,0,0,2,0,0);
+  canvas.addEventListener('pointerdown',pDown); canvas.addEventListener('pointermove',pMove); addEventListener('pointerup',pUp); canvas.addEventListener('pointercancel',()=>{ aim=null; });
+  cancelAnimationFrame(raf); const loop=()=>{ if(!canvas||!document.body.contains(canvas)) return; draw(); raf=requestAnimationFrame(loop); }; loop();
+  tick=setInterval(()=>{ const e=$('tmr'); if(e&&S) e.textContent=fmtT(leftNow()); if(isHostLike()&&S&&!S.over) checkTime(); },300);
+}
+const fmtT=s=>{ s=Math.ceil(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+function ui(){
+  if(!S||!$('hud')) return; if(S.over) return;
+  const mt=myTurn(); const nm=S.turn===0?names[0]:names[1];
+  const who=mode==='local'?`${nm} 차례`:(mode==='solo'?(S.turn===0?'내 차례!':'컴퓨터 차례…'):(mt?'내 차례!':`${nm} 차례`));
+  $('hud').innerHTML=`<div class="sc"><span class="p ${S.turn===0?'cur':''} ${(myIdx===0&&mode!=='local')?'me':''}">🐯⚪ ${names[0]}</span><b>${S.score[0]}</b><span>:</span><b>${S.score[1]}</b><span class="p ${S.turn===1?'cur':''} ${(myIdx===1&&mode!=='local')?'me':''}">🐻⚫ ${names[1]}</span></div><div class="row">${S.lim?`<span class="tm">⏱ <span id="tmr">${fmtT(leftNow())}</span></span>`:`<span class="tm">${S.opt.win==='p5'?'먼저 5점':'먼저 3점'}</span>`}<span class="pill ${mt?'':'o'}">${who}</span></div>`;
+  const fb=$('fb'); fb.className='fb '+(S.cls||''); fb.innerHTML=S.msg||(S.phase==='aim'&&mt?'화면을 끌었다 놓아 바둑돌을 튕겨요 (많이 당길수록 세게!)':'&nbsp;');
+  renderModal();
+}
+function renderModal(){
+  const M=$('modal'); if(!M) return;
+  if(!S||S.phase!=='ask'||!S.ask||anim){ M.className=''; M.innerHTML=''; return; }
+  const A=S.ask, c=S.cells[A.cell], toImp=c.k==='m', p=S.turn;
+  const mine=(mode==='local')||((mode==='solo'||mode==='host')&&p===0)||(mode==='guest'&&p===1);
+  if(!mine){ M.className='on'; M.style.background='rgba(37,50,74,.18)'; M.innerHTML=`<div class="card" style="width:auto;padding:10px 22px"><div class="q">${names[p]}이(가) 분수를 바꾸는 중...</div><div class="big">${face(c)}</div></div>`; return; }
+  M.style.background=''; M.className='on';
+  const title=toImp?'대분수를 가분수로 바꿔 써요':'가분수를 대분수로 바꿔 써요';
+  const hintH=hintHTML(c,A.hints);
+  if(A.speak){
+    M.innerHTML=`<div class="card"><div class="q">🗣 ${names[p]}: ${title.replace('써요','말해요')}</div><div class="big">${face(c)}</div>
+      ${speakStage===0?`<div class="hint">바꾼 분수를 친구에게 말한 뒤 눌러요.</div><button class="btn org" id="sp1">말했어요 ✔</button> <button class="btn ghost" id="hb">💡 힌트</button>`:
+      `<div class="hbox">친구 확인용 정답: <b>${ansText(c)}</b></div><div class="q">친구가 바르게 말했다고 확인했나요?</div><div class="jb"><button class="btn" id="jo" style="background:var(--ok)">⭕ 바르게 말했어요</button><button class="btn" id="jx" style="background:var(--bad)">❌ 틀렸어요</button></div>`}
+      ${A.fb==='again'?'<div class="hbox">한 번 더 기회가 있어요!</div>':''}${hintH}</div>`;
+    if($('sp1')) $('sp1').onclick=()=>{ speakStage=1; renderModal(); };
+    if($('hb')) $('hb').onclick=()=>useHint(p);
+    if($('jo')) $('jo').onclick=()=>{ speakStage=0; resolveAnswer(p,true); };
+    if($('jx')) $('jx').onclick=()=>{ speakStage=0; resolveAnswer(p,false); };
+    return;
+  }
+  if(!ans||ans.id!==S.id){ ans={id:S.id,f:{w:'',q:'',n:'',d:S.opt.denW?'':String(c.d)},cur:toImp?'n':'w'}; }
+  const fld=(k,show)=>{ if(k==='d'&&!S.opt.denW) return `<span class="fix">${c.d}</span>`; return `<button class="fld ${ans.cur===k?'sel':''}" data-f="${k}">${ans.f[k]||'□'}</button>`; };
+  const eq=toImp?`<div class="eq"><span class="big" style="font-size:40px">${face(c)}</span> = <span class="fq">${fld('n')}<i></i>${fld('d')}</span></div>`
+               :`<div class="eq"><span class="big" style="font-size:40px">${face(c)}</span> = ${fld('w')}<span class="fq">${fld('q')}<i></i>${fld('d')}</span></div>`;
+  M.innerHTML=`<div class="card"><div class="hd"><div class="q" style="padding-right:64px">${names[p]}: ${title}</div><button class="hbtn" data-k="hint">💡 ${A.hints}/2</button></div>${eq}${A.fb==='again'?'<div class="hbox">🤔 다시 한 번 생각해 볼까요? 한 번 더 기회가 있어요.</div>':''}${hintH}
+    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join('')}<button data-k="del">⌫</button><button data-k="0">0</button><button class="go" data-k="ok">확인 ✔</button></div></div>`;
+  M.onclick=e=>{ const f=e.target.closest('[data-f]'); if(f){ ans.cur=f.dataset.f; renderModal(); return; } const b=e.target.closest('[data-k]'); if(b) padKey(b.dataset.k); };
+}
+function fieldsOf(c){ const l=c.k==='m'?['n']:['w','q']; if(S.opt.denW) l.push('d'); return l; }
+function padKey(k){
+  if(!S||S.phase!=='ask'||!ans) return; const A=S.ask, c=S.cells[A.cell], p=S.turn, fl=fieldsOf(c);
+  if(k==='hint'){ if(mode==='guest') net.send({t:'hint'}); else useHint(p); return; }
+  if(k==='del'){ ans.f[ans.cur]=ans.f[ans.cur].slice(0,-1); renderModal(); return; }
+  if(k==='ok'){ const a={}; for(const f of fl){ if(ans.f[f]===''){ ans.cur=f; renderModal(); return; } }
+    ['w','q','n','d'].forEach(f=>{ a[f]=ans.f[f]===''?0:parseInt(ans.f[f],10); }); a.d=S.opt.denW?a.d:c.d;
+    if(mode==='guest'){ net.send({t:'ans',a}); ans=null; waiting=true; const M=$('modal'); M.innerHTML=`<div class="card" style="width:auto;padding:10px 22px"><div class="q">확인하는 중...</div></div>`; }
+    else { ans=null; resolveAnswer(p,checkWritten(p,a)); } return; }
+  if(/^\d$/.test(k)){ if(!ans.f[ans.cur]||ans.f[ans.cur].length<2) ans.f[ans.cur]=(ans.f[ans.cur]||'')+k; else ans.f[ans.cur]=k;
+    const i=fl.indexOf(ans.cur); if(ans.f[ans.cur].length>=2&&i>=0&&i<fl.length-1) ans.cur=fl[i+1]; renderModal(); }
+}
+addEventListener('keydown',e=>{
+  if(!S||S.phase!=='ask'||!ans||e.target.tagName==='INPUT') return; if(!((mode==='local')||((mode==='solo'||mode==='host')&&S.turn===0)||(mode==='guest'&&S.turn===1))||S.ask.speak) return;
+  if(/^\d$/.test(e.key)) padKey(e.key); else if(e.key==='Backspace') padKey('del'); else if(e.key==='Enter') padKey('ok');
+});
+function hintHTML(c,level){
+  if(!level) return '';
+  const d=c.d, total=c.k==='m'?c.w*d+c.q:c.n, nb=Math.ceil(total/d); let svg=`<svg viewBox="0 0 ${d*26+4} ${nb*28+2}" width="${Math.min(300,d*26+4)}" style="display:block;margin:2px auto">`;
+  for(let b=0;b<nb;b++){ const fill=Math.min(d,total-b*d); for(let k=0;k<d;k++) svg+=`<rect x="${2+k*26}" y="${2+b*28}" width="24" height="24" rx="4" fill="${k<fill?'#E8873A':'#fff'}" stroke="#3D5A80" stroke-width="2"/>`; }
+  svg+='</svg>';
+  const t2=c.k==='m'?`자연수 ${c.w}는 ${fr('□',d)}로 바꿀 수 있어요. 단위분수 ${fr(1,d)}이 모두 몇 개인지 세어 보세요.`:`${fr(d,d)}가 모이면 자연수 1이에요. 1이 몇 번 만들어지고 몇 조각이 남는지 생각해 보세요.`;
+  return `<div class="hbox">💡 ${c.k==='m'?'색칠된 조각이 모두 몇 개일까요?':'조각을 한 칸(1)씩 묶어 보세요.'}${svg}${level>=2?`<div>${t2}</div>`:''}</div>`;
+}
+/* 캔버스 그리기 */
+function drawFrac(x,y,c){
+  const sz=26; ctx.fillStyle='#25324A'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const frac=(cx,n,d)=>{ ctx.font=`${sz}px Jua, sans-serif`; ctx.fillText(String(n),cx,y-15); ctx.fillText(String(d),cx,y+17); const w=Math.max(String(n).length,String(d).length)*sz*.55+10; ctx.fillRect(cx-w/2,y-2,w,3); return w; };
+  if(c.k==='m'){ const wd=String(c.w).length*sz*.62, fw=Math.max(String(c.q).length,String(c.d).length)*sz*.55+10, tot=wd+4+fw; ctx.font=`${sz+6}px Jua, sans-serif`; ctx.fillText(String(c.w),x-tot/2+wd/2,y); frac(x-tot/2+wd+4+fw/2,c.q,c.d); }
+  else frac(x,c.n,c.d);
+}
+function stonePos(){ const a=animPos(); if(a){ if(a.done&&mode==='guest'&&pendingS){ const s=pendingS; pendingS=null; if(s.seq>S.seq) applyState(s); else anim=null; return {pos:S.st.map(q=>({x:q.x,y:q.y})),flying:false}; } return {pos:a.pos,flying:!a.done}; }
+  return {pos:S.st.map(s=>({x:s.x,y:s.y})),flying:false}; }
+function drawStone(o,white,glow){ if(o.hide) return; const x=o.x, y=o.y;
+  ctx.save(); ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=8; ctx.shadowOffsetY=4;
+  const g=ctx.createRadialGradient(x-8,y-8,3,x,y,R); if(white){ g.addColorStop(0,'#fff'); g.addColorStop(1,'#cfd3d8'); } else { g.addColorStop(0,'#666'); g.addColorStop(1,'#0e0e10'); }
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.strokeStyle=white?'#8b9096':'#000'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.stroke();
+  if(glow){ ctx.strokeStyle='#F4A04A'; ctx.lineWidth=4; ctx.setLineDash([8,6]); ctx.lineDashOffset=-performance.now()/60; ctx.beginPath(); ctx.arc(x,y,R+8,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); } }
+function draw(){
+  if(!ctx||!S) return; const cx=ctx; cx.clearRect(0,0,CW,CH);
+  const gr=cx.createLinearGradient(0,0,0,CH); gr.addColorStop(0,'#a9d98a'); gr.addColorStop(1,'#8cc56b'); cx.fillStyle=gr; cx.fillRect(0,0,CW,CH);
+  cx.save(); cx.translate(PADX,PADY);
+  cx.fillStyle='#fff'; cx.beginPath(); cx.roundRect?cx.roundRect(-8,-8,W+16,H+16,16):cx.rect(-8,-8,W+16,H+16); cx.fill();
+  const askCell=(S.phase==='ask'&&S.ask&&!anim)?S.ask.cell:-1;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const i=r*COLS+c, cell=S.cells[i];
+    cx.fillStyle=cell.k==='g'?'#F6B23C':((r+c)%2?'#b9e3a0':'#aadb8f'); if(i===askCell) cx.fillStyle='#FFF2A8'; cx.fillRect(c*100,r*100,100,100);
+    cx.strokeStyle='#6b9a55'; cx.lineWidth=2; cx.strokeRect(c*100,r*100,100,100);
+    if(cell.k==='g'){ cx.fillStyle='#7a3f0c'; cx.font='22px Jua, sans-serif'; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText('골대',c*100+50,r*100+14); cx.font='20px sans-serif'; cx.fillText(c===0?'🐯':'🐻',c*100+50,r*100+88); }
+    else drawFrac(c*100+50,r*100+50,cell); }
+  cx.strokeStyle='#fff'; cx.lineWidth=6; cx.strokeRect(0,0,W,H);
+  const sp=stonePos(), mt=myTurn();
+  const order=[0,1]; if(S.turn===0) order.reverse();
+  // 순서: 차례 아닌 돌을 먼저, 차례인 돌을 위에
+  order.forEach(i=>drawStone(sp.pos[i],i===0,!sp.flying&&S.phase==='aim'&&S.turn===i&&!S.over));
+  // 조준선
+  if(aim&&S.phase==='aim'&&mt&&!sp.flying){ const st=S.st[S.turn], dx=aim.sx-aim.cx, dy=aim.sy-aim.cy, pull=Math.min(PULLMAX,Math.hypot(dx,dy)); if(pull>4){ const ang=Math.atan2(dy,dx), len=pull*3.3, ex=st.x+Math.cos(ang)*len, ey=st.y+Math.sin(ang)*len, t=pull/PULLMAX;
+      cx.strokeStyle=`hsl(${120-110*t},80%,42%)`; cx.lineWidth=6; cx.setLineDash([14,10]); cx.beginPath(); cx.moveTo(st.x,st.y); cx.lineTo(ex,ey); cx.stroke(); cx.setLineDash([]);
+      cx.fillStyle=cx.strokeStyle; cx.beginPath(); cx.moveTo(ex,ey); cx.lineTo(ex-Math.cos(ang-.4)*22,ey-Math.sin(ang-.4)*22); cx.lineTo(ex-Math.cos(ang+.4)*22,ey-Math.sin(ang+.4)*22); cx.closePath(); cx.fill();
+      cx.fillStyle='rgba(37,50,74,.75)'; cx.font='18px Jua, sans-serif'; cx.textAlign='center'; cx.fillText(`힘 ${Math.round(t*100)}%`,st.x,st.y-R-14); } }
+  cx.restore();
+  cx.font='44px sans-serif'; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText('🐯',25,PADY+250); cx.fillText('🐻',CW-25,PADY+250);
+  if(S.phase==='fly'&&!anim&&mode!=='guest'){ /* 계산 중 */ }
+}
+function cvXY(e){ const r=canvas.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*CW-PADX,y:(e.clientY-r.top)/r.height*CH-PADY}; }
+function pDown(e){ if(!S||S.over||S.phase!=='aim'||anim||waiting||!myTurn()) return; const p=cvXY(e); aim={sx:p.x,sy:p.y,cx:p.x,cy:p.y}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} e.preventDefault(); }
+function pMove(e){ if(!aim) return; const p=cvXY(e); aim.cx=p.x; aim.cy=p.y; e.preventDefault(); }
+function pUp(e){ if(!aim) return; const dx=aim.sx-aim.cx, dy=aim.sy-aim.cy, d=Math.hypot(dx,dy); aim=null; if(!S||S.phase!=='aim'||!myTurn()) return;
+  const pull=Math.min(PULLMAX,d); if(pull<PULLMIN) return; const v=pull*9, vx=dx/d*v, vy=dy/d*v;
+  if(mode==='guest'){ waiting=true; net.send({t:'flick',vx,vy}); } else doFlick(S.turn,vx,vy); }
+/* ── 결과·기록 ── */
+function finish(){
+  clearTimeout(tmr); clearInterval(tick); cancelAnimationFrame(raf); anim=null; const w=S.winner, sec=Math.round((Date.now()-t0)/1000);
+  const head=(mode==='local')?(w<0?'무승부!':`🏆 ${names[w]} 승리!`):(w<0?'무승부!':(w===myIdx?'🏆 내가 이겼어요!':(mode==='solo'?'😊 컴퓨터가 이겼어요. 다시 도전!':'👏 멋진 경기였어요')));
+  const row=p=>{ const s=S.stat[p]; return `${p===0?'🐯⚪':'🐻⚫'} ${names[p]}: <b>${S.score[p]}</b>골 · 분수 바꾸기 ${s.att}문제 중 <b>${s.ok}</b>개 정답 · 튕긴 횟수 ${s.fl}번`; };
+  main.innerHTML=`<div class="box res"><div class="big">${head}</div><div style="font-size:30px;margin:6px 0">🐯 ${S.score[0]} : ${S.score[1]} 🐻</div><div class="cnt">${row(0)}<br>${row(1)}</div><div class="msg" id="smsg">기록을 저장하는 중...</div><div class="row" style="justify-content:center;margin-top:10px">${(mode==='solo'||mode==='local')?'<button class="btn org" id="again">다시 하기 ⚽</button>':''}<button class="btn ghost" id="home">처음으로</button></div></div>`;
+  $('home').onclick=home; if($('again')) $('again').onclick=()=>startGame();
+  saveAll(sec);
+}
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function boardPost(st,xp,src){ if(!st||st.recordName==='미분류'||xp<=0) return; try{ fetch(SUPA_URL+'/rest/v1/class_board_events',{method:'POST',keepalive:true,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({num:parseInt(st.num,10),name:st.recordName,xp:Math.min(200,xp),src:src})}).catch(()=>{}); }catch(e){} }
+function addXP(p,xp){ try{ const k='fracProf:'+p.num+':'+p.name; const o=JSON.parse(localStorage.getItem(k)||'null')||{xp:0,badges:[],lvl:1,att:0,cor:0}; o.xp=(o.xp||0)+xp; localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
+async function saveAll(sec){
+  if(recorded) return; recorded=true; const w=S.winner;
+  const idx=(mode==='local')?[0,1]:[(mode==='guest')?1:0]; let ok=0;
+  for(const p of idx){ const st=me[mode==='local'?p:0], o=1-p, s=S.stat[p], acc=s.att?Math.round(s.ok/s.att*100):0, pos=!s.att?'중립📋':(acc>=80?'긍정✅':(acc>=50?'중립📋':'관찰필요🔍'));
+    const res=w<0?'무승부':(w===p?'승':'패');
+    const rec={'기록제목':'분수 손가락 축구 기록','날짜':todayStr(),'분야':'학습능력','긍정도':pos,'출처':'학생직접제출','과목':'수학',
+      '내용':`${st.note}분수 손가락 축구[${optLabel(S.opt)}] (대분수↔가분수 바꾸기): 상대 ${names[o]}, 결과 ${res}, ${S.score[p]}:${S.score[o]}. 분수 바꾸기 ${s.att}문제 중 ${s.ok}개 정답(처음 시도 ${s.ok1}개), 대분수→가분수 ${s.imp[1]}/${s.imp[0]}, 가분수→대분수 ${s.mix[1]}/${s.mix[0]}, 힌트 ${s.hint}번, 튕긴 횟수 ${s.fl}번, 밖으로 나간 횟수 ${s.out}번, 정확도 ${acc}%.`,'🧑‍🎓 이름':st.recordName};
+    { const _xp=10+s.ok*2+s.goal*5+(res==='승'?20:0); addXP(st,_xp); boardPost(st,_xp,'soccer'); }
+    try{ const r=await fetch(SUPA_URL+'/rest/v1/class-manage',{method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(rec)}); if(r.ok) ok++; }catch(e){}
+  }
+  const m=$('smsg'); if(m){ m.className='msg '+(ok===idx.length?'ok':'err'); m.textContent= ok===idx.length?'✅ 기록이 선생님께 전달되었어요. (경험치도 올랐어요)':'기록 저장에 실패했어요. 인터넷을 확인해 주세요.'; }
+}
+window.__fs={get S(){return S;},get mode(){return mode;},get anim(){return anim;},simulate,doFlick,resolveAnswer,checkWritten,padKey,expected,useHint,get opt(){return opt;},set opt(v){opt=v;}};
+home();
+})();
+</script>
+</body>
+</html>
