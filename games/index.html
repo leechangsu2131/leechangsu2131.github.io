@@ -61,14 +61,26 @@ input:focus,textarea:focus{outline:2px solid var(--purple);outline-offset:1px}
 .modal.show{display:flex}
 .mbar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);background:#0c0c10}
 .mbar b{font-size:16px}.mbar span{color:var(--sub);font-size:13px}.mbar button{margin-left:auto}
-.modal iframe{flex:1;width:100%;border:0;background:#fff}
+.mbar .tb{margin-left:0}.mbar #mClose{margin-left:auto}
+.mbody{flex:1;display:flex;min-height:0}
+.modal iframe{flex:1;width:100%;border:0;background:#fff;min-width:0}
+.fb{display:none;width:380px;max-width:42vw;flex:none;overflow:auto;background:#101015;border-left:1px solid var(--line);padding:16px}
+.fb.show{display:block}
+.fb h3{margin:0 0 4px;font-size:18px}.fb .hint{color:var(--sub);font-size:13px;margin:0 0 12px}
+.fb label{margin-bottom:10px}.fb textarea{min-height:64px;font-family:inherit;font-size:15px}
+.moods{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
+.moods label{display:flex;grid-template-columns:none;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:7px 12px;cursor:pointer;font-size:14px;margin:0}
+.moods input{accent-color:var(--green)}
+.card{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.05);padding:12px 14px;margin:0 0 10px;font-size:14px}
+.card .who{color:var(--blue);font-size:13px;margin-bottom:4px}.card p{margin:3px 0}.card p b{color:var(--sub);font-weight:600}
+@media(max-width:800px){.mbar{flex-wrap:wrap;gap:8px}.mbar b{flex:1 1 100%}.mbar span{display:none}.mbar button{white-space:nowrap;padding:7px 12px;font-size:13px}.mbody{flex-direction:column}.fb{width:auto;max-width:none;max-height:55vh;border-left:0;border-top:1px solid var(--line)}}
 footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}footer a{color:var(--ink);border-bottom:1px solid var(--line)}
 @media(max-width:700px){.wrap{padding:0 13px 45px}.row{grid-template-columns:1fr}.prompt{flex-direction:column}.panel{padding:17px}}
 </style>
 </head>
 <body>
 <div class="glow"></div>
-<nav aria-label="메뉴"><a href="../index.html">홈</a><a href="../education.html#social">3학년 사회</a><a href="#ai">AI 사이트</a><a href="#play">게임 하기</a><a href="#upload">게임 올리기</a></nav>
+<nav aria-label="메뉴"><a href="../index.html">홈</a><a href="../education.html#social">3학년 사회</a><a href="#ai">AI 사이트</a><a href="#play">게임 하기</a><a href="#upload">게임 올리기</a><a href="worksheets.html">활동지 안내</a></nav>
 <div class="wrap">
 <header class="hero">
   <div class="eyebrow">🏺 3학년 사회 · 옛날 놀이</div>
@@ -81,16 +93,18 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   <div class="panel">
     <div class="ai-grid" id="aiGrid"></div>
     <div class="tip">
-      <b>이렇게 말해 보세요.</b> 아래 글을 복사해서 AI에게 붙여 넣고, 대괄호 부분만 바꿔 보세요.
+      <b>이렇게 말해 보세요.</b> 아래 글을 복사해서 AI에게 붙여 넣고, 맨 끝 대괄호 자리에 <b>우리 모둠이 정한 규칙 한 가지</b>를 우리 말로 써요.
       <div class="prompt">
-        <pre id="promptText">옛날 놀이인 [제기차기]를 주제로 3학년 학생이 하는 간단한 게임을 만들어 줘.
-- HTML 파일 하나로 만들어 줘. (다른 파일, 인터넷 주소는 쓰지 마)
-- 마우스와 터치로 모두 할 수 있게 해 줘.
-- 글자는 크고 쉽게, 한글로 써 줘.
-- 이름, 학교, 전화번호 같은 개인정보를 묻지 마.
-- 게임이 끝나면 점수가 보이게 해 줘.</pre>
+        <pre id="promptText">초등학교 3학년이 쓰는 옛 놀이 프로그램을 웹 페이지 파일 하나(HTML)로 만들어 줘.
+- 글씨는 크게 하고, 버튼은 크고 누르기 쉽게 해 줘.
+- 아래에 적은 규칙만 쓰고, 규칙을 마음대로 만들거나 바꾸지 마.
+- 이름이나 개인정보는 절대 묻지 마.
+
+[여기에 우리 모둠이 말한 규칙 한 가지를 그대로 붙여 넣기]</pre>
         <button type="button" id="copyBtn">복사하기</button>
       </div>
+      <div style="margin-top:12px">규칙은 이렇게 생각하면 쉬워요. <b>① 무엇을 하면?</b> (예: 버튼을 누르면) → <b>② 무엇이 일어나야 할까?</b> (예: 횟수가 하나 늘어나요) → <b>③ 어떻게 보여 줄까?</b> (예: 큰 숫자로 보여 줘요)</div>
+      <div style="margin-top:8px"><a href="worksheets.html" style="color:var(--blue);border-bottom:1px solid var(--line)">📄 활동지 쓰는 법 보기</a></div>
     </div>
   </div>
 </section>
@@ -104,14 +118,14 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   <div class="sh"><h2>📤 3. 내가 만든 게임 올리기</h2><p>올리면 선생님이 확인한 뒤 위 목록에 나타나요.</p></div>
   <div class="panel">
     <ul class="rules">
-      <li>게임 이름은 <b>번호나 별명</b>으로 적어요. 진짜 이름·학교·전화번호는 쓰지 않아요.</li>
+      <li>만든 사람은 <b>모둠과 번호</b>로 적어요. 진짜 이름·학교·전화번호는 쓰지 않아요.</li>
       <li>HTML 파일(<code>.html</code>) 하나만 올릴 수 있어요. (최대 500KB)</li>
       <li>인터넷 주소로 연결되는 게임은 작동하지 않아요. 파일 하나로 만들어 달라고 AI에게 말하세요.</li>
     </ul>
     <form id="form" style="margin-top:16px" autocomplete="off">
       <div class="row">
         <label>게임 이름<input type="text" id="fTitle" maxlength="40" required placeholder="예) 제기차기 왕"></label>
-        <label>만든 사람 (번호나 별명)<input type="text" id="fAuthor" maxlength="20" required placeholder="예) 7번 / 번개"></label>
+        <label>만든 모둠 (모둠과 번호)<input type="text" id="fAuthor" maxlength="20" required placeholder="예) 2모둠 7번"></label>
       </div>
       <label>한 줄 소개 (선택)<input type="text" id="fDesc" maxlength="200" placeholder="예) 제기를 떨어뜨리지 않고 오래 차 보세요!"></label>
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="HTML 파일 선택">
@@ -129,8 +143,38 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
 </div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="게임 실행">
-  <div class="mbar"><b id="mTitle"></b><span id="mBy"></span><button type="button" id="mClose">✕ 닫기</button></div>
-  <iframe id="frame" sandbox="allow-scripts" title="학생 게임"></iframe>
+  <div class="mbar"><b id="mTitle"></b><span id="mBy"></span>
+    <button type="button" class="tb" id="fbWrite">📝 의견 카드 쓰기</button><button type="button" class="tb" id="fbRead">💬 받은 의견</button>
+    <button type="button" id="mClose">✕ 닫기</button></div>
+  <div class="mbody">
+    <iframe id="frame" sandbox="allow-scripts" title="학생 게임"></iframe>
+    <aside class="fb" id="fb" aria-live="polite">
+      <div id="fbWriteBox">
+        <h3>📝 의견 카드</h3>
+        <p class="hint">친구를 평가하는 게 아니라 <b>프로그램을 고치려고</b> 쓰는 거예요. <b>어디가, 왜</b>를 써 주세요. 이름은 쓰지 않아요.</p>
+        <form id="fbForm" autocomplete="off">
+          <label>나는 (모둠과 번호)<input type="text" id="fbWho" maxlength="20" required placeholder="예) 3모둠 5번"></label>
+          <label>😊 재미있었던 점<textarea id="fbFun" maxlength="300" placeholder="어디가 재미있었나요?"></textarea></label>
+          <label>🤔 이상하거나 아쉬웠던 점<textarea id="fbOdd" maxlength="300" placeholder="어디가, 왜 이상했나요?"></textarea></label>
+          <label>📖 조사한 규칙과 다르게 느껴진 곳<textarea id="fbDiff" maxlength="300" placeholder="없으면 &quot;없어요&quot;라고 써요"></textarea></label>
+          <label>🔧 이렇게 고치면 좋겠어요 (한 가지만)<textarea id="fbFix" maxlength="300"></textarea></label>
+          <div>놀이가 어땠나요?</div>
+          <div class="moods">
+            <label><input type="radio" name="fbMood" value="good"> 😊 재미있어요</label>
+            <label><input type="radio" name="fbMood" value="ok"> 🙂 괜찮아요</label>
+            <label><input type="radio" name="fbMood" value="meh"> 😐 아쉬워요</label>
+          </div>
+          <div class="msg" id="fbMsg" role="status"></div>
+          <button class="btn-p" id="fbSend" type="submit">의견 카드 보내기</button>
+        </form>
+      </div>
+      <div id="fbReadBox" style="display:none">
+        <h3>💬 우리 놀이가 받은 의견</h3>
+        <p class="hint">선생님이 확인한 의견 카드만 보여요. 같은 이야기가 여러 번 나오면 ⭐ 표시해 보세요.</p>
+        <div id="fbList"></div>
+      </div>
+    </aside>
+  </div>
 </div>
 
 <footer><a href="../education.html#social">3학년 사회로 돌아가기</a></footer>
@@ -180,7 +224,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     b.disabled=true;
     fetch(URL+"?select=html&id=eq."+encodeURIComponent(b.dataset.id)+"&status=eq.approved",{headers:H})
       .then(function(r){return r.json()})
-      .then(function(rows){if(!rows[0])throw 0;open(b.dataset.t,b.dataset.a,rows[0].html)})
+      .then(function(rows){if(!rows[0])throw 0;open(b.dataset.t,b.dataset.a,rows[0].html,b.dataset.id)})
       .catch(function(){alert("게임을 열지 못했어요.")})
       .then(function(){b.disabled=false});
   });
@@ -194,13 +238,61 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     if(/<html[^>]*>/i.test(html))return html.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
     return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"</body></html>";
   }
-  function open(t,a,html){
+  var curId="";
+  function open(t,a,html,id){
+    curId=id||"";
     $("mTitle").textContent=t;$("mBy").textContent="만든 사람 · "+a;
+    $("fb").classList.remove("show");$("fbMsg").className="msg";
     $("frame").srcdoc=wrap(html);$("modal").classList.add("show");document.body.style.overflow="hidden";
   }
-  function close(){$("modal").classList.remove("show");$("frame").srcdoc="";document.body.style.overflow=""}
+  function close(){$("modal").classList.remove("show");$("frame").srcdoc="";$("fb").classList.remove("show");document.body.style.overflow=""}
   $("mClose").onclick=close;
-  document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
+  document.addEventListener("keydown",function(e){
+    if(e.key!=="Escape")return;
+    var t=e.target&&e.target.tagName;if(t==="TEXTAREA"||t==="INPUT")return; /* 쓰던 의견 카드가 사라지지 않게 */
+    close();
+  });
+
+  /* 의견 카드 (3차시) */
+  var FB="https://erzdvlcbjneabxqwnwfy.supabase.co/rest/v1/shop_feedback";
+  var MOOD={good:"😊 재미있어요",ok:"🙂 괜찮아요",meh:"😐 아쉬워요"};
+  function fbPanel(which){
+    var box=$("fb"),w=$("fbWriteBox"),r=$("fbReadBox");
+    var wantWrite=which==="write",already=box.classList.contains("show")&&((w.style.display!=="none")===wantWrite);
+    if(already){box.classList.remove("show");return}
+    w.style.display=wantWrite?"":"none";r.style.display=wantWrite?"none":"";box.classList.add("show");
+    if(!wantWrite)fbLoad();
+  }
+  $("fbWrite").onclick=function(){fbPanel("write")};
+  $("fbRead").onclick=function(){fbPanel("read")};
+  function fbLoad(){
+    var L=$("fbList");L.innerHTML='<div class="empty">불러오는 중…</div>';
+    fetch(FB+"?select=reviewer,fun,odd,differs,fix,mood,created_at&game_id=eq."+encodeURIComponent(curId)+"&status=eq.approved&order=created_at.asc&limit=100",{headers:H})
+      .then(function(r){if(!r.ok)throw 0;return r.json()})
+      .then(function(rows){
+        if(!rows.length){L.innerHTML='<div class="empty">아직 확인된 의견이 없어요.</div>';return}
+        L.innerHTML=rows.map(function(c){
+          function p(k,v){return v?'<p><b>'+k+'</b> '+esc(v)+'</p>':""}
+          return '<div class="card"><div class="who">'+esc(c.reviewer)+(c.mood?' · '+MOOD[c.mood]:"")+'</div>'+p("😊 재미있었던 점",c.fun)+p("🤔 이상하거나 아쉬운 점",c.odd)+p("📖 조사한 규칙과 다른 곳",c.differs)+p("🔧 고치면 좋겠어요",c.fix)+'</div>';
+        }).join("");
+      })
+      .catch(function(){L.innerHTML='<div class="empty">의견을 불러오지 못했어요.</div>'});
+  }
+  $("fbForm").onsubmit=function(e){
+    e.preventDefault();
+    var m=$("fbMsg");function say(c,t){m.className="msg show "+c;m.textContent=t}
+    var f={fun:$("fbFun").value.trim(),odd:$("fbOdd").value.trim(),differs:$("fbDiff").value.trim(),fix:$("fbFix").value.trim()};
+    var all=(f.fun+f.odd+f.differs+f.fix).length;
+    if(all<2){say("err","한 칸 이상 써 주세요.");return}
+    if(!f.odd&&!f.fix){say("warn","이상한 점이나 고치면 좋을 점을 한 가지 써 주면 프로그램을 고치기 쉬워요. 그래도 보내려면 한 번 더 눌러 주세요.");if(!$("fbForm").dataset.ok){$("fbForm").dataset.ok="1";return}}
+    var mood=(document.querySelector('input[name="fbMood"]:checked')||{}).value||null;
+    var btn=$("fbSend");btn.disabled=true;btn.textContent="보내는 중…";
+    fetch(FB,{method:"POST",headers:Object.assign({"Content-Type":"application/json",Prefer:"return=minimal"},H),
+      body:JSON.stringify({game_id:curId,reviewer:$("fbWho").value.trim(),fun:f.fun,odd:f.odd,differs:f.differs,fix:f.fix,mood:mood,status:"pending"})})
+      .then(function(r){if(!r.ok)throw 0;say("ok","보냈어요! 선생님이 확인하면 주인 모둠이 볼 수 있어요. 🎉");var who=$("fbWho").value;$("fbForm").reset();$("fbWho").value=who;delete $("fbForm").dataset.ok})
+      .catch(function(){say("err","보내지 못했어요. 잠시 뒤에 다시 해 보세요.")})
+      .then(function(){btn.disabled=false;btn.textContent="의견 카드 보내기"});
+  };
 
   /* 업로드 */
   var fileText="";

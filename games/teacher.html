@@ -34,14 +34,35 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
 <div class="wrap">
   <h1>🛡️ AI 게임 검토실</h1>
   <p class="sub">학생이 올린 게임을 실행해 보고 <b>공개</b> 또는 <b>숨김</b>을 정합니다. <a href="index.html">학생 화면 보기</a></p>
+  <div class="item" style="margin-bottom:18px">
+    <h3>🤖 수업용 AI 바로가기 · 고정 요청문 (예비)</h3>
+    <p class="meta">학생 화면에도 같은 링크가 있어요. 학생이 직접 열기 어려울 때 선생님 화면에서 시연할 수 있어요. 틀은 고치지 않고, 맨 끝에 모둠이 말한 규칙만 그대로 붙여요.</p>
+    <div class="btns" style="margin-bottom:10px">
+      <a href="https://claude.ai" target="_blank" rel="noopener noreferrer"><button type="button">Claude ↗</button></a>
+      <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer"><button type="button">Gemini ↗</button></a>
+      <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer"><button type="button">ChatGPT ↗</button></a>
+      <a href="worksheets.html" target="_blank"><button type="button">활동지 안내 ↗</button></a>
+    </div>
+    <pre id="tpl" style="margin:0 0 10px;white-space:pre-wrap;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:14px;color:#e4e4e7">초등학교 3학년이 쓰는 옛 놀이 프로그램을 웹 페이지 파일 하나(HTML)로 만들어 줘.
+- 글씨는 크게 하고, 버튼은 크고 누르기 쉽게 해 줘.
+- 아래에 적은 규칙만 쓰고, 규칙을 마음대로 만들거나 바꾸지 마.
+- 이름이나 개인정보는 절대 묻지 마.
+
+[여기에 모둠이 말한 규칙 한 가지를 그대로 붙여 넣기]</pre>
+    <button type="button" id="tplCopy">요청문 복사</button>
+  </div>
   <div class="bar" id="login">
     <input type="password" id="code" placeholder="교사 비밀번호" autocomplete="current-password">
     <button class="p" id="go">들어가기</button>
   </div>
   <div class="msg" id="msg"></div>
   <div id="panel" style="display:none">
+    <div class="bar tabs" id="views">
+      <button data-v="games" class="on">🎮 게임</button><button data-v="fb">💬 의견 카드 <span id="fbCount"></span></button>
+    </div>
     <div class="bar tabs" id="tabs">
       <button data-f="pending" class="on">검토 대기</button><button data-f="approved">공개 중</button><button data-f="hidden">숨김</button><button data-f="all">전체</button>
+      <button id="allOk" class="ok" style="display:none">대기 중인 의견 모두 공개</button>
       <button id="reload" style="margin-left:auto">새로고침</button>
     </div>
     <div id="list"></div>
@@ -68,7 +89,36 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
     if(/<iframe|<form/i.test(h))f.push("iframe/form");
     return f;
   }
+  var view="games",fbRows=[],MOOD={good:"😊 재미있어요",ok:"🙂 괜찮아요",meh:"😐 아쉬워요"};
+  function scanFb(c){
+    var t=[c.fun,c.odd,c.differs,c.fix].join(" "),f=[];
+    if(/\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}/.test(t))f.push("전화번호처럼 보이는 숫자");
+    if(/https?:\/\/|www\./i.test(t))f.push("인터넷 주소");
+    return f;
+  }
+  function renderFb(){
+    var l=fbRows.filter(function(r){return filter==="all"||r.status===filter});
+    var pend=fbRows.filter(function(r){return r.status==="pending"}).length;
+    $("fbCount").textContent=pend?"("+pend+")":"";
+    $("allOk").style.display=pend?"":"none";
+    if(!l.length){$("list").innerHTML='<div class="item" style="color:var(--sub);text-align:center">해당하는 의견 카드가 없습니다.</div>';return}
+    $("list").innerHTML=l.map(function(c){
+      var lab={pending:"대기",approved:"공개",hidden:"숨김"}[c.status],fl=scanFb(c);
+      function p(k,v){return v?'<p class="d" style="margin:0 0 4px"><b>'+k+'</b> '+esc(v)+'</p>':""}
+      return '<div class="item"><h3>'+esc(c.game_title)+' <small style="color:var(--sub);font-weight:400">('+esc(c.game_author)+')</small><span class="st '+c.status+'">'+lab+'</span></h3>'+
+        '<div class="meta">손님 '+esc(c.reviewer)+(c.mood?' · '+MOOD[c.mood]:'')+' · '+new Date(c.created_at).toLocaleString("ko-KR")+'</div>'+
+        p("😊",c.fun)+p("🤔",c.odd)+p("📖",c.differs)+p("🔧",c.fix)+
+        (fl.length?'<p class="flags">⚠ 확인 필요: '+fl.join(", ")+'</p>':'')+
+        '<div class="btns" data-id="'+c.id+'" data-k="fb">'+
+        (c.status!=="approved"?'<button class="ok" data-a="approved">공개</button>':'')+
+        (c.status!=="hidden"?'<button class="no" data-a="hidden">숨김</button>':'')+
+        '<button class="del" data-a="delete">삭제</button></div></div>';
+    }).join("");
+  }
   function render(){
+    $("fbCount").textContent=(function(){var n=fbRows.filter(function(r){return r.status==="pending"}).length;return n?"("+n+")":""})();
+    if(view==="fb"){renderFb();return}
+    $("allOk").style.display="none";
     var l=rows.filter(function(r){return filter==="all"||r.status===filter});
     if(!l.length){$("list").innerHTML='<div class="item" style="color:var(--sub);text-align:center">해당하는 게임이 없습니다.</div>';return}
     $("list").innerHTML=l.map(function(r){
@@ -85,9 +135,32 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
   }
   function load(){
     $("msg").textContent="";
-    return rpc("student_games_admin_list",{p_code:code}).then(function(d){rows=d||[];$("login").style.display="none";$("panel").style.display="block";render()})
+    return rpc("student_games_admin_list",{p_code:code}).then(function(d){
+      rows=d||[];
+      return rpc("shop_feedback_admin_list",{p_code:code}).then(function(f){fbRows=f||[]},function(){fbRows=[]});
+    }).then(function(){$("login").style.display="none";$("panel").style.display="block";render()})
       .catch(function(){$("msg").textContent="비밀번호가 맞지 않거나 불러오지 못했습니다.";$("panel").style.display="none";$("login").style.display="flex"});
   }
+  $("views").onclick=function(e){
+    var b=e.target.closest("button[data-v]");if(!b)return;view=b.dataset.v;
+    [].forEach.call($("views").querySelectorAll("button"),function(x){x.classList.toggle("on",x===b)});
+    filter="pending";[].forEach.call($("tabs").querySelectorAll("button[data-f]"),function(x){x.classList.toggle("on",x.dataset.f==="pending")});
+    render();
+  };
+  $("allOk").onclick=function(){
+    var ids=fbRows.filter(function(r){return r.status==="pending"&&!scanFb(r).length}).map(function(r){return r.id});
+    var skipped=fbRows.filter(function(r){return r.status==="pending"}).length-ids.length;
+    if(!ids.length){alert("공개할 수 있는 의견이 없습니다."+(skipped?" (⚠ 표시된 카드는 직접 확인해 주세요)":""));return}
+    if(!confirm("대기 중인 의견 "+ids.length+"개를 공개할까요?"+(skipped?"\n⚠ 표시된 "+skipped+"개는 제외됩니다.":"")))return;
+    ids.reduce(function(p,id){return p.then(function(){return rpc("shop_feedback_admin_set",{p_code:code,p_id:id,p_status:"approved"})})},Promise.resolve())
+      .then(load).catch(function(){$("msg").textContent="일부 의견을 공개하지 못했습니다."});
+  };
+  $("tplCopy").onclick=function(){
+    var b=this,t=$("tpl").textContent;
+    function done(){b.textContent="복사됐어요 ✓";setTimeout(function(){b.textContent="요청문 복사"},1500)}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){});
+    else{var r=document.createRange();r.selectNodeContents($("tpl"));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");done()}catch(e){}}
+  };
   $("go").onclick=function(){code=$("code").value;load()};
   $("code").onkeydown=function(e){if(e.key==="Enter")$("go").click()};
   $("reload").onclick=load;
@@ -101,6 +174,10 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
   $("list").onclick=function(e){
     var b=e.target.closest("button[data-a]");if(!b)return;
     var id=b.parentNode.dataset.id,a=b.dataset.a,r=rows.filter(function(x){return x.id===id})[0];
+    if(b.parentNode.dataset.k==="fb"){
+      if(a==="delete"){if(!confirm("이 의견 카드를 완전히 삭제할까요?"))return;rpc("shop_feedback_admin_delete",{p_code:code,p_id:id}).then(load).catch(function(){$("msg").textContent="삭제하지 못했습니다."});return}
+      rpc("shop_feedback_admin_set",{p_code:code,p_id:id,p_status:a}).then(load).catch(function(){$("msg").textContent="변경하지 못했습니다."});return;
+    }
     if(a==="view"){$("mt").textContent=r.title+" — "+r.author;$("frame").srcdoc=wrap(r.html);$("modal").classList.add("show");return}
     if(a==="delete"){if(!confirm("「"+r.title+"」을(를) 완전히 삭제할까요?"))return;rpc("student_games_admin_delete",{p_code:code,p_id:id}).then(load).catch(function(){$("msg").textContent="삭제하지 못했습니다."});return}
     rpc("student_games_admin_set",{p_code:code,p_id:id,p_status:a}).then(load).catch(function(){$("msg").textContent="변경하지 못했습니다."});

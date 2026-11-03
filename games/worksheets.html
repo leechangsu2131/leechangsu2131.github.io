@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>옛 놀이 가게 활동지 안내</title>
+<style>
+:root{--bg:#050507;--ink:#f5f5f7;--sub:#b4b4bd;--line:rgba(255,255,255,.14);--glass:rgba(255,255,255,.055);--blue:#64d2ff;--purple:#bf5af2;--orange:#ff9f0a;--green:#30d158;--red:#ff6961}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;font-size:18px}
+a{color:inherit;text-decoration:none}
+.glow{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 12% 0%,rgba(94,92,230,.22),transparent 40%),radial-gradient(ellipse at 90% 25%,rgba(255,159,10,.12),transparent 38%)}
+nav.top{position:sticky;top:12px;z-index:5;width:max-content;max-width:calc(100% - 24px);margin:12px auto 0;padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:rgba(28,28,32,.82);backdrop-filter:blur(18px);display:flex;gap:16px;font-size:13px;color:var(--sub)}
+nav.top a:hover{color:var(--ink)}
+.wrap{max-width:980px;margin:auto;padding:0 20px 70px}
+.hero{text-align:center;padding:48px 0 22px}
+.eyebrow{display:inline-flex;gap:8px;align-items:center;color:var(--sub);border:1px solid var(--line);background:var(--glass);padding:7px 14px;border-radius:99px;font-size:13px}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.1;letter-spacing:-.05em;margin:18px 0 8px}
+.hero p{color:var(--sub);margin:0;font-size:16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:22px 0 18px;position:sticky;top:56px;z-index:4;padding:8px 0;background:linear-gradient(var(--bg) 70%,transparent)}
+.tabs button{font:inherit;font-size:15px;cursor:pointer;color:var(--ink);background:var(--glass);border:1px solid var(--line);border-radius:99px;padding:9px 16px;transition:.2s}
+.tabs button:hover{background:rgba(255,255,255,.14)}
+.tabs button.on{background:#fff;color:#000;border-color:#fff;font-weight:700}
+.tabs small{display:block;font-size:11px;opacity:.7;margin-top:-2px}
+.sheet{display:none}.sheet.on{display:block}
+.title{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 4px}
+.title h2{font-size:clamp(24px,4vw,34px);letter-spacing:-.045em;margin:0}
+.pill{border:1px solid var(--line);background:var(--glass);border-radius:99px;padding:4px 12px;font-size:14px;color:var(--sub)}
+.lead{color:var(--sub);margin:0 0 16px;font-size:16px}
+.step{display:grid;grid-template-columns:54px 1fr;gap:16px;border:1px solid var(--line);border-radius:22px;background:var(--glass);padding:18px 20px;margin:0 0 12px}
+.num{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--purple),#5e5ce6)}
+.step h3{margin:0 0 4px;font-size:21px;letter-spacing:-.03em}
+.step p{margin:2px 0;color:#e4e4e7}
+.ex,.tip,.no{border-radius:12px;padding:9px 13px;margin:8px 0 0;font-size:16px}
+.ex{background:rgba(48,209,88,.12);border:1px solid rgba(48,209,88,.35)}
+.ex::before{content:"예 · ";font-weight:800;color:var(--green)}
+.tip{background:rgba(255,159,10,.12);border:1px solid rgba(255,159,10,.35)}
+.tip::before{content:"기억해요 · ";font-weight:800;color:var(--orange)}
+.no{background:rgba(255,105,97,.12);border:1px solid rgba(255,105,97,.35)}
+.no::before{content:"이렇게는 어려워요 · ";font-weight:800;color:var(--red)}
+.tbl{overflow-x:auto;margin:8px 0 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:16px}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:rgba(100,210,255,.12);color:var(--blue)}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.opts span{border:1px dashed rgba(255,255,255,.3);border-radius:99px;padding:5px 14px;font-size:16px}
+.teacher{margin-top:26px;border:1px dashed rgba(255,255,255,.22);border-radius:18px;padding:14px 18px;color:var(--sub);font-size:15px}
+.teacher b{color:var(--ink)}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+.pager button{font:inherit;cursor:pointer;color:var(--ink);background:var(--glass);border:1px solid var(--line);border-radius:99px;padding:10px 18px}
+.pager button:hover{background:rgba(255,255,255,.14)}.pager button:disabled{opacity:.35;cursor:default}
+.pager{align-items:center;flex-wrap:wrap}.pl{background:#fff;color:#000;border-radius:99px;padding:10px 18px;font-weight:700;font-size:15px}.pl:hover{background:#e8e8ea}
+footer{text-align:center;color:var(--sub);font-size:13px;padding:30px 0 10px}footer a{color:var(--ink);border-bottom:1px solid var(--line)}
+@media(max-width:700px){body{font-size:17px}.wrap{padding:0 13px 45px}.step{grid-template-columns:1fr;gap:8px;padding:16px}.num{width:38px;height:38px;font-size:18px}}
+@media print{.tabs,nav.top,.pager{display:none}.sheet{display:block!important;page-break-after:always}body{background:#fff;color:#000}.glow{display:none}}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<nav class="top" aria-label="메뉴"><a href="../index.html">홈</a><a href="../education.html#social">3학년 사회</a><a href="index.html">게임 극장</a><a href="worksheets.html">활동지 안내</a></nav>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">🏺 우리 반 옛 놀이 가게</div>
+  <h1>활동지, 이렇게 써요</h1>
+  <p>칸마다 무엇을 어떻게 쓰는지 여기에서 함께 봐요. 종이 활동지는 아래 <b>인쇄</b> 버튼으로 뽑아요.</p>
+</header>
+
+<div class="tabs" id="tabs" role="tablist">
+  <button data-s="1" role="tab">활동지 1<small>1차시</small></button>
+  <button data-s="2" role="tab">활동지 2<small>2·4차시</small></button>
+  <button data-s="3" role="tab">활동지 3<small>3차시</small></button>
+  <button data-s="5" role="tab">활동지 5<small>4차시</small></button>
+  <button data-s="4" role="tab">활동지 4<small>5차시</small></button>
+</div>
+
+<!-- 활동지 1 -->
+<section class="sheet" id="s1">
+  <div class="title"><h2>활동지 1. 우리 모둠의 옛 놀이 조사하기</h2><span class="pill">1차시</span></div>
+  <p class="lead">책이나 자료를 보고 우리 모둠 놀이를 조사해요. 번호와 모둠만 써요. 이름은 쓰지 않아요.</p>
+  <div class="step"><div class="num">1</div><div><h3>우리 모둠이 고른 옛 놀이</h3><p>선생님이 정해 준 놀이 이름을 써요.</p><div class="ex">윷놀이 · 제기차기 · 투호 · 공기놀이</div></div></div>
+  <div class="step"><div class="num">2</div><div><h3>어떻게 하는 놀이일까요? 규칙</h3><p>순서대로 짧게 써요. 놀이를 처음 하는 친구도 알 수 있게 써 봐요.</p><div class="ex">윷가락 4개를 던져요. 나온 결과만큼 말을 옮겨요. 윷이나 모가 나오면 한 번 더 던져요.</div><div class="tip">책마다 규칙이 다르면 <b>한 곳을 기준</b>으로 정하고, 다른 규칙은 “지역마다 다를 수 있다”라고 써요.</div></div></div>
+  <div class="step"><div class="num">3</div><div><h3>필요한 도구, 몇 명이 하나요?</h3><p>놀이에 꼭 필요한 물건과 사람 수를 써요.</p><div class="ex">윷가락 4개, 말판, 말 / 두 사람 이상</div></div></div>
+  <div class="step"><div class="num">4</div><div><h3>오늘날 비슷한 놀이</h3><p>요즘 우리가 쉬는 시간이나 집에서 하는 놀이 중에서 비슷한 것을 찾아요.</p><div class="ex">주사위를 던져 말을 옮기는 보드게임</div></div></div>
+  <div class="step"><div class="num">5</div><div><h3>같은 점, 다른 점</h3><p>옛 놀이와 오늘날 놀이를 나란히 놓고 비교해요.</p><div class="ex">같은 점: 던져서 나온 만큼 말을 옮겨요. / 다른 점: 도구와 결과의 이름이 달라요.</div></div></div>
+  <div class="step"><div class="num">6</div><div><h3>어디에서 알게 되었나요? (○표)</h3><div class="opts"><span>책이나 교과서</span><span>인터넷이나 영상</span><span>가족이나 어른께 여쭤봤어요</span><span>그 밖에</span></div><div class="tip">출처를 꼭 ○표 해요. 4차시에 <b>조사한 규칙과 프로그램을 비교</b>할 때 다시 써요.</div><div class="tip">가족께 여쭤봤어도 <b>가족 이름은 쓰지 않아요.</b></div></div></div>
+</section>
+
+<!-- 활동지 2 -->
+<section class="sheet" id="s2">
+  <div class="title"><h2>활동지 2. AI에게 말하고, 보고, 다시 말하기</h2><span class="pill">2차시 · 4차시</span></div>
+  <p class="lead">2차시에는 <b>첫 줄(처음)</b>만 써요. 둘째·셋째 줄은 4차시에 이어서 써요.</p>
+  <div class="step"><div class="num">1</div><div><h3>표의 첫 번째 칸: 내가 AI에게 한 말</h3><p>규칙을 한 가지만 정해서 <b>우리 모둠의 말</b>로 써요. 선생님이 이 말을 그대로 AI에게 보내요.</p><div class="ex">윷을 던지면 결과를 보여 줘</div><div class="tip">말을 고치거나 덧붙이지 않아요. 말이 부족하면 결과도 부족하게 나와요. 그걸 직접 보는 것이 이번 공부예요.</div></div></div>
+  <div class="step"><div class="num">2</div><div><h3>프로그램이 한 일</h3><p>프로그램을 써 보고, 화면에서 일어난 일을 있는 그대로 써요.</p><div class="ex">숫자만 나왔어요</div></div></div>
+  <div class="step"><div class="num">3</div><div><h3>이상한 점</h3><p>우리가 말한 것과 다르거나 이상한 곳을 써요. 이상한 곳이 없으면 “없어요”라고 써요.</p><div class="ex">결과의 이름을 말하지 않았어요</div></div></div>
+  <div class="step"><div class="num">4</div><div><h3>다시 한 말 <small style="color:var(--orange)">(4차시에 써요)</small></h3><p>이상한 곳을 고치려면 어떻게 말하면 좋을지 써요. 한 번에 한 가지만 고쳐요.</p><div class="ex">윷을 던지면 도, 개, 걸, 윷, 모 중 하나를 보여 줘</div></div></div>
+  <div class="tbl"><table>
+    <tr><th></th><th>내가 AI에게 한 말</th><th>프로그램이 한 일</th><th>이상한 점</th><th>다시 한 말</th></tr>
+    <tr><td>예</td><td>윷을 던지면 결과를 보여 줘</td><td>숫자만 나왔어요</td><td>결과의 이름을 말하지 않았어요</td><td>윷을 던지면 도, 개, 걸, 윷, 모 중 하나를 보여 줘</td></tr>
+    <tr><td>처음</td><td colspan="4" style="color:var(--sub)">2차시에 여기를 써요</td></tr>
+    <tr><td>두 번째</td><td colspan="4" style="color:var(--sub)">4차시에 이어서 써요</td></tr>
+    <tr><td>세 번째</td><td colspan="4" style="color:var(--sub)">필요하면 써요</td></tr>
+  </table></div>
+  <div class="step" style="margin-top:12px"><div class="num">5</div><div><h3>우리가 조사한 규칙과 맞는지 확인해요</h3><p>활동지 1과 나란히 놓고 ☑ 해요.</p><div class="opts"><span>조사한 규칙과 같아요</span><span>규칙을 마음대로 바꾸지 않았어요</span><span>쓰기 쉬워요</span></div></div></div>
+  <div class="step"><div class="num">6</div><div><h3>이상한 점은 왜 생겼을까요? (○표)</h3><div class="opts"><span>내가 설명을 덜 해서</span><span>AI가 규칙을 틀리게 만들어서</span><span>잘 모르겠어요</span></div></div></div>
+  <div class="step"><div class="num">7</div><div><h3>돌아봐요</h3><p>처음에 한 말과 고쳐서 한 말 중 어느 것이 더 좋았는지, 왜 그런지 써요. <small style="color:var(--orange)">(4차시)</small></p></div></div>
+</section>
+
+<!-- 활동지 3 -->
+<section class="sheet" id="s3">
+  <div class="title"><h2>활동지 3. 옛 놀이 가게 의견 카드</h2><span class="pill">3차시</span></div>
+  <p class="lead">손님이 되어 놀이를 해 보고 써요. 친구를 평가하는 것이 아니라 <b>프로그램을 고치는 데 쓰는 의견</b>이에요.</p>
+  <div class="step"><div class="num">1</div><div><h3>번호, 우리 모둠, 해 본 놀이</h3><p>내 번호와 우리 모둠, 방금 해 본 놀이 이름을 써요. 이름은 쓰지 않아요.</p></div></div>
+  <div class="step"><div class="num">2</div><div><h3>😊 재미있었던 점</h3><p>어디가 재미있었는지 써요.</p><div class="ex">버튼을 누르니 윷이 바로 나와서 재미있었어요</div></div></div>
+  <div class="step"><div class="num">3</div><div><h3>🤔 이상하거나 아쉬웠던 점</h3><p><b>어디가, 왜</b> 이상했는지 써요.</p><div class="ex">결과가 숫자로만 나와서 몇 칸 가는지 몰랐어요</div><div class="no">“재미없어요” — 왜 재미없는지 몰라서 고치기 어려워요</div></div></div>
+  <div class="step"><div class="num">4</div><div><h3>📖 조사한 규칙과 다르게 느껴진 곳</h3><p>우리가 아는 규칙과 다르게 움직인 곳이 있으면 써요. 없으면 “없어요”라고 써요.</p></div></div>
+  <div class="step"><div class="num">5</div><div><h3>🔧 이렇게 고치면 좋겠어요 (한 가지만)</h3><p>고칠 것을 한 가지만 골라서 써요.</p><div class="ex">도, 개, 걸, 윷, 모를 글자로 보여 주면 좋겠어요</div></div></div>
+  <div class="step"><div class="num">6</div><div><h3>놀이가 어땠나요? (○표)</h3><div class="opts"><span>😊 재미있어요</span><span>🙂 괜찮아요</span><span>😐 아쉬워요</span></div></div></div>
+  <div class="teacher"><b>진행 순서:</b> 1라운드 12분(A·B 모둠이 가게 주인, C·D 모둠이 손님) → 2라운드 12분(역할 바꾸기) → 받은 카드 읽고 같은 이야기가 많은 의견에 ⭐ 표시</div>
+</section>
+
+<!-- 활동지 5 -->
+<section class="sheet" id="s5">
+  <div class="title"><h2>활동지 5. 의견으로 고치기</h2><span class="pill">4차시</span></div>
+  <p class="lead">활동지 2의 둘째·셋째 줄과 함께 써요. 받은 의견 카드와 활동지 1을 옆에 놓아요.</p>
+  <div class="step"><div class="num">1</div><div><h3>이상한 점을 옮겨 적고, 왜 생겼는지 ○표</h3><p>받은 의견 카드에서 이상한 점을 옮겨 적고, 두 종류 중 어디에 해당하는지 골라요.</p>
+    <div class="tbl"><table><tr><th>이상한 점</th><th>🗣️ 내 설명이 부족했어요</th><th>🤖 AI가 규칙을 마음대로 만들었어요</th></tr>
+    <tr><td>결과가 숫자로만 나왔어요</td><td>○</td><td></td></tr>
+    <tr><td>말하지 않은 점수를 AI가 넣었어요</td><td></td><td>○</td></tr></table></div>
+    <div class="tip">내가 한 말에 그 내용이 <b>없었으면</b> ① 내 설명이 부족했어요. <b>있었는데</b> 다르게 만들었으면 ② AI가 틀렸어요.</div></div></div>
+  <div class="step"><div class="num">2</div><div><h3>조사한 규칙과 프로그램을 비교해요</h3><p>활동지 1의 규칙 한 줄과 프로그램이 한 일 한 줄을 나란히 놓고, 다른 곳을 찾아 써요.</p><div class="ex">조사한 규칙: 윷을 던져 나온 결과만큼 말을 옮긴다 / 프로그램이 한 일: 점수가 올라갔다 / 다른 곳: 점수는 규칙에 없다</div></div></div>
+  <div class="step"><div class="num">3</div><div><h3>한 번에 한 가지만 고쳐요</h3><p>가장 이상한 곳 하나를 골라 <b>짧고 분명하게</b> 다시 말해요. 무엇을, 언제, 어떻게 보여 줄지 말해요.</p><div class="ex">“결과를 보여 줘” → “도, 개, 걸, 윷, 모 중 하나를 글자로 보여 줘”</div></div></div>
+  <div class="step"><div class="num">4</div><div><h3>다시 써 보니 어땠나요?</h3><div class="opts"><span>고쳐졌어요</span><span>아직 이상해요 → 이번에는 이렇게 말해 볼게요</span></div></div></div>
+  <div class="step"><div class="num">5</div><div><h3>돌아봐요</h3><p>처음에 한 말과 고쳐서 한 말을 비교하면 무엇이 더 좋아졌는지 써요.</p><div class="ex">결과를 글자로 말했더니 AI가 헷갈리지 않았어요</div></div></div>
+</section>
+
+<!-- 활동지 4 -->
+<section class="sheet" id="s4">
+  <div class="title"><h2>활동지 4. 옛 놀이와 화면 놀이, 무엇이 달라졌을까?</h2><span class="pill">5차시</span></div>
+  <p class="lead">진짜 놀이와 화면 놀이를 비교해 보고, AI를 믿기 전에 무엇을 확인할지 써요. 예시는 참고만 하고, <b>우리 생각을 우리 말로</b> 써요.</p>
+  <div class="step"><div class="num">1</div><div><h3>🤝 그대로인 점</h3><p>몸으로 하던 놀이와 화면 놀이에서 똑같은 것을 써요.</p><div class="ex">규칙, 이기고 지는 재미</div></div></div>
+  <div class="step"><div class="num">2</div><div><h3>🔄 달라진 점</h3><p>바뀐 것을 써요.</p><div class="ex">도구가 필요 없어요. 혼자서도 할 수 있어요.</div></div></div>
+  <div class="step"><div class="num">3</div><div><h3>💨 화면으로 옮기면 사라지는 것</h3><p>화면으로 옮기면서 없어진 것을 <b>꼭 한 가지</b> 찾아 써요.</p><div class="ex">손으로 던지는 느낌, 함께 모여 앉아 소리 지르는 분위기</div><div class="tip">“화면이 더 좋아요”로 끝내지 않고, 사라지는 것을 생각해 봐요. 이것이 옛날과 오늘날의 <b>변화상</b>이에요.</div></div></div>
+  <div class="step"><div class="num">4</div><div><h3>AI가 만든 것을 믿기 전에 확인할 것</h3><p>두 가지를 써요.</p><div class="ex">조사한 규칙과 맞나요? / 내 설명이 부족하지 않았나요? / 다른 사람이 써 봤나요?</div></div></div>
+  <div class="step"><div class="num">5</div><div><h3>오늘 새로 알게 된 옛 놀이 이야기 한 줄</h3><p>마지막 칸에 한 줄로 써요. 몇 명이 발표해요.</p></div></div>
+</section>
+
+<div class="pager"><button id="prev">← 이전 활동지</button><a id="printLink" href="print.html#p1" target="_blank" class="pl">🖨️ 이 활동지 종이로 인쇄</a><button id="next">다음 활동지 →</button></div>
+<footer><a href="index.html">게임 극장으로</a> · <a href="../education.html#social">3학년 사회로 돌아가기</a></footer>
+</div>
+<script>
+(function(){
+  var order=["1","2","3","5","4"];
+  var $=function(s){return document.querySelector(s)};
+  function show(id,push){
+    if(order.indexOf(id)<0)id="1";
+    [].forEach.call(document.querySelectorAll(".sheet"),function(s){s.classList.toggle("on",s.id==="s"+id)});
+    [].forEach.call(document.querySelectorAll("#tabs button"),function(b){var on=b.dataset.s===id;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
+    var i=order.indexOf(id);$("#prev").disabled=i===0;$("#next").disabled=i===order.length-1;
+    $("#prev").dataset.t=order[i-1]||"";$("#next").dataset.t=order[i+1]||"";
+    $("#printLink").href="print.html#p"+id;
+    try{if(push)history.replaceState(null,"","#w"+id)}catch(e){}
+    if(push)window.scrollTo({top:0,behavior:"smooth"});
+  }
+  $("#tabs").addEventListener("click",function(e){var b=e.target.closest("button[data-s]");if(b)show(b.dataset.s,true)});
+  ["#prev","#next"].forEach(function(s){$(s).addEventListener("click",function(){if(this.dataset.t)show(this.dataset.t,true)})});
+  window.addEventListener("hashchange",function(){var m=location.hash.match(/^#w(\d)$/);if(m)show(m[1],false)});
+  show((location.hash.match(/^#w(\d)$/)||[])[1]||"1",false);
+})();
+</script>
+</body>
+</html>
