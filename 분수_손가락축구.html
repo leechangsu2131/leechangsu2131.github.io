@@ -118,7 +118,7 @@ const expected=c=>c.k==='m'?{n:c.w*c.d+c.q,d:c.d}:{w:Math.floor(c.n/c.d),q:c.n%c
 const ansText=c=>{ const e=expected(c); return c.k==='m'?`${c.w}과 ${c.q}/${c.d} = ${e.n}/${e.d}`:`${c.n}/${c.d} = ${e.w}과 ${e.q}/${e.d}`; };
 const cellAt=(x,y)=>Math.min(ROWS-1,Math.max(0,Math.floor(y/100)))*COLS+Math.min(COLS-1,Math.max(0,Math.floor(x/100)));
 /* ── 튕기기 물리 (헤드리스 계산 → 궤적 재생) ── */
-const K_DAMP=4.4, C_FRIC=35, REST=.92, VMAX=2500, OVER=.85, PULLMAX=150, PULLMIN=18;
+const K_DAMP=4.4, C_FRIC=35, REST=.92, VMAX=2800, OVER=.85, PULLMAX=150, PULLMIN=18;
 function simulate(st0,who,vx,vy){
   const s=st0.map(p=>({x:p.x,y:p.y,vx:0,vy:0,gone:-1}));
   s[who].vx=vx; s[who].vy=vy;
@@ -205,7 +205,7 @@ function home(){
     <button class="mode" id="mLocal"><b>🤝 한 기기로 둘이서</b><span>한 화면에서 번갈아 튕겨요.</span></button>
     <button class="mode" id="mHost"><b>📱 방 만들기 (두 기기)</b><span>방 번호가 나와요. 친구가 그 번호로 들어오면 시작해요.</span></button>
     <button class="mode" id="mGuest"><b>📲 방 번호로 들어가기 (두 기기)</b><span>친구가 알려 준 4자리 번호를 입력해요.</span></button>
-    <div class="hint"><b>방법</b> 먼저 하는 사람은 무작위로 정해지고, 같은 횟수씩 겨뤄요. ① 내 차례에 화면을 끌었다 놓으면 바둑돌이 반대쪽으로 튕겨요(많이 당길수록 세게. 빨간색까지 꽉 당기면 💥 너무 세서 방향이 흔들리고 멀리 튕겨 나가요). ② 멈춘 칸의 <b>대분수는 가분수로, 가분수는 대분수로</b> 바꿔요. ③ 바르게 바꾸면 바둑돌이 그 자리에 남고, 틀리거나 판 밖으로 나가면 처음 자리로 돌아가요. ④ 친구의 바둑돌을 잘 피해서 튕겨요. ⑤ 상대 골대(주황 칸)로 들어가면 1점! 한 번에 멀리 못 가니 여러 번 튕겨야 해요.</div></div>`;
+    <div class="hint"><b>방법</b> 먼저 하는 사람은 무작위로 정해지고, 같은 횟수씩 겨뤄요. ① 내 차례에 화면을 끌었다 놓으면 바둑돌이 반대쪽으로 튕겨요(많이 당길수록 세게. 세게 당길수록 힘 조절이 어려워지고, 빨간색까지 꽉 당기면 💥 제멋대로 엄청 세게 튕겨 나가요). ② 멈춘 칸의 <b>대분수는 가분수로, 가분수는 대분수로</b> 바꿔요. ③ 바르게 바꾸면 바둑돌이 그 자리에 남고, 틀리거나 판 밖으로 나가면 처음 자리로 돌아가요. ④ 친구의 바둑돌을 잘 피해서 튕겨요. ⑤ 상대 골대(주황 칸)로 들어가면 1점! 한 번에 멀리 못 가니 여러 번 튕겨야 해요.</div></div>`;
   const syncChk=()=>{ $('chk').textContent=opt.check==='speak'?'🗣 말하기 방식은 “한 기기로 둘이서”에서만 쓸 수 있어요. 친구가 정답을 보고 확인해 줘요.':''; };
   const group=(id,key)=>{ $(id).onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b) return; opt[key]=b.dataset.v; [...$(id).children].forEach(x=>x.classList.toggle('on',x===b)); syncChk(); }; };
   group('oBoard','board'); group('oWin','win'); group('oCheck','check'); group('oCpu','cpu'); syncChk();
@@ -270,7 +270,7 @@ function roundCheck(){ const need=needPts(); if(need&&S.turn===S.first&&(S.score
 function nextTurn(){ S.turn=1-S.turn; S.phase='aim'; S.ask=null; S.id++; }
 function doFlick(p,vx,vy){
   if(!S||S.over||S.phase!=='aim'||S.turn!==p) return;
-  const sp=Math.hypot(vx,vy); if(sp<PULLMIN*9*.95) return; if(sp>VMAX){ vx*=VMAX/sp; vy*=VMAX/sp; }
+  const sp=Math.hypot(vx,vy); if(sp<60) return; if(sp>VMAX){ vx*=VMAX/sp; vy*=VMAX/sp; }
   S.stat[p].fl++; const res=simulate(S.st,p,vx,vy); S.phase='fly'; S.msg=''; S.cls='';
   const fps=30; let flat=[]; res.fr.forEach(f=>flat.push(...f)); let rate=fps;
   if(flat.length>1400){ flat=[]; res.fr.forEach((f,i)=>{ if(i%2===0||i===res.fr.length-1) flat.push(...f); }); rate=15; }
@@ -444,7 +444,7 @@ function draw(){
   // 순서: 차례 아닌 돌을 먼저, 차례인 돌을 위에
   order.forEach(i=>drawStone(sp.pos[i],i===0,!sp.flying&&S.phase==='aim'&&S.turn===i&&!S.over));
   // 조준선
-  if(aim&&S.phase==='aim'&&mt&&!sp.flying){ const st=S.st[S.turn], dx=aim.sx-aim.cx, dy=aim.sy-aim.cy, pull=Math.min(PULLMAX,Math.hypot(dx,dy)); if(pull>4){ const ang=Math.atan2(dy,dx)+(pull/PULLMAX>OVER?(Math.random()-.5)*.35:0), len=pull*3.3, ex=st.x+Math.cos(ang)*len, ey=st.y+Math.sin(ang)*len, t=pull/PULLMAX;
+  if(aim&&S.phase==='aim'&&mt&&!sp.flying){ const st=S.st[S.turn], dx=aim.sx-aim.cx, dy=aim.sy-aim.cy, pull=Math.min(PULLMAX,Math.hypot(dx,dy)); if(pull>4){ const ang=Math.atan2(dy,dx), len=pull*3.3, ex=st.x+Math.cos(ang)*len, ey=st.y+Math.sin(ang)*len, t=pull/PULLMAX;
       cx.strokeStyle=`hsl(${120-110*t},80%,42%)`; cx.lineWidth=6; cx.setLineDash([14,10]); cx.beginPath(); cx.moveTo(st.x,st.y); cx.lineTo(ex,ey); cx.stroke(); cx.setLineDash([]);
       cx.fillStyle=cx.strokeStyle; cx.beginPath(); cx.moveTo(ex,ey); cx.lineTo(ex-Math.cos(ang-.4)*22,ey-Math.sin(ang-.4)*22); cx.lineTo(ex-Math.cos(ang+.4)*22,ey-Math.sin(ang+.4)*22); cx.closePath(); cx.fill();
       cx.fillStyle='rgba(37,50,74,.75)'; cx.font='18px Jua, sans-serif'; cx.textAlign='center'; cx.fillText(t>OVER?`💥 너무 세요! 튕겨 나가요`:`힘 ${Math.round(t*100)}%`,st.x,st.y-R-14); } }
@@ -456,8 +456,9 @@ function cvXY(e){ const r=canvas.getBoundingClientRect(); return {x:(e.clientX-r
 function pDown(e){ if(!S||S.over||S.phase!=='aim'||anim||waiting||!myTurn()) return; const p=cvXY(e); aim={sx:p.x,sy:p.y,cx:p.x,cy:p.y}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} e.preventDefault(); }
 function pMove(e){ if(!aim) return; const p=cvXY(e); aim.cx=p.x; aim.cy=p.y; e.preventDefault(); }
 function pUp(e){ if(!aim) return; const dx=aim.sx-aim.cx, dy=aim.sy-aim.cy, d=Math.hypot(dx,dy); aim=null; if(!S||S.phase!=='aim'||!myTurn()) return;
-  const pull=Math.min(PULLMAX,d); if(pull<PULLMIN) return; let v=pull*9, ang=Math.atan2(dy,dx); const t=pull/PULLMAX;
-  if(t>OVER){ const k=(t-OVER)/(1-OVER); v*=1+k*.8; ang+=(Math.random()*2-1)*k*.5; } /* 💥 너무 세게 당기면 더 멀리, 방향은 흔들려서 조정이 어려워요 */
+  const pull=Math.min(PULLMAX,d); if(pull<PULLMIN) return; const ang=Math.atan2(dy,dx), t=pull/PULLMAX;
+  /* 힘 곡선: 약~중간은 부드럽게, 세질수록 가파르게(미세 조절이 어려워져요). 빨간색 구간은 제멋대로 세게! 방향은 그대로 */
+  let v = t>OVER ? 1900+Math.random()*850 : 1600*Math.pow(t/OVER,1.4);
   const vx=Math.cos(ang)*v, vy=Math.sin(ang)*v;
   if(mode==='guest'){ waiting=true; net.send({t:'flick',vx,vy}); } else doFlick(S.turn,vx,vy); }
 /* ── 결과·기록 ── */
