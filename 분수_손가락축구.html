@@ -205,7 +205,7 @@ function home(){
     <button class="mode" id="mLocal"><b>🤝 한 기기로 둘이서</b><span>한 화면에서 번갈아 튕겨요.</span></button>
     <button class="mode" id="mHost"><b>📱 방 만들기 (두 기기)</b><span>방 번호가 나와요. 친구가 그 번호로 들어오면 시작해요.</span></button>
     <button class="mode" id="mGuest"><b>📲 방 번호로 들어가기 (두 기기)</b><span>친구가 알려 준 4자리 번호를 입력해요.</span></button>
-    <div class="hint"><b>방법</b> 먼저 하는 사람은 무작위로 정해지고, 같은 횟수씩 겨뤄요. ① 내 차례에 화면을 끌었다 놓으면 바둑돌이 반대쪽으로 튕겨요(많이 당길수록 세게. 세게 당길수록 힘 조절이 어려워지고, 빨간색까지 꽉 당기면 💥 제멋대로 엄청 세게 튕겨 나가요). ② 멈춘 칸의 <b>대분수는 가분수로, 가분수는 대분수로</b> 바꿔요. ③ 바르게 바꾸면 바둑돌이 그 자리에 남고, 틀리거나 판 밖으로 나가면 처음 자리로 돌아가요. ④ 친구의 바둑돌을 잘 피해서 튕겨요. ⑤ 상대 골대(주황 칸)로 들어가면 1점! 한 번에 멀리 못 가니 여러 번 튕겨야 해요.</div></div>`;
+    <div class="hint"><b>방법</b> 먼저 하는 사람은 무작위로 정해지고, 같은 횟수씩 겨뤄요. ① 내 차례에 화면을 끌었다 놓으면 바둑돌이 반대쪽으로 튕겨요(많이 당길수록 세게. 세게 당길수록 힘 조절이 어려워지고, 빨간색까지 꽉 당기면 💥 방향도 힘도 제멋대로 튕겨 나가요). ② 멈춘 칸의 <b>대분수는 가분수로, 가분수는 대분수로</b> 바꿔요. ③ 바르게 바꾸면 바둑돌이 그 자리에 남고, 틀리거나 판 밖으로 나가면 처음 자리로 돌아가요. ④ 친구의 바둑돌을 잘 피해서 튕겨요. ⑤ 상대 골대(주황 칸)로 들어가면 1점! 한 번에 멀리 못 가니 여러 번 튕겨야 해요.</div></div>`;
   const syncChk=()=>{ $('chk').textContent=opt.check==='speak'?'🗣 말하기 방식은 “한 기기로 둘이서”에서만 쓸 수 있어요. 친구가 정답을 보고 확인해 줘요.':''; };
   const group=(id,key)=>{ $(id).onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b) return; opt[key]=b.dataset.v; [...$(id).children].forEach(x=>x.classList.toggle('on',x===b)); syncChk(); }; };
   group('oBoard','board'); group('oWin','win'); group('oCheck','check'); group('oCpu','cpu'); syncChk();
@@ -456,9 +456,11 @@ function cvXY(e){ const r=canvas.getBoundingClientRect(); return {x:(e.clientX-r
 function pDown(e){ if(!S||S.over||S.phase!=='aim'||anim||waiting||!myTurn()) return; const p=cvXY(e); aim={sx:p.x,sy:p.y,cx:p.x,cy:p.y}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} e.preventDefault(); }
 function pMove(e){ if(!aim) return; const p=cvXY(e); aim.cx=p.x; aim.cy=p.y; e.preventDefault(); }
 function pUp(e){ if(!aim) return; const dx=aim.sx-aim.cx, dy=aim.sy-aim.cy, d=Math.hypot(dx,dy); aim=null; if(!S||S.phase!=='aim'||!myTurn()) return;
-  const pull=Math.min(PULLMAX,d); if(pull<PULLMIN) return; const ang=Math.atan2(dy,dx), t=pull/PULLMAX;
+  const pull=Math.min(PULLMAX,d); if(pull<PULLMIN) return; let ang=Math.atan2(dy,dx); const t=pull/PULLMAX;
   /* 힘 곡선: 약~중간은 부드럽게, 세질수록 가파르게(미세 조절이 어려워져요). 빨간색 구간은 제멋대로 세게! 방향은 그대로 */
   let v = t>OVER ? 1900+Math.random()*850 : 1600*Math.pow(t/OVER,1.4);
+  /* 세게 당기면 방향도 슬며시 틀어져요(화살표에는 안 보여요): 70%부터 조금씩, 빨간색 구간은 크게 */
+  if(t>.7){ const k=t>OVER?1:(t-.7)/(OVER-.7)*.6; ang+=(Math.random()*2-1)*k*.45; }
   const vx=Math.cos(ang)*v, vy=Math.sin(ang)*v;
   if(mode==='guest'){ waiting=true; net.send({t:'flick',vx,vy}); } else doFlick(S.turn,vx,vy); }
 /* ── 결과·기록 ── */
