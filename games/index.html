@@ -42,6 +42,7 @@ button:disabled{opacity:.5;cursor:default}
 .game .em{font-size:34px}.game h3{margin:0;font-size:18px;letter-spacing:-.03em}
 .game .by{color:var(--blue);font-size:13px}.game p{margin:0;color:var(--sub);font-size:14px;flex:1;word-break:keep-all}
 .game button{margin-top:10px;align-self:flex-start}
+.game .rm{margin-top:6px;background:transparent;border:0;color:var(--sub);font-size:12.5px;padding:2px 0;text-decoration:underline;border-radius:0}.game .rm:hover{color:var(--red,#ff6961);background:transparent}
 .empty{color:var(--sub);text-align:center;padding:34px 10px;border:1px dashed var(--line);border-radius:22px}
 form{display:grid;gap:14px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -119,6 +120,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   <div class="panel">
     <ul class="rules">
       <li>만든 사람은 <b>모둠과 번호</b>로 적어요. 진짜 이름·학교·전화번호는 쓰지 않아요.</li>
+      <li><b>내 비밀번호</b>를 정해 두면 나중에 내 게임을 내가 지울 수 있어요. 친구에게 알려 주지 않아요.</li>
       <li>HTML 파일(<code>.html</code>) 하나만 올릴 수 있어요. (최대 500KB)</li>
       <li>인터넷 주소로 연결되는 게임은 작동하지 않아요. 파일 하나로 만들어 달라고 AI에게 말하세요.</li>
     </ul>
@@ -127,6 +129,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
         <label>게임 이름<input type="text" id="fTitle" maxlength="40" required placeholder="예) 제기차기 왕"></label>
         <label>만든 모둠 (모둠과 번호)<input type="text" id="fAuthor" maxlength="20" required placeholder="예) 2모둠 7번"></label>
       </div>
+      <label>내 비밀번호 <small style="color:var(--sub)">(나중에 내 게임을 지울 때 써요 · 4글자 이상 · 종이에 적어 두세요)</small><input type="text" id="fOwner" maxlength="20" minlength="4" required placeholder="예) 윷놀이7" autocomplete="off"></label>
       <label>한 줄 소개 (선택)<input type="text" id="fDesc" maxlength="200" placeholder="예) 제기를 떨어뜨리지 않고 오래 차 보세요!"></label>
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="HTML 파일 선택">
         <div id="dropText">📄 여기를 눌러 <b>HTML 파일</b>을 고르거나, 끌어다 놓으세요</div>
@@ -223,12 +226,28 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
       .then(function(rows){
         if(!rows.length){$("games").innerHTML='<div class="empty">아직 올라온 게임이 없어요. 첫 번째 주인공이 되어 보세요! 👇</div>';return}
         $("games").innerHTML=rows.map(function(g,i){
-          return '<article class="game"><div class="em">'+EM[i%EM.length]+'</div><h3>'+esc(g.title)+'</h3><div class="by">만든 사람 · '+esc(g.author)+'</div><p>'+esc(g.description||"")+'</p><button type="button" data-id="'+esc(g.id)+'" data-t="'+esc(g.title)+'" data-a="'+esc(g.author)+'">▶ 게임 하기</button></article>';
+          return '<article class="game"><div class="em">'+EM[i%EM.length]+'</div><h3>'+esc(g.title)+'</h3><div class="by">만든 사람 · '+esc(g.author)+'</div><p>'+esc(g.description||"")+'</p><button type="button" data-id="'+esc(g.id)+'" data-t="'+esc(g.title)+'" data-a="'+esc(g.author)+'">▶ 게임 하기</button><button type="button" class="rm" data-del="'+esc(g.id)+'" data-t="'+esc(g.title)+'">🗑 내 게임 지우기</button></article>';
         }).join("");
       })
       .catch(function(){$("games").innerHTML='<div class="empty">목록을 불러오지 못했어요. 잠시 뒤에 다시 눌러 보세요.</div>'});
   }
   $("games").addEventListener("click",function(e){
+    var d=e.target.closest("button[data-del]");
+    if(d){
+      var pw=window.prompt("「"+d.dataset.t+"」 게임을 지우려면,\n올릴 때 정한 내 비밀번호를 써 주세요.");
+      if(pw===null)return;pw=pw.trim();if(!pw)return;
+      fetch("https://erzdvlcbjneabxqwnwfy.supabase.co/rest/v1/rpc/student_games_owner_delete",{method:"POST",headers:Object.assign({"Content-Type":"application/json"},H),body:JSON.stringify({p_id:d.dataset.del,p_code:pw})})
+        .then(function(r){if(r.ok)return null;return r.json().catch(function(){return{}})})
+        .then(function(err){
+          if(!err){alert("지웠어요.");load();return}
+          var m=(err&&err.message)||"";
+          if(m==="WRONG_CODE")alert("비밀번호가 달라요. 다시 확인해 보세요.");
+          else if(m==="NO_OWNER_CODE")alert("이 게임은 비밀번호 없이 올라와서 내가 지울 수 없어요.\n선생님께 지워 달라고 말해요.");
+          else if(m==="NOT_FOUND"){alert("이미 지워진 게임이에요.");load()}
+          else alert("지우지 못했어요. 잠시 뒤에 다시 해 보세요.");
+        }).catch(function(){alert("지우지 못했어요. 잠시 뒤에 다시 해 보세요.")});
+      return;
+    }
     var b=e.target.closest("button[data-id]");if(!b)return;
     b.disabled=true;
     fetch(URL+"?select=html&id=eq."+encodeURIComponent(b.dataset.id)+"&status=eq.approved",{headers:H})
@@ -329,9 +348,10 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     if(html.length<50){show("err","내용이 너무 짧아요. 게임 파일이 맞는지 확인해 주세요.");return}
     if(new Blob([html]).size>MAX){show("err","내용이 너무 커요. 500KB 이하로 줄여 주세요.");return}
     if(!/<\s*(html|body|script|canvas|div)/i.test(html)){show("err","HTML 게임 파일이 아닌 것 같아요.");return}
+    if($("fOwner").value.trim().length<4){show("err","내 비밀번호는 4글자 이상으로 정해 주세요.");return}
     var btn=$("sendBtn");btn.disabled=true;btn.textContent="보내는 중…";
     fetch(URL,{method:"POST",headers:Object.assign({"Content-Type":"application/json",Prefer:"return=minimal"},H),
-      body:JSON.stringify({title:$("fTitle").value.trim(),author:$("fAuthor").value.trim(),description:$("fDesc").value.trim(),html:html,status:"pending"})})
+      body:JSON.stringify({title:$("fTitle").value.trim(),author:$("fAuthor").value.trim(),description:$("fDesc").value.trim(),html:html,status:"pending",owner_code:$("fOwner").value.trim()})})
       .then(function(r){if(!r.ok)throw 0;
         var warn=/(<script[^>]+src=|https?:\/\/|fetch\s*\(|XMLHttpRequest|window\.open|location\s*=)/i.test(html);
         show(warn?"warn":"ok",warn?"보냈어요! 그런데 게임에 인터넷 주소가 들어 있는 것 같아요. 그 부분은 작동하지 않을 수 있어요.":(AUTO.games?"보냈어요! 위 목록에서 바로 해 볼 수 있어요. 🎉":"보냈어요! 선생님이 확인하면 게임 목록에 나타나요. 🎉"));
