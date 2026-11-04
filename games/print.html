@@ -42,6 +42,8 @@ table{width:100%;border-collapse:collapse;margin:6px 0;font-size:14px}
 th,td{border:1.5px solid var(--line);padding:6px 8px;vertical-align:top}
 th{background:var(--soft);font-size:13.5px}
 td.h{height:46px}
+table.form th{width:27%;background:var(--soft);text-align:left;font-size:14.5px;vertical-align:middle}
+table.form th small{display:block;font-weight:500;color:var(--sub);font-size:12px}
 tr.ex td{color:#6b7886;background:#f8fafc;font-size:13px}
 .hint{font-size:12.5px;color:var(--sub);margin:3px 0}
 .note{margin-top:12px;font-size:12.5px;color:var(--sub);border-top:1px dashed #9aa6b2;padding-top:6px}
@@ -64,46 +66,47 @@ tr.ex td{color:#6b7886;background:#f8fafc;font-size:13px}
   <span class="sp">모둠 수만큼 복사해서 나눠 주세요 · 인쇄 창에서 "배경 그래픽"은 꺼도 돼요</span>
 </div>
 
-<!-- 활동지 1 -->
+<!-- 활동지 1 (선생님 활동지 파일 기준) -->
 <section class="page" id="p1">
-  <div class="head"><h1>활동지 1. 우리 모둠의 옛 놀이 조사하기</h1><small>사회 · 1차시</small></div>
-  <div class="who"><span>번호 ( <u></u> )</span><span>모둠 ( <u></u> )</span></div>
-  <div class="fill"><b>우리 모둠이 고른 옛 놀이 :</b><i></i></div>
-  <div class="q">어떻게 하는 놀이일까요? 규칙을 써 봐요. <small>(순서대로 짧게)</small></div>
-  <div class="ln"></div><div class="ln"></div><div class="ln"></div>
-  <div class="fill"><b>놀이에 필요한 도구 :</b><i></i><b>&nbsp;몇 명이 하나요? (</b><i style="max-width:50px"></i><b>)명</b></div>
-  <div class="fill"><b>오늘날 비슷한 놀이가 있나요? :</b><i></i></div>
-  <div class="q">옛 놀이와 오늘날 놀이를 비교해요.</div>
-  <div class="fill"><b>같은 점 :</b><i></i></div><div class="ln"></div>
-  <div class="fill"><b>다른 점 :</b><i></i></div><div class="ln"></div>
-  <div class="q">이 내용은 어디에서 알게 되었나요? <small>(○표 해요)</small></div>
-  <div class="chk">☐ 책이나 교과서</div>
-  <div class="chk">☐ 인터넷이나 영상</div>
-  <div class="chk">☐ 가족이나 어른께 여쭤봤어요 <small>(이름은 쓰지 않아요)</small></div>
-  <div class="chk">☐ 그 밖에 : ______________________</div>
-  <div class="note">이름 대신 번호와 모둠만 써요. 책마다 규칙이 다르면 한 곳을 기준으로 정하고, 다른 규칙은 “지역마다 다를 수 있다”라고 써요.</div>
+  <div class="head"><h1>활동지 1 · 우리 모둠의 옛 놀이 조사하기</h1><small>사회 · 1차시</small></div>
+  <div class="who"><span>모둠 ( <u></u> )</span><span>번호 ( <u></u> )</span></div>
+  <table class="form">
+    <tr><th>우리 모둠이 고른 옛 놀이</th><td style="height:46px"></td></tr>
+    <tr><th>규칙<small>(어떻게 하는 놀이일까요?)</small></th><td style="height:118px"></td></tr>
+    <tr><th>필요한 도구</th><td style="height:46px"></td></tr>
+    <tr><th>몇 명이 하나요?</th><td style="height:46px"></td></tr>
+    <tr><th>오늘날 비슷한 놀이</th><td style="height:46px"></td></tr>
+    <tr><th>같은 점<small>(옛 놀이와 오늘날 놀이)</small></th><td style="height:78px"></td></tr>
+    <tr><th>다른 점<small>(옛 놀이와 오늘날 놀이)</small></th><td style="height:78px"></td></tr>
+    <tr><th>어디에서 알게 되었나요?<small>(○표 해요)</small></th><td>
+      <div class="chk">□ 책이나 교과서</div>
+      <div class="chk">□ 인터넷이나 영상</div>
+      <div class="chk">□ 가족이나 어른께 여쭤봤어요 (이름은 쓰지 않아요)</div>
+      <div class="chk">□ 그 밖에: ____________________</div></td></tr>
+  </table>
 </section>
 
-<!-- 활동지 2 -->
+<!-- 활동지 2 (선생님 활동지 파일 기준) -->
 <section class="page" id="p2">
-  <div class="head"><h1>활동지 2. AI에게 말하고, 보고, 다시 말하기</h1><small>사회 · 2차시, 4차시</small></div>
-  <div class="who"><span>번호 ( <u></u> )</span><span>모둠 ( <u></u> )</span><span>우리 놀이 : <u class="w"></u></span></div>
-  <p class="hint" style="margin-top:0">우리가 한 말을 프로그램이 어떻게 만들었는지 보고, 이상한 곳은 다시 말해 봐요. <b>2차시에는 “처음” 줄만</b> 써요.</p>
+  <div class="head"><h1>활동지 2 · AI에게 말하고, 보고, 다시 말하기</h1><small>사회 · 2차시, 4차시</small></div>
+  <div class="who"><span>모둠 ( <u></u> )</span><span>우리 놀이: <u class="w"></u></span></div>
+  <div class="box s" style="padding:9px 14px;min-height:0;background:#f8fafc">
+    <div class="q" style="margin:0 0 3px">AI에게 이렇게 알려 줘요 <small>(내 말로 쓰면 돼요)</small></div>
+    <div>① 무엇을 하면? &nbsp;&nbsp; ② 무엇이 일어나야 할까? &nbsp;&nbsp; ③ 어떻게 보여 줄까?</div>
+  </div>
+  <p style="font-weight:800;margin:12px 0 4px">2차시에는 “처음” 줄만 써요. “다시 한 말”은 4차시에 써요.</p>
   <table>
     <tr><th style="width:25%">내가 AI에게 한 말</th><th style="width:25%">프로그램이 한 일</th><th style="width:25%">이상한 점</th><th>다시 한 말</th></tr>
-    <tr class="ex"><td>예) 윷을 던지면 결과를 보여 줘</td><td>숫자만 나왔어요</td><td>결과의 이름을 말하지 않았어요</td><td>윷을 던지면 도, 개, 걸, 윷, 모 중 하나를 보여 줘</td></tr>
-    <tr><td class="h" style="height:74px"></td><td></td><td></td><td></td></tr>
-    <tr><td class="h" style="height:74px"></td><td></td><td></td><td></td></tr>
-    <tr><td class="h" style="height:74px"></td><td></td><td></td><td></td></tr>
+    <tr class="ex"><td>예: 윷을 던지면 결과를 보여 줘</td><td>숫자만 나왔어요</td><td>결과의 이름을 말하지 않았어요</td><td>윷을 던지면 도, 개, 걸, 윷, 모 중 하나를 보여 줘</td></tr>
+    <tr><td style="height:72px"><b>처음</b></td><td></td><td></td><td></td></tr>
+    <tr><td style="height:72px"><b>두 번째</b></td><td></td><td></td><td></td></tr>
+    <tr><td style="height:72px"><b>세 번째</b></td><td></td><td></td><td></td></tr>
   </table>
-  <p class="hint">줄 이름: 처음 → 두 번째 → 세 번째 (위에서부터 차례로)</p>
-  <div class="q">우리가 조사한 규칙과 맞는지 확인해요. <small>(활동지 1과 비교해요)</small></div>
-  <div class="chk">☐ 조사한 규칙과 같아요.</div>
-  <div class="chk">☐ 규칙을 마음대로 바꾸지 않았어요.</div>
-  <div class="chk">☐ 쓰기 쉬워요.</div>
-  <div class="q">이상한 점은 왜 생겼을까요? <small>(○표 해요)</small></div>
-  <div class="opts"><span>내가 설명을 덜 해서</span><span>AI가 규칙을 틀리게 만들어서</span><span>잘 모르겠어요</span></div>
-  <div class="q">돌아봐요. <small>처음에 한 말과 고쳐서 한 말 중 어느 것이 더 좋았나요? 왜 그런가요?</small></div>
+  <div class="q">우리가 조사한 규칙(활동지 1)과 맞는지 확인해요.</div>
+  <div class="opts" style="border:0"><span style="border:0;padding:0">□ 조사한 규칙과 같아요.</span><span style="border:0;padding:0">□ 규칙을 마음대로 바꾸지 않았어요.</span><span style="border:0;padding:0">□ 쓰기 쉬워요.</span></div>
+  <div class="q">이상한 점은 왜 생겼을까요? <small>(○표, 4차시)</small></div>
+  <div class="opts" style="border:0"><span style="border:0;padding:0">내가 설명을 덜 해서</span> / <span style="border:0;padding:0">AI가 규칙을 틀리게 만들어서</span> / <span style="border:0;padding:0">잘 모르겠어요</span></div>
+  <div class="q">돌아봐요 <small>(4차시): 처음에 한 말과 고쳐서 한 말 중 어느 것이 더 좋았나요? 왜 그런가요?</small></div>
   <div class="box m"></div>
 </section>
 
