@@ -57,6 +57,13 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
   </div>
   <div class="msg" id="msg"></div>
   <div id="panel" style="display:none">
+    <div class="item" style="margin-bottom:14px">
+      <h3>⚡ 자동 공개</h3>
+      <p class="meta">켜면 학생이 올린 즉시 목록에 나타나요. 올라온 뒤에도 아래에서 <b>숨김·삭제</b>할 수 있어요. 게임은 인터넷 연결이 막힌 격리 창에서만 실행돼요.</p>
+      <label style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="autoGames"> 🎮 게임 자동 공개</label>
+      <label style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="autoFb"> 💬 의견 카드 자동 공개 <small style="color:var(--sub)">(친구 이름·험한 말이 그대로 공개될 수 있어요)</small></label>
+      <div class="msg" id="autoMsg" style="color:var(--green);min-height:18px;margin:4px 0 0"></div>
+    </div>
     <div class="bar tabs" id="views">
       <button data-v="games" class="on">🎮 게임</button><button data-v="fb">💬 의견 카드 <span id="fbCount"></span></button>
     </div>
@@ -138,9 +145,19 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
     return rpc("student_games_admin_list",{p_code:code}).then(function(d){
       rows=d||[];
       return rpc("shop_feedback_admin_list",{p_code:code}).then(function(f){fbRows=f||[]},function(){fbRows=[]});
-    }).then(function(){$("login").style.display="none";$("panel").style.display="block";render()})
+    }).then(function(){$("login").style.display="none";$("panel").style.display="block";loadSettings();render()})
       .catch(function(){$("msg").textContent="비밀번호가 맞지 않거나 불러오지 못했습니다.";$("panel").style.display="none";$("login").style.display="flex"});
   }
+  function loadSettings(){
+    fetch(BASE+"shop_public_settings",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY,Authorization:"Bearer "+KEY},body:"{}"})
+      .then(function(r){return r.json()}).then(function(d){var x=d&&d[0];if(!x)return;$("autoGames").checked=!!x.auto_games;$("autoFb").checked=!!x.auto_feedback}).catch(function(){});
+  }
+  function saveSettings(){
+    rpc("shop_admin_set_settings",{p_code:code,p_games:$("autoGames").checked,p_feedback:$("autoFb").checked})
+      .then(function(){$("autoMsg").style.color="var(--green)";$("autoMsg").textContent="저장했어요 ✓ (게임 "+($("autoGames").checked?"자동 공개":"직접 확인")+" · 의견 카드 "+($("autoFb").checked?"자동 공개":"직접 확인")+")"})
+      .catch(function(){$("autoMsg").style.color="var(--red)";$("autoMsg").textContent="저장하지 못했어요."});
+  }
+  $("autoGames").onchange=saveSettings;$("autoFb").onchange=saveSettings;
   $("views").onclick=function(e){
     var b=e.target.closest("button[data-v]");if(!b)return;view=b.dataset.v;
     [].forEach.call($("views").querySelectorAll("button"),function(x){x.classList.toggle("on",x===b)});

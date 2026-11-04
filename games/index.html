@@ -110,12 +110,12 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
 </section>
 
 <section id="play">
-  <div class="sh"><h2>🎮 2. 친구들이 만든 게임</h2><p>선생님이 확인한 게임만 보여요.</p></div>
+  <div class="sh"><h2>🎮 2. 친구들이 만든 게임</h2><p id="playSub">선생님이 확인한 게임만 보여요.</p></div>
   <div class="games" id="games"><div class="empty">게임을 불러오는 중…</div></div>
 </section>
 
 <section id="upload">
-  <div class="sh"><h2>📤 3. 내가 만든 게임 올리기</h2><p>올리면 선생님이 확인한 뒤 위 목록에 나타나요.</p></div>
+  <div class="sh"><h2>📤 3. 내가 만든 게임 올리기</h2><p id="upSub">올리면 선생님이 확인한 뒤 위 목록에 나타나요.</p></div>
   <div class="panel">
     <ul class="rules">
       <li>만든 사람은 <b>모둠과 번호</b>로 적어요. 진짜 이름·학교·전화번호는 쓰지 않아요.</li>
@@ -170,7 +170,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
       </div>
       <div id="fbReadBox" style="display:none">
         <h3>💬 우리 놀이가 받은 의견</h3>
-        <p class="hint">선생님이 확인한 의견 카드만 보여요. 같은 이야기가 여러 번 나오면 ⭐ 표시해 보세요.</p>
+        <p class="hint" id="fbReadHint">선생님이 확인한 의견 카드만 보여요. 같은 이야기가 여러 번 나오면 ⭐ 표시해 보세요.</p>
         <div id="fbList"></div>
       </div>
     </aside>
@@ -205,6 +205,15 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){sel()});else sel();
     function sel(){var r=document.createRange();r.selectNodeContents($("promptText"));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");done()}catch(e){}}
   };
+
+  /* 자동 공개 설정(선생님 화면에서 바꿈) — 안내 문구만 달라져요 */
+  var AUTO={games:false,feedback:false};
+  fetch("https://erzdvlcbjneabxqwnwfy.supabase.co/rest/v1/rpc/shop_public_settings",{method:"POST",headers:Object.assign({"Content-Type":"application/json"},H),body:"{}"})
+    .then(function(r){return r.ok?r.json():[]}).then(function(d){
+      var x=d&&d[0];if(!x)return;AUTO.games=!!x.auto_games;AUTO.feedback=!!x.auto_feedback;
+      if(AUTO.games){$("playSub").textContent="올라온 게임이 바로 보여요. 선생님이 나중에 확인해요.";$("upSub").textContent="올리면 바로 위 목록에 나타나요. 선생님이 나중에 확인해요.";$("sendBtn").textContent="올리기"}
+      if(AUTO.feedback)$("fbReadHint").textContent="보낸 의견 카드가 바로 보여요. 선생님이 나중에 확인해요. 같은 이야기가 여러 번 나오면 ⭐ 표시해 보세요.";
+    }).catch(function(){});
 
   /* 게임 목록 */
   var EM=["🪁","🎲","🏹","🧨","🪀","🎯","🛶","🏮"];
@@ -289,7 +298,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     var btn=$("fbSend");btn.disabled=true;btn.textContent="보내는 중…";
     fetch(FB,{method:"POST",headers:Object.assign({"Content-Type":"application/json",Prefer:"return=minimal"},H),
       body:JSON.stringify({game_id:curId,reviewer:$("fbWho").value.trim(),fun:f.fun,odd:f.odd,differs:f.differs,fix:f.fix,mood:mood,status:"pending"})})
-      .then(function(r){if(!r.ok)throw 0;say("ok","보냈어요! 선생님이 확인하면 주인 모둠이 볼 수 있어요. 🎉");var who=$("fbWho").value;$("fbForm").reset();$("fbWho").value=who;delete $("fbForm").dataset.ok})
+      .then(function(r){if(!r.ok)throw 0;say("ok",AUTO.feedback?"보냈어요! 주인 모둠이 바로 읽을 수 있어요. 🎉":"보냈어요! 선생님이 확인하면 주인 모둠이 볼 수 있어요. 🎉");var who=$("fbWho").value;$("fbForm").reset();$("fbWho").value=who;delete $("fbForm").dataset.ok})
       .catch(function(){say("err","보내지 못했어요. 잠시 뒤에 다시 해 보세요.")})
       .then(function(){btn.disabled=false;btn.textContent="의견 카드 보내기"});
   };
@@ -325,11 +334,11 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
       body:JSON.stringify({title:$("fTitle").value.trim(),author:$("fAuthor").value.trim(),description:$("fDesc").value.trim(),html:html,status:"pending"})})
       .then(function(r){if(!r.ok)throw 0;
         var warn=/(<script[^>]+src=|https?:\/\/|fetch\s*\(|XMLHttpRequest|window\.open|location\s*=)/i.test(html);
-        show(warn?"warn":"ok",warn?"보냈어요! 그런데 게임에 인터넷 주소가 들어 있는 것 같아요. 그 부분은 작동하지 않을 수 있어요.":"보냈어요! 선생님이 확인하면 게임 목록에 나타나요. 🎉");
-        $("form").reset();fileText="";$("dropText").innerHTML="📄 여기를 눌러 <b>HTML 파일</b>을 고르거나, 끌어다 놓으세요";
+        show(warn?"warn":"ok",warn?"보냈어요! 그런데 게임에 인터넷 주소가 들어 있는 것 같아요. 그 부분은 작동하지 않을 수 있어요.":(AUTO.games?"보냈어요! 위 목록에서 바로 해 볼 수 있어요. 🎉":"보냈어요! 선생님이 확인하면 게임 목록에 나타나요. 🎉"));
+        if(AUTO.games)load();$("form").reset();fileText="";$("dropText").innerHTML="📄 여기를 눌러 <b>HTML 파일</b>을 고르거나, 끌어다 놓으세요";
       })
       .catch(function(){show("err","보내지 못했어요. 잠시 뒤에 다시 해 보세요.")})
-      .then(function(){btn.disabled=false;btn.textContent="선생님께 보내기"});
+      .then(function(){btn.disabled=false;btn.textContent=AUTO.games?"올리기":"선생님께 보내기"});
   };
   load();
 })();
