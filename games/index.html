@@ -234,7 +234,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   $("games").addEventListener("click",function(e){
     var d=e.target.closest("button[data-del]");
     if(d){
-      var pw=window.prompt("「"+d.dataset.t+"」 게임을 지우려면,\n올릴 때 정한 내 비밀번호를 써 주세요.");
+      var pw=window.prompt("「"+d.dataset.t+"」 게임을 지우려면,\n올릴 때 정한 내 비밀번호를 써 주세요.\n(선생님은 교사 비밀번호로도 지울 수 있어요)");
       if(pw===null)return;pw=pw.trim();if(!pw)return;
       fetch("https://erzdvlcbjneabxqwnwfy.supabase.co/rest/v1/rpc/student_games_owner_delete",{method:"POST",headers:Object.assign({"Content-Type":"application/json"},H),body:JSON.stringify({p_id:d.dataset.del,p_code:pw})})
         .then(function(r){if(r.ok)return null;return r.json().catch(function(){return{}})})
