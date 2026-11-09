@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%93%9D</text></svg>">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>수학 분수 (기본4) 내 점수</title>
+<style>
+:root{--bg:#fff7ea;--card:#fff;--ink:#1f2d3d;--muted:#6a5b4b;--line:#f0dcc0;--brand:#e8890c;--brand-d:#b96a00;--ok:#2e9e5b;--okbg:#e5f6ec;--no:#d6453d;--nobg:#fdecea;--half:#e8890c;--halfbg:#fff3c4;--box:#fffaf0}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;font-size:17px;line-height:1.6}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 60px}
+.top{background:linear-gradient(135deg,#f5a524,#e8704c);color:#fff;padding:18px 16px 16px}
+.top .in{max-width:720px;margin:0 auto}.top small{opacity:.92;display:block}.top h1{margin:2px 0 0;font-size:1.35rem;line-height:1.3}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:18px 20px;margin:16px 0}
+.card h2{margin:0 0 8px;font-size:1.2rem}
+.hint{color:var(--muted);font-size:.93rem}
+.err{color:var(--no);font-weight:700;margin:8px 0 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.row label{flex:1 1 130px;font-weight:700;font-size:.95rem}
+.row input{display:block;width:100%;margin-top:4px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:46px;background:#fff}
+.btn{border:0;border-radius:14px;background:var(--brand);color:#fff;font-weight:700;padding:11px 20px;font-size:1.02rem;cursor:pointer;min-height:46px}
+.btn:disabled{opacity:.6}
+.btn.ghost{background:#fff;color:var(--brand-d);border:2px solid var(--brand)}
+.big{text-align:center}
+.big .sc{font-size:3rem;font-weight:800;color:var(--brand-d);line-height:1.1}
+.big .sc small{font-size:1.1rem;color:var(--muted);font-weight:700}
+.tp{margin:10px 0}
+.tp .nm{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:.97rem}
+.tp .bar{height:12px;background:#f3e6d0;border-radius:7px;overflow:hidden;margin-top:3px}
+.tp .bar i{display:block;height:100%;background:var(--ok)}
+.tp.weak .bar i{background:var(--no)}
+.tp.weak .nm span:last-child{color:var(--no)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cell{border-radius:12px;padding:8px 2px;text-align:center;border:2px solid var(--line);background:var(--box)}
+.cell b{display:block;font-size:.85rem;color:var(--muted)}
+.cell span{font-size:1.35rem;font-weight:800}
+.cell.ok{background:var(--okbg);border-color:#a9dfc0}.cell.ok span{color:var(--ok)}
+.cell.no{background:var(--nobg);border-color:#f1b3ad}.cell.no span{color:var(--no)}
+.cell.half{background:var(--halfbg);border-color:#f0c96a}.cell.half span{color:var(--half)}
+.cell.blank span{color:var(--muted)}
+.cell small{display:block;font-size:.75rem;color:var(--muted)}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:.9rem;color:var(--muted);margin-top:10px}
+.top a.back{display:inline-block;color:#fff;opacity:.92;text-decoration:none;font-size:.9rem;font-weight:700;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="top"><div class="in"><a class="back" href="index.html">← 단원평가로</a> · <a class="back" href="../education.html">교육 도구</a><small id="sub"></small><h1 id="ttl"></h1></div></div>
+<div class="wrap">
+  <div class="card" id="lkCard">
+    <h2>내 점수 확인하기</h2>
+    <p class="hint">시험 볼 때 쓴 번호와 이름을 그대로 써 주세요.</p>
+    <div class="row">
+      <label>번호<input id="lkNo" type="number" inputmode="numeric" min="1" max="60"></label>
+      <label>이름<input id="lkName" type="text" autocomplete="off"></label>
+    </div>
+    <button class="btn" id="btnLookup">내 점수 보기</button>
+    <p class="err" id="lkMsg" hidden></p>
+  </div>
+  <div id="res" hidden>
+    <div class="card big"><div class="hint" id="who"></div><div class="sc"><span id="tot"></span><small> / <span id="max"></span>점</small></div></div>
+    <div class="card"><h2>문항별 결과</h2><div class="grid" id="grid"></div>
+      <div class="leg"><span>○ 정답</span><span>△ 부분 점수</span><span>× 오답</span><span>– 안 풀었어요</span></div></div>
+    <div class="card"><h2>배운 내용별로 보기</h2><div id="topics"></div>
+      <p class="hint">빨간색은 조금 더 연습하면 좋은 부분이에요. 자세한 풀이와 연습은 오답노트에서 해 봐요.</p></div>
+    <button class="btn ghost" id="btnBack">다른 친구가 확인하기</button>
+  </div>
+</div>
+<script>
+const TEST = {"id": "math-3-2-4-basic4", "subject": "수학", "unit": "4. 분수", "title": "분수 (기본4)"};
+const CFG = {"supabaseUrl": "https://erzdvlcbjneabxqwnwfy.supabase.co", "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyemR2bGNiam5lYWJ4cXdud2Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjIzMDMsImV4cCI6MjA5MDc5ODMwM30.CWxn8p4Ic9ilJO5ea5Z3tld82KhfHTLJdJ7q92oQHIk", "table": "unit_test_submissions", "classManageTable": "class-manage", "cmGood": 90, "cmMid": 70, "classLabel": "3학년 2반", "padBucket": "unit-test-pads", "tutorUrl": "https://gemini.google.com/gem/1fkH2Yz2YjlLFkUtCQZhgks1TGmWeKjcZ?usp=sharing", "tutorTests": ["math-3-2-4-basic4"]};
+const $ = s => document.querySelector(s);
+$('#sub').textContent = TEST.subject + ' ' + (TEST.unit || '');
+$('#ttl').textContent = TEST.title + ' 내 점수';
+try{ const m = JSON.parse(localStorage.getItem('ut-score-me')||'null'); if(m){ $('#lkNo').value=m.no||''; $('#lkName').value=m.name||''; } }catch(e){}
+
+function show(d){
+  const items = d.items || [];
+  let tot = 0, max = 0;
+  items.forEach(i => { tot += Number(i.score)||0; max += i.points; });
+  $('#who').textContent = d.student_no + '번 ' + d.student_name;
+  $('#tot').textContent = Math.round(tot*10)/10; $('#max').textContent = max;
+  const g = $('#grid'); g.textContent = '';
+  const mark = {'정답':['ok','○'],'부분':['half','△'],'오답':['no','×'],'미응답':['blank','–'],'미채점':['blank','?']};
+  items.forEach(i => {
+    const [cls, ch] = mark[i.verdict] || ['blank','?'];
+    const c = document.createElement('div'); c.className = 'cell ' + cls;
+    const b = document.createElement('b'); b.textContent = i.no + '번';
+    const s = document.createElement('span'); s.textContent = ch;
+    const p = document.createElement('small'); p.textContent = (Number(i.score)||0) + '/' + i.points;
+    c.append(b, s, p); g.appendChild(c);
+  });
+  const by = {};
+  items.forEach(i => { const k = i.topic || '기타'; (by[k] = by[k] || {s:0,p:0}); by[k].s += Number(i.score)||0; by[k].p += i.points; });
+  const t = $('#topics'); t.textContent = '';
+  Object.keys(by).forEach(k => {
+    const pct = Math.round(100*by[k].s/by[k].p);
+    const d1 = document.createElement('div'); d1.className = 'tp' + (pct < 70 ? ' weak' : '');
+    const n = document.createElement('div'); n.className = 'nm';
+    const a = document.createElement('span'); a.textContent = k;
+    const b = document.createElement('span'); b.textContent = pct + '%';
+    n.append(a, b);
+    const bar = document.createElement('div'); bar.className = 'bar'; const f = document.createElement('i'); f.style.width = pct + '%'; bar.appendChild(f);
+    d1.append(n, bar); t.appendChild(d1);
+  });
+  $('#lkCard').hidden = true; $('#res').hidden = false; window.scrollTo(0,0);
+}
+
+async function lookup(){
+  const msg = $('#lkMsg'); msg.hidden = true;
+  const no = parseInt($('#lkNo').value,10), name = $('#lkName').value.trim();
+  if(!(no>=1&&no<=60) || !name){ msg.textContent='번호와 이름을 모두 써 주세요.'; msg.hidden=false; return; }
+  if(!CFG || !CFG.supabaseUrl || !CFG.supabaseAnonKey){ msg.textContent='이 파일에는 서버 연결이 없어요.'; msg.hidden=false; return; }
+  const btn = $('#btnLookup'); btn.disabled = true; btn.textContent = '불러오는 중…';
+  try{
+    const r = await fetch(CFG.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/unit_test_my_score', {method:'POST',
+      headers:{apikey:CFG.supabaseAnonKey, Authorization:'Bearer '+CFG.supabaseAnonKey, 'Content-Type':'application/json'},
+      body: JSON.stringify({p_test_id:TEST.id, p_student_no:no, p_student_name:name})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    if(d.status==='ok'){ try{ localStorage.setItem('ut-score-me', JSON.stringify({no,name})); }catch(e){} show(d); }
+    else if(d.status==='not_released'){ msg.textContent='아직 점수를 볼 수 없어요. 선생님이 열어 주실 때까지 기다려 봐요.'; msg.hidden=false; }
+    else if(d.status==='not_graded'){ msg.textContent='아직 채점이 끝나지 않았어요. 조금만 기다려 봐요.'; msg.hidden=false; }
+    else { msg.textContent='번호 '+no+', 이름 '+name+' 의 기록을 찾지 못했어요. 시험 때 쓴 번호와 이름이 똑같은지 확인해 봐요.'; msg.hidden=false; }
+  }catch(err){ msg.textContent='서버에서 불러오지 못했어요. 인터넷을 확인하고 다시 눌러 봐요.'; msg.hidden=false; }
+  btn.disabled = false; btn.textContent = '내 점수 보기';
+}
+$('#btnLookup').onclick = lookup;
+$('#lkName').addEventListener('keydown', e => { if(e.key==='Enter') lookup(); });
+$('#btnBack').onclick = () => { $('#res').hidden = true; $('#lkCard').hidden = false; $('#lkNo').value=''; $('#lkName').value=''; try{ localStorage.removeItem('ut-score-me'); }catch(e){} };
+</script>
+</body>
+</html>
