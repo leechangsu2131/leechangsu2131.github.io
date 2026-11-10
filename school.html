@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f6f1"><title>학교정보 안내 · 우리 반 학교생활</title>
+<style>
+:root{--ink:#20312c;--muted:#74817a;--green:#2f7658;--mint:#e7f2e9;--cream:#fbf7ed;--line:#e5ebe4;--blue:#edf3fb}
+*{box-sizing:border-box}body{margin:0;background:#f4f6f1;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+.wrap{max-width:1060px;margin:auto;padding:22px 16px 48px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.brand{display:flex;align-items:center;gap:10px;font-weight:850}.logo{width:42px;height:42px;border-radius:14px;background:var(--green);color:white;display:grid;place-items:center;font-size:22px}.tag,.pill{font-size:12px;color:var(--green);background:var(--mint);padding:7px 11px;border-radius:99px;font-weight:800}
+.hero{background:var(--cream);border:1px solid #eee8d9;border-radius:24px;padding:23px}.kicker{font-size:12px;color:var(--green);font-weight:850;letter-spacing:.1em}h1{font-size:clamp(27px,4vw,40px);line-height:1.15;letter-spacing:-.055em;margin:10px 0 8px}.sub{color:var(--muted);margin:0}.selectors{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:20px}.selectors label{font-size:13px;font-weight:750}.selectors select{border:1px solid var(--line);background:white;border-radius:11px;padding:10px 12px;color:var(--ink);font-weight:750;font-size:14px}
+.weekbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 10px}.weeklabel{font-weight:850;font-size:16px}.controls{display:flex;gap:7px}button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:11px;padding:9px 12px;font-weight:750;cursor:pointer}button.primary{background:var(--green);color:white;border-color:var(--green)}
+.card{background:white;border:1px solid var(--line);border-radius:20px;padding:19px;margin-top:14px}.cardhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}h2{font-size:18px;margin:0;letter-spacing:-.04em}.tablewrap{overflow-x:auto}.timetable{width:100%;border-collapse:separate;border-spacing:5px;min-width:570px}.timetable th{font-size:12px;color:var(--muted);font-weight:800;padding:8px 4px}.timetable td{background:#f7faf6;border-radius:12px;text-align:center;padding:12px 6px;font-size:13px;font-weight:750;min-width:78px}.timetable td.period{background:#edf3ee;color:var(--green);min-width:48px}.timetable td.selected{outline:2px solid var(--green);background:#e8f3e9}.timetable td.empty{color:#a4ada6;font-weight:500}.timetable tr{cursor:pointer}
+.mealgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.mealitem{padding:12px 13px;background:#f8faf6;border-radius:12px;font-size:14px;font-weight:700}.mealmeta{font-size:12px;color:var(--muted);line-height:1.7;margin-top:12px;white-space:pre-line}.state{text-align:center;padding:28px 10px;color:var(--muted);line-height:1.7}.state strong{display:block;color:var(--ink);margin-bottom:5px}.notice{margin-top:14px;background:#fff8ee;border:1px solid #f3e7d4;border-radius:15px;padding:13px;color:#806d55;font-size:12px;line-height:1.65}footer{text-align:center;color:#98a29b;font-size:11px;margin-top:22px}
+@media(max-width:600px){.hero{padding:19px}.card{padding:14px}.mealgrid{grid-template-columns:1fr}.selectors{gap:7px}.selectors select{padding:9px}.tag{display:none}}
+.homelink{display:inline-block!important;font-size:13px;font-weight:800;color:var(--green);text-decoration:none;padding:8px 14px;border:1px solid var(--line);border-radius:99px;background:#fff;white-space:nowrap}
+</style></head>
+<body><main class="wrap">
+<header><div class="brand"><div class="logo">🏫</div><span>우리 반 학교생활</span></div><a class="homelink" href="index.html">← 홈으로</a></header>
+<section class="hero"><div class="kicker">MY CLASSROOM</div><h1>우리 반의 한 주,<br>한눈에 확인해요.</h1><p class="sub" id="schoolCaption">학급을 선택하면 주간 시간표와 날짜별 급식을 보여드려요.</p>
+<div class="selectors"><label for="grade">학년</label><select id="grade"></select><label for="class">반</label><select id="class"></select><button class="primary" id="apply">학급 선택</button></div></section>
+<div class="weekbar"><div class="weeklabel" id="weekLabel">이번 주 시간표</div><div class="controls"><button id="prev">지난주</button><button class="primary" id="thisWeek">이번 주</button><button id="next">다음 주</button></div></div>
+<section class="card"><div class="cardhead"><h2 id="timetableTitle">주간 시간표</h2><span class="pill">NEIS 조회</span></div><div id="timetable" class="state"><strong>시간표를 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></section>
+<section class="card"><div class="cardhead"><h2 id="mealTitle">오늘의 급식</h2><span class="pill">날짜별 식단</span></div><div id="meal" class="state"><strong>급식 정보를 확인하고 있어요.</strong>잠시만 기다려 주세요.</div></section>
+<div class="notice">※ 시간표와 급식은 나이스 교육정보 개방포털의 공개 데이터를 조회합니다. 학교에서 아직 입력하지 않았거나 변경사항이 반영되지 않은 경우 정보가 비어 있을 수 있습니다. 시간표 표의 요일을 누르면 해당 날짜의 급식으로 바뀝니다.</div>
+<footer>우리 반 학교생활 · 데이터 출처: NEIS 교육정보 개방포털</footer>
+</main>
+<script>
+// GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요. 예: 'https://내프로젝트.vercel.app'
+const API_BASE='';
+const $=s=>document.querySelector(s);let weekStart=monday(new Date()),selectedDate=new Date();
+const ymd=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+const fromYmd=s=>new Date(Number(s.slice(0,4)),Number(s.slice(4,6))-1,Number(s.slice(6,8)),12);
+function monday(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12);x.setDate(x.getDate()-(x.getDay()+6)%7);return x}
+const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const pretty=d=>new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'short'}).format(d);
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let currentDays=[];
+for(let i=1;i<=6;i++)$('#grade').insertAdjacentHTML('beforeend',`<option value="${i}" ${i===3?'selected':''}>${i}학년</option>`);
+for(let i=1;i<=15;i++)$('#class').insertAdjacentHTML('beforeend',`<option value="${i}" ${i===1?'selected':''}>${i}반</option>`);
+function weekText(){const end=plus(weekStart,4);$('#weekLabel').textContent=`${weekStart.getFullYear()}년 ${weekStart.getMonth()+1}월 ${weekStart.getDate()}일 ~ ${end.getMonth()+1}월 ${end.getDate()}일`;}
+async function loadWeek(){weekText();const grade=$('#grade').value,klass=$('#class').value;$('#timetable').className='state';$('#timetable').innerHTML='<strong>시간표를 불러오고 있어요.</strong>잠시만 기다려 주세요.';
+const from=ymd(weekStart),to=ymd(plus(weekStart,4));try{const r=await fetch(`${API_BASE}/api/timetable?grade=${grade}&class=${klass}&from=${from}&to=${to}`);const data=await r.json();if(!r.ok)throw new Error(data.error||'시간표 조회 실패');currentDays=data.days||[];renderTimetable();}catch(e){$('#timetable').innerHTML=`<strong>시간표를 불러오지 못했어요.</strong>${safe(e.message)}`;}}
+function renderTimetable(){if(!currentDays.length){$('#timetable').innerHTML='<strong>시간표 데이터가 없어요.</strong>선택한 기간의 시간표가 등록되어 있는지 확인해 주세요.';return;}const periods=[...new Set(currentDays.flatMap(d=>d.lessons.map(x=>x.period)))].sort((a,b)=>a-b);if(!periods.length){$('#timetable').innerHTML='<strong>등록된 수업이 없습니다.</strong>학교 시간표 입력 상태를 확인해 주세요.';return;}
+let html='<div class="tablewrap"><table class="timetable"><thead><tr><th>교시</th>'+currentDays.map(d=>`<th><button data-date="${d.date}">${pretty(fromYmd(d.date))}</button></th>`).join('')+'</tr></thead><tbody>';
+for(const p of periods){html+=`<tr><td class="period">${p}교시</td>`+currentDays.map(d=>{const lesson=d.lessons.find(x=>x.period===p);return `<td class="${d.date===ymd(selectedDate)?'selected ':''}${lesson?'':'empty'}" data-date="${d.date}">${lesson?safe(lesson.subject):'—'}</td>`}).join('')+'</tr>';}
+html+='</tbody></table></div>';$('#timetable').className='';$('#timetable').innerHTML=html;$('#timetable').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{selectedDate=fromYmd(el.dataset.date);renderTimetable();loadMeal();}));$('#timetableTitle').textContent=`${$('#grade').value}학년 ${$('#class').value}반 주간 시간표`;}
+async function loadMeal(){const date=ymd(selectedDate);$('#mealTitle').textContent=`${pretty(selectedDate)} 급식`;$('#meal').className='state';$('#meal').innerHTML='<strong>급식 정보를 확인하고 있어요.</strong>잠시만 기다려 주세요.';try{const r=await fetch(`${API_BASE}/api/meals?date=${date}`);const data=await r.json();if(!r.ok)throw new Error(data.error||'급식 조회 실패');if(!data.meals?.length){$('#meal').innerHTML=`<strong>등록된 급식이 없어요.</strong>${safe(data.message||'급식 미운영일이거나 아직 식단이 등록되지 않았습니다.')}`;return;}$('#meal').className='';$('#meal').innerHTML=data.meals.map(m=>`<div style="margin-bottom:14px"><div style="font-weight:850;color:var(--green);margin-bottom:9px">${safe(m.mealType)}</div><div class="mealgrid">${m.menu.map(x=>`<div class="mealitem">${safe(x)}</div>`).join('')}</div>${m.calories?`<div class="mealmeta">열량: ${safe(m.calories)}</div>`:''}${m.nutrition?`<div class="mealmeta">영양정보: ${safe(m.nutrition)}</div>`:''}</div>`).join('');}catch(e){$('#meal').innerHTML=`<strong>급식 정보를 불러오지 못했어요.</strong>${safe(e.message)}`;}}
+$('#apply').onclick=()=>{loadWeek();loadMeal()};$('#prev').onclick=()=>{weekStart=plus(weekStart,-7);selectedDate=new Date(weekStart);loadWeek();loadMeal()};$('#next').onclick=()=>{weekStart=plus(weekStart,7);selectedDate=new Date(weekStart);loadWeek();loadMeal()};$('#thisWeek').onclick=()=>{weekStart=monday(new Date());selectedDate=new Date();loadWeek();loadMeal()};
+loadWeek();loadMeal();
+</script></body></html>
