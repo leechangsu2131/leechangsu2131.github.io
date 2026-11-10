@@ -1,50 +1,322 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f4f6f1"><title>학교정보 안내 · 우리 반 학교생활</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f7658">
+<title>학교정보 안내 · 우리 반 학교생활</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
-:root{--ink:#20312c;--muted:#74817a;--green:#2f7658;--mint:#e7f2e9;--cream:#fbf7ed;--line:#e5ebe4;--blue:#edf3fb}
-*{box-sizing:border-box}body{margin:0;background:#f4f6f1;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
-.wrap{max-width:1060px;margin:auto;padding:22px 16px 48px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.brand{display:flex;align-items:center;gap:10px;font-weight:850}.logo{width:42px;height:42px;border-radius:14px;background:var(--green);color:white;display:grid;place-items:center;font-size:22px}.tag,.pill{font-size:12px;color:var(--green);background:var(--mint);padding:7px 11px;border-radius:99px;font-weight:800}
-.hero{background:var(--cream);border:1px solid #eee8d9;border-radius:24px;padding:23px}.kicker{font-size:12px;color:var(--green);font-weight:850;letter-spacing:.1em}h1{font-size:clamp(27px,4vw,40px);line-height:1.15;letter-spacing:-.055em;margin:10px 0 8px}.sub{color:var(--muted);margin:0}.selectors{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:20px}.selectors label{font-size:13px;font-weight:750}.selectors select{border:1px solid var(--line);background:white;border-radius:11px;padding:10px 12px;color:var(--ink);font-weight:750;font-size:14px}
-.weekbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 10px}.weeklabel{font-weight:850;font-size:16px}.controls{display:flex;gap:7px}button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:11px;padding:9px 12px;font-weight:750;cursor:pointer}button.primary{background:var(--green);color:white;border-color:var(--green)}
-.card{background:white;border:1px solid var(--line);border-radius:20px;padding:19px;margin-top:14px}.cardhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}h2{font-size:18px;margin:0;letter-spacing:-.04em}.tablewrap{overflow-x:auto}.timetable{width:100%;border-collapse:separate;border-spacing:5px;min-width:570px}.timetable th{font-size:12px;color:var(--muted);font-weight:800;padding:8px 4px}.timetable td{background:#f7faf6;border-radius:12px;text-align:center;padding:12px 6px;font-size:13px;font-weight:750;min-width:78px}.timetable td.period{background:#edf3ee;color:var(--green);min-width:48px}.timetable td.selected{outline:2px solid var(--green);background:#e8f3e9}.timetable td.empty{color:#a4ada6;font-weight:500}.timetable tr{cursor:pointer}
-.mealgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.mealitem{padding:12px 13px;background:#f8faf6;border-radius:12px;font-size:14px;font-weight:700}.mealmeta{font-size:12px;color:var(--muted);line-height:1.7;margin-top:12px;white-space:pre-line}.state{text-align:center;padding:28px 10px;color:var(--muted);line-height:1.7}.state strong{display:block;color:var(--ink);margin-bottom:5px}.notice{margin-top:14px;background:#fff8ee;border:1px solid #f3e7d4;border-radius:15px;padding:13px;color:#806d55;font-size:12px;line-height:1.65}footer{text-align:center;color:#98a29b;font-size:11px;margin-top:22px}
-@media(max-width:600px){.hero{padding:19px}.card{padding:14px}.mealgrid{grid-template-columns:1fr}.selectors{gap:7px}.selectors select{padding:9px}.tag{display:none}}
-.homelink{display:inline-block!important;font-size:13px;font-weight:800;color:var(--green);text-decoration:none;padding:8px 14px;border:1px solid var(--line);border-radius:99px;background:#fff;white-space:nowrap}
-</style></head>
-<body><main class="wrap">
-<header><div class="brand"><div class="logo">🏫</div><span>우리 반 학교생활</span></div><a class="homelink" href="index.html">← 홈으로</a></header>
-<section class="hero"><div class="kicker">MY CLASSROOM</div><h1>우리 반의 한 주,<br>한눈에 확인해요.</h1><p class="sub" id="schoolCaption">학급을 선택하면 주간 시간표와 날짜별 급식을 보여드려요.</p>
-<div class="selectors"><label for="grade">학년</label><select id="grade"></select><label for="class">반</label><select id="class"></select><button class="primary" id="apply">학급 선택</button></div></section>
-<div class="weekbar"><div class="weeklabel" id="weekLabel">이번 주 시간표</div><div class="controls"><button id="prev">지난주</button><button class="primary" id="thisWeek">이번 주</button><button id="next">다음 주</button></div></div>
-<section class="card"><div class="cardhead"><h2 id="timetableTitle">주간 시간표</h2><span class="pill">NEIS 조회</span></div><div id="timetable" class="state"><strong>시간표를 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></section>
-<section class="card"><div class="cardhead"><h2 id="mealTitle">오늘의 급식</h2><span class="pill">날짜별 식단</span></div><div id="meal" class="state"><strong>급식 정보를 확인하고 있어요.</strong>잠시만 기다려 주세요.</div></section>
-<div class="notice">※ 시간표와 급식은 나이스 교육정보 개방포털의 공개 데이터를 조회합니다. 학교에서 아직 입력하지 않았거나 변경사항이 반영되지 않은 경우 정보가 비어 있을 수 있습니다. 시간표 표의 요일을 누르면 해당 날짜의 급식으로 바뀝니다.</div>
-<footer>우리 반 학교생활 · 데이터 출처: NEIS 교육정보 개방포털</footer>
-</main>
+:root{--ink:#20312c;--muted:#74817a;--green:#2f7658;--green-d:#245e46;--mint:#e7f2e9;--cream:#fbf7ed;--line:#e5ebe4;--bg:#f4f6f1;--red:#c0392b;--red-bg:#fdecea;--blue:#edf3fb;--tabh:62px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.5}
+button,select{font:inherit;color:inherit}
+.app{max-width:720px;margin:0 auto;padding:0 0 calc(var(--tabh) + 24px + env(safe-area-inset-bottom))}
+
+/* 헤더 */
+.top{background:var(--green);color:#fff;padding:14px 16px 16px;padding-top:max(14px,env(safe-area-inset-top))}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.home{color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.18);white-space:nowrap}
+.kick{font-size:12px;opacity:.85;letter-spacing:.04em}
+.school{font-size:22px;font-weight:800;letter-spacing:-.04em;margin:4px 0 2px}
+.classbtn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;border:0;background:#fff;color:var(--green-d);font-weight:800;font-size:15px;padding:8px 14px;border-radius:99px;cursor:pointer}
+.picker{display:none;margin-top:10px;background:rgba(255,255,255,.14);border-radius:16px;padding:12px;gap:8px;align-items:center;flex-wrap:wrap}
+.picker.open{display:flex}
+.picker select{border:0;border-radius:10px;padding:9px 10px;background:#fff;color:var(--ink);font-weight:700}
+.picker button{border:0;border-radius:10px;padding:9px 16px;background:var(--cream);color:var(--green-d);font-weight:800;cursor:pointer}
+
+/* 탭 */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;border:0;background:none;padding:8px 2px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:12px;font-weight:700}
+.tabs button .ic{font-size:22px;line-height:1}
+.tabs button[aria-selected=true]{color:var(--green)}
+.tabs button[aria-selected=true] .ic{transform:translateY(-1px)}
+@media(min-width:760px){
+  .tabs{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--line);padding-bottom:0}
+  .tabs button{flex-direction:row;justify-content:center;gap:6px;font-size:14px;padding:13px 2px}
+  .tabs button .ic{font-size:17px}
+  .tabs button[aria-selected=true]{box-shadow:inset 0 -3px 0 var(--green)}
+  .app{padding-bottom:40px}
+  .app-in{padding-top:6px}
+}
+
+/* 본문 */
+.pane{display:none;padding:14px 14px 0}
+.pane.on{display:block}
+.weekbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.weekbar{flex-wrap:wrap}.weekbar b{font-size:15px;white-space:nowrap}.weekbar>span{display:flex;gap:6px}
+.wbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.wbtn.pri{background:var(--green);border-color:var(--green);color:#fff}
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.day{border:1px solid var(--line);background:#fff;border-radius:14px;padding:8px 0;cursor:pointer;text-align:center}
+.day small{display:block;color:var(--muted);font-size:11px}
+.day b{font-size:15px}
+.day[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.day[aria-pressed=true] small{color:#d7eadd}
+.day.today:not([aria-pressed=true]){border-color:var(--green)}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:16px;margin:0 0 10px;letter-spacing:-.03em}
+.state{color:var(--muted);font-size:14px;padding:18px 4px;text-align:center}
+.state strong{display:block;color:var(--ink);margin-bottom:3px}
+.err{color:var(--red)}
+
+/* 시간표 */
+.lesson{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.lesson:last-child{border-bottom:0}
+.per{width:40px;height:40px;border-radius:50%;background:var(--blue);color:#2a5ea8;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:16px;line-height:1;flex:none}
+.per small{font-size:9px;font-weight:700;margin-top:1px}
+.sub{font-weight:800;font-size:16px}
+.tt{width:100%;border-collapse:collapse;font-size:13px;text-align:center}
+.tt th,.tt td{border:1px solid var(--line);padding:8px 2px}
+.tt th{background:var(--mint);font-weight:800}
+.tt td.cur{background:#f0f8f2;font-weight:800}
+.tt-wrap{overflow-x:auto}
+.switch{display:flex;gap:6px;margin-bottom:10px}
+.switch button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;font-weight:700;cursor:pointer;font-size:13px}
+.switch button[aria-pressed=true]{background:var(--mint);border-color:var(--green);color:var(--green-d)}
+
+/* 급식 */
+.mtype{display:inline-block;background:var(--mint);color:var(--green-d);font-weight:800;font-size:13px;padding:3px 10px;border-radius:99px;margin-bottom:8px}
+.menu{list-style:none;margin:0;padding:0}
+.menu li{padding:8px 4px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;font-size:15px}
+.menu li:last-child{border-bottom:0}
+.menu li.al{color:var(--red);font-weight:800}
+.menu li .nums{color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap;align-self:center}
+.menu li.al .nums{color:var(--red)}
+.warn{background:var(--red-bg);color:var(--red);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700;margin:10px 0 4px}
+.kcal{text-align:right;color:var(--muted);font-size:13px;margin-top:6px}
+details.al-set{margin-bottom:12px}
+details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--green-d);padding:6px 2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 11px;font-size:13px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--red-bg);border-color:var(--red);color:var(--red);font-weight:800}
+.hint{color:var(--muted);font-size:12px;margin:6px 2px 0}
+
+/* 학사일정 */
+.months{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;scrollbar-width:none}
+.months::-webkit-scrollbar{display:none}
+.mo{flex:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 12px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.mo i{font-style:normal;font-size:11px;background:var(--bg);border-radius:99px;padding:1px 7px;color:var(--muted)}
+.mo[aria-pressed=true]{background:var(--blue);border-color:#8bb0e0;color:#2a5ea8}
+.ev{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border-bottom:0}
+.ev .d{width:46px;flex:none;text-align:center}
+.ev .d b{display:block;font-size:20px;line-height:1.1}
+.ev .d small{color:var(--muted);font-size:11px}
+.ev .n{font-weight:800}
+.ev .t{font-size:12px;color:var(--muted)}
+.ev.off .d b,.ev.off .n{color:var(--red)}
+.ev.past{opacity:.5}
+.ev.sat .d small,.ev.sun .d small{color:var(--red)}
+
+/* 학교정보 */
+.info{display:grid;grid-template-columns:84px 1fr;gap:10px 8px;font-size:14px;margin:0}
+.info dt{color:var(--muted);font-weight:700}
+.info dd{margin:0;word-break:break-all}
+.info a{color:var(--green-d)}
+.notice{font-size:12px;color:var(--muted);padding:4px 16px 0;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="toprow"><span class="kick">🏫 우리 반 학교생활</span><a class="home" href="index.html">← 홈으로</a></div>
+    <div class="school" id="schoolName">학교정보 안내</div>
+    <button class="classbtn" id="classBtn" aria-expanded="false"><span id="classLabel">학급 선택</span> <span aria-hidden="true">▾</span></button>
+    <div class="picker" id="picker">
+      <label>학년 <select id="grade"></select></label>
+      <label>반 <select id="klass"></select></label>
+      <button id="apply">확인</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="timetable" aria-selected="true"><span class="ic">📚</span>시간표</button>
+    <button role="tab" data-tab="meal" aria-selected="false"><span class="ic">🍚</span>급식</button>
+    <button role="tab" data-tab="schedule" aria-selected="false"><span class="ic">📅</span>학사일정</button>
+    <button role="tab" data-tab="school" aria-selected="false"><span class="ic">🏫</span>학교정보</button>
+  </nav>
+
+  <main class="app-in">
+    <!-- 시간표 / 급식 공통 주 이동 -->
+    <section class="pane on" id="pane-timetable">
+      <div class="weekbar"><b class="weeklabel"></b><span><button class="wbtn" data-wk="-1">◀ 지난주</button> <button class="wbtn pri" data-wk="0">이번 주</button> <button class="wbtn" data-wk="1">다음 주 ▶</button></span></div>
+      <div class="days"></div>
+      <div class="switch"><button id="vDay" aria-pressed="true">하루 보기</button><button id="vWeek" aria-pressed="false">주간표 보기</button></div>
+      <div class="card" id="ttBox"><div class="state"><strong>시간표를 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></div>
+    </section>
+
+    <section class="pane" id="pane-meal">
+      <div class="weekbar"><b class="weeklabel"></b><span><button class="wbtn" data-wk="-1">◀ 지난주</button> <button class="wbtn pri" data-wk="0">이번 주</button> <button class="wbtn" data-wk="1">다음 주 ▶</button></span></div>
+      <div class="days"></div>
+      <details class="al-set" id="alSet">
+        <summary>🚫 내 알레르기 설정 <span id="alCount"></span></summary>
+        <div class="chips" id="alChips"></div>
+        <p class="hint">선택한 재료가 들어간 메뉴는 빨간색으로 표시돼요. 이 기기에만 저장됩니다.</p>
+      </details>
+      <div class="card" id="mealBox"><div class="state"><strong>급식 정보를 확인하고 있어요.</strong>잠시만 기다려 주세요.</div></div>
+    </section>
+
+    <section class="pane" id="pane-schedule">
+      <div class="months" id="months"></div>
+      <div class="card" id="evBox"><div class="state"><strong>학사일정을 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></div>
+    </section>
+
+    <section class="pane" id="pane-school">
+      <div class="card" id="infoBox"><div class="state"><strong>학교 정보를 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></div>
+    </section>
+
+    <p class="notice">※ 시간표·급식·학사일정은 나이스 교육정보 개방포털의 공개 데이터를 조회합니다. 학교에서 아직 입력하지 않았거나 변경 내용이 반영되지 않은 경우 비어 있을 수 있어요. 알레르기 정보는 학교 제공 자료 기준이며, 정확한 내용은 학교에 확인하세요.</p>
+  </main>
+</div>
+
 <script>
-// GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요. 예: 'https://내프로젝트.vercel.app'
+// GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요.
 const API_BASE='https://school-api-alpha-gules.vercel.app';
-const $=s=>document.querySelector(s);let weekStart=monday(new Date()),selectedDate=new Date();
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const WD=['일','월','화','수','목','금','토'];
+const ALLERGY=['','난류','우유','메밀','땅콩','대두','밀','고등어','게','새우','돼지고기','복숭아','토마토','아황산류','호두','닭고기','쇠고기','오징어','조개류','잣'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ymd=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-const fromYmd=s=>new Date(Number(s.slice(0,4)),Number(s.slice(4,6))-1,Number(s.slice(6,8)),12);
-function monday(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12);x.setDate(x.getDate()-(x.getDay()+6)%7);return x}
 const plus=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
-const pretty=d=>new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'short'}).format(d);
-const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let currentDays=[];
-for(let i=1;i<=6;i++)$('#grade').insertAdjacentHTML('beforeend',`<option value="${i}" ${i===3?'selected':''}>${i}학년</option>`);
-for(let i=1;i<=15;i++)$('#class').insertAdjacentHTML('beforeend',`<option value="${i}" ${i===1?'selected':''}>${i}반</option>`);
-function weekText(){const end=plus(weekStart,4);$('#weekLabel').textContent=`${weekStart.getFullYear()}년 ${weekStart.getMonth()+1}월 ${weekStart.getDate()}일 ~ ${end.getMonth()+1}월 ${end.getDate()}일`;}
-async function loadWeek(){weekText();const grade=$('#grade').value,klass=$('#class').value;$('#timetable').className='state';$('#timetable').innerHTML='<strong>시간표를 불러오고 있어요.</strong>잠시만 기다려 주세요.';
-const from=ymd(weekStart),to=ymd(plus(weekStart,4));try{const r=await fetch(`${API_BASE}/api/timetable?grade=${grade}&class=${klass}&from=${from}&to=${to}`);const data=await r.json();if(!r.ok)throw new Error(data.error||'시간표 조회 실패');currentDays=data.days||[];renderTimetable();}catch(e){$('#timetable').innerHTML=`<strong>시간표를 불러오지 못했어요.</strong>${safe(e.message)}`;}}
-function renderTimetable(){if(!currentDays.length){$('#timetable').innerHTML='<strong>시간표 데이터가 없어요.</strong>선택한 기간의 시간표가 등록되어 있는지 확인해 주세요.';return;}const periods=[...new Set(currentDays.flatMap(d=>d.lessons.map(x=>x.period)))].sort((a,b)=>a-b);if(!periods.length){$('#timetable').innerHTML='<strong>등록된 수업이 없습니다.</strong>학교 시간표 입력 상태를 확인해 주세요.';return;}
-let html='<div class="tablewrap"><table class="timetable"><thead><tr><th>교시</th>'+currentDays.map(d=>`<th><button data-date="${d.date}">${pretty(fromYmd(d.date))}</button></th>`).join('')+'</tr></thead><tbody>';
-for(const p of periods){html+=`<tr><td class="period">${p}교시</td>`+currentDays.map(d=>{const lesson=d.lessons.find(x=>x.period===p);return `<td class="${d.date===ymd(selectedDate)?'selected ':''}${lesson?'':'empty'}" data-date="${d.date}">${lesson?safe(lesson.subject):'—'}</td>`}).join('')+'</tr>';}
-html+='</tbody></table></div>';$('#timetable').className='';$('#timetable').innerHTML=html;$('#timetable').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{selectedDate=fromYmd(el.dataset.date);renderTimetable();loadMeal();}));$('#timetableTitle').textContent=`${$('#grade').value}학년 ${$('#class').value}반 주간 시간표`;}
-async function loadMeal(){const date=ymd(selectedDate);$('#mealTitle').textContent=`${pretty(selectedDate)} 급식`;$('#meal').className='state';$('#meal').innerHTML='<strong>급식 정보를 확인하고 있어요.</strong>잠시만 기다려 주세요.';try{const r=await fetch(`${API_BASE}/api/meals?date=${date}`);const data=await r.json();if(!r.ok)throw new Error(data.error||'급식 조회 실패');if(!data.meals?.length){$('#meal').innerHTML=`<strong>등록된 급식이 없어요.</strong>${safe(data.message||'급식 미운영일이거나 아직 식단이 등록되지 않았습니다.')}`;return;}$('#meal').className='';$('#meal').innerHTML=data.meals.map(m=>`<div style="margin-bottom:14px"><div style="font-weight:850;color:var(--green);margin-bottom:9px">${safe(m.mealType)}</div><div class="mealgrid">${m.menu.map(x=>`<div class="mealitem">${safe(x)}</div>`).join('')}</div>${m.calories?`<div class="mealmeta">열량: ${safe(m.calories)}</div>`:''}${m.nutrition?`<div class="mealmeta">영양정보: ${safe(m.nutrition)}</div>`:''}</div>`).join('');}catch(e){$('#meal').innerHTML=`<strong>급식 정보를 불러오지 못했어요.</strong>${safe(e.message)}`;}}
-$('#apply').onclick=()=>{loadWeek();loadMeal()};$('#prev').onclick=()=>{weekStart=plus(weekStart,-7);selectedDate=new Date(weekStart);loadWeek();loadMeal()};$('#next').onclick=()=>{weekStart=plus(weekStart,7);selectedDate=new Date(weekStart);loadWeek();loadMeal()};$('#thisWeek').onclick=()=>{weekStart=monday(new Date());selectedDate=new Date();loadWeek();loadMeal()};
-loadWeek();loadMeal();
-</script></body></html>
+function monday(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12);x.setDate(x.getDate()-(x.getDay()+6)%7);return x}
+const ls={get(k,f){try{const v=localStorage.getItem(k);return v==null?f:JSON.parse(v)}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+async function api(path){const r=await fetch(API_BASE+path);let d=null;try{d=await r.json()}catch(e){}if(!r.ok)throw new Error((d&&d.error)||'조회에 실패했어요 ('+r.status+')');return d}
+const fail=(el,title,e)=>{el.innerHTML=`<div class="state err"><strong>${esc(title)}</strong>${esc(e.message||e)}</div>`};
+
+/* 상태 */
+let cls=ls.get('schoolClass',null);            // {grade,klass}
+let today=new Date(); today.setHours(12,0,0,0);
+const baseDay=()=>{const d=today.getDay();return d===6?plus(today,2):d===0?plus(today,1):new Date(today)};  // 주말이면 다음 월요일
+let selected=baseDay();
+let weekStart=monday(selected);
+let ttData=null, ttView='day', allergies=new Set(ls.get('allergies',[]));
+let schedYear=null, schedEvents=null, schedMonth=null;
+
+/* 학급 선택 */
+const gSel=$('#grade'), kSel=$('#klass');
+gSel.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="${n}">${n}학년</option>`).join('');
+kSel.innerHTML=Array.from({length:15},(_,i)=>`<option value="${i+1}">${i+1}반</option>`).join('');
+function paintClass(){ $('#classLabel').textContent=cls?`${cls.grade}학년 ${cls.klass}반`:'학급 선택'; if(cls){gSel.value=cls.grade;kSel.value=cls.klass} }
+function togglePicker(open){const p=$('#picker');p.classList.toggle('open',open);$('#classBtn').setAttribute('aria-expanded',open)}
+$('#classBtn').onclick=()=>togglePicker(!$('#picker').classList.contains('open'));
+$('#apply').onclick=()=>{cls={grade:+gSel.value,klass:+kSel.value};ls.set('schoolClass',cls);paintClass();togglePicker(false);ttData=null;loadTimetable();if(schedEvents)renderSchedule()};
+paintClass(); if(!cls) togglePicker(true);
+
+/* 탭 */
+let curTab='timetable';
+function showTab(t){curTab=t;$$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));
+  if(t==='timetable')loadTimetable(); if(t==='meal')loadMeal(); if(t==='schedule')loadSchedule(); if(t==='school')loadSchool(); window.scrollTo({top:0})}
+$$('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+/* 주 이동 + 요일 선택 (시간표·급식 공유) */
+function paintWeek(){
+  const label=`${weekStart.getMonth()+1}월 ${weekStart.getDate()}일 ~ ${plus(weekStart,4).getMonth()+1}월 ${plus(weekStart,4).getDate()}일`;
+  $$('.weeklabel').forEach(e=>e.textContent=label);
+  const html=Array.from({length:5},(_,i)=>{const d=plus(weekStart,i);const on=ymd(d)===ymd(selected);const td=ymd(d)===ymd(today);
+    return `<button class="day${td?' today':''}" aria-pressed="${on}" data-d="${ymd(d)}"><small>${WD[d.getDay()]}</small><b>${d.getMonth()+1}/${d.getDate()}</b></button>`}).join('');
+  $$('.days').forEach(e=>e.innerHTML=html);
+  $$('.days .day').forEach(b=>b.onclick=()=>{const s=b.dataset.d;selected=new Date(+s.slice(0,4),+s.slice(4,6)-1,+s.slice(6,8),12);paintWeek();onDayChange()});
+}
+function onDayChange(){ if(curTab==='timetable')renderTimetable(); else if(curTab==='meal')loadMeal() }
+$$('[data-wk]').forEach(b=>b.onclick=()=>{const n=+b.dataset.wk;
+  if(n===0){selected=baseDay();weekStart=monday(selected)}else{weekStart=plus(weekStart,n*7);selected=new Date(weekStart)}
+  paintWeek();if(curTab==='timetable')loadTimetable();else loadMeal()});
+
+/* 시간표 */
+async function loadTimetable(){
+  paintWeek(); const box=$('#ttBox');
+  if(!cls){box.innerHTML='<div class="state"><strong>학급을 먼저 선택해 주세요.</strong>위의 “학급 선택”을 눌러 주세요.</div>';return}
+  if(ttData&&ttData.key===ymd(weekStart)+cls.grade+'-'+cls.klass){renderTimetable();return}
+  box.innerHTML='<div class="state"><strong>시간표를 불러오고 있어요.</strong>잠시만 기다려 주세요.</div>';
+  try{const d=await api(`/api/timetable?grade=${cls.grade}&class=${cls.klass}&from=${ymd(weekStart)}&to=${ymd(plus(weekStart,4))}`);ttData={key:ymd(weekStart)+cls.grade+'-'+cls.klass,days:d.days||[]};renderTimetable()}
+  catch(e){fail(box,'시간표를 불러오지 못했어요.',e)}
+}
+function renderTimetable(){
+  const box=$('#ttBox'); if(!ttData)return;
+  if(ttView==='week'){
+    const maxP=Math.max(0,...ttData.days.flatMap(d=>d.lessons.map(l=>l.period)));
+    if(!maxP){box.innerHTML=`<div class="state"><strong>등록된 시간표가 없어요.</strong>${esc((ttData.days.find(d=>d.message)||{}).message||'')}</div>`;return}
+    const head=ttData.days.map(d=>{const dt=new Date(+d.date.slice(0,4),+d.date.slice(4,6)-1,+d.date.slice(6,8));return `<th>${WD[dt.getDay()]}<br><small>${dt.getMonth()+1}/${dt.getDate()}</small></th>`}).join('');
+    const rows=Array.from({length:maxP},(_,i)=>`<tr><th>${i+1}</th>${ttData.days.map(d=>{const l=d.lessons.find(x=>x.period===i+1);return `<td class="${d.date===ymd(selected)?'cur':''}">${esc(l?l.subject:'')}</td>`}).join('')}</tr>`).join('');
+    box.innerHTML=`<div class="tt-wrap"><table class="tt"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;return;
+  }
+  const day=ttData.days.find(d=>d.date===ymd(selected));
+  if(!day||!day.lessons.length){box.innerHTML=`<div class="state"><strong>등록된 시간표가 없어요.</strong>${esc((day&&day.message)||'')}</div>`;return}
+  box.innerHTML=`<h2>${selected.getMonth()+1}월 ${selected.getDate()}일 (${WD[selected.getDay()]}) 시간표</h2>`+day.lessons.map(l=>`<div class="lesson"><div class="per">${l.period}<small>교시</small></div><div class="sub">${esc(l.subject)}</div></div>`).join('');
+}
+$('#vDay').onclick=()=>{ttView='day';$('#vDay').setAttribute('aria-pressed',true);$('#vWeek').setAttribute('aria-pressed',false);renderTimetable()};
+$('#vWeek').onclick=()=>{ttView='week';$('#vWeek').setAttribute('aria-pressed',true);$('#vDay').setAttribute('aria-pressed',false);renderTimetable()};
+
+/* 급식 */
+$('#alChips').innerHTML=ALLERGY.map((n,i)=>i?`<button data-n="${i}" aria-pressed="${allergies.has(i)}">${i}. ${n}</button>`:'').join('');
+function paintAlCount(){$('#alCount').textContent=allergies.size?`(${allergies.size}개 선택)`:''}
+paintAlCount();
+$$('#alChips button').forEach(b=>b.onclick=()=>{const n=+b.dataset.n;allergies.has(n)?allergies.delete(n):allergies.add(n);b.setAttribute('aria-pressed',allergies.has(n));ls.set('allergies',[...allergies]);paintAlCount();if(mealCache)renderMeal(mealCache)});
+let mealCache=null;
+async function loadMeal(){
+  paintWeek(); const box=$('#mealBox'); const d=ymd(selected);
+  box.innerHTML='<div class="state"><strong>급식 정보를 확인하고 있어요.</strong>잠시만 기다려 주세요.</div>';
+  try{const data=await api('/api/meals?date='+d);if(d!==ymd(selected))return;mealCache=data;renderMeal(data)}catch(e){mealCache=null;fail(box,'급식 정보를 불러오지 못했어요.',e)}
+}
+function parseDish(raw){return String(raw||'').split(/<br\s*\/?>/i).map(s=>s.trim()).filter(Boolean).map(s=>{const m=s.match(/\(([\d.]+)\)\s*$/);const nums=m?m[1].split('.').filter(Boolean).map(Number):[];return{name:s.replace(/\s*\([\d.]+\)\s*$/,'').replace(/\s*\([^)]*\)\s*/g,' ').trim(),nums}})}
+function renderMeal(data){
+  const box=$('#mealBox'); const title=`${selected.getMonth()+1}월 ${selected.getDate()}일 (${WD[selected.getDay()]}) 급식`;
+  if(!data.meals||!data.meals.length){box.innerHTML=`<h2>${title}</h2><div class="state"><strong>등록된 급식이 없어요.</strong>${esc(data.message||'급식 미운영일이거나 아직 식단이 등록되지 않았어요.')}</div>`;return}
+  box.innerHTML=`<h2>${title}</h2>`+data.meals.map(m=>{
+    const items=parseDish(m.rawMenu||'');const hit=new Set();
+    const lis=items.map(it=>{const h=it.nums.filter(n=>allergies.has(n));h.forEach(n=>hit.add(n));
+      return `<li class="${h.length?'al':''}"><span>${esc(it.name)}</span><span class="nums">${it.nums.length?esc(it.nums.map(n=>ALLERGY[n]||n).join('·')):''}</span></li>`}).join('');
+    const w=hit.size?`<div class="warn">⚠️ 내 알레르기 재료 포함: ${[...hit].sort((a,b)=>a-b).map(n=>ALLERGY[n]).join(', ')}</div>`:'';
+    return `<div style="margin-bottom:12px"><span class="mtype">${esc(m.mealType||'급식')}</span><ul class="menu">${lis}</ul>${w}${m.calories?`<div class="kcal">${esc(m.calories)}</div>`:''}</div>`}).join('');
+}
+
+/* 학사일정 */
+const acYear=()=>today.getMonth()>=2?today.getFullYear():today.getFullYear()-1;   // 3월 시작 학년도
+async function loadSchedule(){
+  const box=$('#evBox');
+  if(schedEvents){renderSchedule();return}
+  try{const y=acYear();const d=await api(`/api/schedule?from=${y}0301&to=${y+1}0228`);schedYear=y;schedEvents=d.events||[];schedMonth=schedMonth||(today.getMonth()+1);renderSchedule()}
+  catch(e){fail(box,'학사일정을 불러오지 못했어요.',e)}
+}
+function evForGrade(e){const f=e.grades||[];if(!cls||!f.some(x=>x==='Y'))return true;return f[cls.grade-1]==='Y'}
+function renderSchedule(){
+  const list=schedEvents.filter(evForGrade);
+  const order=[3,4,5,6,7,8,9,10,11,12,1,2];
+  const cnt={};list.forEach(e=>{const m=+e.date.slice(4,6);cnt[m]=(cnt[m]||0)+1});
+  $('#months').innerHTML=order.map(m=>`<button class="mo" data-m="${m}" aria-pressed="${m===schedMonth}">${m}월<i>${cnt[m]||0}</i></button>`).join('');
+  $$('#months .mo').forEach(b=>b.onclick=()=>{schedMonth=+b.dataset.m;renderSchedule()});
+  const sel=$(`#months .mo[aria-pressed=true]`); if(sel&&sel.scrollIntoView)sel.scrollIntoView({inline:'center',block:'nearest'});
+  const items=list.filter(e=>+e.date.slice(4,6)===schedMonth);
+  const box=$('#evBox');
+  if(!items.length){box.innerHTML=`<div class="state"><strong>${schedMonth}월에는 등록된 일정이 없어요.</strong></div>`;return}
+  // 같은 날짜 일정 합치기
+  const byDate={};items.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e)});
+  box.innerHTML=Object.keys(byDate).sort().map(d=>{
+    const dt=new Date(+d.slice(0,4),+d.slice(4,6)-1,+d.slice(6,8));const evs=byDate[d];
+    const off=evs.some(e=>/휴업|공휴/.test(e.dayType)); const past=d<ymd(today);
+    return `<div class="ev${off?' off':''}${past?' past':''}${dt.getDay()===6?' sat':''}${dt.getDay()===0?' sun':''}"><div class="d"><b>${dt.getDate()}</b><small>${WD[dt.getDay()]}</small></div><div><div class="n">${evs.map(e=>esc(e.name)).join(' · ')}</div>${evs.some(e=>e.dayType&&e.dayType!=='해당없음')?`<div class="t">${esc(evs.map(e=>e.dayType).filter(x=>x&&x!=='해당없음').join(', '))}</div>`:''}</div></div>`}).join('');
+}
+
+/* 학교정보 */
+let schoolLoaded=false;
+async function loadSchool(){
+  if(schoolLoaded)return; const box=$('#infoBox');
+  try{const d=await api('/api/school');const s=d.school;
+    if(!s){box.innerHTML=`<div class="state"><strong>학교 정보를 찾지 못했어요.</strong>${esc(d.message||'')}</div>`;return}
+    schoolLoaded=true;paintSchoolName(s);
+    const f=s.founded&&s.founded.length===8?`${s.founded.slice(0,4)}.${+s.founded.slice(4,6)}.${+s.founded.slice(6,8)}`:s.founded;
+    const rows=[['학교명',s.name],['구분',[s.kind,s.coedu,s.foundType].filter(Boolean).join(' · ')],['교육청',[s.office,s.supportOffice].filter(Boolean).join(' ')],['주소',(s.zip?`(${s.zip}) `:'')+s.address],['전화',s.tel?`<a href="tel:${esc(s.tel)}">${esc(s.tel)}</a>`:''],['팩스',s.fax],['홈페이지',s.homepage?`<a href="${esc(/^https?:/.test(s.homepage)?s.homepage:'http://'+s.homepage)}" target="_blank" rel="noopener">${esc(s.homepage)}</a>`:''],['설립일',f]];
+    box.innerHTML='<dl class="info">'+rows.filter(r=>r[1]).map(r=>`<dt>${r[0]}</dt><dd>${r[0]==='전화'||r[0]==='홈페이지'?r[1]:esc(r[1])}</dd>`).join('')+'</dl>';
+  }catch(e){fail(box,'학교 정보를 불러오지 못했어요.',e)}
+}
+function paintSchoolName(s){if(s&&s.name)$('#schoolName').textContent=s.name}
+// 학교 이름은 첫 화면에서 한 번만 가볍게 불러와 헤더에 표시 (실패해도 무시)
+api('/api/school').then(d=>{if(d.school){paintSchoolName(d.school)}}).catch(()=>{});
+
+/* 시작 */
+loadTimetable();
+</script>
+</body>
+</html>
