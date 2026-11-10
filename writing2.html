@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>글쓰기 연습장 2 · 처음·끝·이어 주는 말·계획표</title>
+<style>
+:root{
+  --bg:#f6f3ec;--card:#fff;--ink:#23303d;--sub:#5b6773;--line:#d9d2c2;
+  --blue:#2f6fb3;--blue-bg:#e3eefa;--orange:#a8501a;--orange-bd:#e0782b;--orange-bg:#fdeadb;
+  --green:#25694c;--green-bd:#3b8f6b;--green-bg:#dcf1e6;--red:#a63a2c;--red-bg:#fbe4e0;--gold-bg:#fff3d1;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161c22;--card:#1f2830;--ink:#eef1f4;--sub:#a9b4bf;--line:#34414d;
+  --blue:#8bbcf0;--blue-bg:#1e3247;--orange:#f4a261;--orange-bd:#e0782b;--orange-bg:#3a2a1c;
+  --green:#7fd1ae;--green-bd:#3b8f6b;--green-bg:#1b3328;--red:#f19a8e;--red-bg:#3a1f1b;--gold-bg:#3a3014;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161c22;--card:#1f2830;--ink:#eef1f4;--sub:#a9b4bf;--line:#34414d;--blue:#8bbcf0;--blue-bg:#1e3247;--orange:#f4a261;--orange-bd:#e0782b;--orange-bg:#3a2a1c;--green:#7fd1ae;--green-bd:#3b8f6b;--green-bg:#1b3328;--red:#f19a8e;--red-bg:#3a1f1b;--gold-bg:#3a3014;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.6;font-size:20px}
+.wrap{max-width:920px;margin:0 auto;padding:22px 14px 64px}
+.top-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:16px;flex-wrap:wrap;gap:8px}
+.top-nav a{color:var(--sub);text-decoration:none;font-weight:700;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card)}
+.top-nav a:hover{color:var(--ink);border-color:var(--blue)}
+h1{font-size:28px;margin:0 0 4px}.sub{color:var(--sub);margin:0 0 14px;font-size:18px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
+.tab{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 6px;font:inherit;font-size:17px;font-weight:700;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab[aria-selected="true"]{color:#10202e}}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:18px;margin:0 0 14px}
+.card h2{font-size:22px;margin:0 0 6px}.guide{margin:0 0 12px;color:var(--sub);font-size:18px}
+.ref{background:var(--gold-bg);border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:18px}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;cursor:pointer;background:var(--blue);color:#fff;line-height:1.2;min-height:48px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn:not(.ghost):not(.next){color:#10202e}}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.next{margin-top:12px;background:var(--green-bd);color:#fff;font-size:21px;padding:14px 28px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.msg{margin:12px 0 0;padding:12px 16px;border-radius:12px;font-weight:700;display:none;line-height:1.5}
+.msg.ok{display:block;background:var(--green-bg);color:var(--green)}.msg.no{display:block;background:var(--red-bg);color:var(--red)}
+.frames{display:flex;gap:8px;margin:0 0 12px}
+.fr{flex:1;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:10px;font:inherit;font-weight:800;cursor:pointer}
+.fr.on{border-color:var(--blue);background:var(--blue-bg);color:var(--blue)}
+.sent{font-size:25px;line-height:2.5;margin:0 0 8px}
+.slot{display:inline-block;vertical-align:middle;min-width:150px;min-height:48px;margin:0 4px;padding:4px 12px;border:2px dashed var(--sub);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:22px;line-height:1.3;cursor:pointer}
+.slot.act{border-color:var(--blue);background:var(--blue-bg)}.slot.fill{border-style:solid;border-color:var(--line);background:var(--card)}.slot.bad{border-color:var(--red);background:var(--red-bg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.chip{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 14px;font:inherit;font-size:20px;cursor:pointer}
+.chip.sel{border-color:var(--blue);background:var(--blue-bg)}
+.q3{font-size:25px;line-height:1.9;margin:0 0 12px}.q3 .gp{display:inline-block;min-width:110px;text-align:center;border-bottom:3px solid var(--sub);margin:0 6px;font-weight:800}
+.q3 .gp.ok{color:var(--green);border-color:var(--green-bd)}
+.words{display:flex;flex-wrap:wrap;gap:10px}.wd3{font:inherit;font-weight:800;font-size:22px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 22px;cursor:pointer}
+.wd3.bad{border-color:var(--red);background:var(--red-bg);color:var(--red)}.wd3.good{border-color:var(--green-bd);background:var(--green-bg);color:var(--green)}
+.score{font-weight:800;font-size:20px;margin:0 0 10px}
+.row{border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin:0 0 10px}
+.strip{display:flex;gap:10px;align-items:center;border-radius:10px;padding:8px 12px;font-weight:700;font-size:19px}
+.s0{background:var(--blue-bg);color:var(--blue)}.s1{background:var(--orange-bg);color:var(--orange)}.s2{background:var(--green-bg);color:var(--green)}
+.strip b{flex:none}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.o4{text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font:inherit;font-size:20px;cursor:pointer}
+.o4.bad{border-color:var(--red);background:var(--red-bg)}
+.done4{margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--green-bg);color:var(--green);font-weight:700}
+.hint{margin-top:8px;color:var(--red);font-weight:700;font-size:18px}
+.prev{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.prev p{margin:0 0 6px;font-size:22px;line-height:1.7}
+.bl{display:inline-block;vertical-align:middle;width:36px;height:40px;margin-right:6px;background:var(--orange-bg);border:2px solid var(--orange-bd)}
+[hidden]{display:none!important}
+.pane[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top-nav">
+  <a href="writing1.html">← 글쓰기 연습장 1 (문단과 처음·가운데·끝)</a>
+  <a href="education.html">교육 도구 모음 →</a>
+</div>
+<h1>글쓰기 연습장 2</h1>
+<p class="sub">처음·끝 문장, 이어 주는 말, 계획표를 글로 옮기기를 연습해요. 틀려도 괜찮아요. 다시 해 봐요.</p>
+<div class="tabs" role="tablist" id="tabs"></div>
+<section class="pane" id="p1"></section>
+<section class="pane" id="p2" hidden></section>
+<section class="pane" id="p3" hidden></section>
+<section class="pane" id="p4" hidden></section>
+</div>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function msg(el,ok,t){el.className='msg '+(ok?'ok':'no');el.textContent=t}
+var HINT={
+ a:'이건 방법의 한 단계예요. 처음에는 글이 무엇을 알려 줄지 써요.',
+ b:'이건 방법을 한 뒤의 좋은 점이에요. 처음에는 글이 무엇을 알려 줄지 써요.',
+ t:'우리 글의 주제와 달라요. 위의 계획표를 다시 봐요.',
+ q:'질문에 어울리지 않아요. 겪은 일을 물어봐요.',
+ s:'한 단계만 말하면 정리가 아니에요. 방법 전체를 다시 말해요.',
+ n:'가운데에 없던 새 내용이에요. 끝에는 가운데에서 설명한 것만 정리해요.',
+ o:'다른 글의 내용이에요. 위의 가운데 부분을 다시 읽어 봐요.',
+ c:'띠에 쓴 내용과 달라요. 띠를 다시 읽어요.',
+ u:'순서 말이 알맞지 않아요. 몇 번째 단계인지 생각해 봐요. 첫 단계는 ‘먼저’, 둘째는 ‘다음으로’, 마지막은 ‘끝으로’예요.',
+ p:'이 문장은 가운데 방법에 들어갈 문장이에요. 이 띠는 처음 부분이에요.',
+ w:'가운데에 없던 새 내용이에요. 끝에는 정리만 써요.'
+};
+/* ---------- 데이터 ---------- */
+var P1=[
+ {name:'우산 쓰는 방법',ref:'계획표 ‘처음’ 칸 · 왜 쓰는지: 우산을 바르게 쓰는 방법 알려 주기',frames:[
+  {parts:['이 글은 ',0,' 알려 주려고 써요.'],blanks:[[['우산을 바르게 쓰는 방법을'],['먼저 우산을 활짝 펴요','a'],['비를 맞지 않고 걸을 수 있어요','b'],['손을 깨끗이 씻는 방법을','t']]]},
+  {parts:['혹시 ',0,' 적 있나요? 오늘은 ',1,' 방법을 알려 줄게요.'],blanks:[[['우산을 썼는데도 옷이 젖은'],['손을 씻었는데도 냄새가 난','t'],['먼저 우산을 활짝 펴는','q']],[['우산을 바르게 쓰는'],['손을 깨끗이 씻는','t'],['비 오는 날 노는','t']]]}]},
+ {name:'손 씻는 방법',ref:'계획표 ‘처음’ 칸 · 왜 쓰는지: 손을 깨끗이 씻는 방법 알려 주기',frames:[
+  {parts:['이 글은 ',0,' 알려 주려고 써요.'],blanks:[[['손을 깨끗이 씻는 방법을'],['먼저 손에 비누를 문질러요','a'],['손이 깨끗해져요','b'],['우산을 바르게 쓰는 방법을','t']]]},
+  {parts:['혹시 ',0,' 적 있나요? 오늘은 ',1,' 방법을 알려 줄게요.'],blanks:[[['손을 씻었는데도 냄새가 남은'],['우산을 썼는데도 옷이 젖은','t'],['먼저 손에 비누를 문지르는','q']],[['손을 깨끗이 씻는'],['우산을 바르게 쓰는','t'],['밥을 먹는','t']]]}]},
+ {name:'화분에 물 주는 방법',ref:'계획표 ‘처음’ 칸 · 왜 쓰는지: 화분에 물을 주는 방법 알려 주기',frames:[
+  {parts:['이 글은 ',0,' 알려 주려고 써요.'],blanks:[[['화분에 물을 주는 방법을'],['먼저 흙이 말랐는지 만져 봐요','a'],['식물이 튼튼하게 자라요','b'],['손을 깨끗이 씻는 방법을','t']]]},
+  {parts:['혹시 ',0,' 적 있나요? 오늘은 ',1,' 방법을 알려 줄게요.'],blanks:[[['화분에 물을 줬는데도 식물이 시든'],['손을 씻었는데도 냄새가 남은','t'],['먼저 흙을 만져 보는','q']],[['화분에 물을 주는'],['손을 깨끗이 씻는','t'],['식물이 자라는','t']]]}]}
+];
+var P2=[
+ {name:'우산 쓰는 방법',ref:'가운데(방법)  ① 먼저 우산을 활짝 펴요.  ② 다음으로 손잡이를 꼭 잡고 걸어요.  ③ 끝으로 집에 오면 우산을 말려요.',frames:[
+  {parts:[0,'면 ',1,'요.'],blanks:[[['순서대로 우산을 쓰'],['먼저 우산을 활짝 펴','s'],['새 우산을 사','n']],[['비를 맞지 않아'],['손이 깨끗해져','o'],['우산이 더 커져','n']]]},
+  {parts:['여러분도 ',0,' 보세요.'],blanks:[[['비 오는 날 이 순서대로 우산을 써'],['새 우산을 사','n'],['손을 깨끗이 씻어','o']]]}]},
+ {name:'손 씻는 방법',ref:'가운데(방법)  ① 먼저 손에 물을 묻히고 비누를 문질러요.  ② 다음으로 손바닥과 손등을 닦아요.  ③ 마지막으로 흐르는 물에 손을 헹궈요.',frames:[
+  {parts:[0,'면 ',1,'요.'],blanks:[[['순서대로 손을 씻'],['먼저 손에 비누를 문질러','s'],['손 소독제를 사','n']],[['손이 깨끗해져'],['비를 맞지 않아','o'],['비누가 더 많아져','n']]]},
+  {parts:['여러분도 ',0,' 보세요.'],blanks:[[['밥 먹기 전에 이 순서대로 손을 씻어'],['새 비누를 사','n'],['비 오는 날 우산을 써','o']]]}]},
+ {name:'화분에 물 주는 방법',ref:'가운데(방법)  ① 먼저 화분의 흙이 말랐는지 만져 봐요.  ② 다음으로 물뿌리개로 흙 위에 천천히 물을 줘요.  ③ 마지막으로 화분 아래로 물이 조금 나오면 멈춰요.',frames:[
+  {parts:[0,'면 ',1,'요.'],blanks:[[['순서대로 물을 주'],['먼저 흙을 만져 보','s'],['새 화분으로 바꾸','n']],[['식물이 튼튼하게 자라'],['손이 깨끗해져','o'],['꽃이 하루 만에 피어','n']]]},
+  {parts:['여러분도 ',0,' 보세요.'],blanks:[[['집에서 이 순서대로 화분에 물을 줘'],['새 화분을 사','n'],['손을 깨끗이 씻어','o']]]}]}
+];
+var P3=[
+ ['갑자기 비가 왔다.','형선이는 우산이 없었다.','그러나','비가 왔는데 우산이 없었어요. 앞과 뒤가 같은 편인가요, 반대인가요?'],
+ ['나는 아침에 늦잠을 잤다.','나는 지각했다.','그래서','늦잠을 잔 일이 지각의 이유가 되나요?'],
+ ['윤석이는 설거지를 했다.','방 청소도 했다.','그리고','설거지도 하고 방 청소도 했어요. 앞과 뒤가 비슷한 내용인가요?'],
+ ['준영이는 공원에서 모자를 잃어버렸다.','아무리 찾아도 모자는 보이지 않았다.','그러나','찾았지만 보이지 않았어요. 앞의 기대와 반대되는 일이 생겼나요?'],
+ ['가을이 되어서 날씨가 쌀쌀해졌다.','지윤이는 두꺼운 외투를 입었다.','그래서','날씨가 쌀쌀해진 일이 외투를 입은 이유가 되나요?'],
+ ['누나는 피아노를 잘 친다.','나는 피아노를 잘 못 친다.','그러나','누나는 잘 치고 나는 못 쳐요. 앞과 뒤가 반대되는 내용인가요?'],
+ ['나는 달리기 연습을 매일 꾸준히 했다.','달리기 실력이 많이 좋아졌다.','그래서','연습을 매일 한 일이 실력이 좋아진 이유가 되나요?'],
+ ['어머니는 시장에서 과일을 사셨다.','맛있는 떡도 사셨다.','그리고','과일도 사고 떡도 샀어요. 앞과 뒤가 비슷한 내용인가요?']
+];
+var EXPL={'그리고':'앞과 뒤가 비슷한 내용이라서 ‘그리고’예요.','그러나':'앞과 뒤가 반대되는 내용이라서 ‘그러나’예요.','그래서':'앞이 뒤의 이유가 되어서 ‘그래서’예요.'};
+var P4=[
+ {name:'우산 쓰는 방법',rows:[
+  {l:'처음',plan:'왜 쓰는지: 우산을 바르게 쓰는 방법 알려 주기',para:0,opts:[['이 글은 우산을 바르게 쓰는 방법을 알려 주려고 써요.'],['먼저 우산을 활짝 펴요.','p'],['이 글은 손을 씻는 방법을 알려 주려고 써요.','t']]},
+  {l:'가운데 ①',plan:'우산 활짝 펴기',para:1,opts:[['먼저 우산을 활짝 펴요.'],['다음으로 우산을 활짝 펴요.','u'],['먼저 우산을 접어요.','c']]},
+  {l:'가운데 ②',plan:'손잡이 꼭 잡고 걷기',para:1,opts:[['다음으로 손잡이를 꼭 잡고 걸어요.'],['먼저 손잡이를 꼭 잡고 걸어요.','u'],['다음으로 우산을 던져요.','c']]},
+  {l:'가운데 ③',plan:'집에 오면 우산 말리기',para:1,opts:[['끝으로 집에 오면 우산을 말려요.'],['먼저 집에 오면 우산을 말려요.','u'],['끝으로 우산을 새로 사요.','c']]},
+  {l:'끝',plan:'정리: 순서대로 하면 비를 맞지 않아요',para:2,opts:[['순서대로 하면 비를 맞지 않아요.'],['비를 맞으면 감기에 걸려요.','w'],['먼저 순서대로 해요.','u']]}]},
+ {name:'손 씻는 방법',rows:[
+  {l:'처음',plan:'왜 쓰는지: 손을 깨끗이 씻는 방법 알려 주기',para:0,opts:[['이 글은 손을 깨끗이 씻는 방법을 알려 주려고 써요.'],['먼저 손에 물을 묻히고 비누를 문질러요.','p'],['이 글은 우산을 쓰는 방법을 알려 주려고 써요.','t']]},
+  {l:'가운데 ①',plan:'물 묻히고 비누 문지르기',para:1,opts:[['먼저 손에 물을 묻히고 비누를 문질러요.'],['마지막으로 손에 물을 묻히고 비누를 문질러요.','u'],['먼저 손에 물만 묻혀요.','c']]},
+  {l:'가운데 ②',plan:'손바닥과 손등 닦기',para:1,opts:[['다음으로 손바닥과 손등을 닦아요.'],['먼저 손바닥과 손등을 닦아요.','u'],['다음으로 손톱을 깎아요.','c']]},
+  {l:'가운데 ③',plan:'흐르는 물에 헹구기',para:1,opts:[['마지막으로 흐르는 물에 손을 헹궈요.'],['먼저 흐르는 물에 손을 헹궈요.','u'],['마지막으로 비누를 문질러요.','c']]},
+  {l:'끝',plan:'정리: 순서대로 씻으면 손이 깨끗해져요',para:2,opts:[['순서대로 씻으면 손이 깨끗해져요.'],['손을 씻으면 배가 불러요.','w'],['먼저 순서대로 씻어요.','u']]}]}
+];
+/* ---------- 탭 ---------- */
+var names=['1 처음 문장','2 끝 문장','3 이어 주는 말','4 계획표→글'];
+$('tabs').innerHTML=names.map(function(n,i){return '<button class="tab" role="tab" data-i="'+(i+1)+'" aria-selected="'+(i===0)+'">'+n+'</button>'}).join('');
+Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.onclick=function(){
+  var n=+b.getAttribute('data-i');
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){t.setAttribute('aria-selected',t===b)});
+  for(var i=1;i<=4;i++)$('p'+i).hidden=(i!==n);
+}});
+/* ---------- 문장틀 채우기 (1·2) ---------- */
+function fillModule(pane,title,guide,rounds){
+  var st={r:0,f:0,fills:{},act:0,order:{},bad:{}};
+  var el=$(pane);
+  el.innerHTML='<div class="card"><h2 id="'+pane+'t"></h2><p class="guide">'+guide+'</p><div class="ref" id="'+pane+'ref"></div><div class="frames" id="'+pane+'fr"></div><div class="sent" id="'+pane+'s"></div><div class="chips" id="'+pane+'c"></div><div class="actions"><button class="btn" id="'+pane+'ck">확인</button><button class="btn ghost" id="'+pane+'rs">다시 하기</button></div><div class="msg" id="'+pane+'m"></div><div><button class="btn next" id="'+pane+'nx" hidden>다음 연습으로 ▶</button></div></div>';
+  function F(){return rounds[st.r].frames[st.f]}
+  function reset(){st.fills={};st.act=0;st.bad={};st.order={};F().blanks.forEach(function(b,i){st.order[i]=shuffle(b.map(function(_,k){return k}))});$(pane+'nx').hidden=true;$(pane+'m').className='msg';render()}
+  function render(){
+    var R=rounds[st.r];
+    $(pane+'t').textContent=title+' '+(st.r+1)+' / '+rounds.length+' · '+R.name;
+    $(pane+'ref').textContent=R.ref;
+    $(pane+'fr').innerHTML=R.frames.map(function(f,i){return '<button class="fr'+(i===st.f?' on':'')+'" data-f="'+i+'">'+(i===0?'틀 하나':'틀 둘')+'</button>'}).join('');
+    var h='';
+    F().parts.forEach(function(p){
+      if(typeof p==='string')h+='<span>'+p+'</span>';
+      else{var fi=st.fills[p],cls='slot'+(fi!==undefined?' fill':'')+(st.act===p?' act':'')+(st.bad[p]?' bad':'');
+        h+='<button class="'+cls+'" data-b="'+p+'">'+(fi!==undefined?F().blanks[p][fi][0]:'&nbsp;')+'</button>'}
+    });
+    $(pane+'s').innerHTML=h;
+    var b=st.act,ch='';
+    st.order[b].forEach(function(k){ch+='<button class="chip'+(st.fills[b]===k?' sel':'')+'" data-k="'+k+'">'+F().blanks[b][k][0]+'</button>'});
+    $(pane+'c').innerHTML=ch;
+    Array.prototype.forEach.call($(pane+'fr').querySelectorAll('.fr'),function(x){x.onclick=function(){st.f=+x.getAttribute('data-f');reset()}});
+    Array.prototype.forEach.call($(pane+'s').querySelectorAll('.slot'),function(x){x.onclick=function(){st.act=+x.getAttribute('data-b');render()}});
+    Array.prototype.forEach.call($(pane+'c').querySelectorAll('.chip'),function(x){x.onclick=function(){
+      st.fills[st.act]=+x.getAttribute('data-k');delete st.bad[st.act];
+      var n=F().blanks.length,nx=st.act;for(var i=0;i<n;i++){if(st.fills[i]===undefined){nx=i;break}}
+      st.act=nx;$(pane+'m').className='msg';render()}});
+  }
+  $(pane+'ck').onclick=function(){
+    var n=F().blanks.length,m=$(pane+'m');
+    for(var i=0;i<n;i++)if(st.fills[i]===undefined){msg(m,false,'빈 곳을 모두 채워요. 점선 칸을 눌러 말을 골라요.');return}
+    st.bad={};var first=null;
+    for(var j=0;j<n;j++)if(st.fills[j]!==0){st.bad[j]=1;if(first===null)first=j}
+    if(first===null){
+      var s='';F().parts.forEach(function(p){s+=typeof p==='string'?p:F().blanks[p][0][0]});
+      render();msg(m,true,'잘했어요! “'+s+'” 이 문장이 글의 '+(pane==='p1'?'처음':'끝')+'에 들어가요.');
+      if(st.r<rounds.length-1)$(pane+'nx').hidden=false;else msg(m,true,'잘했어요! “'+s+'” 모두 해냈어요!');
+      return;
+    }
+    var code=F().blanks[first][st.fills[first]][1];
+    render();msg(m,false,'다시 생각해 봐요. '+HINT[code]+' (틀린 칸이 빨갛게 보여요.)');
+  };
+  $(pane+'rs').onclick=reset;
+  $(pane+'nx').onclick=function(){st.r++;st.f=0;reset()};
+  reset();
+}
+fillModule('p1','처음 문장 쓰기','틀 하나나 틀 둘을 고르고, 점선 칸을 눌러 알맞은 말을 골라요. 처음에는 “이 글이 무엇을 알려 주는지” 써요.',P1);
+fillModule('p2','끝 문장 쓰기','가운데에서 말한 방법을 한 번 더 정리해요. 가운데에 없던 새 내용은 쓰지 않아요.',P2);
+/* ---------- 이어 주는 말 (3) ---------- */
+(function(){
+  var el=$('p3'),order,idx,solved;
+  el.innerHTML='<div class="card"><h2>이어 주는 말 고르기</h2><p class="guide">앞 문장과 뒤 문장을 읽고 알맞은 말을 골라요. 앞과 뒤가 <b>비슷한지, 반대인지, 이유가 되는지</b> 생각해 봐요.</p><p class="score" id="p3s"></p><div class="q3" id="p3q"></div><div class="words" id="p3w"></div><div class="msg" id="p3m"></div><div class="actions"><button class="btn next" id="p3n" hidden>다음 문제 ▶</button><button class="btn ghost" id="p3r">처음부터 다시 하기</button></div></div>';
+  function start(){order=shuffle(P3.map(function(_,i){return i}));idx=0;solved=0;show()}
+  function show(){
+    var q=P3[order[idx]];
+    $('p3s').textContent='문제 '+(idx+1)+' / '+P3.length+' · 맞힌 문제 '+solved;
+    $('p3q').innerHTML='<span>'+q[0]+'</span><span class="gp" id="p3g">&nbsp;</span><span>'+q[1]+'</span>';
+    $('p3w').innerHTML=['그리고','그러나','그래서'].map(function(w){return '<button class="wd3" data-w="'+w+'">'+w+'</button>'}).join('');
+    $('p3m').className='msg';$('p3n').hidden=true;
+    Array.prototype.forEach.call($('p3w').querySelectorAll('.wd3'),function(b){b.onclick=function(){pick(b,q)}});
+  }
+  function pick(b,q){
+    var w=b.getAttribute('data-w'),m=$('p3m');
+    if(w===q[2]){
+      b.className='wd3 good';$('p3g').textContent=w;$('p3g').className='gp ok';solved++;
+      $('p3s').textContent='문제 '+(idx+1)+' / '+P3.length+' · 맞힌 문제 '+solved;
+      Array.prototype.forEach.call($('p3w').querySelectorAll('.wd3'),function(x){x.onclick=null});
+      if(idx<P3.length-1){msg(m,true,'맞아요! '+EXPL[w]);$('p3n').hidden=false}
+      else msg(m,true,'맞아요! '+EXPL[w]+' 모든 문제를 풀었어요!');
+    }else{b.className='wd3 bad';msg(m,false,'다시 생각해 봐요. '+q[3])}
+  }
+  $('p3n').onclick=function(){idx++;show()};
+  $('p3r').onclick=start;
+  start();
+})();
+/* ---------- 계획표를 글로 옮기기 (4) ---------- */
+(function(){
+  var el=$('p4'),r=0,done={},ord={};
+  el.innerHTML='<div class="card"><h2 id="p4t"></h2><p class="guide">색 띠에 쓴 계획을 글의 문장으로 바꿔요. 띠마다 알맞은 문장을 하나 골라요. 순서 말(먼저, 다음으로, 끝으로)도 살펴봐요.</p><div id="p4r"></div><div class="prev" id="p4p" hidden></div><div class="msg" id="p4m"></div><div class="actions"><button class="btn ghost" id="p4x">다시 하기</button></div><div><button class="btn next" id="p4n" hidden>다음 연습으로 ▶</button></div></div>';
+  function reset(){done={};ord={};P4[r].rows.forEach(function(row,i){ord[i]=shuffle(row.opts.map(function(_,k){return k}))});$('p4m').className='msg';$('p4n').hidden=true;render()}
+  function render(){
+    var R=P4[r];
+    $('p4t').textContent='계획표를 글로 옮기기 '+(r+1)+' / '+P4.length+' · '+R.name;
+    var h='';
+    R.rows.forEach(function(row,i){
+      h+='<div class="row"><div class="strip s'+row.para+'"><b>'+row.l+'</b><span>'+row.plan+'</span></div>';
+      if(done[i]!==undefined)h+='<div class="done4">'+row.opts[done[i]][0]+'</div>';
+      else{h+='<div class="opts">';ord[i].forEach(function(k){h+='<button class="o4" data-i="'+i+'" data-k="'+k+'">'+row.opts[k][0]+'</button>'});h+='</div><div class="hint" id="p4h'+i+'"></div>'}
+      h+='</div>';
+    });
+    $('p4r').innerHTML=h;
+    var ps=[[],[],[]];R.rows.forEach(function(row,i){if(done[i]!==undefined)ps[row.para].push(row.opts[done[i]][0])});
+    var pv='';ps.forEach(function(p){if(p.length)pv+='<p><span class="bl"></span>'+p.join(' ')+'</p>'});
+    $('p4p').hidden=!pv;$('p4p').innerHTML=pv?'<div style="font-weight:800;color:var(--sub);margin-bottom:6px">내가 만든 글</div>'+pv:'';
+    Array.prototype.forEach.call($('p4r').querySelectorAll('.o4'),function(b){b.onclick=function(){pick(b)}});
+  }
+  function pick(b){
+    var i=+b.getAttribute('data-i'),k=+b.getAttribute('data-k'),row=P4[r].rows[i];
+    if(k===0){
+      done[i]=0;render();
+      if(Object.keys(done).length===P4[r].rows.length){
+        msg($('p4m'),true,'계획표가 글이 되었어요! 띠 하나가 문장 하나가 되었어요.');
+        if(r<P4.length-1)$('p4n').hidden=false;
+      }
+    }else{b.className='o4 bad';$('p4h'+i).textContent='다시 생각해 봐요. '+HINT[row.opts[k][1]]}
+  }
+  $('p4x').onclick=reset;
+  $('p4n').onclick=function(){r++;reset()};
+  reset();
+})();
+window.__practice={P1:P1,P2:P2,P3:P3,P4:P4};
+})();
+</script>
+</body>
+</html>
