@@ -69,7 +69,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* ===== 설정: 교사가 채웁니다. 비워 두면 '연습 모드'(저장·AI 없이 이 기기에서만 작동) ===== */
 const CONFIG = {
   SUPABASE_URL: 'https://erzdvlcbjneabxqwnwfy.supabase.co',        // 예: https://xxxx.supabase.co  (학생 화면에는 키를 넣지 않습니다)
-  FUNCTION_NAME: 'growth-tutor'
+  FUNCTION_NAME: 'growth-tutor',
+  GEM_URL: 'https://gemini.google.com/gem/1tgMo-RQcsJIW3VzJ-Pnocm6S8RiUvAtw?usp=sharing'   // 비우면 Gem 버튼이 보이지 않아요
 };
 const ONLINE = !!CONFIG.SUPABASE_URL;
 
@@ -170,7 +171,8 @@ function openStep(key){
   panel.append(mk('p',{class:'sub',text:'친구 이름·얼굴, 전화번호, 주소는 쓰지 않아요.'}));
   const askBtn=mk('button',{id:'ask',text:'AI 선생님께 물어보기',onclick:()=>ask(key)});
   const finBtn=mk('button',{class:'ghost',id:'fin',text:'다 썼어요 (내기)',onclick:()=>finish(key)});
-  panel.append(mk('div',{class:'row'},[askBtn,finBtn,mk('span',{id:'rem',class:'sub'})]));
+  const gemBtn=CONFIG.GEM_URL?mk('button',{class:'ghost',id:'gem',text:'💎 Gem에게 물어보기',onclick:()=>gemAsk(key)}):null;
+  panel.append(mk('div',{class:'row'},[askBtn,gemBtn,finBtn,mk('span',{id:'rem',class:'sub'})].filter(Boolean)));
   panel.append(mk('div',{id:'msg'}));
   (st.history||[]).forEach(h=>showFeedback(h));
   if(st.final) $('#msg').append(mk('div',{class:'done-msg',text:'냈어요! 고치고 싶으면 고쳐서 다시 물어보거나 다시 내도 돼요.'}));
@@ -286,6 +288,44 @@ async function finish(key){
     m.append(mk('div',{class:'hint',text:'내지 못했어요. 조금 뒤에 다시 눌러 봐요. (내 글은 이 기기에 저장되어 있어요)'}));
   }
   busy(false);
+}
+
+/* ===== Gem 연결: 내 글을 문구로 복사하고 Gem 페이지를 연다(이름·번호는 넣지 않는다) ===== */
+function answerToText(step,ans){
+  const lines=[];
+  const val=v=>Array.isArray(v)?v.join(', '):String(v==null?'':v).trim();
+  step.fields.forEach(f=>{
+    if(f.type==='group'){
+      const sub=(f.parts||[]).map(p=>{const v=val((ans[f.id]||{})[p.id]);return v?(p.label?p.label+': ':'')+v:''}).filter(Boolean);
+      if(sub.length) lines.push(f.label+' → '+sub.join(' / '));
+    }else{
+      const v=val(ans[f.id]); if(v) lines.push(f.label+': '+v);
+    }
+  });
+  return lines.join('\n');
+}
+function copyText(t){
+  let ok=false;
+  try{const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.append(ta);ta.select();ta.setSelectionRange(0,t.length);ok=document.execCommand('copy');ta.remove()}catch{}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(()=>{});ok=true}}catch{}
+  return ok;
+}
+function gemAsk(key){
+  const s=STEPS.find(x=>x.key===key), a=collect(key), m=$('#msg'); m.replaceChildren();
+  const st=loadSt(key); st.answer=a; saveSt(key,st);
+  const all=JSON.stringify(a);   // 글이 덜 써져도 물어볼 수 있다. 개인정보만 막는다.
+  if(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(all)||/@/.test(all)){m.append(mk('div',{class:'hint',text:'전화번호나 이메일은 쓰지 않아요. 지우고 다시 해 봐요.'}));return}
+  const body=answerToText(s,a);
+  if(!body){m.append(mk('div',{class:'hint',text:'먼저 글을 조금 써 봐요.'}));return}
+  const text=`[성장 발표 준비] ${s.title}\n활동 안내: ${s.guide}\n\n내가 쓴 글\n${body}\n\n이 글을 보고 칭찬 한 가지와 질문 한 가지만 해 줘. 정답이나 완성된 문장은 써 주지 마.`;
+  const ok=copyText(text);
+  window.open(CONFIG.GEM_URL,'_blank','noopener');
+  if(ok) m.append(mk('div',{class:'done-msg',text:'내 글을 복사했어요. 열린 Gem 창에서 입력칸을 길게 눌러(또는 Ctrl+V) 붙여넣고 보내요.'}));
+  else{
+    m.append(mk('div',{class:'hint',text:'자동으로 복사하지 못했어요. 아래 글을 직접 복사해서 Gem 창에 붙여넣어요.'}));
+    const ta=mk('textarea',{readonly:'',rows:'8',style:'width:100%;box-sizing:border-box'});ta.value=text;m.append(ta);ta.focus();ta.select();
+  }
 }
 
 /* ===== 시작/나가기 ===== */
