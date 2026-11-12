@@ -22,6 +22,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--main);color:var(--mainInk)}
 button.ghost{background:transparent;color:var(--main);border:2px solid var(--main)}
 button:disabled{opacity:.5;cursor:not-allowed}
+.qbox{margin:14px 0 6px}.qbox label{display:block;font-weight:700;margin-bottom:6px}.qbox textarea{width:100%;box-sizing:border-box}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .steps{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .steps button{background:var(--card);color:var(--ink);border:2px solid var(--line);padding:8px 12px;font-size:16px}
@@ -169,10 +170,13 @@ function openStep(key){
   if(key==='c3'){const p=loadSt('c2').answer; if(p&&(p.a1||p.a2||p.a3)){panel.append(mk('div',{class:'guide',text:'내가 찾은 활동: '+['a1','a2','a3'].map((k,i)=>p[k]?`${'①②③'[i]} ${p[k]}`:'').filter(Boolean).join('   ')}))}}
   s.fields.forEach(f=>panel.append(fieldEl(f,f.id,ans[f.id])));
   panel.append(mk('p',{class:'sub',text:'친구 이름·얼굴, 전화번호, 주소는 쓰지 않아요.'}));
-  const askBtn=mk('button',{id:'ask',text:'AI 선생님께 물어보기',onclick:()=>ask(key)});
+  const qWrap=mk('div',{class:'qbox'},[mk('label',{for:'q',text:'AI 선생님께 묻고 싶은 것 (선택)'}),mk('textarea',{id:'q',rows:'2',maxlength:'300',placeholder:'예: 이렇게 써도 될까요? / 무엇을 써야 할지 모르겠어요'}),mk('p',{class:'sub',text:'쓴 글이든 앞으로 쓸 내용이든 물어볼 수 있어요. 비워 두면 지금 쓴 글을 봐 줘요.'})]);
+  const askBtn=mk('button',{id:'ask',text:'💬 쓴 글·쓸 글 물어보기 (AI 선생님)',onclick:()=>ask(key)});
   const finBtn=mk('button',{class:'ghost',id:'fin',text:'다 썼어요 (내기)',onclick:()=>finish(key)});
-  const gemBtn=CONFIG.GEM_URL?mk('button',{class:'ghost',id:'gem',text:'💎 Gem에게 물어보기',onclick:()=>gemAsk(key)}):null;
+  const gemBtn=CONFIG.GEM_URL?mk('button',{class:'ghost',id:'gem',text:'💎 Gem과 대화하며 이 활동 이해하기',onclick:()=>gemAsk(key)}):null;
+  panel.append(qWrap);
   panel.append(mk('div',{class:'row'},[askBtn,gemBtn,finBtn,mk('span',{id:'rem',class:'sub'})].filter(Boolean)));
+  if(gemBtn) panel.append(mk('p',{class:'sub',text:'💎 Gem은 새 창에서 열려요. 이 활동을 설명해 달라는 문구가 자동으로 복사되니, Gem 입력칸에 붙여넣기만 해요. 내 글은 Gem에 보내지 않아요.'}));
   panel.append(mk('div',{id:'msg'}));
   (st.history||[]).forEach(h=>showFeedback(h));
   if(st.final) $('#msg').append(mk('div',{class:'done-msg',text:'냈어요! 고치고 싶으면 고쳐서 다시 물어보거나 다시 내도 돼요.'}));
@@ -251,9 +255,16 @@ async function callServer(payload){
 }
 function busy(b){['ask','fin'].forEach(id=>{const e=document.getElementById(id);if(e)e.disabled=b})}
 async function ask(key){
-  const a=collect(key), {block,hint}=checkStep(key,a), m=$('#msg'); m.replaceChildren();
+  const a=collect(key), q=(($('#q')||{}).value||'').trim().slice(0,300), m=$('#msg'); m.replaceChildren();
+  const chk=checkStep(key,a); let block=chk.block, hint=chk.hint;
   const st=loadSt(key); st.answer=a; saveSt(key,st);
+  if(q){   // 묻고 싶은 것이 있으면 글이 덜 써져 있어도 물어볼 수 있다. 개인정보만 막는다.
+    const all=JSON.stringify(a)+q;
+    block=(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(all)||/@/.test(all))?['전화번호나 이메일은 쓰지 않아요. 지우고 다시 해 봐요.']:[];
+    hint=[];
+  }
   if(block.length){block.forEach(t=>m.append(mk('div',{class:'hint',text:t})));return}
+  const sendAns=q?{...a,'질문':q}:a;
   busy(true);
   const entry={hints:hint};
   try{
@@ -261,7 +272,7 @@ async function ask(key){
       entry.feedback='연습 모드라서 AI 선생님은 쉬고 있어요. 대신 이 질문을 생각해 봐요. '+localQuestion[key];
       st.remaining=null;
     }else{
-      const res=await callServer({action:'feedback',step:key,answer:a,flags:hint,client_id:newId('fb:'+key)});
+      const res=await callServer({action:'feedback',step:key,answer:sendAns,flags:hint,client_id:newId('fb:'+key)});
       delete pendingIds['fb:'+key];
       if(res.limited==='daily'){entry.note='오늘은 AI 선생님이 쉬어요. 내 글은 저장됐어요. 선생님과 이야기해 봐요.'}
       else if(res.limited){entry.note='이 활동에서 AI 선생님께 물어볼 수 있는 횟수를 다 썼어요. 내 글은 선생님께 저장됐어요. 선생님과 이야기해 봐요.'}
@@ -290,19 +301,10 @@ async function finish(key){
   busy(false);
 }
 
-/* ===== Gem 연결: 내 글을 문구로 복사하고 Gem 페이지를 연다(이름·번호는 넣지 않는다) ===== */
-function answerToText(step,ans){
-  const lines=[];
-  const val=v=>Array.isArray(v)?v.join(', '):String(v==null?'':v).trim();
-  step.fields.forEach(f=>{
-    if(f.type==='group'){
-      const sub=(f.parts||[]).map(p=>{const v=val((ans[f.id]||{})[p.id]);return v?(p.label?p.label+': ':'')+v:''}).filter(Boolean);
-      if(sub.length) lines.push(f.label+' → '+sub.join(' / '));
-    }else{
-      const v=val(ans[f.id]); if(v) lines.push(f.label+': '+v);
-    }
-  });
-  return lines.join('\n');
+/* ===== Gem 연결: 이 활동을 설명해 달라는 문구를 복사하고 Gem 페이지를 연다(내 글·이름·번호는 보내지 않는다) ===== */
+function labelsOf(step){
+  const pl=f=>(f.parts||[]).map(p=>p.label).filter(l=>l&&!/선택/.test(l));
+  return step.fields.map(f=>f.type==='group'?(f.label+(pl(f).length?'('+pl(f).join(', ')+')':'')):f.label).filter(Boolean).join(' / ');
 }
 function copyText(t){
   let ok=false;
@@ -312,16 +314,11 @@ function copyText(t){
   return ok;
 }
 function gemAsk(key){
-  const s=STEPS.find(x=>x.key===key), a=collect(key), m=$('#msg'); m.replaceChildren();
-  const st=loadSt(key); st.answer=a; saveSt(key,st);
-  const all=JSON.stringify(a);   // 글이 덜 써져도 물어볼 수 있다. 개인정보만 막는다.
-  if(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(all)||/@/.test(all)){m.append(mk('div',{class:'hint',text:'전화번호나 이메일은 쓰지 않아요. 지우고 다시 해 봐요.'}));return}
-  const body=answerToText(s,a);
-  if(!body){m.append(mk('div',{class:'hint',text:'먼저 글을 조금 써 봐요.'}));return}
-  const text=`[성장 발표 준비] ${s.title}\n활동 안내: ${s.guide}\n\n내가 쓴 글\n${body}\n\n이 글을 보고 칭찬 한 가지와 질문 한 가지만 해 줘. 정답이나 완성된 문장은 써 주지 마.`;
+  const s=STEPS.find(x=>x.key===key), m=$('#msg'); m.replaceChildren();
+  const text=`[성장 발표 준비] ${s.title}\n나는 초등학교 3학년이야. 지금 "${s.title}" 활동을 하고 있어.\n활동 안내: ${s.guide}\n이 활동에서 쓰는 칸: ${labelsOf(s)}\n\n이 활동이 무엇인지, 어떻게 하면 되는지 쉬운 말로 짧게 설명해 줘. 그리고 내가 이해했는지 질문 한 가지로 확인해 줘. 내 글을 대신 써 주거나 완성된 문장을 만들어 주지는 마.`;
   const ok=copyText(text);
   window.open(CONFIG.GEM_URL,'_blank','noopener');
-  if(ok) m.append(mk('div',{class:'done-msg',text:'내 글을 복사했어요. 열린 Gem 창에서 입력칸을 길게 눌러(또는 Ctrl+V) 붙여넣고 보내요.'}));
+  if(ok) m.append(mk('div',{class:'done-msg',text:'활동 설명 문구를 복사했어요. 열린 Gem 창에서 입력칸을 길게 눌러(또는 Ctrl+V) 붙여넣고 보내요.'}));
   else{
     m.append(mk('div',{class:'hint',text:'자동으로 복사하지 못했어요. 아래 글을 직접 복사해서 Gem 창에 붙여넣어요.'}));
     const ta=mk('textarea',{readonly:'',rows:'8',style:'width:100%;box-sizing:border-box'});ta.value=text;m.append(ta);ta.focus();ta.select();
