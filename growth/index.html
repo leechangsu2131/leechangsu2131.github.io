@@ -22,7 +22,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid v
 button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--main);color:var(--mainInk)}
 button.ghost{background:transparent;color:var(--main);border:2px solid var(--main)}
 button:disabled{opacity:.5;cursor:not-allowed}
-.qbox{margin:14px 0 6px}.qbox label{display:block;font-weight:700;margin-bottom:6px}.qbox textarea{width:100%;box-sizing:border-box}
+.linkbtn{background:none;border:0;padding:8px 2px;color:#2a63d0;font-weight:700;text-decoration:underline;cursor:pointer;font-size:inherit}.qbox{margin:6px 0 10px}.qbox label{display:block;font-weight:700;margin-bottom:6px}.qbox textarea{width:100%;box-sizing:border-box}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .steps{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .steps button{background:var(--card);color:var(--ink);border:2px solid var(--line);padding:8px 12px;font-size:16px}
@@ -170,13 +170,15 @@ function openStep(key){
   if(key==='c3'){const p=loadSt('c2').answer; if(p&&(p.a1||p.a2||p.a3)){panel.append(mk('div',{class:'guide',text:'내가 찾은 활동: '+['a1','a2','a3'].map((k,i)=>p[k]?`${'①②③'[i]} ${p[k]}`:'').filter(Boolean).join('   ')}))}}
   s.fields.forEach(f=>panel.append(fieldEl(f,f.id,ans[f.id])));
   panel.append(mk('p',{class:'sub',text:'친구 이름·얼굴, 전화번호, 주소는 쓰지 않아요.'}));
-  const qWrap=mk('div',{class:'qbox'},[mk('label',{for:'q',text:'AI 선생님께 묻고 싶은 것 (선택)'}),mk('textarea',{id:'q',rows:'2',maxlength:'300',placeholder:'예: 이렇게 써도 될까요? / 무엇을 써야 할지 모르겠어요'}),mk('p',{class:'sub',text:'쓴 글이든 앞으로 쓸 내용이든 물어볼 수 있어요. 비워 두면 지금 쓴 글을 봐 줘요.'})]);
+  const qWrap=mk('div',{class:'qbox hidden',id:'qWrap'},[mk('label',{for:'q',text:'AI 선생님께 묻고 싶은 것'}),mk('textarea',{id:'q',rows:'2',maxlength:'300',placeholder:'예: 이렇게 써도 될까요? / 무엇을 써야 할지 모르겠어요'}),mk('p',{class:'sub',text:'쓴 글이든 앞으로 쓸 내용이든 물어볼 수 있어요. 여기에 쓴 말은 Gem 문구에도 같이 들어가요.'})]);
   const askBtn=mk('button',{id:'ask',text:'💬 쓴 글·쓸 글 물어보기 (AI 선생님)',onclick:()=>ask(key)});
   const finBtn=mk('button',{class:'ghost',id:'fin',text:'다 썼어요 (내기)',onclick:()=>finish(key)});
   const gemBtn=CONFIG.GEM_URL?mk('button',{class:'ghost',id:'gem',text:'💎 Gem과 대화하며 이 활동 이해하기',onclick:()=>gemAsk(key)}):null;
-  panel.append(qWrap);
-  panel.append(mk('div',{class:'row'},[askBtn,gemBtn,finBtn,mk('span',{id:'rem',class:'sub'})].filter(Boolean)));
-  if(gemBtn) panel.append(mk('p',{class:'sub',text:'💎 Gem은 새 창에서 열려요. 이 활동을 설명해 달라는 문구가 자동으로 복사되니, Gem 입력칸에 붙여넣기만 해요. 내 글은 Gem에 보내지 않아요.'}));
+  const qTog=mk('button',{class:'linkbtn',id:'qTog','aria-expanded':'false',text:'✏️ 물어볼 말을 적고 싶나요?',onclick:()=>{const w=$('#qWrap'),o=w.classList.toggle('hidden')===false;qTog.setAttribute('aria-expanded',o);qTog.textContent=o?'✏️ 물어볼 말 칸 닫기':'✏️ 물어볼 말을 적고 싶나요?';if(o)$('#q').focus()}});
+  panel.append(mk('div',{class:'row'},[askBtn,mk('span',{id:'rem',class:'sub'})]));
+  panel.append(qTog); panel.append(qWrap);
+  panel.append(mk('div',{class:'row'},[gemBtn,finBtn].filter(Boolean)));
+  if(gemBtn) panel.append(mk('p',{class:'sub',text:'💎 Gem은 새 창에서 열려요. 이 활동을 설명해 달라는 문구가 자동으로 복사되니, Gem 입력칸에 붙여넣기만 해요. '+'물어볼 말 칸에 쓴 말은 같이 복사돼요. 내가 쓴 활동 글은 Gem에 보내지 않아요.'}));
   panel.append(mk('div',{id:'msg'}));
   (st.history||[]).forEach(h=>showFeedback(h));
   if(st.final) $('#msg').append(mk('div',{class:'done-msg',text:'냈어요! 고치고 싶으면 고쳐서 다시 물어보거나 다시 내도 돼요.'}));
@@ -315,7 +317,9 @@ function copyText(t){
 }
 function gemAsk(key){
   const s=STEPS.find(x=>x.key===key), m=$('#msg'); m.replaceChildren();
-  const text=`[성장 발표 준비] ${s.title}\n나는 초등학교 3학년이야. 지금 "${s.title}" 활동을 하고 있어.\n활동 안내: ${s.guide}\n이 활동에서 쓰는 칸: ${labelsOf(s)}\n\n이 활동이 무엇인지, 어떻게 하면 되는지 쉬운 말로 짧게 설명해 줘. 그리고 내가 이해했는지 질문 한 가지로 확인해 줘. 내 글을 대신 써 주거나 완성된 문장을 만들어 주지는 마.`;
+  const q=((($('#q')||{}).value)||'').trim().slice(0,300);
+  if(q&&(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(q)||/@/.test(q))){m.append(mk('div',{class:'hint',text:'전화번호나 이메일은 쓰지 않아요. 지우고 다시 해 봐요.'}));return}
+  const text=`[성장 발표 준비] ${s.title}\n나는 초등학교 3학년이야. 지금 "${s.title}" 활동을 하고 있어.\n활동 안내: ${s.guide}\n이 활동에서 쓰는 칸: ${labelsOf(s)}\n\n이 활동이 무엇인지, 어떻게 하면 되는지 쉬운 말로 짧게 설명해 줘. 그리고 내가 이해했는지 질문 한 가지로 확인해 줘. 내 글을 대신 써 주거나 완성된 문장을 만들어 주지는 마.${q?`\n\n내가 특별히 궁금한 것: ${q}`:''}`;
   const ok=copyText(text);
   window.open(CONFIG.GEM_URL,'_blank','noopener');
   if(ok) m.append(mk('div',{class:'done-msg',text:'활동 설명 문구를 복사했어요. 열린 Gem 창에서 입력칸을 길게 눌러(또는 Ctrl+V) 붙여넣고 보내요.'}));
