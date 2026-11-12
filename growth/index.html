@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>나의 성장 발표 준비</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--ink:#1d2433;--sub:#5b6577;--line:#d5dce8;--main:#2f6bd6;--mainInk:#fff;--ok:#2e7d4f;--okBg:#e6f4ea;--warn:#8a5a00;--warnBg:#fff4d6;--ai:#eef3ff}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161d;--card:#1b212b;--ink:#e8ecf3;--sub:#9aa5b8;--line:#2f3846;--main:#6c9bff;--mainInk:#0d1522;--ok:#7fd29f;--okBg:#1a2e23;--warn:#f0c36a;--warnBg:#33290f;--ai:#1e2840}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 4px}
+h2{font-size:22px;margin:0 0 6px}
+.sub{color:var(--sub);font-size:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+label{display:block;font-weight:700;margin:12px 0 4px}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid var(--main);outline-offset:1px}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--main);color:var(--mainInk)}
+button.ghost{background:transparent;color:var(--main);border:2px solid var(--main)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.steps button{background:var(--card);color:var(--ink);border:2px solid var(--line);padding:8px 12px;font-size:16px}
+.steps button.on{border-color:var(--main);background:var(--ai)}
+.steps button.done::after{content:" ✓";color:var(--ok)}
+.guide{background:var(--ai);border-radius:10px;padding:10px 14px;margin:8px 0}
+.group{border:2px dashed var(--line);border-radius:12px;padding:6px 14px 14px;margin:12px 0}
+.group>.gt{font-weight:800;margin-top:10px}
+.q{color:var(--sub);font-size:16px;margin:0 0 4px}
+.opts label{display:inline-flex;gap:6px;align-items:center;font-weight:500;margin:4px 14px 4px 0}
+.opts input{width:22px;height:22px}
+.hint{background:var(--warnBg);color:var(--warn);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:16px}
+.fb{background:var(--ai);border-left:6px solid var(--main);border-radius:10px;padding:12px 14px;margin:10px 0;white-space:pre-wrap}
+.fb small{display:block;color:var(--sub);margin-top:6px;white-space:normal}
+.done-msg{background:var(--okBg);color:var(--ok);border-radius:10px;padding:10px 14px;font-weight:700}
+.mode{font-size:14px;color:var(--sub)}
+.err{color:#b3261e;font-weight:700}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>나의 성장 발표 준비</h1>
+  <div class="sub">올해 내가 자란 이야기를 골라 발표를 준비해요. AI 선생님은 질문으로 도와줘요. 정하는 건 나예요.</div>
+
+  <div id="login" class="card">
+    <h2>시작하기</h2>
+    <label for="num">내 번호</label>
+    <input id="num" type="number" inputmode="numeric" min="1" max="60" autocomplete="off" style="font-size:24px;width:120px">
+    <label for="nm" style="margin-top:10px;display:block">내 이름</label>
+    <input id="nm" type="text" autocomplete="off" spellcheck="false" maxlength="20" style="font-size:24px">
+    <p class="sub">번호와 이름을 쓰면 들어갈 수 있어요. 내 글은 선생님만 볼 수 있어요. 친구 글은 볼 수 없어요.</p>
+    <div class="row"><button id="start">시작</button><span id="loginErr" class="err"></span></div>
+    <p class="mode" id="modeNote"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="row"><span class="sub" id="who"></span><button class="ghost" id="logout" style="padding:6px 12px;font-size:15px">나가기</button><span class="sub">다 하면 꼭 ‘나가기’를 눌러요.</span></div>
+    <div class="steps" id="steps" role="tablist"></div>
+    <div class="card" id="panel"></div>
+  </div>
+</div>
+
+<script>
+/* ===== 설정: 교사가 채웁니다. 비워 두면 '연습 모드'(저장·AI 없이 이 기기에서만 작동) ===== */
+const CONFIG = {
+  SUPABASE_URL: 'https://erzdvlcbjneabxqwnwfy.supabase.co',        // 예: https://xxxx.supabase.co  (학생 화면에는 키를 넣지 않습니다)
+  FUNCTION_NAME: 'growth-tutor'
+};
+const ONLINE = !!CONFIG.SUPABASE_URL;
+
+/* ===== 활동 정의 (교사 발문 자료·계획서 문구 기준, 예시 내용 없이 ○○ 틀만 사용) ===== */
+const STAGES=['처음의 나','어려움','계기','노력','변화','지금의 나','배운 점'];
+const STEPS=[
+ {key:'c2',title:'1. 기억에 남는 활동 3가지',
+  guide:'교과서 차례와 사진을 3월부터 차례로 넘겨 봐요. 교과 이름이 아니라 활동 이름으로 써요. “○○ 시간에 ○○ 하기”',
+  fields:[
+   {id:'a1',label:'① 기억에 남는 활동',type:'text',ph:'○○ 시간에 ○○ 하기'},
+   {id:'a2',label:'② 기억에 남는 활동',type:'text',ph:'○○ 시간에 ○○ 하기'},
+   {id:'a3',label:'③ 기억에 남는 활동',type:'text',ph:'○○ 시간에 ○○ 하기'}]},
+ {key:'c3',title:'2. 성장 이야기 하나 고르기',
+  guide:'세 가지 중 하나를 골라요. 잘 떠오르지 않으면 ① 내 생각을 먼저 말해 봐요 ② 선생님이나 가족이 보는 나를 생각해 봐요 ③ 친구가 찾은 주제 중 나와 닮은 것이 있는지 들어 봐요.',
+  fields:[
+   {id:'topic',label:'내가 고른 성장 이야기',type:'area',ph:'나는 ○○ 시간에 ○○를 한 것이 기억에 남아요.',prefill:'c2'},
+   {id:'reason',label:'왜 골랐나요?',type:'area',ph:'왜냐하면 ○○ 때문이에요. (그때와 지금, 무엇이 달라졌나요?)'}]},
+ {key:'c8',title:'3. 한 문장으로 말하기',
+  guide:'내가 발표하고 싶은 성장 이야기를 한 문장으로 말해 봐요. 완벽하지 않아도 괜찮아요.',
+  fields:[{id:'sentence',label:'한 문장',type:'area',ph:'나는 ○○을(를) 이야기하고 싶어요. 왜냐하면 ○○이기 때문이에요.'}]},
+ {key:'c5',title:'4. 이야기 얼개',
+  guide:'일곱 칸을 말로 먼저 해 본 뒤 짧게 써요. 모든 칸을 채우지 않아도 돼요. 계기는 “시작하게 된 일”, 변화는 “달라진 점”이에요. 증거 번호는 증거를 고른 뒤에 ①②③을 적어도 돼요.',
+  fields:STAGES.map((s,i)=>({id:'s'+(i+1),type:'group',label:(i+1)+'. '+s,parts:[
+    {id:'text',type:'area',label:'',q:['처음에는 어땠나요?','어려웠던 점은 무엇이었나요?','성장하게 된 계기나 기억에 남는 일은?','무엇을 연습했나요? 어떻게 노력했나요?','무엇이 달라졌나요?','이제 할 수 있게 된 것은?','이 경험으로 깨달은 것은?'][i]},
+    {id:'ev',type:'text',label:'증거 번호(선택)',ph:'① ② ③'}]}))},
+ {key:'c6',title:'5. 성장의 증거 3개',
+  guide:'“정말 달라졌구나!” 하고 느낄 수 있는 증거를 3개 정도 골라요. 날짜를 꼭 적어요. ‘변화’는 날짜가 다른 두 장면이 있어야 보여요. 사진·영상에는 나만 나와야 해요. (파일은 여기에 올리지 않아요. 이름만 적어요.)',
+  fields:['①','②','③'].map((n,i)=>({id:'e'+(i+1),type:'group',label:'증거 '+n,parts:[
+    {id:'name',type:'text',label:'증거 이름(무엇인가요?)',ph:'○○'},
+    {id:'date',type:'date',label:'언제 찍고 썼나요?'},
+    {id:'stages',type:'checks',label:'어느 이야기 단계에서 보여 줄까요?',options:STAGES}]}))},
+ {key:'c7',title:'6. 발표 방법과 연습',
+  guide:'처음의 나와 지금의 나를 가장 잘 보여 줄 방법을 골라요. 대본을 외우기보다 내 말로 해요.',
+  fields:[
+   {id:'method',label:'발표 방법',type:'radio',options:['프레젠테이션(사진·영상 포함)','역할극','직접 보여주기','그림','영상','그 외']},
+   {id:'why',label:'그 방법을 고른 까닭',type:'area',ph:'왜냐하면 ○○ 때문이에요.'},
+   {id:'items',label:'발표 준비물',type:'area',ph:'내가 준비하는 것'},
+   {id:'practice',label:'연습 계획',type:'checks',options:['책상에서 메모하며','거울을 보며','친구 앞에서','가족 앞에서']},
+   {id:'when',label:'연습할 날짜(선택)',type:'text',ph:''}]}
+];
+const SUBJECTS=['국어','수학','사회','과학','도덕','체육','음악','미술','영어','실과','통합','창체','창의적체험활동','안전한생활','바른생활','슬기로운생활','즐거운생활','자율','동아리'];
+
+/* ===== 도우미 ===== */
+const $=s=>document.querySelector(s);
+function mk(tag,attrs={},kids=[]){const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?'':v)}(Array.isArray(kids)?kids:[kids]).forEach(c=>c&&e.append(c));return e}
+let session=null, cur=null;
+const sk=step=>`growthTutor2:${session.sid}:${step}`;
+function loadSt(step){try{return JSON.parse(localStorage.getItem(sk(step)))||{}}catch{return{}}}
+function saveSt(step,st){try{localStorage.setItem(sk(step),JSON.stringify(st))}catch{}}
+function getPath(o,p){return p.split('.').reduce((a,k)=>a&&a[k],o)}
+function setPath(o,p,v){const ks=p.split('.');let a=o;ks.slice(0,-1).forEach(k=>a=a[k]??={});a[ks.at(-1)]=v}
+
+/* ===== 화면 그리기 ===== */
+function fieldEl(f,path,val){
+  const id='f_'+path.replace(/\./g,'_');
+  if(f.type==='group'){
+    return mk('div',{class:'group'},[mk('div',{class:'gt',text:f.label}),...f.parts.map(p=>{
+      const pe=fieldEl(p,path+'.'+p.id,getPath(val,p.id)); return pe})]);
+  }
+  const wrap=mk('div');
+  if(f.q) wrap.append(mk('p',{class:'q',text:f.q}));
+  if(f.label) wrap.append(mk('label',{for:id,text:f.label}));
+  let el;
+  if(f.type==='text'||f.type==='date') el=mk('input',{type:f.type==='date'?'date':'text',id,'data-path':path,placeholder:f.ph||''});
+  else if(f.type==='area') el=mk('textarea',{id,'data-path':path,placeholder:f.ph||''});
+  else if(f.type==='radio'||f.type==='checks'){
+    el=mk('div',{class:'opts','data-path':path,'data-kind':f.type,role:f.type==='radio'?'radiogroup':'group'},
+      f.options.map((o,i)=>mk('label',{},[mk('input',{type:f.type==='radio'?'radio':'checkbox',name:id,value:o,...(f.type==='radio'?{}:{})}),document.createTextNode(o)])));
+  }
+  if(f.type==='text'||f.type==='date'||f.type==='area'){ if(typeof val==='string') el.value=val; }
+  else if(f.type==='radio'){ [...el.querySelectorAll('input')].forEach(i=>i.checked=(i.value===val)); }
+  else if(f.type==='checks'){ const a=Array.isArray(val)?val:[]; [...el.querySelectorAll('input')].forEach(i=>i.checked=a.includes(i.value)); }
+  wrap.append(el); return wrap;
+}
+function collect(step){
+  const ans={};
+  $('#panel').querySelectorAll('[data-path]').forEach(el=>{
+    const p=el.dataset.path;
+    if(el.dataset.kind==='radio'){const c=el.querySelector('input:checked');setPath(ans,p,c?c.value:'')}
+    else if(el.dataset.kind==='checks'){setPath(ans,p,[...el.querySelectorAll('input:checked')].map(i=>i.value))}
+    else setPath(ans,p,el.value.trim());
+  });
+  return ans;
+}
+function renderSteps(){
+  const box=$('#steps');box.replaceChildren();
+  STEPS.forEach(s=>{const st=loadSt(s.key);
+    box.append(mk('button',{class:(cur===s.key?'on ':'')+(st.final?'done':''),role:'tab','aria-selected':cur===s.key,text:s.title,onclick:()=>openStep(s.key)}))});
+}
+function openStep(key){
+  cur=key;renderSteps();
+  const s=STEPS.find(x=>x.key===key), st=loadSt(key), panel=$('#panel');
+  const ans=st.answer||{};
+  // 앞 활동(c2)에서 쓴 글을 c3 주제 칸에 참고로 보여 주기(자동으로 채우지 않음)
+  panel.replaceChildren(mk('h2',{text:s.title}),mk('div',{class:'guide',text:s.guide}));
+  if(key==='c3'){const p=loadSt('c2').answer; if(p&&(p.a1||p.a2||p.a3)){panel.append(mk('div',{class:'guide',text:'내가 찾은 활동: '+['a1','a2','a3'].map((k,i)=>p[k]?`${'①②③'[i]} ${p[k]}`:'').filter(Boolean).join('   ')}))}}
+  s.fields.forEach(f=>panel.append(fieldEl(f,f.id,ans[f.id])));
+  panel.append(mk('p',{class:'sub',text:'친구 이름·얼굴, 전화번호, 주소는 쓰지 않아요.'}));
+  const askBtn=mk('button',{id:'ask',text:'AI 선생님께 물어보기',onclick:()=>ask(key)});
+  const finBtn=mk('button',{class:'ghost',id:'fin',text:'다 썼어요 (내기)',onclick:()=>finish(key)});
+  panel.append(mk('div',{class:'row'},[askBtn,finBtn,mk('span',{id:'rem',class:'sub'})]));
+  panel.append(mk('div',{id:'msg'}));
+  (st.history||[]).forEach(h=>showFeedback(h));
+  if(st.final) $('#msg').append(mk('div',{class:'done-msg',text:'냈어요! 고치고 싶으면 고쳐서 다시 물어보거나 다시 내도 돼요.'}));
+  if(st.remaining!=null) $('#rem').textContent=`물어볼 수 있는 횟수: ${st.remaining}번`;
+}
+function showFeedback(h){
+  const m=$('#msg'); if(!m) return;
+  (h.hints||[]).forEach(t=>m.append(mk('div',{class:'hint',text:'살펴봐요: '+t})));
+  if(h.feedback) m.append(mk('div',{class:'fb'},[document.createTextNode(h.feedback),mk('small',{text:'AI 선생님의 말은 참고예요. 어떻게 쓸지는 내가 정해요.'})]));
+  if(h.note) m.append(mk('div',{class:'hint',text:h.note}));
+}
+
+/* ===== 자동 점검(서버·AI 없이 바로) ===== */
+const norm=t=>(t||'').replace(/[\s.,!?~·]/g,'');
+function checkStep(key,a){
+  const block=[], hint=[];
+  const all=JSON.stringify(a);
+  if(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(all)||/@/.test(all)) block.push('전화번호나 이메일은 쓰지 않아요. 지우고 다시 해 봐요.');
+  if(key==='c2'){
+    const v=['a1','a2','a3'].map(k=>a[k]||'');
+    if(v.some(x=>!x)) block.push('세 칸을 모두 써 봐요.');
+    v.forEach((x,i)=>{if(!x)return;const n=norm(x);
+      if(SUBJECTS.includes(n)||SUBJECTS.includes(n.replace(/시간$/,''))) hint.push(`${'①②③'[i]}번은 교과 이름만 있어요. 그 시간에 무엇을 했나요?`);
+      else if(n.length<6) hint.push(`${'①②③'[i]}번을 조금 더 자세히 쓸 수 있을까요?`)});
+    if(new Set(v.filter(Boolean).map(norm)).size<v.filter(Boolean).length) hint.push('같은 활동이 두 번 나왔어요.');
+  }
+  if(key==='c3'){ if(!a.topic) block.push('내가 고른 성장 이야기를 써 봐요.'); if(!a.reason) block.push('왜 골랐는지 써 봐요.');
+    else if(norm(a.reason).length<8) hint.push('까닭을 조금 더 자세히 쓸 수 있을까요? 그때와 지금, 무엇이 달라졌나요?'); }
+  if(key==='c8'){ if(!a.sentence) block.push('한 문장을 써 봐요.'); else if(!/왜냐하면/.test(a.sentence)) hint.push('“왜냐하면”으로 까닭도 말해 볼까요?'); }
+  if(key==='c5'){
+    const filled=STAGES.filter((_,i)=>a['s'+(i+1)]&&a['s'+(i+1)].text).length;
+    if(filled<2) block.push('두 칸 이상 써 봐요.');
+    const g=a.s3&&a.s3.text, c=a.s5&&a.s5.text; if(g&&c&&norm(g)===norm(c)) hint.push('계기와 변화가 같은 내용이에요. 계기는 시작하게 된 일, 변화는 달라진 점이에요.');
+  }
+  if(key==='c6'){
+    const ev=['e1','e2','e3'].map(k=>a[k]||{}).map((e,i)=>({...e,i}));
+    const used=ev.filter(e=>e.name);
+    if(!used.length) block.push('증거를 하나 이상 써 봐요.');
+    const today=new Date().toISOString().slice(0,10);
+    used.forEach(e=>{
+      if(!e.date) hint.push(`증거 ${'①②③'[e.i]}: 언제 찍고 썼는지 날짜를 적어요.`);
+      else if(e.date>today) hint.push(`증거 ${'①②③'[e.i]}: 날짜가 오늘보다 뒤예요. 다시 봐요.`);
+      if(!(e.stages||[]).length) hint.push(`증거 ${'①②③'[e.i]}: 어느 이야기 단계를 보여 주나요?`);
+      if((e.stages||[]).length>=3) hint.push(`증거 ${'①②③'[e.i]}: 한 증거로 단계가 많아요. 같은 날 한 번의 활동이면 ‘노력’을 보여 줄 때 좋아요.`);
+    });
+    const dates=new Set(used.map(e=>e.date).filter(Boolean));
+    if(used.some(e=>(e.stages||[]).includes('변화'))&&dates.size<2) hint.push('‘변화’는 날짜가 다른 두 장면이 있어야 보여요. 예전 모습은 어디에 있나요?');
+    if(used.length>=2&&dates.size===1) hint.push('증거가 모두 같은 날이에요. 예전과 지금 날짜가 달라야 변화가 보여요.');
+    hint.push('사진·영상에 다른 친구가 나오지 않는지 한 번 더 봐요.');
+  }
+  if(key==='c7'){ if(!a.method) block.push('발표 방법을 하나 골라요.'); if(!a.why) block.push('그 방법을 고른 까닭을 써 봐요.');
+    else if(norm(a.why).length<8) hint.push('왜 그 방법이 좋은지 조금 더 써 볼까요?');
+    if(!(a.practice||[]).length) hint.push('연습 방법을 하나 골라 봐요.'); }
+  return {block,hint};
+}
+const localQuestion={
+ c2:'3월부터 차례로 넘겨 보면 어떤 활동이 또 떠오르나요?',
+ c3:'그때와 지금, 무엇이 달라졌나요?',
+ c8:'이 이야기를 처음 듣는 친구는 무엇을 궁금해할까요?',
+ c5:'내 이야기는 어디에서 시작해서 어디로 이어질까요?',
+ c6:'이 증거를 보면 친구들이 무엇을 알 수 있을까요?',
+ c7:'처음의 모습과 지금의 모습을 가장 잘 보여 주는 방법은 무엇일까요?'};
+
+/* ===== 서버 호출 ===== */
+const pendingIds={};   // 같은 전송을 다시 시도할 때 같은 번호를 써서 중복 저장을 막는다
+function newId(k){return pendingIds[k]||(pendingIds[k]=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})))}
+async function callServer(payload){
+  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),20000);
+  try{
+    const r=await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/${CONFIG.FUNCTION_NAME}`,{method:'POST',signal:ctl.signal,
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({number:session.num,name:session.name,...payload})});
+    let j={}; try{j=await r.json()}catch{}
+    if(!r.ok) throw Object.assign(new Error(j.error||('HTTP '+r.status)),{code:j.error,status:r.status});
+    return j;
+  } finally {clearTimeout(to)}
+}
+function busy(b){['ask','fin'].forEach(id=>{const e=document.getElementById(id);if(e)e.disabled=b})}
+async function ask(key){
+  const a=collect(key), {block,hint}=checkStep(key,a), m=$('#msg'); m.replaceChildren();
+  const st=loadSt(key); st.answer=a; saveSt(key,st);
+  if(block.length){block.forEach(t=>m.append(mk('div',{class:'hint',text:t})));return}
+  busy(true);
+  const entry={hints:hint};
+  try{
+    if(!ONLINE){
+      entry.feedback='연습 모드라서 AI 선생님은 쉬고 있어요. 대신 이 질문을 생각해 봐요. '+localQuestion[key];
+      st.remaining=null;
+    }else{
+      const res=await callServer({action:'feedback',step:key,answer:a,flags:hint,client_id:newId('fb:'+key)});
+      delete pendingIds['fb:'+key];
+      if(res.limited==='daily'){entry.note='오늘은 AI 선생님이 쉬어요. 내 글은 저장됐어요. 선생님과 이야기해 봐요.'}
+      else if(res.limited){entry.note='이 활동에서 AI 선생님께 물어볼 수 있는 횟수를 다 썼어요. 내 글은 선생님께 저장됐어요. 선생님과 이야기해 봐요.'}
+      else if(res.error==='ai_unavailable'){entry.note='AI 선생님이 지금은 대답하지 못해요. 위의 살펴볼 것을 먼저 해 봐요. 내 글은 저장됐어요.'}
+      else entry.feedback=res.feedback;
+      st.remaining=res.remaining;
+    }
+  }catch(e){
+    entry.note=(e.code==='not_found')?'번호와 이름을 다시 확인해 봐요. 나가기를 누르고 다시 들어와 봐요.':(e.code==='too_many_attempts')?'잠시 뒤에 다시 해 봐요.':'지금은 연결이 안 돼요. 내 글은 이 기기에 저장되어 있어요. 조금 뒤에 다시 눌러 봐요.';
+  }
+  st.history=[...(st.history||[]).slice(-4),entry]; saveSt(key,st);
+  showFeedback(entry); if(st.remaining!=null)$('#rem').textContent=`물어볼 수 있는 횟수: ${st.remaining}번`;
+  busy(false);
+}
+async function finish(key){
+  const a=collect(key), {block}=checkStep(key,a), m=$('#msg'); m.replaceChildren();
+  if(block.length){block.forEach(t=>m.append(mk('div',{class:'hint',text:t})));return}
+  busy(true); const st=loadSt(key); st.answer=a;
+  try{
+    if(ONLINE){ await callServer({action:'final',step:key,answer:a,flags:[],client_id:newId('fin:'+key)}); delete pendingIds['fin:'+key]; }
+    st.final=true; saveSt(key,st); renderSteps();
+    m.append(mk('div',{class:'done-msg',text:ONLINE?'선생님께 냈어요!':'연습 모드: 이 기기에만 저장했어요.'}));
+  }catch(e){
+    m.append(mk('div',{class:'hint',text:'내지 못했어요. 조금 뒤에 다시 눌러 봐요. (내 글은 이 기기에 저장되어 있어요)'}));
+  }
+  busy(false);
+}
+
+/* ===== 시작/나가기 ===== */
+$('#panel').addEventListener('input',()=>{if(!cur)return;const st2=loadSt(cur);st2.answer=collect(cur);saveSt(cur,st2)});
+$('#modeNote').textContent=ONLINE?'':'연습 모드: 아무 번호와 이름으로 들어갈 수 있어요. 저장과 AI 도움 없이 이 기기에서만 작동해요.';
+function enterApp(){
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#who').textContent=`${session.num}번`; openStep('c2');
+}
+async function login(numRaw,nameRaw){
+  const num=parseInt(numRaw,10), name=String(nameRaw||'').trim();
+  $('#loginErr').textContent='';
+  if(!(num>=1&&num<=60)){ $('#loginErr').textContent='번호를 써 봐요.'; return }
+  if(!name){ $('#loginErr').textContent='이름을 써 봐요.'; return }
+  $('#start').disabled=true;
+  try{
+    if(ONLINE){
+      session={num,name}; const r=await callServer({action:'hello'});
+      session={num:r.number,name,sid:r.sid};
+    }else{ session={num,name,sid:'demo-'+num}; }
+    try{sessionStorage.setItem('growthTutor2:me',JSON.stringify({num,name}))}catch{}
+    enterApp();
+  }catch(e){
+    session=null;
+    $('#loginErr').textContent=e.code==='too_many_attempts'?'잠시 뒤에 다시 해 봐요.':e.code==='not_found'?'번호와 이름을 다시 확인해 봐요.':e.code==='forbidden_origin'||e.code==='server_not_configured'?'아직 준비 중이에요. 선생님께 알려 줘요.':'지금은 연결이 안 돼요. 조금 뒤에 다시 해 봐요.';
+  }
+  $('#start').disabled=false;
+}
+$('#start').addEventListener('click',()=>login($('#num').value,$('#nm').value));
+['#num','#nm'].forEach(s=>$(s).addEventListener('keydown',e=>{if(e.key==='Enter')login($('#num').value,$('#nm').value)}));
+$('#logout').addEventListener('click',()=>{session=null;cur=null;try{sessionStorage.removeItem('growthTutor2:me')}catch{}
+  $('#num').value='';$('#nm').value='';$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#loginErr').textContent=''});
+// 같은 탭에서 새로고침하면 다시 입력하지 않아도 된다(탭을 닫으면 사라짐).
+try{ const t=JSON.parse(sessionStorage.getItem('growthTutor2:me')||'null'); if(t&&t.num&&t.name) login(t.num,t.name); }catch{}
+</script>
+</body>
+</html>
