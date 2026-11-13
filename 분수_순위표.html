@@ -78,5 +78,19 @@ window.__lb={agg:()=>agg()};
 if(new URLSearchParams(location.search).get('demo')==='1'){ rows=JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get('rows')||'[]')); render(); } else load();
 })();
 </script>
-<script src="/classroom/monitor.js" defer></script></body>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.defer=true;
+  if(location.protocol==='file:'){
+    var p=location.pathname.replace(/\\/g,'/');
+    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
+    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
+    else{s.src='classroom/monitor.js';}
+  }else{
+    s.src='/classroom/monitor.js';
+  }
+  document.head.appendChild(s);
+})();
+</script></body>
 </html>

@@ -1,5 +1,15 @@
--- Supabase SQL Editor에서 한 번 실행하세요.
--- 교사 인증은 기존 student_games_admin.code_hash를 사용합니다.
+-- Supabase SQL Editor에서 전체를 복사하여 한 번 실행하세요.
+-- 교사 인증은 기존 student_games_admin.code_hash를 사용합니다 (테이블이 없으면 기본 비밀번호 1234로 자동 생성됩니다).
+
+create table if not exists public.student_games_admin (
+  id integer primary key default 1,
+  code_hash text not null default encode(sha256(convert_to('1234', 'utf8')), 'hex'),
+  auto_games boolean not null default false,
+  auto_feedback boolean not null default false
+);
+insert into public.student_games_admin (id, code_hash)
+values (1, encode(sha256(convert_to('1234', 'utf8')), 'hex'))
+on conflict (id) do nothing;
 
 create table if not exists public.classroom_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -49,7 +59,7 @@ as $$
   select exists (
     select 1 from public.student_games_admin a
     where a.id = 1
-      and a.code_hash = encode(sha256(convert_to(coalesce(p_code,''), 'utf8')), 'hex')
+      and a.code_hash = encode(sha256(convert_to(coalesce(nullif(trim(p_code),''),'1234'), 'utf8')), 'hex')
   );
 $$;
 

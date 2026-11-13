@@ -280,5 +280,19 @@
             💡 <strong>안내:</strong> 학생들이 문제를 풀고 [제출하기]를 누르면 답안이 기기에 자동 다운로드되며 선생님 서버(Supabase)로 즉시 전송됩니다.
         </div>
     </div>
-<script src="/classroom/monitor.js" defer></script></body>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.defer=true;
+  if(location.protocol==='file:'){
+    var p=location.pathname.replace(/\\/g,'/');
+    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
+    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
+    else{s.src='classroom/monitor.js';}
+  }else{
+    s.src='/classroom/monitor.js';
+  }
+  document.head.appendChild(s);
+})();
+</script></body>
 </html>

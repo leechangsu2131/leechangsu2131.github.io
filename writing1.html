@@ -495,5 +495,19 @@ svg.trail{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:n
   init2();
 })();
 </script>
-<script src="/classroom/monitor.js" defer></script></body>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.defer=true;
+  if(location.protocol==='file:'){
+    var p=location.pathname.replace(/\\/g,'/');
+    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
+    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
+    else{s.src='classroom/monitor.js';}
+  }else{
+    s.src='/classroom/monitor.js';
+  }
+  document.head.appendChild(s);
+})();
+</script></body>
 </html>

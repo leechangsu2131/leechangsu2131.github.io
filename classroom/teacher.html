@@ -1,27 +1,347 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>수업 모니터링 · 교사용</title>
 <style>
-:root{color-scheme:dark;--bg:#101014;--panel:#1c1c22;--line:#34343d;--ink:#f5f5f7;--sub:#a1a1aa;--blue:#64d2ff;--green:#30d158;--orange:#ff9f0a;--red:#ff453a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Apple SD Gothic Neo",sans-serif}.wrap{max-width:1280px;margin:auto;padding:26px 18px 60px}h1{margin:0;font-size:27px;letter-spacing:-.04em}.sub{color:var(--sub);margin:5px 0 20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}input,button,select{font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#111116}input{min-width:170px}button{cursor:pointer;background:#292930}button:hover{filter:brightness(1.2)}button.primary{background:#fff;color:#111;border-color:#fff;font-weight:700}.danger{border-color:#8b332e;color:#ff827b}.status{min-height:21px;color:var(--sub);margin:8px 0 0}.room{font-size:27px;letter-spacing:.16em;font-weight:800;color:var(--blue)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.student{overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:16px}.student img{width:100%;aspect-ratio:5/3;object-fit:contain;background:#09090b;display:block}.preview-empty{aspect-ratio:5/3;background:#09090b;color:var(--sub);display:grid;place-items:center;font-size:14px}.student .body{padding:12px}.name{font-weight:750;font-size:17px}.muted{color:var(--sub);font-size:13px}.pill{display:inline-block;margin-left:7px;padding:2px 8px;border-radius:99px;font-size:12px}.on{background:#16351f;color:#75e38c}.off{background:#402b12;color:#ffc15c}.away{background:#402221;color:#ff8c84}.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.hide{display:none!important}.hint{font-size:13px;color:var(--sub)}a{color:var(--blue)}@media(max-width:600px){.wrap{padding:18px 12px}.row>*{flex:1}.room{font-size:23px}}
-</style></head><body><main class="wrap"><h1>🧑‍🏫 수업 화면 관리</h1><p class="sub">참여한 학생의 홈페이지 탭을 3초 간격으로 확인하고 수업 페이지 안에서 안내를 보냅니다.</p>
-<section id="setup" class="panel"><div class="row"><input id="pw" type="password" autocomplete="current-password" placeholder="교사 비밀번호"><input id="title" maxlength="80" value="오늘 수업" placeholder="수업 이름"><button id="start" class="primary">수업방 열기</button><input id="roomIn" maxlength="6" placeholder="기존 수업 코드"><button id="join">기존 방 열기</button></div><div id="setupMsg" class="status"></div><p class="hint">교사 비밀번호는 AI 게임 검토실과 같은 비밀번호를 사용합니다. 아직 연결되지 않으면 <a href="../games/teacher.html">AI 게임 검토실</a>의 Supabase 연결을 확인하세요.</p></section>
-<section id="active" class="hide"><div class="panel"><div class="row"><div><div class="muted">학생 입장 코드</div><div id="room" class="room"></div></div><button id="copy" class="primary">입장 링크 복사</button><button id="refresh">새로고침</button><button id="end" class="danger">수업 종료</button></div><div class="muted" id="titleOut"></div><div class="hint">학생은 번호·이름으로 입장합니다. 화면 공유는 수업 웹페이지 안에 표시되며 다른 앱이나 탭은 캡처되지 않습니다.</div></div>
-<div class="panel"><b>전체 학생 제어</b><div class="row" style="margin-top:8px"><input id="noticeText" maxlength="180" placeholder="학생 화면에 보낼 안내"><button id="sendNotice">안내 보내기</button><button id="focusAll">주의집중 화면</button><button id="resumeAll">화면 다시 보기</button><input id="navUrl" placeholder="홈페이지 안의 페이지 주소"><button id="navigateAll">페이지 함께 열기</button></div><div class="hint">페이지 이동은 이 홈페이지 주소 안으로 제한됩니다. 주의집중은 학생 페이지에 안내 덮개를 표시합니다.</div></div>
-<div class="row" style="justify-content:space-between;margin:18px 2px 9px"><b>참가 학생 <span id="count">0</span>명</b><span class="muted">초록: 접속 중 · 주황: 다른 탭 또는 창 · 회색: 응답 없음</span></div><div id="students" class="grid"></div><div id="liveMsg" class="status"></div></section></main>
+:root{color-scheme:dark;--bg:#101014;--panel:#1c1c22;--line:#34343d;--ink:#f5f5f7;--sub:#a1a1aa;--blue:#64d2ff;--green:#30d158;--orange:#ff9f0a;--red:#ff453a;--purple:#bf5af2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Apple SD Gothic Neo",sans-serif}.wrap{max-width:1280px;margin:auto;padding:26px 18px 60px}h1{margin:0;font-size:27px;letter-spacing:-.04em}.sub{color:var(--sub);margin:5px 0 20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}input,button,select{font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#111116}input{min-width:170px}button{cursor:pointer;background:#292930}button:hover{filter:brightness(1.2)}button.primary{background:#fff;color:#111;border-color:#fff;font-weight:700}button.mock-btn{background:#5856d6;color:#fff;border-color:#7a79f0;font-weight:700}button.open-student{background:#30d158;color:#052e16;border-color:#30d158;font-weight:700}.danger{border-color:#8b332e;color:#ff827b}.status{min-height:21px;color:var(--sub);margin:8px 0 0}.room{font-size:27px;letter-spacing:.16em;font-weight:800;color:var(--blue)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.student{overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:16px}.student img{width:100%;aspect-ratio:5/3;object-fit:contain;background:#09090b;display:block}.preview-empty{aspect-ratio:5/3;background:#09090b;color:var(--sub);display:grid;place-items:center;font-size:14px;text-align:center;padding:12px}.student .body{padding:12px}.name{font-weight:750;font-size:17px}.muted{color:var(--sub);font-size:13px}.pill{display:inline-block;margin-left:7px;padding:2px 8px;border-radius:99px;font-size:12px}.on{background:#16351f;color:#75e38c}.off{background:#402b12;color:#ffc15c}.away{background:#402221;color:#ff8c84}.mock-tag{background:#2a1b4e;color:#d8b4fe;border:1px solid #7c3aed;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700}.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.hide{display:none!important}.hint{font-size:13px;color:var(--sub)}a{color:var(--blue)}@media(max-width:600px){.wrap{padding:18px 12px}.row>*{flex:1}.room{font-size:23px}}
+</style></head><body><main class="wrap"><h1>🧑‍🏫 수업 화면 관리</h1><p class="sub">참여한 학생의 홈페이지 탭을 3초 간격으로 확인하고 수업 페이지 안에서 실시간 안내와 제어를 실행합니다.</p>
+<section id="setup" class="panel">
+  <div style="margin-bottom:14px;padding:12px;border:1px dashed #7a79f0;background:#17152b;border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div><b>🧪 DB 없이 바로 실험해보기 (모의실험)</b><br><span class="hint">Supabase DB 설정 없이 브라우저 창 2개(교사 창 + 학생 창)로 화면 전송과 제어를 즉시 확인합니다.</span></div>
+    <button id="startMock" class="mock-btn">🧪 모의실험 모드로 바로 시작</button>
+  </div>
+  <div class="row">
+    <input id="pw" type="password" autocomplete="current-password" placeholder="교사 비밀번호 (미입력 시 1234)">
+    <input id="title" maxlength="80" value="오늘 수업" placeholder="수업 이름">
+    <button id="start" class="primary">수업방 열기</button>
+    <input id="roomIn" maxlength="6" placeholder="기존 수업 코드">
+    <button id="join">기존 방 열기</button>
+  </div>
+  <div id="setupMsg" class="status"></div>
+  <p class="hint">실제 DB 연동 시: Supabase SQL Editor에서 <code>classroom/schema.sql</code>을 실행해야 합니다. 교사 비밀번호는 AI 게임 검토실과 공유됩니다(기본값 1234).</p>
+</section>
+
+<section id="active" class="hide">
+  <div class="panel">
+    <div class="row">
+      <div>
+        <div class="muted">학생 입장 코드 <span id="mockBadge" class="mock-tag hide">모의실험(Mock) 중</span></div>
+        <div id="room" class="room"></div>
+      </div>
+      <button id="copy" class="primary">입장 링크 복사</button>
+      <button id="openStudentTab" class="open-student hide">👉 학생 창 열기 (테스트)</button>
+      <button id="refresh">새로고침</button>
+      <button id="end" class="danger">수업 종료</button>
+    </div>
+    <div class="muted" id="titleOut" style="margin-top:8px"></div>
+    <div class="hint">학생은 번호·이름으로 입장합니다. 화면 공유는 홈페이지 탭 안에서만 이루어지며 다른 앱이나 탭은 캡처되지 않습니다.</div>
+  </div>
+  <div class="panel">
+    <b>전체 학생 제어</b>
+    <div class="row" style="margin-top:8px">
+      <input id="noticeText" maxlength="180" placeholder="학생 화면에 보낼 안내">
+      <button id="sendNotice">안내 보내기</button>
+      <button id="focusAll">주의집중 화면</button>
+      <button id="resumeAll">화면 다시 보기</button>
+      <input id="navUrl" placeholder="홈페이지 안의 페이지 주소 (예: /fraction.html)">
+      <button id="navigateAll">페이지 함께 열기</button>
+    </div>
+    <div class="hint">페이지 이동은 이 홈페이지 주소 안으로 제한됩니다. 주의집중은 학생 페이지에 안내 덮개를 표시합니다.</div>
+  </div>
+  <div class="row" style="justify-content:space-between;margin:18px 2px 9px">
+    <b>참가 학생 <span id="count">0</span>명</b>
+    <span class="muted">초록: 접속 중 · 주황: 다른 탭 또는 창 · 회색: 응답 없음 (화면을 누르면 크게 볼 수 있습니다)</span>
+  </div>
+  <div id="students" class="grid"></div>
+  <div id="liveMsg" class="status"></div>
+</section>
+
+<!-- 화면 확대 모달 -->
+<div id="modalZoom" class="hide" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:grid;place-items:center;padding:20px;cursor:pointer" onclick="this.classList.add('hide')">
+  <div style="max-width:92vw;max-height:92vh;display:flex;flex-direction:column;align-items:center">
+    <div id="modalZoomTitle" style="color:#fff;font-weight:700;margin-bottom:10px;font-size:18px"></div>
+    <img id="modalZoomImg" style="max-width:100%;max-height:80vh;border-radius:12px;border:2px solid #555;object-fit:contain;background:#111" src="" alt="화면 확대">
+    <div style="color:#aaa;font-size:13px;margin-top:8px">화면 아무 곳이나 누르면 닫힙니다.</div>
+  </div>
+</div>
+</main>
 <script>
-(()=>{const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz', $=id=>document.getElementById(id);let code='',room='',timer=0,rows=[];
-async function rpc(name,args){const r=await fetch(U+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},body:JSON.stringify(args)});let t=await r.text();if(!r.ok)throw Error(t||r.status);return t?JSON.parse(t):null}
-function msg(s,where='setupMsg'){ $(where).textContent=s }
-function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function openRoom(r){room=r.toUpperCase();await pull();$('setup').classList.add('hide');$('active').classList.remove('hide');$('room').textContent=room;$('titleOut').textContent='수업 링크: '+location.origin+'/classroom/student.html?room='+room;clearInterval(timer);timer=setInterval(pull,3000)}
-async function pull(){try{const d=await rpc('classroom_admin_list',{p_code:code,p_room:room});rows=d.students||[];render();msg('실시간 갱신 중 · '+new Date().toLocaleTimeString('ko-KR'),'liveMsg')}catch(e){msg('목록을 불러오지 못했습니다. '+e.message,'liveMsg')}}
-function render(){ $('count').textContent=rows.length;$('students').innerHTML=rows.map(s=>{const online=!!s.online,active=!!s.tab_active,sharing=s.sharing!==false;const state=!online?'응답 없음':!sharing?'화면 공유 중지':active?'수업 페이지 보고 있음':'다른 탭/창';const cls=!online?'':!sharing?'off':active?'on':'away';const pic=s.screenshot||'';const image=pic.startsWith('data:image/jpeg;base64,')?'<img alt="'+esc(s.student_name)+' 학생 화면" src="'+pic+'">':'<div class="preview-empty">'+(!sharing?'학생이 화면 공유를 껐어요.':'화면 캡처를 기다리는 중')+'</div>';return '<article class="student">'+image+'<div class="body"><div class="name">'+esc(s.student_no)+'번 '+esc(s.student_name)+'<span class="pill '+cls+'">'+state+'</span></div><div class="muted">현재 페이지: '+esc(s.current_page||'확인 중')+'<br>마지막 신호: '+new Date(s.last_seen).toLocaleTimeString('ko-KR')+'</div><div class="controls" data-id="'+s.id+'"><button data-k="notice">안내</button><button data-k="focus">주의집중</button><button data-k="resume">해제</button><button data-k="navigate">페이지 열기</button><button data-k="remove" class="danger">내보내기</button></div></div></article>'}).join('')||'<div class="panel muted">아직 입장한 학생이 없습니다.</div>' }
-async function command(kind,payload={},student=null){await rpc('classroom_admin_command',{p_code:code,p_room:room,p_student:student,p_kind:kind,p_payload:payload})}
-$('start').onclick=async()=>{code=$('pw').value;try{const d=await rpc('classroom_admin_start',{p_code:code,p_title:$('title').value});await openRoom(d.room_code)}catch(e){msg('수업방을 열지 못했습니다. 비밀번호 또는 데이터베이스 설정을 확인하세요.')}};
-$('join').onclick=async()=>{code=$('pw').value;try{await openRoom($('roomIn').value.trim())}catch(e){msg('수업방을 열지 못했습니다. 비밀번호나 수업 코드를 확인하세요.')}};
-$('refresh').onclick=pull;$('copy').onclick=async()=>{const link=location.origin+'/classroom/student.html?room='+room;try{await navigator.clipboard.writeText(link);msg('입장 링크를 복사했습니다.','liveMsg')}catch{prompt('학생에게 이 링크를 보내세요.',link)}};
-$('end').onclick=async()=>{if(!confirm('수업을 종료할까요?'))return;try{await rpc('classroom_admin_end',{p_code:code,p_room:room});clearInterval(timer);msg('수업을 종료했습니다.','liveMsg')}catch(e){msg('종료하지 못했습니다.','liveMsg')}};
-$('sendNotice').onclick=async()=>{const text=$('noticeText').value.trim();if(!text)return;await command('notice',{text});$('noticeText').value='';msg('안내를 보냈습니다.','liveMsg')};$('focusAll').onclick=()=>command('focus',{text:'선생님 말씀을 들어요.'}).then(()=>msg('주의집중 화면을 보냈습니다.','liveMsg'));$('resumeAll').onclick=()=>command('resume').then(()=>msg('화면을 다시 열었습니다.','liveMsg'));
-$('navigateAll').onclick=()=>{const url=$('navUrl').value.trim();if(!url)return;if(/^https?:\/\//i.test(url)&&!url.startsWith(location.origin)){msg('홈페이지 안의 주소만 입력할 수 있습니다.','liveMsg');return}command('navigate',{url}).then(()=>msg('페이지 이동을 보냈습니다.','liveMsg'))};
-$('students').onclick=async e=>{const b=e.target.closest('button[data-k]');if(!b)return;const card=b.closest('.controls'),id=card.dataset.id,k=b.dataset.k;try{if(k==='notice'){const text=prompt('학생에게 보낼 안내');if(text)await command(k,{text},id)}else if(k==='navigate'){const url=prompt('홈페이지 안의 상대 주소 또는 전체 주소');if(url)await command(k,{url},id)}else if(k==='remove'){if(confirm('이 학생을 수업에서 내보낼까요?'))await command(k,{},id)}else await command(k,{text:'선생님 안내를 확인해 주세요.'},id);await pull()}catch(err){msg('명령을 보내지 못했습니다.','liveMsg')}};
+(()=>{
+  const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+  const $=id=>document.getElementById(id);
+  let code='',room='',timer=0,rows=[],isMock=false,mockChannel=null;
+
+  async function rpc(name,args){
+    const r=await fetch(U+'/rest/v1/rpc/'+name,{
+      method:'POST',
+      headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},
+      body:JSON.stringify(args)
+    });
+    let t=await r.text();
+    if(!r.ok){
+      let m=t;
+      try{m=JSON.parse(t).message||JSON.parse(t).hint||t}catch(_){}
+      throw Error(m||r.statusText);
+    }
+    return t?JSON.parse(t):null;
+  }
+
+  function msg(s,where='setupMsg'){ $(where).textContent=s }
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  function handleMockMessage(d){
+    if(!d||!d.type)return;
+    if(d.type==='student_join'){
+      let s=rows.find(x=>x.id===d.studentId);
+      if(!s){
+        s={id:d.studentId,student_no:d.studentNo,student_name:d.studentName,joined_at:Date.now(),last_seen:Date.now(),online:true,tab_active:true,sharing:true,current_page:'수업 입장',screenshot:''};
+        rows.push(s);
+      }
+      render();
+      msg('학생 ['+d.studentNo+'번 '+d.studentName+'] 입장! · '+new Date().toLocaleTimeString('ko-KR'),'liveMsg');
+    }else if(d.type==='student_update'){
+      let s=rows.find(x=>x.id===d.studentId);
+      if(!s){
+        s={id:d.studentId,student_no:d.studentNo,student_name:d.studentName,joined_at:Date.now()};
+        rows.push(s);
+      }
+      s.last_seen=d.lastSeen||Date.now();
+      s.online=true;
+      s.tab_active=!!d.active;
+      s.sharing=d.sharing!==false;
+      s.current_page=d.page||s.current_page;
+      if(d.screenshot!==undefined&&d.screenshot!=='')s.screenshot=d.screenshot;
+      render();
+    }else if(d.type==='student_leave'){
+      rows=rows.filter(x=>x.id!==d.studentId);
+      render();
+      msg('학생 퇴장 · '+new Date().toLocaleTimeString('ko-KR'),'liveMsg');
+    }
+  }
+
+  function postMockMessage(msgObj){
+    if(mockChannel){
+      try{mockChannel.postMessage(msgObj);}catch(_){}
+    }
+    try{
+      localStorage.setItem('classroom_mock_bus',JSON.stringify({room:room,data:msgObj,time:Date.now()}));
+    }catch(_){}
+  }
+
+  function setupMockChannel(){
+    if(mockChannel)mockChannel.close();
+    try{
+      mockChannel=new BroadcastChannel('classroom-mock-'+room);
+      mockChannel.onmessage=(e)=>handleMockMessage(e.data);
+    }catch(_){}
+
+    window.addEventListener('storage',e=>{
+      if(e.key==='classroom_mock_bus'&&e.newValue){
+        try{
+          const payload=JSON.parse(e.newValue);
+          if(payload&&payload.room===room&&payload.data){
+            handleMockMessage(payload.data);
+          }
+        }catch(_){}
+      }
+    });
+  }
+
+  async function openRoom(r,mock=false){
+    room=r.toUpperCase();
+    isMock=mock;
+    $('setup').classList.add('hide');
+    $('active').classList.remove('hide');
+    $('room').textContent=room;
+    const studentUrl=new URL('student.html',location.href);
+    studentUrl.searchParams.set('room',room);
+    if(isMock){
+      studentUrl.searchParams.set('mock','1');
+      $('mockBadge').classList.remove('hide');
+      $('openStudentTab').classList.remove('hide');
+      $('titleOut').innerHTML='<b>[모의실험]</b> 학생 참여 링크: <a href="'+studentUrl.href+'" target="_blank">'+studentUrl.href+'</a>';
+      setupMockChannel();
+      render();
+      msg('🧪 모의실험 준비 완료! [👉 학생 창 열기] 버튼을 눌러 새 창에서 학생으로 접속해보세요.','liveMsg');
+    }else{
+      $('mockBadge').classList.add('hide');
+      $('openStudentTab').classList.add('hide');
+      $('titleOut').innerHTML='학생 참여 링크: <a href="'+studentUrl.href+'" target="_blank">'+studentUrl.href+'</a>';
+      await pull();
+      clearInterval(timer);
+      timer=setInterval(pull,3000);
+    }
+  }
+
+  async function pull(){
+    if(isMock){
+      const now=Date.now();
+      rows.forEach(s=>{if(now-s.last_seen>10000)s.online=false;});
+      render();
+      return;
+    }
+    try{
+      const d=await rpc('classroom_admin_list',{p_code:code,p_room:room});
+      rows=d.students||[];
+      render();
+      msg('실시간 갱신 중 · '+new Date().toLocaleTimeString('ko-KR'),'liveMsg');
+    }catch(e){
+      msg('목록 불러오기 실패: '+(e.message||e),'liveMsg');
+    }
+  }
+
+  function render(){
+    $('count').textContent=rows.length;
+    $('students').innerHTML=rows.map(s=>{
+      const online=!!s.online,active=!!s.tab_active,sharing=s.sharing!==false;
+      const state=!online?'응답 없음':!sharing?'화면 공유 중지':active?'수업 페이지 보고 있음':'다른 탭/창';
+      const cls=!online?'':!sharing?'off':active?'on':'away';
+      const pic=s.screenshot||'';
+      const image=pic.startsWith('data:image/')?'<img class="student-thumb" alt="'+esc(s.student_name)+' 학생 화면" src="'+pic+'" style="cursor:zoom-in" title="클릭하면 크게 봅니다">' :'<div class="preview-empty">'+(!sharing?'학생이 화면 공유를 껐어요.':'화면 캡처를 기다리는 중 (3초 간격)')+'</div>';
+      return '<article class="student" data-id="'+s.id+'">'+image+'<div class="body"><div class="name">'+esc(s.student_no)+'번 '+esc(s.student_name)+'<span class="pill '+cls+'">'+state+'</span></div><div class="muted">현재 페이지: '+esc(s.current_page||'확인 중')+'<br>마지막 신호: '+new Date(s.last_seen).toLocaleTimeString('ko-KR')+'</div><div class="controls" data-id="'+s.id+'"><button data-k="notice">안내</button><button data-k="focus">주의집중</button><button data-k="resume">해제</button><button data-k="navigate">페이지 열기</button><button data-k="remove" class="danger">내보내기</button></div></div></article>';
+    }).join('')||'<div class="panel muted" style="grid-column:1/-1;text-align:center;padding:36px">아직 입장한 학생이 없습니다.<br><span class="hint">위의 [입장 링크 복사] 또는 [👉 학생 창 열기]를 눌러 학생 화면을 띄워보세요.</span></div>';
+  }
+
+  async function command(kind,payload={},student=null){
+    if(isMock){
+      postMockMessage({type:'admin_command',kind,payload,student});
+      if(kind==='remove'&&student){
+        rows=rows.filter(x=>x.id!==student);
+        render();
+      }
+      return;
+    }
+    await rpc('classroom_admin_command',{p_code:code,p_room:room,p_student:student,p_kind:kind,p_payload:payload});
+  }
+
+  $('startMock').onclick=()=>{
+    const mockCode='MOCK'+Math.floor(10+Math.random()*90);
+    openRoom(mockCode,true);
+  };
+
+  $('openStudentTab').onclick=()=>{
+    const u=new URL('student.html',location.href);
+    u.searchParams.set('room',room);
+    if(isMock)u.searchParams.set('mock','1');
+    window.open(u.href,'_blank','width=1000,height=750');
+  };
+
+  $('start').onclick=async()=>{
+    code=$('pw').value.trim()||'1234';
+    try{
+      msg('수업방을 열고 있습니다… (비밀번호: '+(code==='1234'?'기본 1234 적용':'입력값')+')');
+      const d=await rpc('classroom_admin_start',{p_code:code,p_title:$('title').value});
+      await openRoom(d.room_code,false);
+    }catch(e){
+      msg('수업방 열기 실패: '+(e.message||e)+'\n(비밀번호가 다르거나 Supabase SQL Editor에서 schema.sql이 아직 실행되지 않았습니다.)');
+    }
+  };
+
+  $('join').onclick=async()=>{
+    code=$('pw').value.trim()||'1234';
+    const rIn=$('roomIn').value.trim();
+    if(!rIn){msg('수업 코드를 입력하세요.');return}
+    if(rIn.toUpperCase().startsWith('MOCK')){
+      openRoom(rIn,true);
+      return;
+    }
+    try{
+      await openRoom(rIn,false);
+    }catch(e){
+      msg('수업방 열기 실패: '+(e.message||e));
+    }
+  };
+
+  $('refresh').onclick=pull;
+  $('copy').onclick=async()=>{
+    const u=new URL('student.html',location.href);
+    u.searchParams.set('room',room);
+    if(isMock)u.searchParams.set('mock','1');
+    try{
+      await navigator.clipboard.writeText(u.href);
+      msg('입장 링크를 복사했습니다: '+u.href,'liveMsg');
+    }catch{
+      prompt('학생에게 이 링크를 보내세요.',u.href);
+    }
+  };
+
+  $('end').onclick=async()=>{
+    if(!confirm('수업을 종료할까요?'))return;
+    if(isMock){
+      postMockMessage({type:'admin_command',kind:'end'});
+      clearInterval(timer);
+      msg('모의실험 수업을 종료했습니다.','liveMsg');
+      return;
+    }
+    try{
+      await rpc('classroom_admin_end',{p_code:code,p_room:room});
+      clearInterval(timer);
+      msg('수업을 종료했습니다.','liveMsg');
+    }catch(e){
+      msg('종료하지 못했습니다: '+(e.message||e),'liveMsg');
+    }
+  };
+
+  $('sendNotice').onclick=async()=>{
+    const text=$('noticeText').value.trim();
+    if(!text)return;
+    await command('notice',{text});
+    $('noticeText').value='';
+    msg('전체 학생에게 안내를 보냈습니다.','liveMsg');
+  };
+
+  $('focusAll').onclick=()=>command('focus',{text:'선생님 말씀을 들어요.'}).then(()=>msg('주의집중 화면을 보냈습니다.','liveMsg'));
+  $('resumeAll').onclick=()=>command('resume').then(()=>msg('화면을 다시 열었습니다.','liveMsg'));
+
+  $('navigateAll').onclick=()=>{
+    const raw=$('navUrl').value.trim();
+    if(!raw)return;
+    let target=raw;
+    try{
+      const u=new URL(raw,location.href);
+      if(u.origin!==location.origin){
+        msg('홈페이지 안의 주소만 입력할 수 있습니다.','liveMsg');
+        return;
+      }
+      target=u.pathname+u.search;
+    }catch(_){}
+    command('navigate',{url:target}).then(()=>msg('전체 학생 페이지 이동 명령을 보냈습니다: '+target,'liveMsg'));
+  };
+
+  $('students').onclick=async e=>{
+    const thumb=e.target.closest('.student-thumb');
+    if(thumb){
+      const card=thumb.closest('.student');
+      const sId=card?card.dataset.id:null;
+      const s=rows.find(x=>x.id===sId);
+      $('modalZoomImg').src=thumb.src;
+      $('modalZoomTitle').textContent=(s?s.student_no+'번 '+s.student_name+' 학생 화면':'학생 화면')+' ('+new Date().toLocaleTimeString('ko-KR')+')';
+      $('modalZoom').classList.remove('hide');
+      return;
+    }
+
+    const b=e.target.closest('button[data-k]');
+    if(!b)return;
+    const card=b.closest('.controls'),id=card.dataset.id,k=b.dataset.k;
+    try{
+      if(k==='notice'){
+        const text=prompt('학생에게 보낼 안내');
+        if(text)await command(k,{text},id);
+      }else if(k==='navigate'){
+        const url=prompt('홈페이지 안의 주소 (예: /fraction.html)');
+        if(url)await command(k,{url},id);
+      }else if(k==='remove'){
+        if(confirm('이 학생을 수업에서 내보낼까요?'))await command(k,{},id);
+      }else{
+        await command(k,{text:'선생님 안내를 확인해 주세요.'},id);
+      }
+      await pull();
+    }catch(err){
+      msg('명령 전송 실패: '+(err.message||err),'liveMsg');
+    }
+  };
+
+  const q=new URLSearchParams(location.search);
+  if(q.get('mock')==='1'){
+    $('startMock').click();
+  }
 })();
 </script></body></html>

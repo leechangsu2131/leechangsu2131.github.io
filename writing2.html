@@ -270,5 +270,19 @@ fillModule('p2','끝 문장 쓰기','가운데에서 말한 방법을 한 번 �
 window.__practice={P1:P1,P2:P2,P3:P3,P4:P4};
 })();
 </script>
-<script src="/classroom/monitor.js" defer></script></body>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.defer=true;
+  if(location.protocol==='file:'){
+    var p=location.pathname.replace(/\\/g,'/');
+    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
+    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
+    else{s.src='classroom/monitor.js';}
+  }else{
+    s.src='/classroom/monitor.js';
+  }
+  document.head.appendChild(s);
+})();
+</script></body>
 </html>

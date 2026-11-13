@@ -264,7 +264,21 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   function wrap(html){
     if(/<head[^>]*>/i.test(html))return html.replace(/<head[^>]*>/i,function(m){return m+GUARD});
     if(/<html[^>]*>/i.test(html))return html.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"<script src="/classroom/monitor.js" defer></script></body></html>";
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"<script>
+(function(){
+  var s=document.createElement('script');
+  s.defer=true;
+  if(location.protocol==='file:'){
+    var p=location.pathname.replace(/\\/g,'/');
+    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
+    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
+    else{s.src='classroom/monitor.js';}
+  }else{
+    s.src='/classroom/monitor.js';
+  }
+  document.head.appendChild(s);
+})();
+</script></body></html>";
   }
   var curId="";
   function open(t,a,html,id){
@@ -363,5 +377,19 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   load();
 })();
 </script>
-<script src="/classroom/monitor.js" defer></script></body>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.defer=true;
+  if(location.protocol==='file:'){
+    var p=location.pathname.replace(/\\/g,'/');
+    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
+    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
+    else{s.src='classroom/monitor.js';}
+  }else{
+    s.src='/classroom/monitor.js';
+  }
+  document.head.appendChild(s);
+})();
+</script></body>
 </html>
