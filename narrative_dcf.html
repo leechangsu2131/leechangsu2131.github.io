@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내러티브 & 숫자 – 확률론적 DCF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root{--bg:#f4f5f9;--card:#fff;--text:#1c2030;--muted:#6b7280;--line:#e3e6ee;--acc:#4f46e5;--acc2:#10b981;--warn:#f59e0b;--bad:#ef4444;--inp:#f9fafc;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141c;--card:#1b1e29;--text:#e8eaf2;--muted:#9aa1b3;--line:#2c3040;--acc:#818cf8;--acc2:#34d399;--inp:#151823;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12141c;--card:#1b1e29;--text:#e8eaf2;--muted:#9aa1b3;--line:#2c3040;--acc:#818cf8;--acc2:#34d399;--inp:#151823;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 -apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.6rem;margin:8px 0 2px}h2{font-size:1.1rem;margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 18px}
+.steps{display:flex;gap:8px;margin-bottom:16px}
+.steps button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:10px;font:inherit;cursor:pointer}
+.steps button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--inp);color:var(--text);font:inherit}
+textarea{min-height:70px;resize:vertical}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:8px 0;color:var(--text);font-size:.92rem}
+.chk input{width:auto;margin-top:5px}
+.tag{font-size:.78rem;font-weight:600;color:var(--acc);margin-top:14px}
+.vr{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.vr .h{font-size:.78rem;color:var(--muted)}
+.btn{padding:11px 22px;border:0;border-radius:10px;background:var(--acc);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.btn.g{background:transparent;border:1px solid var(--line);color:var(--text)}
+.row{display:flex;gap:10px;justify-content:space-between;margin-top:16px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi b{display:block;font-size:1.25rem}.kpi span{font-size:.78rem;color:var(--muted)}
+.cv{position:relative;height:280px}
+.note{font-size:.85rem;color:var(--muted);border-left:3px solid var(--warn);padding:4px 10px;margin:10px 0}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+.hide{display:none}
+.hp{display:block;color:var(--muted);font-size:.74rem;line-height:1.4;margin-top:2px}
+details summary{cursor:pointer}.gd{margin:8px 0 10px 18px;padding:0;font-size:.88rem}.gd li{margin-bottom:4px}
+.gt{font-size:.8rem}.gt td,.gt th{white-space:normal;text-align:left;vertical-align:top}
+.sm{padding:7px 12px;font-size:.85rem}
+body.help,body.help *{cursor:help}
+body.help [data-tip]{outline:1px dashed var(--acc);outline-offset:2px}
+#hb{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:60;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+#hb.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#tip{position:fixed;z-index:70;max-width:290px;background:var(--text);color:var(--bg);padding:9px 12px;border-radius:10px;font-size:.82rem;line-height:1.5;pointer-events:none;display:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+@media(max-width:640px){.vr{grid-template-columns:1fr 1fr 1fr}.vr>:first-child,.vr>:nth-child(2){grid-column:span 3}.vr .h{display:none}}
+</style>
+</head>
+<body>
+<button id="hb" onclick="toggleHelp()">❓ 도움말</button><div id="tip"></div>
+<div class="wrap">
+<h1>내러티브 & 숫자</h1>
+<p class="sub">다모다란식 스토리 → 숫자 → 몬테카를로 DCF 가치평가</p>
+<div class="steps" id="steps"><button>1 내러티브·3P</button><button>2 숫자 입력</button><button>3 결과</button></div>
+
+<section id="s0" class="card">
+<h2>📖 내러티브 캔버스</h2>
+<label>기업명</label><input id="name" value="샘플 기업">
+<label>비전과 큰 그림</label><textarea id="n1" placeholder="이 기업은 산업에서 어떤 역할을 하게 될 것인가?"></textarea>
+<label>시장 기회 (TAM과 성장 동인)</label><textarea id="n2"></textarea>
+<label>경쟁 우위와 지속 가능성</label><textarea id="n3"></textarea>
+<div class="tag">✅ 3P 테스트</div>
+<label class="chk"><input type="checkbox" class="p3"> 가능성: 시장점유율이 100%를 넘지 않고 기술적으로 실현 가능하다</label>
+<label class="chk"><input type="checkbox" class="p3"> 가능성: 필요한 자본 조달과 규모 확대가 현실적이다</label>
+<label class="chk"><input type="checkbox" class="p3"> 개연성: 유사한 성공 사례가 존재한다</label>
+<label class="chk"><input type="checkbox" class="p3"> 개연성: 산업 트렌드가 이를 뒷받침한다</label>
+<label class="chk"><input type="checkbox" class="p3"> 확률성: 경쟁사의 대응을 고려했다</label>
+<label class="chk"><input type="checkbox" class="p3"> 확률성: 규제 리스크를 평가했다</label>
+<div class="row"><span></span><button class="btn" onclick="show(1)">다음 →</button></div>
+</section>
+
+<section id="s1" class="card hide">
+<h2>🌉 브리지 – 내러티브를 숫자로</h2>
+<p class="note" style="border-color:var(--acc)">처음이면 오른쪽 위 <b>❓ 도움말</b> 버튼을 누른 뒤 각 항목(분포, 최소·최빈·최대 칸 등)에 마우스를 올려 보세요. 폰에서는 항목을 탭하면 설명이 나옵니다. (도움말이 켜져 있는 동안 폰에서는 값 수정이 안 됩니다)</p>
+<label>📥 투자시트에서 종목 불러오기 (📥 재무수집 2026-11-07 스냅샷 + 📊 포트폴리오 비중)</label>
+<select id="tk" onchange="pick(this.value)"><option value="">직접 입력</option></select>
+<div id="tkinfo" class="note hide"></div>
+<ul id="seedbasis" class="note hide" style="margin:6px 0 0 18px"></ul>
+<div class="note" style="margin-top:6px">자체 이력(margin_history.csv) 불러오기: <input type="file" id="hcsv" accept=".csv"> <span id="hmsg"></span></div>
+<div class="row" style="margin:8px 0 12px;justify-content:flex-start"><button class="btn g" onclick="batch()">보유 종목 일괄 실행 (금융업·FCF 마이너스 제외)</button></div>
+<div class="grid">
+<div><label>기준 매출 (억, 종목 통화)</label><input id="rev" type="number" step="any" value="1000"></div>
+<div><label>현재 영업이익률 (%)</label><input id="m0" type="number" value="8" step="0.5"></div>
+<div><label>순부채 (억, 순현금은 음수)</label><input id="debt" type="number" step="any" value="200"></div>
+<div><label>발행주식수 (억주)</label><input id="sh" type="number" step="any" value="0.05"></div>
+<div><label>현재 주가 (종목 통화)</label><input id="px" type="number" step="any" value="30000"></div>
+<div><label>세율 (%)</label><input id="tax" type="number" value="25"></div>
+<div><label>영구성장률 (%)</label><input id="tg" type="number" value="3" step="0.5"></div>
+<div><label>시뮬레이션 횟수</label><input id="N" type="number" value="10000" step="1000"></div>
+</div>
+<details class="card" style="margin:18px 0 0;padding:14px 16px">
+<summary><b>🧭 처음이라면 이렇게 하세요 (쉬운 가이드)</b></summary>
+<ol class="gd">
+<li>위의 <b>종목 불러오기</b>를 쓰면 대부분 이미 채워집니다. 직접 입력한다면 아래 <b>기업 유형</b> 버튼부터 누르세요.</li>
+<li>변수마다 숫자 세 개만 정합니다. <b>비관(이럴 수도 있다), 가장 그럴듯, 낙관</b>. 확신이 없으면 범위를 넓히면 됩니다. 모르는 만큼 분포가 넓어지는 것이 이 계산기의 핵심입니다.</li>
+<li><b>분포는 그냥 삼각으로 두세요.</b> 세 숫자를 그대로 쓰는 가장 직관적인 방식입니다. <b>정규</b>는 중심값이 분명할 때(WACC), <b>균등</b>은 정말 감이 없을 때만 씁니다.</li>
+<li>결과 화면의 <b>민감도 차트</b>에서 막대가 긴 변수가 가치를 좌우합니다. 그 변수의 범위를 가장 신중하게 정하세요.</li>
+</ol>
+<div class="tw"><table class="gt">
+<tr><th>변수</th><th>일반적인 범위 (어림값)</th><th>감 잡는 법</th></tr>
+<tr><td>매출성장률</td><td>성숙 0–5%, 안정 5–10%, 우량 성장 10–20%, 고성장 20–40%</td><td>과거 3년 성장률의 50~70%. 고성장은 평균으로 돌아오는 경향이 강합니다</td></tr>
+<tr><td>목표 영업이익률</td><td>소프트웨어·플랫폼 25–40%, 반도체 20–40%, 제조 8–15%, 유통 3–8%</td><td>현재 마진 근처가 출발점. 경쟁우위가 강하면 유지·소폭 상승, 약하면 하락</td></tr>
+<tr><td>Sales-to-Capital</td><td>자본집약 0.5–1.5, 일반 1–2.5, 소프트웨어 2–5</td><td>클수록 성장에 필요한 투자가 적어 가치가 커집니다. ROIC가 높은 기업일수록 큽니다</td></tr>
+<tr><td>WACC</td><td>대형 안정 7–8%, 일반 8–10%, 소형·고변동 10–13%</td><td>영구성장률보다 충분히 커야 합니다. 모르겠으면 9%에서 시작</td></tr>
+<tr><td>영구성장률</td><td>2–3%</td><td>장기 경제성장률과 금리를 넘기지 마세요</td></tr>
+<tr><td>세율</td><td>미국 약 21–25%, 한국 약 22–26%</td><td>실효세율이 낮아도 장기적으로는 법정세율에 가까워집니다</td></tr>
+</table></div>
+<p class="hp">위 범위는 일반적인 어림값이며 종목별로 다릅니다. 특히 한국 시장의 WACC·세율은 확인이 필요합니다.</p>
+</details>
+<div class="tag">⚡ 빠른 설정 (누르면 표의 숫자가 바뀝니다)</div>
+<div class="row" style="justify-content:flex-start;margin-top:6px;align-items:center"><span class="hp">기업 유형 → 성장률·자본회전·WACC</span><button class="btn g sm" onclick="ptype(0)">성숙·안정</button><button class="btn g sm" onclick="ptype(1)">우량 성장</button><button class="btn g sm" onclick="ptype(2)">고성장·고변동</button></div>
+<div class="row" style="justify-content:flex-start;margin-top:6px;align-items:center"><span class="hp">내 확신도 → 최빈값 기준 범위 폭</span><button class="btn g sm" onclick="conf(0)">확신 높음 (좋게)</button><button class="btn g sm" onclick="conf(1)">보통</button><button class="btn g sm" onclick="conf(2)">확신 낮음 (넓게)</button></div>
+<div class="tag" style="margin-top:20px">🎲 확률변수 (분포와 비관·가장 그럴듯·낙관 값)</div>
+<div class="vr"><span class="h">변수</span><span class="h">분포</span><span class="h">비관 (최소)</span><span class="h">가장 그럴듯 (최빈)</span><span class="h">낙관 (최대)</span></div>
+<div id="vars"></div>
+<p class="note">정규분포는 평균=가운데 값, 표준편차=(최대-최소)/4로 두고 범위 안으로 잘라서 사용합니다. 변수 간 상관관계는 반영하지 않습니다.</p>
+<div class="row"><button class="btn g" onclick="show(0)">← 이전</button><button class="btn" onclick="run()">🎲 시뮬레이션 실행</button></div>
+</section>
+
+<section id="s2" class="hide">
+<div class="card"><h2>📊 확률론적 가치평가 결과 <span id="ttl" style="color:var(--muted);font-weight:400"></span></h2>
+<div class="kpis" id="kpis"></div><div id="msgs"></div></div>
+<div class="card"><h2>🔁 현재가가 요구하는 성장률 (역산)</h2><p class="sub" style="margin:0 0 8px">마진·자본회전·WACC는 입력 값으로 고정하고, 현재가와 가치가 같아지려면 1–5년 매출성장률이 얼마여야 하는지 거꾸로 풉니다.</p><div class="kpis" id="rkpis"></div><div id="rmsg"></div><div class="tw"><table id="rtb"></table></div></div>
+<div class="card"><h2>주당가치 분포</h2><div class="cv"><canvas id="c1"></canvas></div></div>
+<div class="card"><h2>🎯 민감도 (입력과 가치의 상관계수)</h2><div class="cv"><canvas id="c2"></canvas></div></div>
+<div class="card"><h2>📋 기본 시나리오 재무 예측 (최빈값 기준, 억)</h2><div class="tw"><table id="tb"></table></div><div id="bridge" class="note"></div></div>
+<div id="hold" class="card hide"><h2>💼 보유 비중 반영</h2><div id="holdtxt"></div></div>
+<div class="card"><h2>📋 시트 붙여넣기용 누적 표</h2><p class="sub" style="margin:0 0 8px">🎯 비중조절신호의 하방·목표가 근거로 참고하세요. 입력과 판단은 직접 합니다. 종목별로 실행할 때마다 쌓입니다.</p><div class="tw"><table id="acc"></table></div><textarea id="tsv" readonly style="margin-top:10px;min-height:90px;font-size:.8rem"></textarea><div class="row" style="justify-content:flex-start"><button class="btn g" onclick="cp()">TSV 복사</button><button class="btn g" onclick="ACC=[];acc()">표 비우기</button></div></div>
+<div class="card"><h2>💡 내러티브 요약</h2><div id="recap"></div></div>
+<div class="row"><button class="btn g" onclick="show(1)">← 가정 수정</button><button class="btn g" onclick="show(0)">새 평가</button></div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const V=[{k:'g',n:'매출성장률 1–5년 (%)',h:'앞으로 5년간 매출이 매년 평균 몇 % 늘까? 과거 성장률의 50~70%에서 시작하세요. 6~10년차는 자동으로 둔화됩니다.',d:'tri',a:5,m:12,b:20},{k:'m',n:'목표 영업이익률 (%)',h:'성숙기에 도달했을 때 매출 대비 영업이익 비율. 현재 마진 근처에서 시작하고, 경쟁우위가 강하면 위로, 약하면 아래로.',d:'tri',a:10,m:18,b:25},{k:'s',n:'Sales-to-Capital (배)',h:'투자 1을 넣으면 매출이 몇 늘는가. 클수록 가벼운 사업(소프트웨어 2~5), 작을수록 무거운 사업(반도체·통신 0.5~1.5).',d:'tri',a:1,m:1.8,b:3},{k:'w',n:'WACC (%)',h:'투자자가 요구하는 수익률(할인율). 대형 안정주 7~8%, 일반 8~10%, 소형·변동 큰 주식 10~13%.',d:'norm',a:7,m:9,b:11}];
+const DN={tri:'삼각',norm:'정규',uni:'균등'};
+$('vars').innerHTML=V.map(v=>`<div class="vr"><span>${v.n}<small class="hp">${v.h}</small></span><select id="${v.k}d">${Object.keys(DN).map(x=>`<option value="${x}"${x===v.d?' selected':''}>${DN[x]}</option>`).join('')}</select><input id="${v.k}a" type="number" step="0.1" value="${v.a}"><input id="${v.k}m" type="number" step="0.1" value="${v.m}"><input id="${v.k}b" type="number" step="0.1" value="${v.b}"></div>`).join('');
+// [티커,이름,구분,통화,종가,시총,순부채,TTM영업이익,영업마진%,매출성장%,ROIC%,경고,포트폴리오비중%,평가손익%] (금액은 억)
+const F=[['GOOG','Alphabet','보유','USD',283.93,34906.35,-1231.81,1569.76,33.32,15.1,15.81,'',7.64,62.6],['NVDA','NVIDIA','보유','USD',186.64,45067.96,-241.18,1975.79,65.21,65.5,59.5,'',5.2,8.61],['META','Meta','보유','USD',610.15,15600.52,323.93,793.8,32.86,22.2,17.61,'',9.12,-13.46],['PLTR','Palantir','보유','USD',160.38,3864.35,-103.36,33.26,45.64,56.2,23.4,'',5.0,3.9],['NFLX','Netflix','보유','USD',63.41,2603.82,69.09,155.65,31.3,15.9,27.68,'',4.65,-32.64],['ADBE','Adobe','보유','USD',239.3,931.36,11.23,92.71,35.7,10.5,40.4,'',5.58,-29.47],['UNH','UnitedHealth','보유','USD',394.15,3531.67,457.82,239.24,5.32,11.8,10.96,'',0.95,33.32],['ORCL','Oracle','보유','USD',116.1,3619.66,1188.54,245.72,34.23,17.3,10.37,'FCF 마이너스: 재투자 부담이 큼',3.1,-57.12],['RDDT','Reddit','보유','USD',95.1,183.63,-30.02,9.08,29.4,69.4,20.03,'',0.02,-53.75],['APP','AppLovin','보유','USD',391.22,1296.2,3.42,59.18,77.78,70,68.61,'CapEx 없음',0.2,-38.72],['HOOD','Robinhood','보유','USD',80.91,728.59,64.07,23.2,45.65,51.6,5.7,'금융업: DCF 부적합',0.01,-43.48],['000660','SK하이닉스','보유','KRW',1132000,7982561.79,-874314.62,1287058.55,68.04,46.8,38.63,'',11.3,-17.5],['461300','아이스크림미디어','보유','KRW',16120,2051.26,-575.34,711.31,33.81,28.7,22.07,'',7.24,7.16],['WDAY','Workday','관심','USD',192.9,464.89,3.69,12.2,12.01,13.1,10.2,'',null,null],['NTNX','Nutanix','관심','USD',58.37,159.19,-8.43,2.74,9.6,12.4,10.55,'',null,null],['CRM','Salesforce','관심','USD',213.65,1758.34,303.4,94.55,21.52,9.6,9.62,'',null,null],['NOW','ServiceNow','관심','USD',101.97,1058.36,38.08,14.93,9.68,20.9,5.72,'',null,null],['009150','삼성전기','관심','KRW',870000,657261.07,-2874.6,12207.15,9.8,9.9,7.11,'',null,null],['009540','HD한국조선해양','관심','KRW',240000,169715.12,-131007.83,50928.11,15.53,17.2,20.72,'',null,null],['329180','HD현대중공업','관심','KRW',262500,275448.54,-54385.2,30776.43,14.08,21.4,22.99,'',null,null],['067160','SOOP','관심','KRW',38350,4091.88,-2377.61,1007.32,22.29,12.9,15.66,'',null,null],['033500','동성화인텍','관심','KRW',11450,3428.27,-399.7,988.88,12.84,24.2,25.97,'',null,null]];
+let CUR='',TK='',ACC=[];
+const U=()=>CUR==='USD'?'달러':'원';
+const fp=n=>CUR==='USD'?n.toFixed(2):Math.round(n).toLocaleString('ko-KR');
+const fm=n=>Math.abs(n)<100?n.toFixed(1):Math.round(n).toLocaleString('ko-KR');
+$('tk').innerHTML+=['보유','관심'].map(g=>`<optgroup label="${g}">`+F.filter(f=>f[2]===g).map(f=>`<option value="${f[0]}">${f[0]} · ${f[1]}${f[12]?` (${f[12]}%)`:''}</option>`).join('')+'</optgroup>').join('');
+const setv=(k,a,m,b)=>{$(k+'d').value='tri';[['a',a],['m',m],['b',b]].forEach(([s,v])=>$(k+s).value=+v.toFixed(1))};
+const IND={"Software (System & Application)": [1532.0, 0.0638, 0.13, 0.209, -0.2244, 0.0063, 0.1212, 0.6403, 1.5284, 3.5841, 0.0961, 0.104, 0.1078], "Shipbuilding & Marine": [359.0, -0.0176, 0.0245, 0.0864, 0.0328, 0.1231, 0.2356, 0.3435, 0.5991, 1.1111, 0.076, 0.0806, 0.0938], "Insurance (Prop/Cas.)": [248.0, 0.0343, 0.06, 0.0985, 0.0734, 0.1383, 0.2058, 0.8389, 1.4792, 2.8229, 0.0578, 0.065, 0.0863], "Information Services": [86.0, 0.0059, 0.0599, 0.126, 0.0117, 0.0767, 0.1495, 0.9696, 2.1775, 3.2281, 0.0787, 0.0844, 0.1001], "Electronics (General)": [1481.0, 0.0548, 0.123, 0.251, -0.0515, 0.0375, 0.1008, 0.6444, 1.1351, 1.8723, 0.1115, 0.117, 0.1196], "Brokerage & Investment Banking": [623.0, 0.0321, 0.0922, 0.146, 0.0, 0.0, 0.0003, 0.0918, 0.2389, 0.9208, 0.0626, 0.0714, 0.0737], "Machinery": [1553.0, 0.0311, 0.0797, 0.161, -0.0001, 0.0646, 0.1255, 0.7182, 1.1773, 1.7824, 0.1005, 0.106, 0.1079], "Entertainment": [733.0, 0.0256, 0.0741, 0.176, -0.2333, 0.0015, 0.1174, 0.4515, 1.0166, 2.2889, 0.0826, 0.0878, 0.0911], "Semiconductor": [675.0, 0.0739, 0.18, 0.322, -0.1503, 0.0144, 0.1151, 0.4886, 0.8872, 1.6404, 0.127, 0.1322, 0.134], "Healthcare Support Services": [478.0, 0.0318, 0.0681, 0.149, -0.0261, 0.0338, 0.1016, 1.0043, 1.8531, 4.1957, 0.0732, 0.0775, 0.0841], "Education": [281.0, 0.0373, 0.0718, 0.122, -0.0045, 0.1004, 0.2131, 0.4649, 1.148, 2.4767, 0.0728, 0.0769, 0.089], "Software (Internet)": [150.0, 0.0515, 0.103, 0.213, -0.1178, 0.0407, 0.1053, 0.6886, 1.3611, 3.6624, 0.0968, 0.1035, 0.108]};
+const IMAP={"000660": "Semiconductor", "NVDA": "Semiconductor", "ADBE": "Software (System & Application)", "CRM": "Software (System & Application)", "NOW": "Software (System & Application)", "WDAY": "Software (System & Application)", "NTNX": "Software (System & Application)", "ORCL": "Software (System & Application)", "PLTR": "Software (System & Application)", "APP": "Software (System & Application)", "GOOG": "Information Services", "META": "Software (Internet)", "RDDT": "Software (Internet)", "NFLX": "Entertainment", "AAPL": "Electronics (General)", "UNH": "Healthcare Support Services", "009540": "Shipbuilding & Marine", "329180": "Shipbuilding & Marine", "HOOD": "Brokerage & Investment Banking", "BRK.B": "Insurance (Prop/Cas.)", "461300": "Education", "009150": "Electronics (General)", "067160": "Entertainment", "033500": "Machinery"};
+const CYC=new Set(['000660','009540','329180','009150','033500']);
+let HIST={};
+function pick(t){
+  const f=F.find(x=>x[0]===t),i=$('tkinfo');
+  if(!f){CUR='';TK='';i.classList.add('hide');$('seedbasis').classList.add('hide');return}
+  const [,nm,ty,cu,px,mc,nd,op,mg,g,ro,fl,w,r]=f;CUR=cu;TK=t;
+  $('rev').value=(op/(mg/100)).toFixed(1);$('m0').value=mg;$('debt').value=nd;$('sh').value=+(mc/px).toPrecision(4);$('px').value=px;
+  const gm=Math.min(Math.max(g*.6,3),35);setv('g',gm*.5,gm,gm*1.6);
+  const iN=IMAP[t],I=iN?IND[iN]:null,H=HIST[t],B=[];
+  const pc=a=>a.map(v=>(v*100).toFixed(0)).join('/')+'%';
+  B.push(`성장률: 최근 성장 ${g}%의 60%를 최빈값으로, 범위는 ×0.5~×1.6.`+(I?` 업종(${iN}) 매출성장 Q1/중앙/Q3 ${pc(I.slice(1,4))}.`:'')+(H&&H.rev_cagr!=null?` 자체 ${H.n}년 연평균 ${H.rev_cagr}%.`:''));
+  let mm=mg,ma=mg*.7,mb=Math.min(mg*1.15,90);
+  if(H&&H.m_avg!=null){
+    const cyc=CYC.has(t);
+    mm=cyc?H.m_avg:mg;
+    ma=Math.min(H.m_min,mm*.9);mb=Math.min(Math.max(H.m_max,mm*1.05),90);
+    if(mm<ma)ma=mm;if(mm>mb)mb=mm;
+    B.push(`마진: 자체 ${H.n}년 평균 ${H.m_avg}%(최저 ${H.m_min}~최고 ${H.m_max}%). `+(cyc?`사이클 업종이라 현재 ${mg}% 대신 평균을 최빈값으로 사용.`:`현재 ${mg}%를 최빈값으로, 범위는 자체 최저~최고.`)+(I?` 업종 Q1/중앙/Q3 ${pc(I.slice(4,7))}(상장사 전반이라 적자 소형주 영향이 큼).`:''));
+  }else B.push(`마진: 현재 ${mg}% 기준 ×0.7~×1.15(자체 이력 CSV 없음).`+(I?` 업종 Q1/중앙/Q3 ${pc(I.slice(4,7))}.`:'')+(CYC.has(t)?' ⚠️ 사이클 업종: 현재 마진이 정점일 수 있어 이력 CSV를 불러오는 것을 권합니다.':''));
+  setv('m',ma,mm,mb);
+  let s=Math.max(ro/(mg*.79),.3),sa=s*.7,sb=s*1.5;
+  if(I){sa=Math.min(Math.max(I[7],s*.4),s*.8);sb=Math.max(Math.min(I[9],s*3),s*1.3)}
+  setv('s',sa,s,sb);
+  B.push(`자본회전율: 자체 ROIC 환산 ${s.toFixed(1)}`+(I?`, 범위는 업종 Q1~Q3(${I[7].toFixed(1)}~${I[9].toFixed(1)}) 안에서 자체 값 부근으로 제한. 업종 중앙 ${I[8].toFixed(1)}.`:'.'));
+  if(I){const wm=I[11]*100;setv('w',wm-1,wm,wm+1.5);B.push(`WACC: 업종 자본비용 중앙 ${wm.toFixed(1)}%(Q1 ${(I[10]*100).toFixed(1)}~Q3 ${(I[12]*100).toFixed(1)}%)를 최빈값으로, -1.0~+1.5%p.`)}
+  $('seedbasis').innerHTML=B.map(x=>`<li>${x}</li>`).join('');$('seedbasis').classList.remove('hide');
+  i.textContent=`${nm} · ${ty}${w!=null?' · 포트폴리오 비중 '+w+'%':''} · 수집 종가 ${px} ${cu}. 성장률·마진·자본회전율 범위는 최근 값 기반 제안이니 직접 조정하세요.`+(fl?' ⚠️ '+fl:'');
+  i.classList.remove('hide');
+}
+function loadHist(txt){
+  const L=txt.replace(/^\uFEFF/,'').trim().split(/\r?\n/),c=L[0].split(',');let n=0;HIST={};
+  L.slice(1).forEach(l=>{const v=l.split(','),o={};c.forEach((k,i)=>o[k]=v[i]);
+    const num=k=>o[k]===''||o[k]==null?null:parseFloat(o[k]);
+    if(o.m_avg===''||o.m_avg==null)return;
+    HIST[o.ticker]={n:parseInt(o.n_years),m_avg:num('m_avg'),m_min:num('m_min'),m_max:num('m_max'),rev_cagr:num('rev_cagr')};n++});
+  $('hmsg').textContent=n+'개 종목 이력 적용됨';if(TK)pick(TK);
+}
+$('hcsv').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>loadHist(r.result);r.readAsText(f,'utf-8')};
+function record(p,lo,md,hi,up,ig){
+  const f=F.find(x=>x[0]===TK),w=f?f[12]:null,nm=f?f[1]:($('name').value||'수기');
+  ACC=ACC.filter(a=>!TK||a.t!==TK);ACC.push({t:TK||'수기',nm,cu:CUR,px:p.px,lo,md,hi,up,w,ig});acc();
+  const h=$('hold');
+  if(w!=null){
+    const d=lo/p.px-1,e=md/p.px-1;h.classList.remove('hide');
+    $('holdtxt').innerHTML=`<p>${nm}은(는) 포트폴리오의 <b>${w}%</b>이고 평가손익은 ${f[13]}%입니다.</p><p>시뮬레이션 하위 5% 가치(${fp(lo)}${U()})는 현재가 대비 <b>${(d*100).toFixed(1)}%</b>입니다. 이 값이 현실화되면 포트폴리오 전체에는 약 <b>${(w*d).toFixed(2)}%p</b> 영향입니다. 중앙값 기준으로는 현재가 대비 ${(e*100).toFixed(1)}%(포트폴리오 ${(w*e).toFixed(2)}%p)입니다.</p><p class="note">입력 가정에 따라 달라지는 참고 수치입니다. 매매 판단은 ✅ 내 규칙과 🧭 하락유형점검 관문을 거쳐 직접 하세요.</p>`;
+  }else h.classList.add('hide');
+}
+function acc(){
+  const H=['티커','종목','통화','현재가','P5(하방 후보)','중앙값','P95','저평가확률','요구 성장률(1–5년)','비중','P5 포트폴리오 영향'];
+  const nf=(a,v)=>a.cu==='USD'?v.toFixed(2):String(Math.round(v));
+  const R=ACC.map(a=>[a.t,a.nm,a.cu,nf(a,a.px),nf(a,a.lo),nf(a,a.md),nf(a,a.hi),a.up.toFixed(1)+'%',a.ig==null?'':a.ig.toFixed(1)+'%',a.w==null?'':a.w+'%',a.w==null?'':(a.w*(a.lo/a.px-1)).toFixed(2)+'%p']);
+  $('acc').innerHTML='<tr>'+H.map(h=>`<th>${h}</th>`).join('')+'</tr>'+R.map(r=>'<tr>'+r.map(v=>`<td>${v}</td>`).join('')+'</tr>').join('');
+  $('tsv').value=[H].concat(R).map(r=>r.join('\t')).join('\n');
+}
+function cp(){const t=$('tsv');t.select();try{navigator.clipboard.writeText(t.value).catch(()=>document.execCommand('copy'))}catch(e){try{document.execCommand('copy')}catch(_){}}}
+function batch(){
+  const n=$('N').value;$('N').value=4000;ACC=[];
+  F.filter(f=>f[2]==='보유'&&f[12]>0&&!/금융|마이너스/.test(f[11])).forEach(f=>{pick(f[0]);run()});
+  $('N').value=n;show(2);
+}
+const PT=[{g:[1,4,7],s:[1,1.5,2.5],w:[7,8,9]},{g:[6,12,20],s:[1.2,2,3],w:[8,9,10.5]},{g:[10,25,45],s:[1.5,2.5,4],w:[9,11,14]}];
+function ptype(i){const t=PT[i];['g','s','w'].forEach(k=>setv(k,...t[k]));$('wd').value='norm'}
+function conf(i){
+  const mu=[[.85,1.15],[.7,1.3],[.5,1.6]][i],ad=[1,2,3][i];
+  V.forEach(v=>{const m=parseFloat($(v.k+'m').value);if(isNaN(m))return;
+    const a=v.k==='w'?m-ad:m*mu[0],b=v.k==='w'?m+ad:m*mu[1];
+    $(v.k+'a').value=+a.toFixed(1);$(v.k+'b').value=+b.toFixed(1)});
+}
+const TIP_D='분포는 그냥 삼각으로 두세요. 세 숫자(비관·가장 그럴듯·낙관)를 그대로 쓰는 가장 직관적인 방식입니다. 정규는 중심값이 분명할 때(WACC), 균등은 정말 감이 없을 때만 씁니다.';
+const TIPS={'#tk':'투자시트 📥 재무수집에서 가져온 종목입니다. 고르면 아래 숫자가 자동으로 채워집니다.','#rev':'최근 12개월 매출입니다. 종목을 불러오면 자동으로 채워집니다. 단위는 억(해당 통화).','#m0':'지금 영업이익이 매출의 몇 %인지. 목표 마진까지 5년에 걸쳐 서서히 이동합니다.','#debt':'빚에서 현금을 뺀 값입니다. 마이너스면 현금이 더 많다는 뜻(순현금)이고, 기업가치에서 빼서 주주 몫을 계산합니다.','#sh':'발행된 주식 수(억주)입니다. 주주 몫 ÷ 주식수 = 주당가치.','#px':'지금 시장 가격입니다. 결과의 저평가 확률을 계산하는 기준이며, 수집일과 다르면 최신 값으로 고치세요.','#tax':'영업이익에서 내는 세금 비율입니다. 미국 약 21~25%, 한국 약 22~26%가 일반적입니다.','#tg':'10년 뒤부터 영원히 성장하는 속도입니다. 장기 경제성장률·금리(보통 2~3%)를 넘기지 마세요. 가치의 상당 부분이 여기서 나옵니다.','#N':'무작위 시뮬레이션 횟수입니다. 10,000이면 충분합니다. 많을수록 결과가 안정적이고 조금 느려집니다.','button[onclick="batch()"]':'보유 종목을 한 번에 시뮬레이션해 누적 표에 쌓습니다. 금융업과 FCF 마이너스 종목은 DCF가 맞지 않아 제외합니다.','button[onclick="ptype(0)"]':'성장률 1~7%, 자본회전 1~2.5, WACC 약 8%. 유틸리티·통신·성숙 제조업 같은 안정 기업용입니다.','button[onclick="ptype(1)"]':'성장률 6~20%, 자본회전 1.2~3, WACC 약 9%. 시장을 리드하는 우량 성장주용입니다.','button[onclick="ptype(2)"]':'성장률 10~45%, 자본회전 1.5~4, WACC 약 11%. 변동성이 큰 고성장주용입니다. 범위가 넓어 결과도 넓게 나옵니다.','button[onclick="conf(0)"]':'최빈값 기준 ±15% (WACC는 ±1%p). 내 전망에 확신이 있을 때 쓰며 결과 분포가 좁아집니다.','button[onclick="conf(1)"]':'최빈값 기준 ±30% (WACC는 ±2%p). 처음에는 이것을 추천합니다.','button[onclick="conf(2)"]':'최빈값 기준 -50%~+60% (WACC는 ±3%p). 잘 모를 때 쓰며 결과가 넓게 퍼집니다. 넓은 건 나쁘지 않고 솔직한 것입니다.','#kpis':'평균·중앙값은 시뮬레이션 주당가치의 중심입니다. 5%~95%는 시나리오 10개 중 9개가 들어오는 범위, 저평가 확률은 가치가 현재가보다 높았던 비율입니다.','#rkpis':'현재가와 가치가 같아지려면 1–5년 매출성장률이 얼마여야 하는지 거꾸로 푼 값입니다. 내 최빈 성장률보다 크면 시장이 내 전망보다 더 낙관적인 미래를 가격에 담고 있다는 뜻입니다.','#rtb':'목표 마진을 비관·최빈·낙관으로 바꿨을 때 요구 성장률이 어떻게 달라지는지 보여 줍니다. 마진에 대한 가정이 성장 기대를 얼마나 좌우하는지 확인하세요.','#c1':'막대가 높은 구간이 가장 자주 나온 가치입니다. 초록은 현재가보다 높은 구간, 주황은 낮은 구간입니다. 분포가 넓을수록 불확실하다는 뜻입니다.','#c2':'막대가 길수록 그 변수가 가치를 크게 좌우합니다. 파랑=클수록 가치↑, 빨강=클수록 가치↓. 긴 변수의 범위를 가장 신중하게 정하세요.','#tb':'중간 값(최빈값)으로 진행했을 때의 10년 재무 예측입니다. FCF=세후영업이익-재투자.','#acc':'실행한 종목이 쌓이는 표입니다. P5는 하방 후보, P95는 낙관 후보, 마지막 열은 P5가 실현될 때 포트폴리오에 주는 영향입니다.','#tsv':'아래 버튼으로 복사해 시트에 붙여넣을 수 있는 탭 구분 텍스트입니다.'};
+const tipset=(s,t)=>document.querySelectorAll(s).forEach(e=>e.dataset.tip=t);
+Object.entries(TIPS).forEach(([s,t])=>tipset(s,t));
+V.forEach(v=>{const n=v.n.split(' (')[0];
+  tipset('#'+v.k+'d',TIP_D);
+  tipset('#'+v.k+'a','비관 시나리오: '+n+'이(가) 이만큼까지 나빠질 수 있다고 보는 값. 확신이 낮을수록 더 낮게 잡으세요.');
+  tipset('#'+v.k+'m','가장 그럴듯한 값: 하나만 고른다면 이 값입니다. 삼각분포에서는 가장 자주 나오는 값, 정규분포에서는 평균입니다.');
+  tipset('#'+v.k+'b','낙관 시나리오: '+n+'이(가) 이만큼 좋아질 수 있다고 보는 값. 현실적인 상한으로 잡고 꿈 같은 값은 피하세요.')});
+document.querySelectorAll('#vars .vr>span:first-child').forEach((e,i)=>e.dataset.tip=V[i].h);
+['변수 이름과 의미입니다. 이 행의 아래 작은 글씨도 함께 읽어 보세요.',TIP_D,'이럴 수도 있다고 보는 나쁜 쪽 끝값입니다.','하나만 고른다면 이 값이라고 보는 값입니다.','좋아질 수 있다고 보는 좋은 쪽 끝값입니다.'].forEach((t,i)=>{const e=document.querySelectorAll('.vr .h')[i];if(e)e.dataset.tip=t});
+const tp=$('tip');let HELP=false;
+function toggleHelp(){HELP=!HELP;document.body.classList.toggle('help',HELP);$('hb').classList.toggle('on',HELP);$('hb').textContent=HELP?'❓ 도움말 켜짐':'❓ 도움말';tp.style.display='none'}
+function showTip(e){
+  if(!HELP)return;const el=e.target.closest&&e.target.closest('[data-tip]');
+  if(!el){tp.style.display='none';return}
+  tp.textContent=el.dataset.tip;tp.style.display='block';
+  const w=tp.offsetWidth,h=tp.offsetHeight;let x=e.clientX+14,y=e.clientY+18;
+  if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=e.clientY-h-12;
+  tp.style.left=Math.max(8,x)+'px';tp.style.top=Math.max(8,y)+'px';
+}
+document.addEventListener('mousemove',showTip);
+document.addEventListener('click',e=>{
+  if(!HELP||!matchMedia('(hover:none)').matches||e.target.closest('#hb'))return;
+  if(e.target.closest('[data-tip]')){e.preventDefault();showTip(e)}else tp.style.display='none';
+},true);
+const bt=document.querySelectorAll('#steps button');bt.forEach((b,i)=>b.onclick=()=>show(i));
+function show(i){[0,1,2].forEach(j=>{$('s'+j).classList.toggle('hide',j!==i);bt[j].classList.toggle('on',j===i)});window.scrollTo(0,0)}
+show(0);
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const rn=()=>{let u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*Math.random())};
+function draw(d,a,m,b){
+  if(b<=a)return m;
+  if(d==='uni')return a+Math.random()*(b-a);
+  if(d==='tri'){const u=Math.random(),c=(m-a)/(b-a);return u<c?a+Math.sqrt(u*(b-a)*(m-a)):b-Math.sqrt((1-u)*(b-a)*(b-m))}
+  for(let i=0;i<60;i++){const x=m+rn()*(b-a)/4;if(x>=a&&x<=b)return x}
+  return m;
+}
+// 단일 DCF: x = {g,m,s,w} (% 단위, s는 배수). 주당가치(원) 반환
+function dcf(p,x,rows){
+  const tg=p.tg,w=Math.max(x.w/100,tg+0.005),g=x.g/100,tm=x.m/100,S=Math.max(x.s,0.1);
+  let rev=p.rev,pv=0,df=1;
+  for(let y=1;y<=10;y++){
+    const gy=y<=5?g:g+(tg-g)*(y-5)/5;                 // 6~10년: 영구성장률로 선형 수렴
+    const nrev=rev*(1+gy);
+    const mar=y<=5?p.m0+(tm-p.m0)*y/5:tm;             // 마진: 5년에 걸쳐 목표로 선형 수렴
+    const op=nrev*mar,nopat=op>0?op*(1-p.tax):op;     // 적자 시 세금 환급 없음
+    const re=(nrev-rev)/S;                            // 재투자 = 매출증가분 / Sales-to-Capital
+    const fcf=nopat-re;df*=1+w;pv+=fcf/df;
+    if(rows)rows.push([y,nrev,op,nopat,re,fcf,fcf/df]);
+    rev=nrev;
+  }
+  const nT=rev*(1+tg)*tm*(1-p.tax);
+  const tv=nT*(1-tg/w)/(w-tg);                        // 터미널: ROIC=WACC 가정, 재투자율=g/ROIC
+  const ev=pv+tv/df,eq=Math.max(ev-p.debt,0);
+  if(rows){rows.ev=ev;rows.pv=pv;rows.tvpv=tv/df;rows.eq=eq}
+  return eq/p.sh;
+}
+
+// ---- 역산: 현재가와 같은 가치가 되는 1–5년 성장률 풀기 ----
+function ncdf(z){const t=1/(1+0.2316419*Math.abs(z)),d=0.3989423*Math.exp(-z*z/2),q=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-q:q}
+function cdfOf(dst,a,m,b,x){
+  if(b<=a)return x>=m?1:0;
+  if(x<=a)return 0;if(x>=b)return 1;
+  if(dst==='uni')return (x-a)/(b-a);
+  if(dst==='tri')return x<=m?(x-a)*(x-a)/((b-a)*(m-a)):1-(b-x)*(b-x)/((b-a)*(b-m));
+  const sd=(b-a)/4,za=(a-m)/sd,zb=(b-m)/sd;return (ncdf((x-m)/sd)-ncdf(za))/(ncdf(zb)-ncdf(za));
+}
+// x={m,s,w} 고정, 목표 주당가치 target에 맞는 g(%). 결과: {g} | {lt:true}(-30%로도 초과) | {gt:true}(150%로도 부족)
+function impliedG(p,x,target){
+  const f=g=>dcf(p,{g,m:x.m,s:x.s,w:x.w})-target;
+  let fp=f(-30);
+  if(fp>0)return{lt:true};
+  for(let g=-29;g<=150;g+=1){
+    const fc=f(g);
+    if(fp<=0&&fc>=0){let lo=g-1,hi=g;for(let i=0;i<50;i++){const mid=(lo+hi)/2;if(f(mid)>0)hi=mid;else lo=mid}return{g:(lo+hi)/2}}
+    fp=fc;
+  }
+  return{gt:true};
+}
+function readP(){
+  const f=id=>parseFloat($(id).value);
+  return{rev:f('rev'),m0:f('m0')/100,debt:f('debt'),sh:f('sh'),px:f('px'),tax:f('tax')/100,tg:f('tg')/100,N:Math.min(Math.max(parseInt($('N').value)||10000,500),50000)};
+}
+function pearson(a,b){const n=a.length;let ma=0,mb=0;for(let i=0;i<n;i++){ma+=a[i];mb+=b[i]}ma/=n;mb/=n;let sab=0,saa=0,sbb=0;for(let i=0;i<n;i++){const x=a[i]-ma,y=b[i]-mb;sab+=x*y;saa+=x*x;sbb+=y*y}return saa&&sbb?sab/Math.sqrt(saa*sbb):0}
+let ch1,ch2,IG=null;
+function run(){
+  const p=readP();
+  if([p.rev,p.sh,p.px].some(v=>!(v>0))||isNaN(p.debt)){alert('기준 매출, 주식수, 주가는 0보다 커야 합니다.');return}
+  const cfg=V.map(v=>({k:v.k,d:$(v.k+'d').value,a:parseFloat($(v.k+'a').value),m:parseFloat($(v.k+'m').value),b:parseFloat($(v.k+'b').value)}));
+  if(cfg.some(c=>[c.a,c.m,c.b].some(isNaN)||c.a>c.b||c.m<c.a||c.m>c.b)){alert('각 변수는 최솟값 ≤ 최빈값 ≤ 최댓값이어야 합니다.');return}
+  const N=p.N,vals=new Float64Array(N),inp=cfg.map(()=>new Float64Array(N));let wFloor=0;
+  for(let i=0;i<N;i++){const x={};cfg.forEach((c,j)=>{x[c.k]=draw(c.d,c.a,c.m,c.b);inp[j][i]=x[c.k]});if(x.w/100<p.tg+0.005)wFloor++;vals[i]=dcf(p,x)}
+  const s=Array.from(vals).sort((a,b)=>a-b),q=f=>s[Math.min(N-1,Math.floor(N*f))];
+  const mean=s.reduce((a,b)=>a+b,0)/N,sd=Math.sqrt(s.reduce((a,b)=>a+(b-mean)**2,0)/N);
+  const up=s.filter(v=>v>p.px).length/N*100,zero=s.filter(v=>v===0).length/N*100;
+  $('ttl').textContent='· '+($('name').value||'');
+  $('kpis').innerHTML=[['평균 가치',fp(mean)+U()],['중앙값',fp(q(.5))+U()],['표준편차',fp(sd)+U()],['5% – 95%',fp(q(.05))+' – '+fp(q(.95))],['현재가 '+fp(p.px)+U()+' 대비 저평가 확률',up.toFixed(1)+'%']].map(k=>`<div class="kpi"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
+  const rows=[];dcf(p,Object.fromEntries(cfg.map(c=>[c.k,c.m])),rows);
+  const tvs=rows.tvpv/rows.ev*100,msgs=[];
+  if(tvs>75)msgs.push(`기본 시나리오에서 터미널 가치가 기업가치의 ${tvs.toFixed(0)}%입니다. 영구성장 이후 가정에 대한 의존도가 큽니다.`);
+  if(wFloor)msgs.push(`${wFloor}개 시나리오에서 WACC가 영구성장률+0.5%p보다 낮아 그 값으로 보정했습니다.`);
+  if(zero>1)msgs.push(`${zero.toFixed(1)}%의 시나리오에서 자기자본가치가 0(부채가 기업가치 초과)으로 처리되었습니다.`);
+  const np=$('s2'); const un=[...document.querySelectorAll('.p3')].filter(c=>!c.checked).length;
+  if(un)msgs.push(`3P 테스트에서 확인하지 않은 항목이 ${un}개 있습니다. 내러티브를 더 검증해 보세요.`);
+  $('msgs').innerHTML=msgs.map(m=>`<p class="note">${m}</p>`).join('');
+  // 역산
+  (function(){
+    const cg=cfg.find(c=>c.k==='g'),cm=cfg.find(c=>c.k==='m'),cs=cfg.find(c=>c.k==='s'),cw=cfg.find(c=>c.k==='w');
+    const fx=(mv)=>({m:mv,s:cs.m,w:cw.m});
+    const show=r=>r.g!=null?r.g.toFixed(1)+'%':(r.lt?'−30% 이하':'150% 이상');
+    const mainR=impliedG(p,fx(cm.m),p.px);IG=mainR.g!=null?mainR.g:null;
+    const pos=mainR.g!=null?cdfOf(cg.d,cg.a,cg.m,cg.b,mainR.g)*100:null;
+    $('rkpis').innerHTML=[['현재가가 요구하는 1–5년 성장률',show(mainR)],['내 최빈 성장률',cg.m+'%'],['내 성장률 분포에서의 위치',pos==null?'-':pos.toFixed(0)+'%점'],['요구 − 최빈',mainR.g!=null?(mainR.g-cg.m>=0?'+':'')+(mainR.g-cg.m).toFixed(1)+'%p':'-']].map(k=>`<div class="kpi"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
+    const rm=[];
+    if(mainR.g!=null){
+      if(mainR.g>cg.b)rm.push(`요구 성장률이 내 낙관값(${cg.b}%)보다도 높습니다. 현재가는 내 가정보다 더 낙관적인 미래를 담고 있습니다.`);
+      else if(mainR.g<cg.a)rm.push(`요구 성장률이 내 비관값(${cg.a}%)보다도 낮습니다. 현재가는 내 가정보다 더 비관적인 미래를 담고 있습니다.`);
+      else rm.push(`요구 성장률은 내 범위 안(${cg.a}~${cg.b}%)이며, 분포의 ${pos.toFixed(0)}%점입니다. 숫자가 클수록 시장이 내 최빈 전망보다 더 높은 성장을 요구한다는 뜻입니다.`);
+    }else rm.push('성장률을 −30%~150% 범위에서 찾지 못했습니다. 마진·자본회전·WACC 가정을 확인하세요.');
+    rm.push('마진·자본회전·WACC는 최빈값으로 고정했습니다. 아래 표는 마진 가정을 바꿨을 때의 요구 성장률입니다. 성장이 가치를 늘리려면 투자수익률이 WACC보다 높아야 하므로, 자본회전이 매우 낮은 경우 값이 의미가 없을 수 있습니다.');
+    $('rmsg').innerHTML=rm.map(t=>`<p class="note">${t}</p>`).join('');
+    $('rtb').innerHTML='<tr><th>마진 가정</th><th>목표 마진</th><th>요구 1–5년 성장률</th><th>내 성장률 분포에서</th></tr>'+[['비관',cm.a],['최빈',cm.m],['낙관',cm.b]].map(([lb,mv])=>{const r=impliedG(p,fx(mv),p.px);return `<tr><td>${lb}</td><td>${mv}%</td><td>${show(r)}</td><td>${r.g!=null?(cdfOf(cg.d,cg.a,cg.m,cg.b,r.g)*100).toFixed(0)+'%점':'-'}</td></tr>`}).join('');
+  })();
+  // 히스토그램 (P1~P99 범위)
+  const lo=q(.01),hi=q(.99),B=30,st=(hi-lo)/B||1,bins=new Array(B).fill(0);
+  s.forEach(v=>{if(v>=lo&&v<=hi)bins[Math.min(B-1,Math.floor((v-lo)/st))]++});
+  const css=getComputedStyle(document.documentElement),col=n=>css.getPropertyValue(n).trim();
+  Chart.defaults.color=col('--muted');
+  ch1&&ch1.destroy();
+  ch1=new Chart($('c1'),{type:'bar',data:{labels:bins.map((_,i)=>fp(lo+st*(i+.5))),datasets:[{data:bins,backgroundColor:bins.map((_,i)=>lo+st*(i+.5)>p.px?col('--acc2'):col('--warn')),borderWidth:0,categoryPercentage:1,barPercentage:.95}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:t=>t[0].label+U()}}},scales:{x:{title:{display:true,text:'주당가치 ('+U()+') · 초록=현재가 초과'},ticks:{maxTicksLimit:8}},y:{title:{display:true,text:'빈도'}}}}});
+  // 민감도
+  const sens=cfg.map((c,j)=>[V[j].n,pearson(inp[j],vals)]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  ch2&&ch2.destroy();
+  ch2=new Chart($('c2'),{type:'bar',data:{labels:sens.map(x=>x[0]),datasets:[{data:sens.map(x=>+x[1].toFixed(3)),backgroundColor:sens.map(x=>x[1]>=0?col('--acc'):col('--bad'))}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{min:-1,max:1,title:{display:true,text:'상관계수'}}}}});
+  // 재무표
+  $('tb').innerHTML='<tr><th>연도</th><th>매출</th><th>영업이익</th><th>NOPAT</th><th>재투자</th><th>FCF</th><th>현재가치</th></tr>'+rows.map(r=>`<tr><td>${r[0]}년</td>${r.slice(1).map(v=>`<td>${fm(v)}</td>`).join('')}</tr>`).join('');
+  $('bridge').innerHTML=`10년 FCF 현재가치 ${fmt(rows.pv)} + 터미널 현재가치 ${fmt(rows.tvpv)} = 기업가치 ${fmt(rows.ev)} − 순부채 ${fmt(p.debt)} = 자기자본 ${fmt(rows.eq)} → 주당 ${fp(rows.eq/p.sh)}${U()}`;
+  const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/\n/g,'<br>');
+  const nar=[['비전',$('n1').value],['시장 기회',$('n2').value],['경쟁 우위',$('n3').value]].filter(x=>x[1].trim());
+  $('recap').innerHTML=(nar.length?nar.map(x=>`<p><b>${x[0]}</b><br>${esc(x[1])}</p>`).join(''):'<p class="note">작성된 내러티브가 없습니다.</p>')+`<p>이 이야기가 맞다면 가치의 중앙값은 주당 <b>${fp(q(.5))}${U()}</b>이며, 현재가 대비 저평가일 확률은 <b>${up.toFixed(1)}%</b>입니다.</p>`;
+  record(p,q(.05),q(.5),q(.95),up,IG);
+  show(2);
+}
+</script>
+</body>
+</html>
