@@ -4,40 +4,86 @@
 
 ---
 
-## 🧪 1. DB 설정 없이 바로 실험하기 (모의실험 / Mock 모드)
+## 🏫 수업 코드: `HC302` 고정
 
-Supabase 설정 없이도 브라우저 탭 2개(교사 창 + 학생 창)로 **화면 캡처와 원격 제어를 즉시 테스트**할 수 있습니다.
-
-1. 브라우저에서 [`classroom/teacher.html`](teacher.html)을 엽니다.
-2. 상단의 **[🧪 모의실험 모드로 바로 시작]** 버튼을 누릅니다.
-3. 수업방이 열리면 **[👉 학생 창 열기 (테스트)]** 버튼을 누릅니다 (새 창으로 학생 입장 화면이 열립니다).
-4. 학생 창에서 번호(예: `3`)와 이름(예: `홍길동`)을 넣고 **[수업 참여하기]**를 누릅니다.
-5. 학생 창이 `education.html`로 이동하고, 학생 창 좌측 하단에 `🧪 [모의실험] 수업 화면 공유 중` 뱃지가 뜹니다.
-6. **교사 창을 확인하면:**
-   - 3번 홍길동 학생 카드가 생성되고, **3초마다 학생이 보고 있는 화면이 캡처되어 교사 창에 실시간 표시**됩니다.
-   - 교사 창에서 **[주의집중 화면]**을 누르면 학생 창에 전체 화면으로 "선생님 말씀을 들어요" 덮개가 뜹니다.
-   - 교사 창에서 **[화면 다시 보기]**를 누르면 주의집중이 해제됩니다.
-   - **[안내 보내기]**나 **[페이지 함께 열기]**(예: `/fraction.html`)를 누르면 학생 창이 즉시 반응합니다!
+- 수업 코드는 **항상 `HC302`로 통일**되어 있습니다. 교사도, 학생도 코드를 따로 입력할 필요가 없습니다.
+- 학생은 [`classroom/student.html`](student.html)에서 **번호와 이름만 입력**하면 바로 입장합니다.
+- 여러 선생님이 쓰는 다중 교사 인증 / 난수 방 코드 생성 로직은 `schema.sql`과 `teacher.html` 주석(`##`)으로 보존되어 있으며, 필요 시 복원할 수 있습니다.
 
 ---
 
-## 🚀 2. 실제 교실 수업에 적용하기 (Supabase 연동)
+## 🧪 1. DB 설정 없이 바로 실험하기 (모의실험 / Mock 모드)
 
-실제 여러 학생의 스마트기기(태블릿, 크롬북, 노트북)에서 수업을 진행하려면 Supabase SQL 설정을 1회 실행해야 합니다.
+Supabase 설정 없이도 브라우저 창 2개(교사 창 + 학생 창)로 **화면 캡처와 원격 제어를 즉시 테스트**할 수 있습니다.
 
-1. [Supabase 대시보드](https://supabase.com/dashboard)에 로그인합니다.
-2. 좌측 메뉴의 **SQL Editor**로 이동합니다.
-3. `classroom/schema.sql` 파일의 전체 내용을 복사하여 붙여넣고 **Run** 버튼을 누릅니다.
-   - 교사 기본 비밀번호는 `1234`로 자동 생성됩니다.
-   - 기존 AI 게임 검토실을 사용하셨다면 검토실 교사 비밀번호가 그대로 연동됩니다.
-4. 이제 교사는 [`classroom/teacher.html`](teacher.html)에서 교사 비밀번호를 넣고 **[수업방 열기]**를 누르면 6자리 수업 코드(예: `AB12CD`)가 발급됩니다.
-5. **[입장 링크 복사]**를 눌러 학생들에게 링크를 보내거나 칠판에 수업 코드를 안내합니다.
+1. [`classroom/teacher.html`](teacher.html)을 브라우저에서 엽니다.
+2. **[🧪 모의실험 모드로 시작]** 버튼을 누릅니다.
+3. **[👉 학생 창 열기 (테스트)]** 버튼을 눌러 새 창에서 학생 입장 화면을 띄웁니다.
+4. 학생 창에서 번호(예: `3`)와 이름(예: `홍길동`)만 입력하고 **[수업 참여하기]**를 누릅니다.
+5. 학생 창이 `education.html`로 이동하고, 좌측 하단에 `🧪 [모의실험] 수업 화면 공유 중` 표시가 뜹니다.
+6. 교사 창에서 **3초마다 학생 화면이 갱신**되는 것을 확인하고, 주의집중·안내·페이지 이동 등 제어 기능을 테스트합니다.
+
+---
+
+## 🚀 2. 실제 교실 수업에 적용하기 (Supabase 연동, 1회 설정)
+
+1. [Supabase 대시보드](https://supabase.com/dashboard) → **SQL Editor** 에서 `classroom/schema.sql` 전체 내용을 붙여넣고 **Run**합니다.
+2. 그 다음 아래 SQL도 추가로 실행합니다 (고정 수업 코드 HC302 / 비밀번호 없는 단순 인증 적용):
+
+```sql
+-- 비밀번호 인증 없이 항상 통과 (다중 교사용 인증은 주석으로 묵혀둠)
+create or replace function public.classroom_admin_ok(p_code text)
+returns boolean language sql stable security definer set search_path = public
+as $$
+  select true;
+$$;
+
+-- 수업 코드는 항상 HC302 고정 (기존 방이 있으면 초기화 후 재사용)
+create or replace function public.classroom_admin_start(p_code text, p_title text default '오늘 수업')
+returns jsonb language plpgsql security definer set search_path = public
+as $$
+declare v_code text := 'HC302'; v_id uuid;
+begin
+  select id into v_id from public.classroom_sessions where room_code = v_code;
+  if v_id is null then
+    insert into public.classroom_sessions(room_code, title, status)
+    values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80), 'active')
+    returning id into v_id;
+  else
+    update public.classroom_sessions
+    set status = 'active', title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
+    where id = v_id;
+    update public.classroom_students set removed_at = now() where session_id = v_id;
+  end if;
+  return jsonb_build_object('id',v_id,'room_code',v_code,'title',p_title,'status','active');
+end;
+$$;
+```
+
+3. 이후 [`classroom/teacher.html`](teacher.html)에서 **[🚀 수업방 열기 (HC302)]** 버튼 하나로 즉시 수업을 시작합니다.
+4. 학생들은 [`classroom/student.html`](student.html)에서 **번호와 이름만 넣으면** 자동으로 HC302 수업방에 입장합니다.
 
 ---
 
 ## 🔒 3. 화면 캡처 및 개인정보 보호 원칙
 
 - **캡처 범위:** 학생이 현재 보고 있는 **우리 홈페이지 탭 화면**만 브라우저 내에서 렌더링(html2canvas)하여 전송합니다.
-- **제외 대상:** 학생 기기 OS 전체 화면, 다른 프로그램, 다른 인터넷 탭, 웹캠/카메라, 마이크는 기술적으로 절대 접근하지 않으며 캡처되지 않습니다.
-- **학생 고지:** 학생 화면 좌측 하단에 항상 "수업 화면 공유 중" 고정 표시가 뜨며, 학생이 원할 때 언제든 공유를 일시 중지하거나 수업에서 나갈 수 있습니다.
-- **데이터 보관 최소화:** 화면 캡처본은 DB에 가장 최근 1장만 덮어쓰기 형태로 보관되며, 교사가 수업을 종료하면 즉시 파기됩니다.
+- **제외 대상:** OS 전체 화면, 다른 프로그램, 다른 인터넷 탭, 웹캠/카메라, 마이크는 기술적으로 절대 접근하지 않습니다.
+- **학생 고지:** 화면 하단에 항상 "수업 화면 공유 중" 표시가 고정되며, 학생이 언제든 공유를 일시 중지하거나 나갈 수 있습니다.
+- **데이터 최소 보관:** 화면 캡처는 DB에 가장 최근 1장만 보관(덮어씌움)되며, 수업 종료 시 즉시 파기됩니다.
+
+---
+
+## ⚙️ 4. 기술 구조 (유지보수 참고)
+
+| 파일 | 역할 |
+|---|---|
+| `classroom/teacher.html` | 교사용 수업 관리 화면 (수업방 열기·학생 목록·제어) |
+| `classroom/student.html` | 학생 입장 화면 (번호·이름 입력 → HC302 자동 연결) |
+| `classroom/monitor.js` | 모든 학습 페이지에 삽입되어 화면 캡처·교사 명령 수신을 담당 |
+| `classroom/schema.sql` | Supabase 테이블·RPC 함수 정의 (1회 실행으로 설정 완료) |
+
+- **통신 방식:** Supabase RPC(Security Definer) 함수만 외부에 노출, 테이블 직접 접근 차단
+- **모의실험 통신:** `BroadcastChannel` + `localStorage` 듀얼 버스 (file:// 환경 대응)
+- **캡처 순위:** ① WebRTC 탭 직접 공유(고화질) → ② html2canvas DOM 렌더링 → ③ SVG 메타데이터 프리뷰(폴백)
+- **상대경로 로더:** `file://` / 웹서버 환경 무관하게 `monitor.js`를 항상 정확하게 로드하는 스마트 로더 사용
