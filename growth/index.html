@@ -178,7 +178,7 @@ function openStep(key){
   panel.append(mk('div',{class:'row'},[askBtn,mk('span',{id:'rem',class:'sub'})]));
   panel.append(qTog); panel.append(qWrap);
   panel.append(mk('div',{class:'row'},[gemBtn,finBtn].filter(Boolean)));
-  if(gemBtn) panel.append(mk('p',{class:'sub',text:'💎 Gem은 새 창에서 열려요. 이 활동을 설명해 달라는 문구가 자동으로 복사되니, Gem 입력칸에 붙여넣기만 해요. '+'물어볼 말 칸에 쓴 말은 같이 복사돼요. 내가 쓴 활동 글은 Gem에 보내지 않아요.'}));
+  if(gemBtn) panel.append(mk('p',{class:'sub',text:'💎 Gem은 새 창에서 열려요. 이 활동을 설명해 달라는 문구가 자동으로 복사되니, Gem 입력칸에 붙여넣기만 해요. '+'물어볼 말 칸에 쓴 말은 같이 복사돼요. 내가 쓴 활동 글은 Gem에 보내지 않아요. 내 번호가 문구 맨 앞에 붙어요.'}));
   panel.append(mk('div',{id:'msg'}));
   (st.history||[]).forEach(h=>showFeedback(h));
   if(st.final) $('#msg').append(mk('div',{class:'done-msg',text:'냈어요! 고치고 싶으면 고쳐서 다시 물어보거나 다시 내도 돼요.'}));
@@ -319,7 +319,7 @@ function gemAsk(key){
   const s=STEPS.find(x=>x.key===key), m=$('#msg'); m.replaceChildren();
   const q=((($('#q')||{}).value)||'').trim().slice(0,300);
   if(q&&(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(q)||/@/.test(q))){m.append(mk('div',{class:'hint',text:'전화번호나 이메일은 쓰지 않아요. 지우고 다시 해 봐요.'}));return}
-  const text=`[성장 발표 준비] ${s.title}\n나는 초등학교 3학년이야. 지금 "${s.title}" 활동을 하고 있어.\n활동 안내: ${s.guide}\n이 활동에서 쓰는 칸: ${labelsOf(s)}\n\n이 활동이 무엇인지, 어떻게 하면 되는지 쉬운 말로 짧게 설명해 줘. 그리고 내가 이해했는지 질문 한 가지로 확인해 줘. 내 글을 대신 써 주거나 완성된 문장을 만들어 주지는 마.${q?`\n\n내가 특별히 궁금한 것: ${q}`:''}`;
+  const text=`[${(session&&session.num)||'?'}번 · 성장 발표 준비] ${s.title}\n나는 초등학교 3학년이야. 지금 "${s.title}" 활동을 하고 있어.\n활동 안내: ${s.guide}\n이 활동에서 쓰는 칸: ${labelsOf(s)}\n\n이 활동이 무엇인지, 어떻게 하면 되는지 쉬운 말로 짧게 설명해 줘. 그리고 내가 이해했는지 질문 한 가지로 확인해 줘. 내 글을 대신 써 주거나 완성된 문장을 만들어 주지는 마.${q?`\n\n내가 특별히 궁금한 것: ${q}`:''}`;
   const ok=copyText(text);
   window.open(CONFIG.GEM_URL,'_blank','noopener');
   if(ok) m.append(mk('div',{class:'done-msg',text:'활동 설명 문구를 복사했어요. 열린 Gem 창에서 입력칸을 길게 눌러(또는 Ctrl+V) 붙여넣고 보내요.'}));
