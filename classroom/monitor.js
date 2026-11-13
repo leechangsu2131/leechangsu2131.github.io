@@ -5,7 +5,8 @@
   try{
     cfg=JSON.parse(localStorage.getItem('homeClassroom')||'null');
   }catch(_){return}
-  if(!cfg||!cfg.studentId||!cfg.room)return;
+  if(!cfg||!cfg.studentId)return;
+  cfg.room = cfg.room || 'HC302';
 
   const isMock=!!cfg.mock;
   const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';

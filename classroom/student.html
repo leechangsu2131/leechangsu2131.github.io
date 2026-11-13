@@ -7,9 +7,11 @@
   <h1>수업에 참여해요</h1>
   <p class="sub">번호와 이름을 입력하면 수업 페이지로 이동합니다.</p>
   <form id="form" class="form">
-    <label id="roomLabel">수업 코드<input id="room" maxlength="6" autocomplete="off" placeholder="예: A1B2C3"></label>
-    <div id="roomLink" class="room-link" hidden></div>
-    <label>내 번호<input id="no" inputmode="numeric" maxlength="4" placeholder="예: 3" required></label>
+    <!-- ## [수업 코드는 HC302로 항상 통일] -->
+    <div id="roomLink" class="room-link">우리 반 수업방 · <b>HC302</b></div>
+    <input type="hidden" id="room" value="HC302">
+
+    <label>내 번호<input id="no" inputmode="numeric" maxlength="4" placeholder="예: 3" required autofocus></label>
     <label>이름<input id="name" maxlength="20" autocomplete="name" placeholder="예: 홍길동" required></label>
     <button id="submitBtn">수업 참여하기</button>
   </form>
@@ -24,20 +26,14 @@
   const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
   const $=x=>document.getElementById(x);
   const q=new URLSearchParams(location.search);
-  const linkedRoom=(q.get('room')||'').trim().toUpperCase();
-  const isMockParam=q.get('mock')==='1'||linkedRoom.startsWith('MOCK');
+  const DEFAULT_ROOM='HC302';
+  const room=(q.get('room')||DEFAULT_ROOM).trim().toUpperCase();
+  const isMock=q.get('mock')==='1';
 
-  if(isMockParam){
+  $('room').value=room;
+  $('roomLink').innerHTML='우리 반 수업방 · <b>'+room+'</b>'+(isMock?' <span style="font-size:12px;color:#d8b4fe">[모의실험]</span>':'');
+  if(isMock){
     $('mockBadge').hidden=false;
-  }
-
-  if(linkedRoom){
-    $('roomLabel').hidden=true;
-    $('roomLink').hidden=false;
-    $('roomLink').textContent='수업방에 연결됨 · '+linkedRoom;
-    $('room').value=linkedRoom;
-  }else{
-    $('room').required=true;
   }
 
   function rpc(name,args){
@@ -58,12 +54,10 @@
 
   $('form').onsubmit=async e=>{
     e.preventDefault();
-    const room=(linkedRoom||$('room').value).trim().toUpperCase();
     const no=$('no').value.trim();
     const name=$('name').value.trim();
-    const isMock=isMockParam||room.startsWith('MOCK');
 
-    $('status').textContent='수업에 연결하고 있어요…';
+    $('status').textContent='우리 반 수업에 연결하고 있어요…';
 
     try{
       const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
@@ -71,14 +65,21 @@
 
       if(isMock){
         studentId='mock-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
-        const ch=new BroadcastChannel('classroom-mock-'+room);
-        ch.postMessage({
+        const joinMsg={
           type:'student_join',
           studentId,
           studentNo:no,
           studentName:name,
           time:Date.now()
-        });
+        };
+        try{
+          const ch=new BroadcastChannel('classroom-mock-'+room);
+          ch.postMessage(joinMsg);
+        }catch(_){}
+        try{
+          localStorage.setItem('classroom_mock_bus',JSON.stringify({room:room,data:joinMsg,time:Date.now()}));
+        }catch(_){}
+
         localStorage.setItem('homeClassroom',JSON.stringify({
           studentId,
           token,
@@ -94,9 +95,9 @@
         localStorage.setItem('homeClassroom',JSON.stringify({
           studentId:d.student_id,
           token,
-          room:d.room_code,
+          room:d.room_code||room,
           name,
-          no:d.student_no,
+          no:d.student_no||no,
           mock:false,
           joinedAt:Date.now()
         }));
@@ -118,10 +119,7 @@
   var s=document.createElement('script');
   s.defer=true;
   if(location.protocol==='file:'){
-    var p=location.pathname.replace(/\\/g,'/');
-    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
-    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
-    else{s.src='classroom/monitor.js';}
+    s.src='./monitor.js';
   }else{
     s.src='/classroom/monitor.js';
   }

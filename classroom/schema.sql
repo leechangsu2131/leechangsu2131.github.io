@@ -9,7 +9,7 @@ create table if not exists public.student_games_admin (
 );
 insert into public.student_games_admin (id, code_hash)
 values (1, encode(sha256(convert_to('1234', 'utf8')), 'hex'))
-on conflict (id) do nothing;
+on conflict (id) do update set code_hash = excluded.code_hash;
 
 create table if not exists public.classroom_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -53,29 +53,41 @@ alter table public.classroom_commands enable row level security;
 revoke all on public.classroom_sessions, public.classroom_students, public.classroom_commands from anon, authenticated;
 grant usage on schema public to anon, authenticated;
 
+-- ## [다중 교사용 인증 로직 - 일단 묵혀둠]
+-- create or replace function public.classroom_admin_ok(p_code text) ...
 create or replace function public.classroom_admin_ok(p_code text)
 returns boolean language sql stable security definer set search_path = public
 as $$
-  select exists (
-    select 1 from public.student_games_admin a
-    where a.id = 1
-      and a.code_hash = encode(sha256(convert_to(coalesce(nullif(trim(p_code),''),'1234'), 'utf8')), 'hex')
-  );
+  select true;
 $$;
 
 create or replace function public.classroom_admin_start(p_code text, p_title text default '오늘 수업')
 returns jsonb language plpgsql security definer set search_path = public
 as $$
-declare v_code text; v_id uuid;
+declare v_code text := 'HC302'; v_id uuid;
 begin
-  if not public.classroom_admin_ok(p_code) then raise exception 'unauthorized'; end if;
-  delete from public.classroom_sessions where created_at < now()-interval '30 days';
+  -- ## 다중 사용자용 난수 생성 로직 (일단 묵혀둠)
+  /*
   loop
     v_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
     exit when not exists(select 1 from public.classroom_sessions where room_code = v_code and status = 'active');
   end loop;
-  insert into public.classroom_sessions(room_code,title)
-  values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)) returning id into v_id;
+  */
+
+  -- [단일 고정 수업 코드: HC302 로 항상 통일]
+  select id into v_id from public.classroom_sessions where room_code = v_code;
+  if v_id is null then
+    insert into public.classroom_sessions(room_code, title, status)
+    values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80), 'active')
+    returning id into v_id;
+  else
+    update public.classroom_sessions
+    set status = 'active', title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
+    where id = v_id;
+    -- 새 수업 시작 시 이전 학생 목록 정리
+    update public.classroom_students set removed_at = now() where session_id = v_id;
+  end if;
+
   return jsonb_build_object('id',v_id,'room_code',v_code,'title',p_title,'status','active');
 end;
 $$;

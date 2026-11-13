@@ -4,19 +4,25 @@
 :root{color-scheme:dark;--bg:#101014;--panel:#1c1c22;--line:#34343d;--ink:#f5f5f7;--sub:#a1a1aa;--blue:#64d2ff;--green:#30d158;--orange:#ff9f0a;--red:#ff453a;--purple:#bf5af2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Apple SD Gothic Neo",sans-serif}.wrap{max-width:1280px;margin:auto;padding:26px 18px 60px}h1{margin:0;font-size:27px;letter-spacing:-.04em}.sub{color:var(--sub);margin:5px 0 20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}input,button,select{font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#111116}input{min-width:170px}button{cursor:pointer;background:#292930}button:hover{filter:brightness(1.2)}button.primary{background:#fff;color:#111;border-color:#fff;font-weight:700}button.mock-btn{background:#5856d6;color:#fff;border-color:#7a79f0;font-weight:700}button.open-student{background:#30d158;color:#052e16;border-color:#30d158;font-weight:700}.danger{border-color:#8b332e;color:#ff827b}.status{min-height:21px;color:var(--sub);margin:8px 0 0}.room{font-size:27px;letter-spacing:.16em;font-weight:800;color:var(--blue)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.student{overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:16px}.student img{width:100%;aspect-ratio:5/3;object-fit:contain;background:#09090b;display:block}.preview-empty{aspect-ratio:5/3;background:#09090b;color:var(--sub);display:grid;place-items:center;font-size:14px;text-align:center;padding:12px}.student .body{padding:12px}.name{font-weight:750;font-size:17px}.muted{color:var(--sub);font-size:13px}.pill{display:inline-block;margin-left:7px;padding:2px 8px;border-radius:99px;font-size:12px}.on{background:#16351f;color:#75e38c}.off{background:#402b12;color:#ffc15c}.away{background:#402221;color:#ff8c84}.mock-tag{background:#2a1b4e;color:#d8b4fe;border:1px solid #7c3aed;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700}.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.hide{display:none!important}.hint{font-size:13px;color:var(--sub)}a{color:var(--blue)}@media(max-width:600px){.wrap{padding:18px 12px}.row>*{flex:1}.room{font-size:23px}}
 </style></head><body><main class="wrap"><h1>🧑‍🏫 수업 화면 관리</h1><p class="sub">참여한 학생의 홈페이지 탭을 3초 간격으로 확인하고 수업 페이지 안에서 실시간 안내와 제어를 실행합니다.</p>
 <section id="setup" class="panel">
-  <div style="margin-bottom:14px;padding:12px;border:1px dashed #7a79f0;background:#17152b;border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div><b>🧪 DB 없이 바로 실험해보기 (모의실험)</b><br><span class="hint">Supabase DB 설정 없이 브라우저 창 2개(교사 창 + 학생 창)로 화면 전송과 제어를 즉시 확인합니다.</span></div>
-    <button id="startMock" class="mock-btn">🧪 모의실험 모드로 바로 시작</button>
-  </div>
-  <div class="row">
-    <input id="pw" type="password" autocomplete="current-password" placeholder="교사 비밀번호 (미입력 시 1234)">
-    <input id="title" maxlength="80" value="오늘 수업" placeholder="수업 이름">
-    <button id="start" class="primary">수업방 열기</button>
-    <input id="roomIn" maxlength="6" placeholder="기존 수업 코드">
-    <button id="join">기존 방 열기</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-size:18px;font-weight:750">🏫 우리 반 수업방: <span style="color:var(--blue);letter-spacing:1px">HC302</span></div>
+      <div class="hint">선생님 수업 코드는 <b>HC302</b>로 항상 통일되어 있습니다. 학생들도 이 코드로 바로 입장합니다.</div>
+    </div>
+    <div class="row">
+      <button id="start" class="primary" style="font-size:16px;padding:12px 20px">🚀 수업방 열기 (HC302)</button>
+      <button id="startMock" class="mock-btn" style="font-size:14px;padding:12px 16px">🧪 모의실험 모드로 시작</button>
+    </div>
   </div>
   <div id="setupMsg" class="status"></div>
-  <p class="hint">실제 DB 연동 시: Supabase SQL Editor에서 <code>classroom/schema.sql</code>을 실행해야 합니다. 교사 비밀번호는 AI 게임 검토실과 공유됩니다(기본값 1234).</p>
+
+  <!-- ## [다중 교사/비밀번호 설정 - 일단 묵혀둠]
+  <div class="row" style="margin-top:14px;opacity:0.6">
+    <input id="pw" type="password" placeholder="교사 비밀번호 (기본: 1234)">
+    <input id="title" maxlength="80" value="오늘 수업" placeholder="수업 이름">
+    <input id="roomIn" maxlength="6" value="HC302" placeholder="수업 코드">
+  </div>
+  -->
 </section>
 
 <section id="active" class="hide">
@@ -212,41 +218,27 @@
     await rpc('classroom_admin_command',{p_code:code,p_room:room,p_student:student,p_kind:kind,p_payload:payload});
   }
 
+  const DEFAULT_ROOM = 'HC302';
+
   $('startMock').onclick=()=>{
-    const mockCode='MOCK'+Math.floor(10+Math.random()*90);
-    openRoom(mockCode,true);
+    openRoom(DEFAULT_ROOM,true);
   };
 
   $('openStudentTab').onclick=()=>{
     const u=new URL('student.html',location.href);
-    u.searchParams.set('room',room);
+    u.searchParams.set('room',room||DEFAULT_ROOM);
     if(isMock)u.searchParams.set('mock','1');
     window.open(u.href,'_blank','width=1000,height=750');
   };
 
   $('start').onclick=async()=>{
-    code=$('pw').value.trim()||'1234';
+    code='1234';
     try{
-      msg('수업방을 열고 있습니다… (비밀번호: '+(code==='1234'?'기본 1234 적용':'입력값')+')');
-      const d=await rpc('classroom_admin_start',{p_code:code,p_title:$('title').value});
-      await openRoom(d.room_code,false);
+      msg('우리 반 수업방(HC302)을 열고 있습니다…');
+      const d=await rpc('classroom_admin_start',{p_code:code,p_title:'오늘 수업'});
+      await openRoom((d&&d.room_code)||DEFAULT_ROOM,false);
     }catch(e){
-      msg('수업방 열기 실패: '+(e.message||e)+'\n(비밀번호가 다르거나 Supabase SQL Editor에서 schema.sql이 아직 실행되지 않았습니다.)');
-    }
-  };
-
-  $('join').onclick=async()=>{
-    code=$('pw').value.trim()||'1234';
-    const rIn=$('roomIn').value.trim();
-    if(!rIn){msg('수업 코드를 입력하세요.');return}
-    if(rIn.toUpperCase().startsWith('MOCK')){
-      openRoom(rIn,true);
-      return;
-    }
-    try{
-      await openRoom(rIn,false);
-    }catch(e){
-      msg('수업방 열기 실패: '+(e.message||e));
+      msg('수업방 열기 실패: '+(e.message||e)+'\n(Supabase SQL Editor에서 업데이트된 schema.sql을 실행해 주세요.)');
     }
   };
 
