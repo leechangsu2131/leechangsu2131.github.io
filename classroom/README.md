@@ -65,6 +65,7 @@ insert into public.classroom_teachers(email) values ('교사이메일@example.co
 | ✅ 완전 배포 | 열림 | 열림 | 채점·검토를 마친 뒤 |
 
 - 단계는 DB의 `unit_test_release`(`exam_open`, `released`)에 저장되고, 바꾸는 일은 교사 계정만 할 수 있습니다(`unit_test_release_set`).
+- 단원평가 목록(`tests/index.html`)에서는 열리지 않은 시험·오답노트 카드가 아예 보이지 않습니다. 주소를 직접 열어도 잠금 화면이 나옵니다.
 - 오답노트·점수의 개인별 조회는 DB가 따로 막고, 시험지·오답노트 화면은 `tests/release-gate.js`가 가립니다.
 - 상태를 확인하지 못하면 대부분의 시험은 열리고, 시험 전인 단원(분수 시험지·오답노트·점수)은 잠긴 채로 남습니다(`data-default="hidden"`).
 - **한계:** 학생 화면 잠금은 화면을 가리는 방식입니다. 문항 파일은 공개 저장소에 있으므로, 문항 자체의 유출까지 막으려면 시험 당일까지 해당 파일을 저장소에 올리지 않아야 합니다.

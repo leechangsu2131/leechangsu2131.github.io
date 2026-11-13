@@ -48,25 +48,31 @@
   }
 
   if (role === 'hub') {
+    // 목록 화면: 열리지 않은 시험·오답노트는 카드를 아예 보이지 않게 합니다.
+    var pre = document.createElement('style');
+    pre.textContent = 'a.card[data-default="hidden"]{display:none}'; // 확인 전에 잠깐 보이는 것 방지
+    document.head.appendChild(pre);
     function markHub(rows) {
       var by = {};
       (rows || []).forEach(function (x) { by[x.test_id] = x; });
       [].forEach.call(document.querySelectorAll('a.card[href]'), function (a) {
         var m = /^(student|notebook|score)_(.+)\.html$/.exec(a.getAttribute('href'));
         if (!m) return;
-        var stage = stageOf(by[m[2]]);
-        if (allowed(stage, m[1] === 'student' ? 'exam' : 'notebook')) return;
-        a.style.opacity = '.55';
-        a.style.filter = 'grayscale(.6)';
-        var f = a.querySelector('.card-footer');
-        if (f) f.innerHTML = '<span>🔒 ' + (m[1] === 'student' ? '아직 열리지 않았어요' : '시험 후에 열려요') + '</span>';
-        a.addEventListener('click', function (e) {
-          e.preventDefault();
-          alert(m[1] === 'student' ? '아직 열리지 않은 시험이에요. 선생님이 열어 주실 때까지 기다려 주세요.' : '오답노트와 점수는 선생님이 열어 주시면 볼 수 있어요.');
-        });
+        var d = a.getAttribute('data-default') || 'full';
+        var row = by[m[2]];
+        var stage = row ? (row.released ? 'full' : (row.exam_open === false ? 'hidden' : 'exam')) : d;
+        if (allowed(stage, m[1] === 'student' ? 'exam' : 'notebook')) { a.style.display = 'flex'; return; }
+        a.style.display = 'none';
+      });
+      // 카드가 모두 숨겨진 묶음은 제목도 함께 숨깁니다.
+      [].forEach.call(document.querySelectorAll('h2.section-title'), function (h) {
+        var g = h.nextElementSibling;
+        if (!g || !g.classList.contains('grid')) return;
+        var shown = [].some.call(g.children, function (c) { return c.style.display !== 'none'; });
+        if (!shown) { h.style.display = 'none'; g.style.display = 'none'; }
       });
     }
-    var run = function () { fetchStatus().then(markHub).catch(function () {}); };
+    var run = function () { fetchStatus().then(markHub).catch(function () { markHub(null); }); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
     return;
   }
