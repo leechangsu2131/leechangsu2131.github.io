@@ -186,7 +186,7 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
   function wrap(h){
     if(/<head[^>]*>/i.test(h))return h.replace(/<head[^>]*>/i,function(m){return m+GUARD});
     if(/<html[^>]*>/i.test(h))return h.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+h+"</body></html>";
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+h+"<script src="/classroom/monitor.js" defer></script></body></html>";
   }
   $("list").onclick=function(e){
     var b=e.target.closest("button[data-a]");if(!b)return;
@@ -202,5 +202,5 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
   $("mc").onclick=function(){$("modal").classList.remove("show");$("frame").srcdoc=""};
 })();
 </script>
-</body>
+<script src="/classroom/monitor.js" defer></script></body>
 </html>

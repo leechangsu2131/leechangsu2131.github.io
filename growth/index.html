@@ -362,5 +362,5 @@ $('#logout').addEventListener('click',()=>{session=null;cur=null;try{sessionStor
 // 같은 탭에서 새로고침하면 다시 입력하지 않아도 된다(탭을 닫으면 사라짐).
 try{ const t=JSON.parse(sessionStorage.getItem('growthTutor2:me')||'null'); if(t&&t.num&&t.name) login(t.num,t.name); }catch{}
 </script>
-</body>
+<script src="/classroom/monitor.js" defer></script></body>
 </html>

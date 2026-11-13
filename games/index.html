@@ -264,7 +264,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   function wrap(html){
     if(/<head[^>]*>/i.test(html))return html.replace(/<head[^>]*>/i,function(m){return m+GUARD});
     if(/<html[^>]*>/i.test(html))return html.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"</body></html>";
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"<script src="/classroom/monitor.js" defer></script></body></html>";
   }
   var curId="";
   function open(t,a,html,id){
@@ -363,5 +363,5 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   load();
 })();
 </script>
-</body>
+<script src="/classroom/monitor.js" defer></script></body>
 </html>

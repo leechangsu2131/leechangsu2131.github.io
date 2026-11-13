@@ -131,5 +131,5 @@ $('#btnLookup').onclick = lookup;
 $('#lkName').addEventListener('keydown', e => { if(e.key==='Enter') lookup(); });
 $('#btnBack').onclick = () => { $('#res').hidden = true; $('#lkCard').hidden = false; $('#lkNo').value=''; $('#lkName').value=''; try{ localStorage.removeItem('ut-score-me'); }catch(e){} };
 </script>
-</body>
+<script src="/classroom/monitor.js" defer></script></body>
 </html>
