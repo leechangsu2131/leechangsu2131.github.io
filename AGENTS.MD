@@ -35,7 +35,7 @@
 | 📚 교육 | 분수 막대·수직선 조작판 | `분수_막대수직선_조작판.html` |
 | 📚 교육 | 분수 연습 | `fraction-practice.html` |
 | 📚 교육 | 분수 손가락 축구 (바둑돌 튕기기 + 분수 바꿔 쓰기) | `분수_손가락축구.html` |
-| 🏫 학교 | 학교정보 안내 (시간표·급식·학사일정·학교정보, NEIS + Vercel API) | `school.html`, `api/*.js` |
+| 🏫 학교 | 학교정보 안내 (시간표·급식·학사일정·공지사항·가정통신문, NEIS API + GitHub Actions 매일 1회 크롤링) | `school.html`, `scripts/crawl_notices.py`, `data/notices.json`, `.github/workflows/crawl_notices.yml` |
 | 🏫 교실 | 실시간 학생 화면 모니터링·페이지 제어 (Supabase RPC, 3초 화면 캡처) | `classroom/teacher.html`, `classroom/student.html`, `classroom/monitor.js`, `classroom/schema.sql` |
 | 📚 교육 (3학년 사회) | 옛날 살아보기 (한 사람의 일생 체험) | `oldlife.html` |
 | 📚 교육 (3학년 사회) | 윷놀이 대결 (온라인 방 대전) | `yut/index.html` |
@@ -591,3 +591,28 @@
 
 *Last updated: 2025*  
 *Maintained by: leechangsu*
+
+
+---
+
+### 17. 학교정보 안내 및 학교 게시판 자동 연동 (`school.html`)
+
+**대상:** 초등학생 및 학부모, 교직원
+
+**현재 기능**
+- **5개 탭 통합 대시보드:**
+  - 📚 **시간표:** 나이스 API 기반 요일별·주간별 교시 시간표 조회 및 학급 선택 (LocalStorage 저장)
+  - 🍚 **급식:** 식단 및 알레르기 유발 물질 표시, 개인별 알레르기 설정(토글 칩) 하이라이트 경고
+  - 📅 **학사일정:** 월별 학사일정 캘린더 및 휴업일/공휴일 시각화
+  - 📢 **공지 (신규):** 학교 홈페이지(화천초등학교) 공지사항 및 가정통신문 자동 수집 피드
+    - **GitHub Actions (`.github/workflows/crawl_notices.yml`):** 매일 오전 7시 KST 정기 크롤링 (`scripts/crawl_notices.py`) 실행 -> `data/notices.json` 자동 갱신 및 Git 커밋
+    - **스마트 UI:** 전체 / 공지사항 / 가정통신문 필터링 칩, 최신 등록 글 `NEW` 뱃지 (4일 이내), 고정/통합공지 뱃지, 등록일·작성자·조회수 메타 정보, 클릭 시 원문 새 탭 이동
+  - 🏫 **학교정보:** 기본 정보, 주소, 전화 바로걸기, 홈페이지 링크
+
+**아키텍처 강점**
+- **Zero Server / Zero Cost:** 백엔드 웹 서버나 별도 데이터베이스 없이, GitHub Actions와 GitHub Pages 정적 호스팅만으로 100% 동작
+- **재사용성 높은 스킬:** `homepage-school-board` 스킬로 규격화되어 타 학교 홈페이지 연동 시 설정값만 변경하여 확장 가능
+
+**청사진 (업그레이드 방향)**
+- [ ] 키워드 검색 (예: "방학", "현장학습", "수학여행") 필터 추가
+- [ ] 새 공지 등록 시 FCM 웹 푸시 알림 연동

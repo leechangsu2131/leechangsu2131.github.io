@@ -116,6 +116,25 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .info dd{margin:0;word-break:break-all}
 .info a{color:var(--green-d)}
 .notice{font-size:12px;color:var(--muted);padding:4px 16px 0;line-height:1.6}
+
+/* 공지사항 탭 */
+.n-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.n-updated{font-size:12px;color:var(--muted)}
+.n-link-btn{font-size:12px;font-weight:700;color:var(--green-d);text-decoration:none;background:var(--mint);padding:5px 11px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.n-filter{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.n-btn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--ink)}
+.n-btn[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.n-item{display:block;text-decoration:none;color:inherit;padding:12px 2px;border-bottom:1px solid var(--line);transition:background .15s}
+.n-item:last-child{border-bottom:0}
+.n-item:hover{background:rgba(47,118,88,.04)}
+.n-item-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.n-tag{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--bg);color:var(--muted)}
+.n-tag.notice{background:#e8f4fc;color:#1e6bb8}
+.n-tag.letter{background:#fdf2e9;color:#c05621}
+.n-tag.new{background:var(--red-bg);color:var(--red)}
+.n-tag.fixed{background:#e7f3eb;color:var(--green-d)}
+.n-item-title{font-size:15px;font-weight:700;line-height:1.45;color:var(--ink);margin:0 0 4px}
+.n-item-meta{display:flex;gap:10px;font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -135,6 +154,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
     <button role="tab" data-tab="timetable" aria-selected="true"><span class="ic">📚</span>시간표</button>
     <button role="tab" data-tab="meal" aria-selected="false"><span class="ic">🍚</span>급식</button>
     <button role="tab" data-tab="schedule" aria-selected="false"><span class="ic">📅</span>학사일정</button>
+    <button role="tab" data-tab="notice" aria-selected="false"><span class="ic">📢</span>공지</button>
     <button role="tab" data-tab="school" aria-selected="false"><span class="ic">🏫</span>학교정보</button>
   </nav>
 
@@ -161,6 +181,21 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
     <section class="pane" id="pane-schedule">
       <div class="months" id="months"></div>
       <div class="card" id="evBox"><div class="state"><strong>학사일정을 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></div>
+    </section>
+
+    <section class="pane" id="pane-notice">
+      <div class="n-header">
+        <span class="n-updated" id="noticeUpdated">매일 아침 7시 자동 업데이트</span>
+        <a class="n-link-btn" id="schoolNoticeLink" href="https://school.gyo6.net/hc/main.do?sysId=hc" target="_blank" rel="noopener">학교 홈페이지 ↗</a>
+      </div>
+      <div class="n-filter">
+        <button class="n-btn" id="nFilterAll" aria-pressed="true" data-b="all">전체</button>
+        <button class="n-btn" data-b="notice" aria-pressed="false">공지사항</button>
+        <button class="n-btn" data-b="letter" aria-pressed="false">가정통신문</button>
+      </div>
+      <div class="card" id="noticeBox">
+        <div class="state"><strong>공지사항을 불러오고 있어요.</strong>잠시만 기다려 주세요.</div>
+      </div>
     </section>
 
     <section class="pane" id="pane-school">
@@ -207,7 +242,7 @@ paintClass(); if(!cls) togglePicker(true);
 /* 탭 */
 let curTab='timetable';
 function showTab(t){curTab=t;$$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));
-  if(t==='timetable')loadTimetable(); if(t==='meal')loadMeal(); if(t==='schedule')loadSchedule(); if(t==='school')loadSchool(); window.scrollTo({top:0})}
+  if(t==='timetable')loadTimetable(); if(t==='meal')loadMeal(); if(t==='schedule')loadSchedule(); if(t==='notice')loadNotices(); if(t==='school')loadSchool(); window.scrollTo({top:0})}
 $$('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
 /* 주 이동 + 요일 선택 (시간표·급식 공유) */
@@ -297,6 +332,93 @@ function renderSchedule(){
     const dt=new Date(+d.slice(0,4),+d.slice(4,6)-1,+d.slice(6,8));const evs=byDate[d];
     const off=evs.some(e=>/휴업|공휴/.test(e.dayType)); const past=d<ymd(today);
     return `<div class="ev${off?' off':''}${past?' past':''}${dt.getDay()===6?' sat':''}${dt.getDay()===0?' sun':''}"><div class="d"><b>${dt.getDate()}</b><small>${WD[dt.getDay()]}</small></div><div><div class="n">${evs.map(e=>esc(e.name)).join(' · ')}</div>${evs.some(e=>e.dayType&&e.dayType!=='해당없음')?`<div class="t">${esc(evs.map(e=>e.dayType).filter(x=>x&&x!=='해당없음').join(', '))}</div>`:''}</div></div>`}).join('');
+}
+
+/* 공지사항 & 가정통신문 */
+let noticeData=null, curNoticeFilter='all';
+async function loadNotices(){
+  const box=$('#noticeBox');
+  if(noticeData){renderNotices();return}
+  box.innerHTML='<div class="state"><strong>공지사항을 불러오고 있어요.</strong>잠시만 기다려 주세요.</div>';
+  try{
+    const r=await fetch('data/notices.json?v='+Date.now());
+    if(!r.ok)throw new Error('공지 데이터를 찾지 못했어요 ('+r.status+')');
+    noticeData=await r.json();
+    if(noticeData.updated_at)$('#noticeUpdated').textContent='최근 업데이트: '+noticeData.updated_at;
+    if(noticeData.school_url)$('#schoolNoticeLink').href=noticeData.school_url;
+    renderNotices();
+  }catch(e){
+    fail(box,'공지사항을 불러오지 못했어요.',e);
+  }
+}
+
+$$('.n-filter .n-btn').forEach(b=>{
+  b.onclick=()=>{
+    curNoticeFilter=b.dataset.b;
+    $$('.n-filter .n-btn').forEach(x=>x.setAttribute('aria-pressed',x.dataset.b===curNoticeFilter));
+    renderNotices();
+  };
+});
+
+function isRecentPost(postedAt){
+  if(!postedAt)return false;
+  try{
+    const parts=postedAt.split('-');
+    const pDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
+    const diffDays=(today-pDate)/(1000*60*60*24);
+    return diffDays>=0 && diffDays<=4;
+  }catch(e){return false}
+}
+
+function renderNotices(){
+  const box=$('#noticeBox');
+  if(!noticeData||!noticeData.boards){
+    box.innerHTML='<div class="state"><strong>등록된 공지사항이 없어요.</strong></div>';
+    return;
+  }
+  let posts=[];
+  noticeData.boards.forEach(b=>{
+    if(curNoticeFilter==='all'||curNoticeFilter===b.board_id){
+      (b.posts||[]).forEach(p=>{
+        posts.push({...p, board_name:b.board_name, board_type:b.board_id});
+      });
+    }
+  });
+
+  if(!posts.length){
+    box.innerHTML='<div class="state"><strong>해당 게시판에 게시글이 없어요.</strong></div>';
+    return;
+  }
+
+  // 중복 제거 및 등록일 내림차순 정렬
+  const seen=new Set();
+  const uniquePosts=[];
+  posts.forEach(p=>{
+    if(!seen.has(p.post_id)){
+      seen.add(p.post_id);
+      uniquePosts.push(p);
+    }
+  });
+  uniquePosts.sort((a,b)=>(b.posted_at||'').localeCompare(a.posted_at||''));
+
+  box.innerHTML=uniquePosts.map(p=>{
+    const isNew=isRecentPost(p.posted_at);
+    const isFixed=p.category && (p.category.includes('공지') || p.category==='통합공지');
+    const boardTagCls=p.board_type==='letter'?'letter':'notice';
+    return `<a class="n-item" href="${esc(p.url)}" target="_blank" rel="noopener">
+      <div class="n-item-top">
+        <span class="n-tag ${boardTagCls}">${esc(p.board_name)}</span>
+        ${isFixed?`<span class="n-tag fixed">${esc(p.category)}</span>`:''}
+        ${isNew?'<span class="n-tag new">NEW</span>':''}
+      </div>
+      <div class="n-item-title">${esc(p.title)}</div>
+      <div class="n-item-meta">
+        <span>📅 ${esc(p.posted_at||'-')}</span>
+        ${p.author?`<span>✍️ ${esc(p.author)}</span>`:''}
+        ${p.views?`<span>👀 ${esc(p.views)}</span>`:''}
+      </div>
+    </a>`;
+  }).join('');
 }
 
 /* 학교정보 */

@@ -1,0 +1,38 @@
+name: Crawl School Notices
+
+on:
+  schedule:
+    # 매일 KST 07:00 실행 (UTC 22:00)
+    - cron: '0 22 * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Crawler
+        run: |
+          python scripts/crawl_notices.py
+
+      - name: Commit and Push if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/notices.json
+          if git diff --staged --quiet; then
+            echo "No changes in notices.json"
+          else
+            git commit -m "chore(data): 학교 공지사항 자동 갱신 [skip ci]"
+            git push
+          fi
