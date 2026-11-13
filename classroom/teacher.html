@@ -17,6 +17,25 @@
   <span class="muted" id="whoami"></span>
   <button id="logout" style="padding:6px 10px;font-size:13px">로그아웃</button>
 </div>
+<section id="exams" class="panel hide">
+  <style>
+    .exam-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+    .exam-row:first-of-type{border-top:0}
+    .exam-name{font-weight:700}
+    .seg{display:flex;gap:6px;flex-wrap:wrap}
+    .seg button{padding:7px 11px;font-size:13px}
+    .seg button.cur-hidden{background:#402221;border-color:#ff453a;color:#ff9a93;font-weight:700}
+    .seg button.cur-exam{background:#402b12;border-color:#ff9f0a;color:#ffc15c;font-weight:700}
+    .seg button.cur-full{background:#16351f;border-color:#30d158;color:#75e38c;font-weight:700}
+  </style>
+  <div class="row" style="justify-content:space-between">
+    <b>📝 단원평가 배포 관리</b>
+    <button id="examReload" style="padding:6px 10px;font-size:13px">새로고침</button>
+  </div>
+  <div class="hint" style="margin:4px 0 6px">🔒 <b>미배포</b>: 시험지·오답노트·점수 모두 잠김 &nbsp;·&nbsp; 📝 <b>시험 배포</b>: 시험지만 열림(오답노트 미배포) &nbsp;·&nbsp; ✅ <b>완전 배포</b>: 모두 열림</div>
+  <div id="examList"></div>
+  <div id="examMsg" class="status"></div>
+</section>
 <section id="setup" class="panel hide">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
     <div>
@@ -132,12 +151,15 @@
     $('setup').classList.add('hide');
     $('active').classList.add('hide');
     $('authBar').classList.add('hide');
+    $('exams').classList.add('hide');
     $('loginMsg').textContent=m||'';
   }
   function showApp(){
     $('login').classList.add('hide');
     $('authBar').classList.remove('hide');
     $('whoami').textContent=auth&&auth.email?auth.email:'교사';
+    $('exams').classList.remove('hide');
+    loadExams();
     if(room){$('active').classList.remove('hide')}else{$('setup').classList.remove('hide')}
   }
 
@@ -163,6 +185,46 @@
 
   function msg(s,where='setupMsg'){ $(where).textContent=s }
   function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+
+  // ---- 단원평가 배포 관리 ----
+  const EXAMS=[
+    ['math-3-2-2-basic1','수학 2단원 나눗셈 (기본1)'],
+    ['math-3-2-4-basic4','수학 4단원 분수 (기본4)'],
+    ['soc-3-2-1-1','사회 1단원 (1) 사회 변화로 달라진 생활'],
+    ['soc-3-2-1-2','사회 1단원 (2) 다양한 문화 이해와 존중'],
+    ['soc-3-2-1-process','사회 1단원 과정 중심 평가'],
+    ['soc-3-2-2-process','사회 2단원 과정 중심 평가']
+  ];
+  const STAGES=[['hidden','🔒 미배포'],['exam','📝 시험 배포 · 오답노트 미배포'],['full','✅ 완전 배포']];
+  let examRows=[];
+  function stageOf(r){return !r?'full':r.released?'full':r.exam_open===false?'hidden':'exam'}
+  function renderExams(){
+    const by={};examRows.forEach(r=>by[r.test_id]=r);
+    const known=new Set(EXAMS.map(e=>e[0]));
+    const list=EXAMS.concat(examRows.filter(r=>!known.has(r.test_id)).map(r=>[r.test_id,r.test_id]));
+    $('examList').innerHTML=list.map(([id,name])=>{
+      const cur=stageOf(by[id]);
+      return '<div class="exam-row"><div class="exam-name">'+esc(name)+'</div><div class="seg" data-id="'+esc(id)+'">'
+        +STAGES.map(([k,l])=>'<button data-stage="'+k+'"'+(k===cur?' class="cur-'+k+'" aria-pressed="true"':'')+'>'+l+'</button>').join('')
+        +'</div></div>';
+    }).join('');
+  }
+  async function loadExams(){
+    try{examRows=await rpc('unit_test_release_status',{})||[];renderExams();msg('','examMsg')}
+    catch(e){if(e.message!=='unauthorized')msg('배포 상태를 불러오지 못했습니다: '+(e.message||e),'examMsg')}
+  }
+  $('examList').onclick=async e=>{
+    const b=e.target.closest('button[data-stage]');if(!b)return;
+    const id=b.parentNode.dataset.id,stage=b.dataset.stage;
+    const name=(EXAMS.find(x=>x[0]===id)||[id,id])[1];
+    if(stage==='full'&&!confirm('「'+name+'」의 오답노트와 점수를 모든 학생에게 공개할까요?'))return;
+    if(stage==='hidden'&&!confirm('「'+name+'」을(를) 미배포로 바꿀까요? 학생은 시험지와 오답노트를 볼 수 없게 됩니다.'))return;
+    b.disabled=true;
+    try{examRows=await rpc('unit_test_release_set',{p_test_id:id,p_stage:stage})||[];renderExams();msg('「'+name+'」→ '+(STAGES.find(x=>x[0]===stage)||[])[1],'examMsg')}
+    catch(err){if(err.message!=='unauthorized')msg('변경하지 못했습니다: '+(err.message||err),'examMsg');b.disabled=false}
+  };
+  $('examReload').onclick=loadExams;
 
   function handleMockMessage(d){
     if(!d||!d.type)return;

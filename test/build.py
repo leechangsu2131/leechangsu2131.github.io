@@ -86,7 +86,8 @@ cfg_js = js(CFG)
 for t in tests:
     html = (tpl_s.replace("/*__TEST__*/null", js(student_view(t)))
                  .replace("/*__CONFIG__*/null", cfg_js)
-                 .replace("__TITLE__", f"{t['subject']} {t['title']} 단원평가"))
+                 .replace("__TITLE__", f"{t['subject']} {t['title']} 단원평가")
+                 .replace("__TEST_ID__", t["id"]))
     out = DIST / f"student_{t['id']}.html"
     out.write_text(html, encoding="utf-8")
     print("만듦:", out.name, f"{out.stat().st_size//1024}KB")
