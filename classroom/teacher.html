@@ -24,4 +24,4 @@ $('sendNotice').onclick=async()=>{const text=$('noticeText').value.trim();if(!te
 $('navigateAll').onclick=()=>{const url=$('navUrl').value.trim();if(!url)return;if(/^https?:\/\//i.test(url)&&!url.startsWith(location.origin)){msg('홈페이지 안의 주소만 입력할 수 있습니다.','liveMsg');return}command('navigate',{url}).then(()=>msg('페이지 이동을 보냈습니다.','liveMsg'))};
 $('students').onclick=async e=>{const b=e.target.closest('button[data-k]');if(!b)return;const card=b.closest('.controls'),id=card.dataset.id,k=b.dataset.k;try{if(k==='notice'){const text=prompt('학생에게 보낼 안내');if(text)await command(k,{text},id)}else if(k==='navigate'){const url=prompt('홈페이지 안의 상대 주소 또는 전체 주소');if(url)await command(k,{url},id)}else if(k==='remove'){if(confirm('이 학생을 수업에서 내보낼까요?'))await command(k,{},id)}else await command(k,{text:'선생님 안내를 확인해 주세요.'},id);await pull()}catch(err){msg('명령을 보내지 못했습니다.','liveMsg')}};
 })();
-</script><script src="/classroom/monitor.js" defer></script></body></html>
+</script></body></html>
