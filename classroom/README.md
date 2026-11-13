@@ -28,10 +28,15 @@ Supabase 설정 없이도 브라우저 탭 2개(교사 창 + 학생 창)로 **�
 1. [Supabase 대시보드](https://supabase.com/dashboard)에 로그인합니다.
 2. 좌측 메뉴의 **SQL Editor**로 이동합니다.
 3. `classroom/schema.sql` 파일의 전체 내용을 복사하여 붙여넣고 **Run** 버튼을 누릅니다.
-   - 교사 기본 비밀번호는 `1234`로 자동 생성됩니다.
-   - 기존 AI 게임 검토실을 사용하셨다면 검토실 교사 비밀번호가 그대로 연동됩니다.
-4. 이제 교사는 [`classroom/teacher.html`](teacher.html)에서 교사 비밀번호를 넣고 **[수업방 열기]**를 누르면 6자리 수업 코드(예: `AB12CD`)가 발급됩니다.
-5. **[입장 링크 복사]**를 눌러 학생들에게 링크를 보내거나 칠판에 수업 코드를 안내합니다.
+4. **교사 계정 만들기** (수업 화면 관리는 교사 계정으로만 접속됩니다)
+   1. Supabase 대시보드 → **Authentication → Users → Add user**에서 교사 이메일과 비밀번호로 계정을 만듭니다 (Auto Confirm User 체크).
+   2. **SQL Editor**에서 허용 이메일을 등록합니다. 이메일은 공개 저장소에 올리지 않도록 여기서만 입력하세요.
+      ```sql
+      insert into public.classroom_teachers(email) values ('교사이메일@example.com');
+      ```
+   3. 등록되지 않은 계정은 로그인해도 학생 화면 조회·제어가 모두 거부됩니다.
+5. 교사는 [`classroom/teacher.html`](teacher.html)에서 로그인한 뒤 **[수업방 열기]**를 누릅니다. 수업 코드는 `HC302`로 고정입니다.
+6. **[입장 링크 복사]**를 눌러 학생들에게 링크를 보내거나 칠판에 수업 코드를 안내합니다. 학생은 로그인 없이 번호·이름으로 입장합니다.
 
 ---
 

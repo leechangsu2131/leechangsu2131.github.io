@@ -53,12 +53,25 @@ alter table public.classroom_commands enable row level security;
 revoke all on public.classroom_sessions, public.classroom_students, public.classroom_commands from anon, authenticated;
 grant usage on schema public to anon, authenticated;
 
--- ## [다중 교사용 인증 로직 - 일단 묵혀둠]
--- create or replace function public.classroom_admin_ok(p_code text) ...
+-- [교사 계정 인증]
+-- Supabase Auth(이메일/비밀번호)로 로그인한 계정 중, 아래 허용 목록에 있는 이메일만 교사 기능을 쓸 수 있습니다.
+-- 허용 이메일은 공개 저장소에 올리지 않도록 SQL Editor에서 직접 추가하세요:
+--   insert into public.classroom_teachers(email) values ('교사이메일@example.com');
+create table if not exists public.classroom_teachers (
+  email text primary key
+);
+alter table public.classroom_teachers enable row level security;
+revoke all on public.classroom_teachers from anon, authenticated;
+
+-- p_code 인자는 기존 호출 형식과의 호환을 위해 남겨 두며, 인증에는 쓰지 않습니다.
 create or replace function public.classroom_admin_ok(p_code text)
 returns boolean language sql stable security definer set search_path = public
 as $$
-  select true;
+  select coalesce(auth.role(), '') = 'authenticated'
+     and exists (
+       select 1 from public.classroom_teachers t
+       where lower(t.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+     );
 $$;
 
 create or replace function public.classroom_admin_start(p_code text, p_title text default '오늘 수업')
@@ -66,6 +79,8 @@ returns jsonb language plpgsql security definer set search_path = public
 as $$
 declare v_code text := 'HC302'; v_id uuid;
 begin
+  if not public.classroom_admin_ok(p_code) then raise exception 'unauthorized'; end if;
+
   -- ## 다중 사용자용 난수 생성 로직 (일단 묵혀둠)
   /*
   loop
@@ -208,10 +223,11 @@ revoke all on function public.classroom_admin_end(text,text) from public,anon,au
 revoke all on function public.classroom_student_join(text,text,text,text) from public,anon,authenticated;
 revoke all on function public.classroom_student_update(uuid,text,text,boolean,boolean,text) from public,anon,authenticated;
 revoke all on function public.classroom_student_commands(uuid,text,bigint) from public,anon,authenticated;
-grant execute on function public.classroom_admin_start(text,text) to anon,authenticated;
-grant execute on function public.classroom_admin_list(text,text) to anon,authenticated;
-grant execute on function public.classroom_admin_command(text,text,uuid,text,jsonb) to anon,authenticated;
-grant execute on function public.classroom_admin_end(text,text) to anon,authenticated;
+-- 교사 기능은 로그인한 계정(authenticated)에게만 열고, 그중 허용 목록 이메일만 classroom_admin_ok를 통과합니다.
+grant execute on function public.classroom_admin_start(text,text) to authenticated;
+grant execute on function public.classroom_admin_list(text,text) to authenticated;
+grant execute on function public.classroom_admin_command(text,text,uuid,text,jsonb) to authenticated;
+grant execute on function public.classroom_admin_end(text,text) to authenticated;
 grant execute on function public.classroom_student_join(text,text,text,text) to anon,authenticated;
 grant execute on function public.classroom_student_update(uuid,text,text,boolean,boolean,text) to anon,authenticated;
 grant execute on function public.classroom_student_commands(uuid,text,bigint) to anon,authenticated;

@@ -3,7 +3,21 @@
 <style>
 :root{color-scheme:dark;--bg:#101014;--panel:#1c1c22;--line:#34343d;--ink:#f5f5f7;--sub:#a1a1aa;--blue:#64d2ff;--green:#30d158;--orange:#ff9f0a;--red:#ff453a;--purple:#bf5af2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Apple SD Gothic Neo",sans-serif}.wrap{max-width:1280px;margin:auto;padding:26px 18px 60px}h1{margin:0;font-size:27px;letter-spacing:-.04em}.sub{color:var(--sub);margin:5px 0 20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}input,button,select{font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#111116}input{min-width:170px}button{cursor:pointer;background:#292930}button:hover{filter:brightness(1.2)}button.primary{background:#fff;color:#111;border-color:#fff;font-weight:700}button.mock-btn{background:#5856d6;color:#fff;border-color:#7a79f0;font-weight:700}button.open-student{background:#30d158;color:#052e16;border-color:#30d158;font-weight:700}.danger{border-color:#8b332e;color:#ff827b}.status{min-height:21px;color:var(--sub);margin:8px 0 0}.room{font-size:27px;letter-spacing:.16em;font-weight:800;color:var(--blue)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.student{overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:16px}.student img{width:100%;aspect-ratio:5/3;object-fit:contain;background:#09090b;display:block}.preview-empty{aspect-ratio:5/3;background:#09090b;color:var(--sub);display:grid;place-items:center;font-size:14px;text-align:center;padding:12px}.student .body{padding:12px}.name{font-weight:750;font-size:17px}.muted{color:var(--sub);font-size:13px}.pill{display:inline-block;margin-left:7px;padding:2px 8px;border-radius:99px;font-size:12px}.on{background:#16351f;color:#75e38c}.off{background:#402b12;color:#ffc15c}.away{background:#402221;color:#ff8c84}.mock-tag{background:#2a1b4e;color:#d8b4fe;border:1px solid #7c3aed;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700}.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.hide{display:none!important}.hint{font-size:13px;color:var(--sub)}a{color:var(--blue)}@media(max-width:600px){.wrap{padding:18px 12px}.row>*{flex:1}.room{font-size:23px}}
 </style></head><body><main class="wrap"><h1>🧑‍🏫 수업 화면 관리</h1><p class="sub">참여한 학생의 홈페이지 탭을 3초 간격으로 확인하고 수업 페이지 안에서 실시간 안내와 제어를 실행합니다.</p>
-<section id="setup" class="panel">
+<section id="login" class="panel hide">
+  <div style="font-size:18px;font-weight:750">🔐 교사 로그인</div>
+  <div class="hint" style="margin:4px 0 12px">수업 화면 관리는 교사 계정으로 로그인한 경우에만 사용할 수 있습니다.</div>
+  <form id="loginForm" class="row">
+    <input id="loginEmail" type="email" autocomplete="username" placeholder="교사 이메일" required>
+    <input id="loginPw" type="password" autocomplete="current-password" placeholder="비밀번호" required>
+    <button class="primary" type="submit">로그인</button>
+  </form>
+  <div id="loginMsg" class="status"></div>
+</section>
+<div id="authBar" class="row hide" style="justify-content:flex-end;margin:-8px 0 4px">
+  <span class="muted" id="whoami"></span>
+  <button id="logout" style="padding:6px 10px;font-size:13px">로그아웃</button>
+</div>
+<section id="setup" class="panel hide">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
     <div>
       <div style="font-size:18px;font-weight:750">🏫 우리 반 수업방: <span style="color:var(--blue);letter-spacing:1px">HC302</span></div>
@@ -75,16 +89,73 @@
   const $=id=>document.getElementById(id);
   let code='',room='',timer=0,rows=[],isMock=false,mockChannel=null;
 
+  // ---- 교사 계정 인증 (Supabase Auth 이메일/비밀번호) ----
+  // 실제 권한 확인은 DB(classroom_admin_ok)에서 합니다. 이 화면의 로그인은 토큰을 받아 전달하는 역할입니다.
+  const AUTH_KEY='classroom_teacher_auth';
+  let auth=null;
+  function loadAuth(){
+    try{const a=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');if(a&&a.access_token)return a}catch(_){}
+    return null;
+  }
+  function saveAuth(a){
+    auth=a;
+    try{a?sessionStorage.setItem(AUTH_KEY,JSON.stringify(a)):sessionStorage.removeItem(AUTH_KEY)}catch(_){}
+  }
+  function authFrom(d){
+    return {access_token:d.access_token,refresh_token:d.refresh_token,
+      expires_at:Date.now()+(d.expires_in||3600)*1000,email:(d.user&&d.user.email)||''};
+  }
+  async function authCall(grant,body){
+    const r=await fetch(U+'/auth/v1/token?grant_type='+grant,{
+      method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify(body)
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(d.error_description||d.msg||d.message||'로그인에 실패했습니다.');
+    return d;
+  }
+  async function freshToken(){
+    if(!auth)throw Error('unauthorized');
+    if(auth.expires_at-Date.now()<60000){
+      try{
+        const d=await authCall('refresh_token',{refresh_token:auth.refresh_token});
+        saveAuth({...authFrom(d),email:auth.email});
+      }catch(_){showLogin('로그인이 만료되었습니다. 다시 로그인해 주세요.');throw Error('unauthorized')}
+    }
+    return auth.access_token;
+  }
+  function showLogin(m){
+    clearInterval(timer);
+    saveAuth(null);
+    room='';rows=[];isMock=false;
+    if(mockChannel){try{mockChannel.close()}catch(_){}mockChannel=null}
+    $('login').classList.remove('hide');
+    $('setup').classList.add('hide');
+    $('active').classList.add('hide');
+    $('authBar').classList.add('hide');
+    $('loginMsg').textContent=m||'';
+  }
+  function showApp(){
+    $('login').classList.add('hide');
+    $('authBar').classList.remove('hide');
+    $('whoami').textContent=auth&&auth.email?auth.email:'교사';
+    if(room){$('active').classList.remove('hide')}else{$('setup').classList.remove('hide')}
+  }
+
   async function rpc(name,args){
+    const token=await freshToken();
     const r=await fetch(U+'/rest/v1/rpc/'+name,{
       method:'POST',
-      headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},
+      headers:{apikey:K,Authorization:'Bearer '+token,'Content-Type':'application/json'},
       body:JSON.stringify(args)
     });
     let t=await r.text();
     if(!r.ok){
       let m=t;
       try{m=JSON.parse(t).message||JSON.parse(t).hint||t}catch(_){}
+      if(r.status===401||r.status===403||/unauthorized|permission denied|JWT/i.test(String(m))){
+        showLogin('교사 계정 권한이 없거나 로그인이 만료되었습니다. 허용된 교사 계정으로 다시 로그인해 주세요.');
+        throw Error('unauthorized');
+      }
       throw Error(m||r.statusText);
     }
     return t?JSON.parse(t):null;
@@ -232,7 +303,7 @@
   };
 
   $('start').onclick=async()=>{
-    code='1234';
+    code='';
     try{
       msg('우리 반 수업방(HC302)을 열고 있습니다…');
       const d=await rpc('classroom_admin_start',{p_code:code,p_title:'오늘 수업'});
@@ -331,9 +402,31 @@
     }
   };
 
-  const q=new URLSearchParams(location.search);
-  if(q.get('mock')==='1'){
-    $('startMock').click();
+  $('loginForm').onsubmit=async e=>{
+    e.preventDefault();
+    const btn=e.submitter;if(btn)btn.disabled=true;
+    $('loginMsg').textContent='로그인 중…';
+    try{
+      const d=await authCall('password',{email:$('loginEmail').value.trim(),password:$('loginPw').value});
+      saveAuth(authFrom(d));
+      $('loginPw').value='';
+      $('loginMsg').textContent='';
+      showApp();
+      if(new URLSearchParams(location.search).get('mock')==='1')$('startMock').click();
+    }catch(err){
+      $('loginMsg').textContent=err.message||'로그인에 실패했습니다.';
+    }finally{if(btn)btn.disabled=false}
+  };
+
+  $('logout').onclick=()=>showLogin('로그아웃했습니다.');
+
+  // 시작: 저장된 로그인 정보가 있으면 사용하고, 없으면 로그인 화면만 보여줍니다.
+  auth=loadAuth();
+  if(auth){
+    showApp();
+    if(new URLSearchParams(location.search).get('mock')==='1')$('startMock').click();
+  }else{
+    showLogin('');
   }
 })();
 </script></body></html>
