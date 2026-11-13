@@ -1,7 +1,7 @@
 {
   "school": "화천초등학교",
   "school_url": "https://school.gyo6.net/hc/main.do?sysId=hc",
-  "updated_at": "2026-11-13 19:15:02 KST",
+  "updated_at": "2026-11-13 19:32:10 KST",
   "boards": [
     {
       "board_id": "notice",
@@ -16,7 +16,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17023571",
           "posted_at": "2026-11-11",
           "author": "학**",
-          "views": "28901"
+          "views": "28909"
         },
         {
           "post_id": "notice:17007383",
@@ -26,7 +26,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93188"
+          "views": "93193"
         },
         {
           "post_id": "notice:17007375",
@@ -36,7 +36,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007375",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93622"
+          "views": "93626"
         },
         {
           "post_id": "notice:16990219",
@@ -46,7 +46,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16990219",
           "posted_at": "2026-10-13",
           "author": "학**",
-          "views": "87345"
+          "views": "87347"
         },
         {
           "post_id": "notice:16925596",
@@ -183,7 +183,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93188"
+          "views": "93193"
         },
         {
           "post_id": "letter:17007375",
@@ -193,7 +193,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007375",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93622"
+          "views": "93626"
         },
         {
           "post_id": "letter:16999816",
@@ -203,7 +203,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16999816",
           "posted_at": "2026-10-21",
           "author": "학**",
-          "views": "44219"
+          "views": "44220"
         },
         {
           "post_id": "letter:16996942",
@@ -223,7 +223,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16990219",
           "posted_at": "2026-10-13",
           "author": "학**",
-          "views": "87345"
+          "views": "87347"
         },
         {
           "post_id": "letter:16982036",
@@ -233,7 +233,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16982036",
           "posted_at": "2026-10-02",
           "author": "학**",
-          "views": "54790"
+          "views": "54791"
         },
         {
           "post_id": "letter:16972287",
@@ -243,7 +243,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16972287",
           "posted_at": "2026-09-22",
           "author": "학**",
-          "views": "63982"
+          "views": "63983"
         },
         {
           "post_id": "letter:16945049",
@@ -253,7 +253,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16945049",
           "posted_at": "2026-08-27",
           "author": "학**",
-          "views": "26357"
+          "views": "26358"
         },
         {
           "post_id": "letter:16907957",
@@ -263,7 +263,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16907957",
           "posted_at": "2026-07-07",
           "author": "학**",
-          "views": "94437"
+          "views": "94438"
         },
         {
           "post_id": "letter:16852614",
@@ -273,7 +273,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16852614",
           "posted_at": "2026-05-15",
           "author": "학**",
-          "views": "104982"
+          "views": "104983"
         },
         {
           "post_id": "letter:17020632",
