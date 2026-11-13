@@ -28,39 +28,17 @@ Supabase 설정 없이도 브라우저 창 2개(교사 창 + 학생 창)로 **�
 ## 🚀 2. 실제 교실 수업에 적용하기 (Supabase 연동, 1회 설정)
 
 1. [Supabase 대시보드](https://supabase.com/dashboard) → **SQL Editor** 에서 `classroom/schema.sql` 전체 내용을 붙여넣고 **Run**합니다.
-2. 그 다음 아래 SQL도 추가로 실행합니다 (고정 수업 코드 HC302 / 비밀번호 없는 단순 인증 적용):
+2. **교사 계정 만들기** (수업 화면 관리는 교사 계정으로만 접속됩니다)
+   1. Supabase 대시보드 → **Authentication → Users → Add user**에서 교사 이메일과 비밀번호로 계정을 만듭니다 (Auto Confirm User 체크).
+   2. **SQL Editor**에서 허용 이메일을 등록합니다. 이메일은 공개 저장소에 올리지 않도록 여기서만 입력하세요.
 
 ```sql
--- 비밀번호 인증 없이 항상 통과 (다중 교사용 인증은 주석으로 묵혀둠)
-create or replace function public.classroom_admin_ok(p_code text)
-returns boolean language sql stable security definer set search_path = public
-as $$
-  select true;
-$$;
-
--- 수업 코드는 항상 HC302 고정 (기존 방이 있으면 초기화 후 재사용)
-create or replace function public.classroom_admin_start(p_code text, p_title text default '오늘 수업')
-returns jsonb language plpgsql security definer set search_path = public
-as $$
-declare v_code text := 'HC302'; v_id uuid;
-begin
-  select id into v_id from public.classroom_sessions where room_code = v_code;
-  if v_id is null then
-    insert into public.classroom_sessions(room_code, title, status)
-    values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80), 'active')
-    returning id into v_id;
-  else
-    update public.classroom_sessions
-    set status = 'active', title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
-    where id = v_id;
-    update public.classroom_students set removed_at = now() where session_id = v_id;
-  end if;
-  return jsonb_build_object('id',v_id,'room_code',v_code,'title',p_title,'status','active');
-end;
-$$;
+insert into public.classroom_teachers(email) values ('교사이메일@example.com');
 ```
 
-3. 이후 [`classroom/teacher.html`](teacher.html)에서 **[🚀 수업방 열기 (HC302)]** 버튼 하나로 즉시 수업을 시작합니다.
+   3. 등록되지 않은 계정은 로그인해도 학생 화면 조회·제어가 모두 거부됩니다. 비밀번호를 잊었으면 SQL Editor에서 `update auth.users set encrypted_password = crypt('새비밀번호', gen_salt('bf')) where email = '교사이메일';`로 바꿀 수 있습니다.
+
+3. 이후 [`classroom/teacher.html`](teacher.html)에서 교사 계정으로 로그인한 뒤 **[🚀 수업방 열기 (HC302)]** 버튼으로 수업을 시작합니다.
 4. 학생들은 [`classroom/student.html`](student.html)에서 **번호와 이름만 넣으면** 자동으로 HC302 수업방에 입장합니다.
 
 ---
