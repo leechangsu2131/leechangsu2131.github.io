@@ -1,7 +1,7 @@
 {
   "school": "화천초등학교",
   "school_url": "https://school.gyo6.net/hc/main.do?sysId=hc",
-  "updated_at": "2026-11-13 19:32:10 KST",
+  "updated_at": "2026-11-13 19:34:56 KST",
   "boards": [
     {
       "board_id": "notice",
@@ -16,7 +16,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17023571",
           "posted_at": "2026-11-11",
           "author": "학**",
-          "views": "28909"
+          "views": "28912"
         },
         {
           "post_id": "notice:17007383",
@@ -26,7 +26,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93193"
+          "views": "93195"
         },
         {
           "post_id": "notice:17007375",
@@ -36,7 +36,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007375",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93626"
+          "views": "93628"
         },
         {
           "post_id": "notice:16990219",
@@ -183,7 +183,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93193"
+          "views": "93195"
         },
         {
           "post_id": "letter:17007375",
@@ -193,7 +193,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007375",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "93626"
+          "views": "93628"
         },
         {
           "post_id": "letter:16999816",
@@ -203,7 +203,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16999816",
           "posted_at": "2026-10-21",
           "author": "학**",
-          "views": "44220"
+          "views": "44221"
         },
         {
           "post_id": "letter:16996942",

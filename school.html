@@ -120,21 +120,28 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 /* 공지사항 탭 */
 .n-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .n-updated{font-size:12px;color:var(--muted)}
-.n-link-btn{font-size:12px;font-weight:700;color:var(--green-d);text-decoration:none;background:var(--mint);padding:5px 11px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.n-actions{display:flex;gap:6px;align-items:center}
+.n-link-btn{font-size:12px;font-weight:700;color:var(--green-d);text-decoration:none;background:var(--mint);padding:5px 11px;border-radius:99px;display:inline-flex;align-items:center;gap:4px;border:0;cursor:pointer}
+.n-link-btn:hover{background:#d8ebd9}
+.n-search-wrap{position:relative;margin-bottom:10px}
+.n-search-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:9px 36px 9px 12px;font-size:14px;background:#fff;outline:none;box-sizing:border-box}
+.n-search-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(47,118,88,.15)}
+.n-search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;display:none;padding:4px}
 .n-filter{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
-.n-btn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--ink)}
+.n-btn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--ink);display:inline-flex;align-items:center;gap:4px}
 .n-btn[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
-.n-item{display:block;text-decoration:none;color:inherit;padding:12px 2px;border-bottom:1px solid var(--line);transition:background .15s}
+.n-btn small{font-size:11px;opacity:.8}
+.n-item{display:block;text-decoration:none;color:inherit;padding:13px 4px;border-bottom:1px solid var(--line);transition:background .15s}
 .n-item:last-child{border-bottom:0}
 .n-item:hover{background:rgba(47,118,88,.04)}
-.n-item-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.n-item-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
 .n-tag{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--bg);color:var(--muted)}
 .n-tag.notice{background:#e8f4fc;color:#1e6bb8}
 .n-tag.letter{background:#fdf2e9;color:#c05621}
 .n-tag.new{background:var(--red-bg);color:var(--red)}
 .n-tag.fixed{background:#e7f3eb;color:var(--green-d)}
-.n-item-title{font-size:15px;font-weight:700;line-height:1.45;color:var(--ink);margin:0 0 4px}
-.n-item-meta{display:flex;gap:10px;font-size:12px;color:var(--muted)}
+.n-item-title{font-size:15px;font-weight:700;line-height:1.45;color:var(--ink);margin:0 0 5px}
+.n-item-meta{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -186,12 +193,19 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
     <section class="pane" id="pane-notice">
       <div class="n-header">
         <span class="n-updated" id="noticeUpdated">매일 아침 7시 자동 업데이트</span>
-        <a class="n-link-btn" id="schoolNoticeLink" href="https://school.gyo6.net/hc/main.do?sysId=hc" target="_blank" rel="noopener">학교 홈페이지 ↗</a>
+        <div class="n-actions">
+          <button class="n-link-btn" id="nReloadBtn" title="새로고침">🔄 새로고침</button>
+          <a class="n-link-btn" id="schoolNoticeLink" href="https://school.gyo6.net/hc/main.do?sysId=hc" target="_blank" rel="noopener">학교 홈페이지 ↗</a>
+        </div>
+      </div>
+      <div class="n-search-wrap">
+        <input type="text" class="n-search-input" id="nSearch" placeholder="공지사항·가정통신문 검색 (예: 현장학습, 급식, 일정)..." autocomplete="off">
+        <button class="n-search-clear" id="nSearchClear" title="검색어 지우기">✕</button>
       </div>
       <div class="n-filter">
-        <button class="n-btn" id="nFilterAll" aria-pressed="true" data-b="all">전체</button>
-        <button class="n-btn" data-b="notice" aria-pressed="false">공지사항</button>
-        <button class="n-btn" data-b="letter" aria-pressed="false">가정통신문</button>
+        <button class="n-btn" id="nFilterAll" aria-pressed="true" data-b="all">전체 <small id="cntAll"></small></button>
+        <button class="n-btn" data-b="notice" aria-pressed="false">공지사항 <small id="cntNotice"></small></button>
+        <button class="n-btn" data-b="letter" aria-pressed="false">가정통신문 <small id="cntLetter"></small></button>
       </div>
       <div class="card" id="noticeBox">
         <div class="state"><strong>공지사항을 불러오고 있어요.</strong>잠시만 기다려 주세요.</div>
@@ -335,10 +349,10 @@ function renderSchedule(){
 }
 
 /* 공지사항 & 가정통신문 */
-let noticeData=null, curNoticeFilter='all';
-async function loadNotices(){
+let noticeData=null, curNoticeFilter='all', noticeQuery='';
+async function loadNotices(force=false){
   const box=$('#noticeBox');
-  if(noticeData){renderNotices();return}
+  if(!force && noticeData){renderNotices();return}
   box.innerHTML='<div class="state"><strong>공지사항을 불러오고 있어요.</strong>잠시만 기다려 주세요.</div>';
   try{
     const r=await fetch('data/notices.json?v='+Date.now());
@@ -346,11 +360,40 @@ async function loadNotices(){
     noticeData=await r.json();
     if(noticeData.updated_at)$('#noticeUpdated').textContent='최근 업데이트: '+noticeData.updated_at;
     if(noticeData.school_url)$('#schoolNoticeLink').href=noticeData.school_url;
+    updateNoticeCounts();
     renderNotices();
   }catch(e){
     fail(box,'공지사항을 불러오지 못했어요.',e);
   }
 }
+
+function updateNoticeCounts(){
+  if(!noticeData||!noticeData.boards)return;
+  let total=0;
+  noticeData.boards.forEach(b=>{
+    const len=(b.posts||[]).length;
+    total+=len;
+    if(b.board_id==='notice')$('#cntNotice').textContent=`(${len})`;
+    if(b.board_id==='letter')$('#cntLetter').textContent=`(${len})`;
+  });
+  $('#cntAll').textContent=`(${total})`;
+}
+
+$('#nReloadBtn').onclick=()=>{loadNotices(true)};
+
+const nSearchInput=$('#nSearch'), nSearchClearBtn=$('#nSearchClear');
+nSearchInput.oninput=()=>{
+  noticeQuery=nSearchInput.value.trim().toLowerCase();
+  nSearchClearBtn.style.display=noticeQuery?'block':'none';
+  renderNotices();
+};
+nSearchClearBtn.onclick=()=>{
+  nSearchInput.value='';
+  noticeQuery='';
+  nSearchClearBtn.style.display='none';
+  nSearchInput.focus();
+  renderNotices();
+};
 
 $$('.n-filter .n-btn').forEach(b=>{
   b.onclick=()=>{
@@ -385,8 +428,22 @@ function renderNotices(){
     }
   });
 
+  // 검색어 필터링
+  if(noticeQuery){
+    posts=posts.filter(p=>{
+      const t=(p.title||'').toLowerCase();
+      const a=(p.author||'').toLowerCase();
+      const c=(p.category||'').toLowerCase();
+      return t.includes(noticeQuery)||a.includes(noticeQuery)||c.includes(noticeQuery);
+    });
+  }
+
   if(!posts.length){
-    box.innerHTML='<div class="state"><strong>해당 게시판에 게시글이 없어요.</strong></div>';
+    if(noticeQuery){
+      box.innerHTML=`<div class="state"><strong>“${esc(noticeQuery)}” 검색 결과가 없어요.</strong>단어를 다시 확인해 보세요.</div>`;
+    }else{
+      box.innerHTML='<div class="state"><strong>해당 게시판에 게시글이 없어요.</strong></div>';
+    }
     return;
   }
 
@@ -401,7 +458,9 @@ function renderNotices(){
   });
   uniquePosts.sort((a,b)=>(b.posted_at||'').localeCompare(a.posted_at||''));
 
-  box.innerHTML=uniquePosts.map(p=>{
+  const resultHeader = noticeQuery ? `<div style="font-size:13px;color:var(--muted);margin-bottom:8px">검색 결과 <b>${uniquePosts.length}</b>건</div>` : '';
+
+  box.innerHTML=resultHeader + uniquePosts.map(p=>{
     const isNew=isRecentPost(p.posted_at);
     const isFixed=p.category && (p.category.includes('공지') || p.category==='통합공지');
     const boardTagCls=p.board_type==='letter'?'letter':'notice';
