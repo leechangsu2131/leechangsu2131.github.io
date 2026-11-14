@@ -36,6 +36,40 @@
   <div id="examList"></div>
   <div id="examMsg" class="status"></div>
 </section>
+<section id="coachAdmin" class="panel hide">
+  <style>
+    .pb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
+    .pb-row:first-of-type{border-top:0}
+    .pb-seg{display:flex;gap:6px;flex-wrap:wrap}
+    .pb-seg button{padding:6px 10px;font-size:13px}
+    .pb-seg button.cur-off{background:#2a2a31;border-color:#7a7a85;color:#d0d0d8;font-weight:700}
+    .pb-seg button.cur-side{background:#402b12;border-color:#ff9f0a;color:#ffc15c;font-weight:700}
+    .pb-seg button.cur-direct{background:#16351f;border-color:#30d158;color:#75e38c;font-weight:700}
+    #coachAdmin input[type=text]{width:100%}
+    #coachAdmin pre{white-space:pre-wrap;background:#14141a;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;max-height:220px;overflow:auto}
+  </style>
+  <div class="row" style="justify-content:space-between">
+    <b>📖 그림책 제작 코치 관리</b>
+    <a href="../picturebook/index.html" target="_blank" rel="noopener" style="color:var(--blue);font-size:13px">학생 화면 열기 ↗</a>
+  </div>
+  <div class="hint" style="margin:4px 0 6px">일반 수업(함께 하는 활동)에서는 <b>🚫 힌트만</b>으로 두고, 학생이 각자 막힌 차시에만 코치(Gem)를 켜세요. 저장하면 학생 화면에 바로 적용됩니다.</div>
+  <div class="row" style="margin-bottom:6px">
+    <button id="pbAllOff" style="padding:6px 10px;font-size:13px">모두 힌트만</button>
+    <button id="pbAllDirect" style="padding:6px 10px;font-size:13px">모두 학생 직접</button>
+  </div>
+  <div id="pbList"></div>
+  <div style="margin-top:10px"><div class="hint">코치(Gem) 링크</div><input id="pbGem" type="text" placeholder="https://gemini.google.com/gem/..."></div>
+  <div style="margin-top:8px"><div class="hint">학생 첫 화면 안내 문구 (120자 이하)</div><input id="pbNote" type="text" maxlength="120" placeholder="예) 오늘은 선생님 허락을 받고 코치를 만나요"></div>
+  <div class="row" style="margin-top:10px"><button id="pbSave" class="primary">저장</button><span id="pbMsg" class="status"></span></div>
+  <details style="margin-top:12px"><summary><b>막힘 기록</b> <span class="hint">(이름 없이 차시·칸 횟수만)</span></summary>
+    <div id="pbLog" style="margin-top:8px"></div>
+    <div class="row" style="margin-top:8px"><button id="pbLogReload" style="padding:6px 10px;font-size:13px">새로고침</button><button id="pbLogClear" style="padding:6px 10px;font-size:13px">기록 지우기</button></div>
+  </details>
+  <details style="margin-top:8px"><summary><b>Gem 지침문 · 계획서 양식</b> <span class="hint">(Gem 설정에 붙여 넣기)</span></summary>
+    <div class="row" style="margin:8px 0"><button id="pbCpGem" style="padding:6px 10px;font-size:13px">지침문 복사</button><button id="pbCpPlan" style="padding:6px 10px;font-size:13px">계획서 양식 복사</button></div>
+    <pre id="pbGemView"></pre>
+  </details>
+</section>
 <section id="setup" class="panel hide">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
     <div>
@@ -152,6 +186,7 @@
     $('active').classList.add('hide');
     $('authBar').classList.add('hide');
     $('exams').classList.add('hide');
+    $('coachAdmin').classList.add('hide');
     $('loginMsg').textContent=m||'';
   }
   function showApp(){
@@ -159,7 +194,8 @@
     $('authBar').classList.remove('hide');
     $('whoami').textContent=auth&&auth.email?auth.email:'교사';
     $('exams').classList.remove('hide');
-    loadExams();
+    $('coachAdmin').classList.remove('hide');
+    loadExams();loadCoach();
     if(room){$('active').classList.remove('hide')}else{$('setup').classList.remove('hide')}
   }
 
@@ -225,6 +261,47 @@
     catch(err){if(err.message!=='unauthorized')msg('변경하지 못했습니다: '+(err.message||err),'examMsg');b.disabled=false}
   };
   $('examReload').onclick=loadExams;
+
+  // ---- 그림책 제작 코치 관리 ----
+  const PB=[["마음이 멈춘 한 장면 찾기",["내가 고른 장면은 ____이에요","이 장면에서 ____한 마음이 들었어요","짝에게 말하기"]],["장면을 말과 그림으로 표현하기",["느낌 낱말 고르기","한 줄 시 쓰기","그림으로 나타내기"]],["은유거울",["물건에 빗대기","동물에 빗대기","날씨에 빗대기","색·숫자 카드"]],["마음에 이름 붙이기",["이름 짓기","모습 그리기","언제 커져요 / 언제 작아져요","잘 지내는 방법"]],["「우리 반 마음 사용설명서」① 내 쪽 만들기",["마음 고르기 (슬픔·화·걱정)","문장 틀 채우기","그림 그리기"]],["「우리 반 마음 사용설명서」② 책으로 묶기",["미니북 접는 법 1~4단계","쪽 순서 정하기"]],["여섯 칸 이야기",["① 주인공","② 하고 싶은 일","③ 방해하는 것","④ 도와주는 것","⑤ 해결하는 과정","⑥ 끝"]],["이야기 모양 고르기 + 한 줄 소개",["이야기 모양 고르기","이야기 구상 카드","한 줄 소개"]],["계획 그림(스토리보드) 그리기",["처음·가운데·끝 나누기","작은 칸 그리기","바꿔도 돼요"]],["그림 그리기",["재료 고르기","좁히기","실수 약속"]],["그림책 완성",["책 제목","작가의 말 (문장 틀)","추천의 말"]],["읽고 나누기",["작가 인터뷰","친구 책 한 줄 시"]]];
+  const PB_GEM="너는 초등학생의 그림책 만들기를 돕는 '그림책 코치'야.\n학생은 초등학교 3학년이고, 자기만의 그림책을 만들고 있어.\n\n[가장 중요한 원칙]\n1. 이야기, 문장, 그림 아이디어를 대신 만들어 주지 않는다.\n   학생이 스스로 떠올리도록 질문하고, 막히면 선택지를 2~3개 준다.\n2. 한 번에 질문은 하나만 한다.\n3. 초등학생이 이해할 수 있는 짧고 다정한 말로 말한다. 어려운 말은 쉽게 풀어 준다.\n4. 학생의 생각을 평가하거나 고치려 하지 않는다.\n   \"그렇게 생각한 이유가 궁금해\", \"그 장면이 보여\"처럼 호기심을 보여 준다.\n5. 잘 쓰는 것보다 솔직하게 쓰는 것이 더 소중하다고 알려 준다.\n   \"동화처럼 밝지 않아도 돼\"라고 말해 준다.\n\n[시작할 때]\n- 먼저 \"오늘 어느 단계야?\" 하고 묻는다.\n  (① 한 장면 찾기 ② 나 표현하기 ③ 이야기 뼈대 ④ 구조 고르기\n   ⑤ 스토리보드 ⑥ 그림 그리기 ⑦ 작가의 말·마무리)\n- 학생이 고른 단계에 맞는 질문만 한다.\n\n[단계별 도움]\n- 여섯 조각 이야기: ①주인공 ②하고 싶은 일 ③방해하는 것 ④돕는 것\n  ⑤해결 과정 ⑥결말을 순서대로 하나씩 묻는다.\n- 이야기 구조 고르기: 수수께끼 / 당연한 것 뒤집기 / 넘어져도 다시 도전 /\n  바꾸어 쓰기를 쉬운 예로 설명하고 학생이 고르게 한다.\n- 막힌 학생: 숫자, 색깔, 음계 중에서 고르게 하거나, 좋아하는 그림책 한 장면을\n  바꿔 쓰게 한다.\n- 스토리보드: \"처음, 가운데, 끝에서 각각 어떤 장면이 있어?\"를 묻는다.\n  스토리보드는 바꿔도 된다고 알려 준다.\n- 그림: \"그리기가 어려우면 사진, 낙서 선, 점과 선만 쓰는 방법도 있어\"라고 알려 준다.\n  실수는 새로운 시작이라고 말해 준다.\n\n[계획서 정리]\n- 학생이 \"계획서 만들어 줘\"라고 하면, 대화에서 학생이 직접 말한 내용만\n  모아서 아래 양식으로 정리해 준다. 학생이 말하지 않은 내용은 비워 둔다.\n  (양식은 지식 파일 '학생 계획서 양식'을 따른다.)\n\n[안전]\n- 학생의 이름, 학교, 전화번호, 주소 등 개인정보는 묻지 않는다.\n  학생이 쓰면 \"이런 정보는 여기에 쓰지 않아도 돼. 선생님께만 말해 줘\"라고 안내한다.\n- 죽음, 가족 문제, 따돌림, 심한 슬픔·분노 같은 무거운 이야기가 나오면:\n  판단하지 않고 먼저 마음을 알아주고 (\"이야기해 줘서 고마워\"),\n  \"이 이야기는 선생님이랑도 나눠 보면 좋겠어\"라고 말해 준다.\n  스스로를 해치고 싶다는 말이 나오면 곧바로 믿을 수 있는 어른(선생님, 보호자)에게\n  바로 알리라고 안내한다.\n- 그림책 속 작품 내용을 길게 그대로 옮겨 쓰지 않는다.";
+  const PB_PLAN="# 나의 그림책 계획서\n\n■ 제목(임시): \n■ 한 줄 소개: \n■ 이 책으로 하고 싶은 말: \n\n■ 여섯 조각\n ① 주인공: \n ② 하고 싶은 일/해야 할 일: \n ③ 방해하는 것: \n ④ 돕는 것: \n ⑤ 해결하는 과정: \n ⑥ 결말: \n\n■ 이야기 구조: [ ]수수께끼 [ ]당연한 것 뒤집기 [ ]넘어져도 다시 도전 [ ]바꾸어 쓰기\n   고른 이유: \n\n■ 쪽수: ___쪽\n■ 그림 방법(재료·기법): \n   고른 이유: \n\n■ 오늘 막힌 점 / 선생님께 묻고 싶은 것: \n■ 오늘 새로 알게 된 것:";
+  const PB_MODES=[['off','🚫 힌트만'],['side','🧑‍🏫 곁에서'],['direct','💬 학생 직접']];
+  const PB_KIND={hint:'힌트 열기',coach:'코치 문의',hand:'손들기',example:'예시'};
+  let pbCfg={gem:'',note:'',modes:{}};
+  const pbMode=n=>pbCfg.modes[n]||'off';
+  function pbRender(){
+    $('pbList').innerHTML=PB.map((s,i)=>{const n=i+1,cur=pbMode(n);
+      return '<div class="pb-row"><div class="exam-name">'+n+'차시 · '+esc(s[0])+'</div><div class="pb-seg" data-n="'+n+'">'
+        +PB_MODES.map(([k,l])=>'<button data-m="'+k+'"'+(k===cur?' class="cur-'+k+'" aria-pressed="true"':'')+'>'+l+'</button>').join('')+'</div></div>'}).join('');
+    $('pbGem').value=pbCfg.gem||'';$('pbNote').value=pbCfg.note||'';
+  }
+  async function loadCoach(){
+    try{const c=await rpc('picture_book_coach_get',{});pbCfg={gem:(c&&c.gem)||'',note:(c&&c.note)||'',modes:(c&&c.modes)||{}};pbRender();msg('','pbMsg');loadCoachLog()}
+    catch(e){if(e.message!=='unauthorized')msg('코치 설정을 불러오지 못했습니다: '+(e.message||e),'pbMsg')}
+  }
+  async function loadCoachLog(){
+    try{const rows=await rpc('picture_book_coach_log_summary',{})||[];const by={};
+      rows.forEach(r=>{const k=r.n+'|'+r.p;(by[k]=by[k]||{n:r.n,p:r.p,t:0,d:{}});by[k].t+=r.c;by[k].d[r.k]=r.c});
+      const list=Object.values(by).sort((a,b)=>b.t-a.t).slice(0,15);
+      $('pbLog').innerHTML=list.length?'<table style="width:100%;font-size:13px;border-collapse:collapse">'+list.map(r=>{const s=PB[r.n-1]||['',[]];
+        return '<tr><td style="padding:4px 6px;border-top:1px solid var(--line)">'+r.n+'차시 · '+esc(r.p>=0?(s[1][r.p]||'칸 '+(r.p+1)):'전체')+'</td><td style="padding:4px 6px;border-top:1px solid var(--line)">'+Object.entries(r.d).map(([k,v])=>(PB_KIND[k]||k)+' '+v).join(' · ')+'</td></tr>'}).join('')+'</table>':'<div class="hint">아직 기록이 없습니다.</div>';
+    }catch(e){if(e.message!=='unauthorized')$('pbLog').textContent='막힘 기록을 불러오지 못했습니다.'}
+  }
+  $('pbList').onclick=e=>{const b=e.target.closest('button[data-m]');if(!b)return;pbCfg.modes[b.parentNode.dataset.n]=b.dataset.m;pbRender();msg('저장을 눌러야 학생 화면에 적용됩니다','pbMsg')};
+  $('pbAllOff').onclick=()=>{PB.forEach((_,i)=>pbCfg.modes[i+1]='off');pbRender();msg('저장을 눌러야 학생 화면에 적용됩니다','pbMsg')};
+  $('pbAllDirect').onclick=()=>{PB.forEach((_,i)=>pbCfg.modes[i+1]='direct');pbRender();msg('저장을 눌러야 학생 화면에 적용됩니다','pbMsg')};
+  $('pbSave').onclick=async()=>{
+    const gem=$('pbGem').value.trim();
+    if(gem&&!/^https:\/\/gemini\.google\.com\//.test(gem)){msg('gemini.google.com 주소만 쓸 수 있습니다','pbMsg');return}
+    pbCfg.gem=gem;pbCfg.note=$('pbNote').value.trim().slice(0,120);
+    try{const c=await rpc('picture_book_coach_set',{p_cfg:pbCfg});pbCfg={gem:c.gem||'',note:c.note||'',modes:c.modes||{}};pbRender();msg('저장했습니다. 학생 화면에 적용됩니다.','pbMsg')}
+    catch(err){if(err.message!=='unauthorized')msg('저장하지 못했습니다: '+(err.message||err),'pbMsg')}
+  };
+  $('pbLogReload').onclick=loadCoachLog;
+  $('pbLogClear').onclick=async()=>{if(!confirm('막힘 기록을 모두 지울까요?'))return;try{await rpc('picture_book_coach_log_clear',{});loadCoachLog()}catch(e){}};
+  async function pbCopy(t){try{await navigator.clipboard.writeText(t);msg('복사했습니다','pbMsg')}catch(_){msg('복사하지 못했습니다','pbMsg')}}
+  $('pbCpGem').onclick=()=>pbCopy(PB_GEM);$('pbCpPlan').onclick=()=>pbCopy(PB_PLAN);$('pbGemView').textContent=PB_GEM;
 
   function handleMockMessage(d){
     if(!d||!d.type)return;
