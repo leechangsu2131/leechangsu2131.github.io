@@ -41,7 +41,8 @@
     .pb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
     .pb-row:first-of-type{border-top:0}
     .pb-seg{display:flex;gap:6px;flex-wrap:wrap}
-    .pb-seg button{padding:6px 10px;font-size:13px}
+    .pb-seg button{padding:8px 12px;font-size:14px;min-height:40px}
+    @media (pointer:coarse){.pb-seg button,#coachAdmin button{min-height:46px;font-size:15px}#coachAdmin input[type=text]{font-size:16px;padding:10px}}
     .pb-seg button.cur-off{background:#2a2a31;border-color:#7a7a85;color:#d0d0d8;font-weight:700}
     .pb-seg button.cur-side{background:#402b12;border-color:#ff9f0a;color:#ffc15c;font-weight:700}
     .pb-seg button.cur-direct{background:#16351f;border-color:#30d158;color:#75e38c;font-weight:700}

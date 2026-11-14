@@ -29,7 +29,8 @@ img{max-width:100%}
 .banner img{display:block;width:100%;height:auto}
 .banner .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 12%}
 .banner h1{font-size:clamp(22px,5.2vw,44px);color:#6b4a1d;text-shadow:0 2px 0 #fff8}
-.banner p{margin:2px 0 0;font-family:'Gowun Batang',serif;font-size:clamp(13px,2.4vw,19px);color:#7a5a2c}
+.lead{text-align:center;font-family:'Gowun Batang',serif;font-size:clamp(17px,2.6vw,22px);color:#7a5a2c;margin:-6px 0 16px}
+.banner p{display:none;margin:2px 0 0;font-family:'Gowun Batang',serif;font-size:clamp(13px,2.4vw,19px);color:#7a5a2c}
 .notice{background:#fff3c4;border:2px dashed #e7c25b;border-radius:var(--r);padding:10px 16px;margin:0 0 16px;font-size:15px}
 .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 20px}
 .rule{background:var(--paper2);border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:15px;box-shadow:0 3px 0 #ecd9b0}
@@ -112,6 +113,33 @@ pre.copy{white-space:pre-wrap;background:#fff;border:2px solid var(--line);borde
   body{font-size:16px}.rules{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr);gap:14px 10px}
   .card img{width:64px;height:64px}.card h3{font-size:16px}.book{padding:16px 14px 20px}.banner .t{padding:0 6%}
   .book .head img{width:72px;height:72px}
+}
+/* 태블릿·터치 화면: 글자와 누르는 곳을 크게 */
+@media (min-width:641px){
+  body{font-size:19px}
+  .wrap{max-width:1080px;padding:14px 24px 48px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px}
+  .card h3{font-size:21px}.card .sub{font-size:15.5px}.card .tag{font-size:14px}
+  .card img{width:96px;height:96px}
+  .rule{font-size:17px}.rule b{font-size:21px}
+  .book{padding:26px 28px 30px}
+  .book .goal{font-size:20px}
+  .part .pt b{font-size:22px}.part .pt span{font-size:16px}
+  .part .dot{width:36px;height:36px;font-size:18px}
+  .part>button.ph{padding:16px 18px;min-height:64px}
+  .bubble{font-size:21px;line-height:1.7;padding:16px 20px}
+  .coach .tx b{font-size:23px}.coach .mode{font-size:16px}
+  .foot{font-size:15px}
+}
+@media (pointer:coarse),(min-width:641px){
+  .back,.tbtn,.pbtn,.hbtn,.askbtn{min-height:48px}
+  .back{padding:10px 6px;font-size:17px}
+  .tbtn{padding:10px 18px;font-size:16px}
+  .pbtn{display:inline-flex;align-items:center;padding:10px 20px;font-size:17px}
+  .hbtn{padding:10px 18px;font-size:17px}
+  .askbtn{padding:12px 24px;font-size:19px}
+  .hl{gap:10px}
+  .mbox textarea{font-size:18px;min-height:110px}
 }
 @media print{.topbar,.coach,.pn,.back,.hl,.toast{display:none!important}.part .pb{display:block}body{background:#fff}}
 </style>
@@ -242,7 +270,8 @@ const plain=h=>h.replace(/<br\s*\/?>/g,' ').replace(/<\/li>/g,' ').replace(/<[^>
 function home(){
   window.scrollTo(0,0);
   $('#app').innerHTML=`
-  <div class="banner"><img src="${IMG.banner}" alt=""><div class="t"><h1>그림책 제작 코치</h1><p>종이에 먼저 쓰고, 막히면 힌트를 열어 봐요</p></div></div>
+  <div class="banner"><img src="${IMG.banner}" alt=""><div class="t"><h1>그림책 제작 코치</h1></div></div>
+  <p class="lead">종이에 먼저 쓰고, 막히면 힌트를 열어 봐요</p>
   ${CFG.note?`<div class="notice" id="note"></div>`:''}
   <div class="rules">
    <div class="rule"><b>① 종이에 먼저</b>활동지에 내 생각을 먼저 써요. 틀려도 괜찮아요.</div>
