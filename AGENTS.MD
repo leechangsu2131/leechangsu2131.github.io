@@ -579,7 +579,7 @@
 - **모의실험(Mock) 모드 내장:** DB 연결 없이도 `BroadcastChannel` + `localStorage` 듀얼 동기화 버스로 교사 창과 학생 창 간 실시간 모니터링/제어 즉시 테스트 가능
 - **개인정보 및 보안 설계:** 현재 홈페이지 탭 내부만 캡처(OS 전체·다른 앱·웹캠·마이크 접근 불가), 학생에게 상시 공유 뱃지 및 일시정지/나가기 버튼 제공, DB에는 최신 1장만 덮어쓰며 수업 종료 시 화면 즉시 파기
 - Supabase RPC/권한 설정은 `classroom/schema.sql`, 상세 사용법은 `classroom/README.md` 참고
-- **우리 반 교실 연결 칸:** `teacher.html` 상단의 "🏫 우리 반 교실 연결"은 수업방과 무관하게 학생 접속 현황(번호별 점)·읽지 않은 메시지·학생별 대화·반 전체 공지를 보여 준다. 같은 교사 로그인 토큰으로 `st_presence`·`st_messages`(RLS: `gt_is_teacher()`, 즉 교사 계정 `app_metadata.role=teacher`)를 8초마다 읽는다. 학생 쪽은 `school-tool/index.html` → Edge Function `school-tool`(`function.ts`). 허용 주소는 `GT_ALLOW_ORIGIN` 비밀값(성장 발표 튜터와 공용)에 Vercel·github.io·gitlab.io 주소를 모두 넣어야 한다.
+- **우리 반 교실 연결 칸:** `teacher.html` 상단의 "🏫 우리 반 교실 연결"은 수업방과 무관하게 학생 접속 현황(번호별 점)·읽지 않은 메시지·학생별 대화·반 전체 공지를 보여 준다. 같은 교사 로그인 토큰으로 `st_presence`·`st_messages`(RLS: `gt_is_teacher()`, 즉 교사 계정 `app_metadata.role=teacher`)를 8초마다 읽는다. 학생 쪽은 `school-tool/index.html` → Edge Function `school-tool`(`function.ts`). 허용 주소는 `GT_ALLOW_ORIGIN` 비밀값(성장 발표 튜터와 공용)에 Vercel·github.io·gitlab.io 주소를 모두 넣어야 한다. **구글 로그인(학생):** Supabase Auth 의 구글 로그인을 쓴다(`school-tool/index.html` 의 `CONFIG.USE_GOOGLE=true` 로 켬). 처음 보는 계정은 번호+동의로 신청 → `st_accounts`(pending) → 교사 화면 "🔑 구글 계정 신청"에서 승인. 번호+이름 입장은 서버 설정 `ST_ALLOW_NAME_LOGIN=0` 으로 끈다. 공용 DB 의 `handle_new_auth_user` 장치는 가입 정보에 `app=care` 가 있을 때만 `public.users`(돌봄 앱 부모 행)를 만든다.
 
 ### 현재 공통 한계
 - 모든 데이터가 **브라우저 LocalStorage**에만 저장 → 기기 변경 시 데이터 소실

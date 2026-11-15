@@ -48,8 +48,8 @@ label.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:
     <p class="sub">선생님의 알림을 받고, 선생님께 짧은 말을 보낼 수 있어요.</p>
     <div id="gBox">
       <p><b>구글 계정으로 들어가요</b></p>
-      <div id="gBtn"></div>
-      <p id="gNote" class="sub"></p>
+      <p><button id="gGo">🔑 구글로 들어가기</button></p>
+      <p class="sub">학교 구글 계정이나 내 구글 계정으로 들어와요. 처음이면 선생님이 확인해 줘요.</p>
     </div>
     <details id="nameBox">
       <summary class="sub">구글로 안 될 때: 번호와 이름으로 들어가요</summary>
@@ -91,14 +91,26 @@ label.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:
   </section>
 </div>
 <script>
-const CONFIG={SUPABASE_URL:'https://erzdvlcbjneabxqwnwfy.supabase.co',FUNCTION_NAME:'school-tool',GOOGLE_CLIENT_ID:''};   // 구글 클라이언트 ID(공개 값). 비우면 번호+이름 입장만 보여요.
+const CONFIG={SUPABASE_URL:'https://erzdvlcbjneabxqwnwfy.supabase.co',FUNCTION_NAME:'school-tool',KEY:'sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz',USE_GOOGLE:false};   // USE_GOOGLE: Supabase 의 구글 로그인을 켠 뒤 true 로. false 면 번호+이름 입장만 보여요.
 const $=s=>document.querySelector(s);
-let session=null,timer=null,lastCursor=null,first=true,cred=null;
+let session=null,timer=null,lastCursor=null,first=true;
 const store={get(k){try{return sessionStorage.getItem(k)}catch{return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch{}},del(k){try{sessionStorage.removeItem(k)}catch{}}};
+async function freshAccess(){
+  if(!session||!session.access)return null;
+  if(Date.now()>session.exp-60000){
+    const r=await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:CONFIG.KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.access_token)throw Object.assign(new Error('session_expired'),{status:401,code:'session_expired'});
+    session={...session,access:j.access_token,refresh:j.refresh_token||session.refresh,exp:Date.now()+(j.expires_in||3600)*1000};
+    store.set('st_s',JSON.stringify(session));
+  }
+  return session.access;
+}
 async function call(payload){
+  const jwt=await freshAccess();
   const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
   try{
-    const r=await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/${CONFIG.FUNCTION_NAME}`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...(session&&session.token?{session:session.token}:{number:session&&session.num,name:session&&session.name}),...payload})});
+    const r=await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/${CONFIG.FUNCTION_NAME}`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...(jwt?{jwt}:{number:session&&session.num,name:session&&session.name}),...payload})});
     let j={};try{j=await r.json()}catch{}
     if(!r.ok)throw Object.assign(new Error(j.error||('HTTP '+r.status)),{code:j.error,status:r.status});
     return j;
@@ -134,7 +146,7 @@ function start(){
   tick();clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)tick()},10000);
 }
 function show(id){['login','request','pending','app'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==id))}
-function logout(msg){clearInterval(timer);if(session&&session.token){call({action:'logout'}).catch(()=>{})}session=null;cred=null;store.del('st_s');show('login');$('#loginErr').textContent=msg||''}
+function logout(msg){clearInterval(timer);if(session&&session.access){fetch(`${CONFIG.SUPABASE_URL}/auth/v1/logout?scope=local`,{method:'POST',headers:{apikey:CONFIG.KEY,Authorization:'Bearer '+session.access}}).catch(()=>{})}session=null;store.del('st_s');show('login');$('#loginErr').textContent=msg||''}
 async function login(num,name){
   $('#loginErr').textContent='';
   if(!(num>=1&&num<=60)){$('#loginErr').textContent='번호를 써 봐요.';return}
@@ -158,45 +170,50 @@ $('#send').onclick=async()=>{
   finally{$('#send').disabled=false}
 };
 
-/* ===== 구글 로그인: 구글 버튼 -> 서버가 확인 -> (처음이면) 번호 신청 -> 교사 승인 ===== */
-function errText(e){return e.code==='bad_google'?'구글 확인에 실패했어요. 다시 해 봐요.':e.code==='google_not_configured'?'구글 로그인이 아직 준비되지 않았어요. 번호와 이름으로 들어가요.':e.code==='login_required'?'구글 계정으로 들어와야 해요.':e.status===429?'잠시 뒤에 다시 해 봐요.':'연결이 안 돼요. 잠시 뒤에 다시 해 봐요.'}
-async function onGoogle(resp){
-  $('#loginErr').textContent='';cred=resp&&resp.credential;
+/* ===== 구글 로그인(Supabase Auth): 구글로 이동 -> 돌아오면 토큰 저장 -> (처음이면) 번호 신청 -> 교사 승인 ===== */
+function errText(e){return e.code==='bad_login'?'구글 확인에 실패했어요. 다시 해 봐요.':e.code==='login_required'?'구글 계정으로 들어와야 해요.':e.status===429?'잠시 뒤에 다시 해 봐요.':'연결이 안 돼요. 잠시 뒤에 다시 해 봐요.'}
+function goGoogle(){
+  const back=location.origin+location.pathname;
+  location.href=`${CONFIG.SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(back)}&prompt=select_account`;
+}
+async function afterLogin(){
+  // 로그인한 구글 계정의 상태를 서버에 물어본다
   try{
-    session=null;const r=await call({action:'google_login',credential:cred});
-    if(r.session){session={num:r.number,token:r.session};store.set('st_s',JSON.stringify(session));start()}
+    const r=await call({action:'account'});
+    if(r.approved){session={...session,num:r.number};store.set('st_s',JSON.stringify(session));start()}
     else if(r.pending){show('pending');$('#pendErr').textContent=''}
     else if(r.need_request){$('#reqWho').textContent=r.name?`${r.name} 님, 내 번호를 알려 줘요.`:'내 번호를 알려 줘요.';$('#reqNum').value='';$('#reqOk').checked=false;$('#reqErr').textContent='';show('request')}
-  }catch(e){session=null;$('#loginErr').textContent=errText(e)}
+  }catch(e){session=null;store.del('st_s');show('login');$('#loginErr').textContent=errText(e)}
 }
 $('#reqGo').onclick=async()=>{
   const n=parseInt($('#reqNum').value,10),e=$('#reqErr');e.textContent='';
   if(!(n>=1&&n<=60)){e.textContent='번호를 써 봐요.';return}
   if(!$('#reqOk').checked){e.textContent='동의에 체크해 줘요.';return}
   $('#reqGo').disabled=true;
-  try{await call({action:'google_request',credential:cred,number:n,consent:true});show('pending');$('#pendErr').textContent=''}
-  catch(x){e.textContent=x.code==='no_student'?'그 번호는 명단에 없어요.':x.code==='bad_google'?'시간이 지났어요. 처음으로 가서 다시 해 봐요.':errText(x)}
+  try{await call({action:'request',number:n,consent:true});show('pending');$('#pendErr').textContent=''}
+  catch(x){e.textContent=x.code==='no_student'?'그 번호는 명단에 없어요.':errText(x)}
   finally{$('#reqGo').disabled=false}
 };
-$('#reqBack').onclick=$('#pendBack').onclick=()=>{cred=null;show('login')};
+$('#reqBack').onclick=$('#pendBack').onclick=()=>logout('');
 $('#pendCheck').onclick=async()=>{
-  $('#pendErr').textContent='';
-  if(!cred){$('#pendErr').textContent='처음으로 가서 구글로 다시 들어와 봐요.';return}
-  await onGoogle({credential:cred});
+  $('#pendErr').textContent='';await afterLogin();
   if(!$('#pending').classList.contains('hidden'))$('#pendErr').textContent='아직 확인 중이에요. 조금 뒤에 다시 눌러 봐요.';
 };
+$('#gGo').onclick=goGoogle;
 function initGoogle(){
-  if(!CONFIG.GOOGLE_CLIENT_ID){$('#gBox').classList.add('hidden');$('#nameBox').open=true;return}
-  $('#gNote').textContent='구글 버튼이 보이지 않으면 아래 번호와 이름으로 들어가요.';
-  const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;
-  sc.onload=()=>{try{google.accounts.id.initialize({client_id:CONFIG.GOOGLE_CLIENT_ID,callback:onGoogle,auto_select:false});
-    google.accounts.id.renderButton($('#gBtn'),{theme:'outline',size:'large',text:'signin_with',locale:'ko',width:280})}catch{$('#nameBox').open=true}};
-  sc.onerror=()=>{$('#nameBox').open=true};
-  document.head.append(sc);
+  if(!CONFIG.USE_GOOGLE){$('#gBox').classList.add('hidden');$('#nameBox').open=true;return}
+  // 구글에서 돌아온 주소(#access_token=...)를 읽는다
+  const h=new URLSearchParams(location.hash.replace(/^#/,''));
+  if(h.get('access_token')){
+    session={access:h.get('access_token'),refresh:h.get('refresh_token'),exp:Date.now()+Number(h.get('expires_in')||3600)*1000};
+    store.set('st_s',JSON.stringify(session));history.replaceState(null,'',location.pathname+location.search);
+  }else if(h.get('error')){
+    $('#loginErr').textContent='구글 로그인이 취소되었거나 실패했어요.';history.replaceState(null,'',location.pathname+location.search);
+  }
 }
 initGoogle();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
-try{const s=JSON.parse(store.get('st_s')||'null');if(s&&s.num&&(s.name||s.token)){session=s;start()}}catch{}
+try{const s=JSON.parse(store.get('st_s')||'null');if(s&&s.access){session=s;(s.num?start():afterLogin())}else if(s&&s.num&&s.name){session=s;start()}}catch{}
 </script>
 </body>
 </html>

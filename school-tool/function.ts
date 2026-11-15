@@ -1,21 +1,18 @@
 // Supabase Edge Function: school-tool (접속 현황 · 공지 · 선생님↔학생 메시지 · 구글 로그인 신청/승인)
 // 학생 화면 -> (이 함수) -> DB. 입장 방법 두 가지:
-//  1) 구글 로그인: 구글이 준 신분 확인 값(ID 토큰)을 이 함수가 직접 검증한다. Supabase Auth 는 쓰지 않는다
-//     (공용 프로젝트의 다른 앱에 학생 계정이 생기지 않게 하려고).
-//     처음 보는 계정은 번호를 적어 신청 -> 교사가 승인하면 그 번호로 입장. 승인 후에는 이 함수가 만든 세션 토큰을 쓴다.
+//  1) 구글 로그인(Supabase Auth): 화면이 받은 로그인 토큰(jwt)을 이 함수가 Supabase 에 물어 확인한다.
+//     처음 보는 계정은 번호를 적어 신청(st_accounts, pending) -> 교사가 승인하면 그 번호로 입장.
 //  2) 번호 + 이름(gt_students 명단): ST_ALLOW_NAME_LOGIN=0 으로 끌 수 있다(기본은 켜짐).
-// verify_jwt=false 로 배포하고 함수 안에서 방어: 신분 검증, 명단 확인, 잘못된 입력 잠금(IP), Origin 확인, 길이·횟수 제한.
-// 비밀값/설정: GT_ALLOW_ORIGIN(쉼표로 여러 주소), GT_MAX_BAD_CODES(기본 60), ST_GOOGLE_CLIENT_ID, ST_ALLOW_NAME_LOGIN(기본 1)
+// verify_jwt=false 로 배포하고 함수 안에서 방어: 토큰/명단 확인, 잘못된 입력 잠금(IP), Origin 확인, 길이·횟수 제한.
+// 비밀값/설정: GT_ALLOW_ORIGIN(쉼표로 여러 주소), GT_MAX_BAD_CODES(기본 60), ST_ALLOW_NAME_LOGIN(기본 1)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const MAX_BAD = Number(Deno.env.get("GT_MAX_BAD_CODES") ?? "60");
 const ALLOW_LIST = (Deno.env.get("GT_ALLOW_ORIGIN") ?? "").split(",").map((s) => s.trim().replace(/\/$/, "")).filter(Boolean);
 const ALLOW_ANY = ALLOW_LIST.includes("*");
-const GOOGLE_CLIENT_ID = Deno.env.get("ST_GOOGLE_CLIENT_ID") ?? "";   // 아래 배포 시 채움
 const ALLOW_NAME_LOGIN = (Deno.env.get("ST_ALLOW_NAME_LOGIN") ?? "1") !== "0";
 const MAX_BODY = 300;
-const SESSION_DAYS = 14;
-let jwks: unknown = null;   // jose 는 구글 로그인 때만 불러온다(불러오기 실패가 번호+이름 입장을 막지 않게)
+const tokenCache = new Map<string, { uid: string; email: string; name: string; exp: number }>();   // 같은 토큰을 60초 동안 다시 묻지 않는다
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
@@ -29,15 +26,6 @@ function json(body: unknown, status = 200, origin: string | null = null) {
 function nameKey(t: unknown): string {
   return String(t ?? "").normalize("NFC").replace(/\s+/g, "").toLowerCase().slice(0, 40);
 }
-async function sha256hex(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-function newToken(): string {
-  const a = crypto.getRandomValues(new Uint8Array(32));
-  return [...a].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 type Student = { id: string; number: number; class_id: string };
 
 async function findByNumber(num: number): Promise<Student | null> {
@@ -55,7 +43,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["hello", "ping", "send", "google_login", "google_request", "logout"].includes(body.action) ? body.action : "";
+  const action = ["hello", "ping", "send", "account", "request"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
 
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
@@ -64,63 +52,55 @@ Deno.serve(async (req) => {
   if ((bad ?? 0) >= MAX_BAD) return json({ error: "too_many_attempts" }, 429, origin);
   const fail = async (err: string, status = 401) => { await sb.from("gt_auth_failures").insert({ ip }); return json({ error: err }, status, origin); };
 
-  // ---------- 구글 신분 확인 ----------
-  async function verifyGoogle(credential: unknown): Promise<{ email: string; name: string } | null> {
-    if (!GOOGLE_CLIENT_ID || typeof credential !== "string" || credential.length < 20 || credential.length > 4000) return null;
-    try {
-      const jose = await import("https://esm.sh/jose@5.9.6");
-      if (!jwks) jwks = jose.createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
-      // deno-lint-ignore no-explicit-any
-      const { payload } = await jose.jwtVerify(credential, jwks as any, { issuer: ["https://accounts.google.com", "accounts.google.com"], audience: GOOGLE_CLIENT_ID });
-      if (payload.email_verified !== true || typeof payload.email !== "string") return null;
-      return { email: payload.email.toLowerCase().slice(0, 200), name: String(payload.name ?? "").slice(0, 100) };
-    } catch { return null; }
-  }
-  async function makeSession(accountId: string): Promise<string> {
-    const token = newToken();
-    await sb.from("st_sessions").insert({ token_hash: await sha256hex(token), account_id: accountId, expires_at: new Date(Date.now() + SESSION_DAYS * 86400000).toISOString() });
-    return token;
+  // ---------- 로그인 토큰 확인(Supabase Auth, 구글 계정만) ----------
+  async function whoIs(jwt: unknown): Promise<{ uid: string; email: string; name: string } | null> {
+    if (typeof jwt !== "string" || jwt.length < 20 || jwt.length > 4000) return null;
+    const hit = tokenCache.get(jwt);
+    if (hit && hit.exp > Date.now()) return hit;
+    const { data, error } = await sb.auth.getUser(jwt);
+    const u = data?.user;
+    if (error || !u || !u.email || !u.email_confirmed_at) return null;
+    // deno-lint-ignore no-explicit-any
+    if (!(u.identities ?? []).some((i: any) => i.provider === "google")) return null;   // 구글로 확인된 계정만
+    // deno-lint-ignore no-explicit-any
+    const md = (u.user_metadata ?? {}) as any;
+    const v = { uid: u.id, email: u.email.toLowerCase().slice(0, 200), name: String(md.full_name ?? md.name ?? "").slice(0, 100), exp: Date.now() + 60000 };
+    if (tokenCache.size > 200) tokenCache.clear();
+    tokenCache.set(jwt, v);
+    return v;
   }
 
-  if (action === "google_login" || action === "google_request") {
-    if (!GOOGLE_CLIENT_ID) return json({ error: "google_not_configured" }, 503, origin);
-    const g = await verifyGoogle(body.credential);
-    if (!g) return fail("bad_google");
-    const { data: acc } = await sb.from("st_accounts").select("id,status,student_id").eq("email", g.email).maybeSingle();
+  if (action === "account" || action === "request") {
+    const g = await whoIs(body.jwt);
+    if (!g) return fail("bad_login");
+    const { data: acc } = await sb.from("st_accounts").select("id,status,student_id").eq("auth_id", g.uid).maybeSingle();
     if (acc) {
       if (acc.status !== "approved") return json({ ok: true, pending: true }, 200, origin);
       const { data: s } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
       if (!s) return json({ error: "no_student" }, 403, origin);
-      return json({ ok: true, session: await makeSession(acc.id), number: s.number }, 200, origin);
+      return json({ ok: true, approved: true, number: s.number }, 200, origin);
     }
-    if (action === "google_login") return json({ ok: true, need_request: true, name: g.name }, 200, origin);
-    // 신청: 번호 + 동의가 있어야 한다
+    if (action === "account") return json({ ok: true, need_request: true, name: g.name }, 200, origin);
     const num = Number(body.number);
     if (body.consent !== true) return json({ error: "consent_required" }, 400, origin);
     if (!Number.isInteger(num) || num < 1 || num > 60) return json({ error: "bad_number" }, 400, origin);
     const st = await findByNumber(num);
     if (!st) return json({ error: "no_student" }, 404, origin);
-    const { error } = await sb.from("st_accounts").insert({ email: g.email, google_name: g.name, student_id: st.id, status: "pending" });
+    const { error } = await sb.from("st_accounts").insert({ auth_id: g.uid, email: g.email, google_name: g.name, student_id: st.id, status: "pending" });
     if (error && error.code !== "23505") return json({ error: "save_failed" }, 500, origin);
     return json({ ok: true, pending: true }, 200, origin);
   }
 
-  if (action === "logout") {
-    if (typeof body.session === "string" && body.session.length === 64) await sb.from("st_sessions").delete().eq("token_hash", await sha256hex(body.session));
-    return json({ ok: true }, 200, origin);
-  }
-
   // ---------- 학생 확인: 세션 토큰 또는 번호+이름 ----------
   let st: Student | null = null;
-  if (typeof body.session === "string" && body.session.length === 64) {
-    const { data: ss } = await sb.from("st_sessions").select("account_id,expires_at,st_accounts!inner(status,student_id)").eq("token_hash", await sha256hex(body.session)).maybeSingle();
-    // deno-lint-ignore no-explicit-any
-    const a = (ss as any)?.st_accounts;
-    if (ss && new Date(ss.expires_at) > new Date() && a?.status === "approved") {
-      const { data: s } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)").eq("id", a.student_id).eq("gt_classes.active", true).maybeSingle();
-      st = (s as Student) ?? null;
-    }
-    if (!st) return json({ error: "session_expired" }, 401, origin);
+  if (typeof body.jwt === "string" && body.jwt) {
+    const g = await whoIs(body.jwt);
+    if (!g) return json({ error: "session_expired" }, 401, origin);
+    const { data: acc } = await sb.from("st_accounts").select("status,student_id").eq("auth_id", g.uid).maybeSingle();
+    if (!acc || acc.status !== "approved") return json({ error: "not_approved" }, 403, origin);
+    const { data: s } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
+    st = (s as Student) ?? null;
+    if (!st) return json({ error: "no_student" }, 403, origin);
   } else {
     if (!ALLOW_NAME_LOGIN) return json({ error: "login_required" }, 401, origin);
     const num = Number(body.number);
