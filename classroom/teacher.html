@@ -17,6 +17,32 @@
   <span class="muted" id="whoami"></span>
   <button id="logout" style="padding:6px 10px;font-size:13px">로그아웃</button>
 </div>
+<section id="rcPanel" class="panel hide">
+  <style>
+    .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:10px}
+    .rc-st{position:relative;text-align:left;padding:9px 10px;border-radius:10px;font-size:14px}
+    .rc-st b{font-size:16px;display:block}
+    .rc-st.sel{border-color:var(--blue)}
+    .rc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#71717a;margin-right:5px}
+    .rc-dot.on{background:var(--green)}.rc-dot.away{background:var(--orange)}
+    .rc-badge{position:absolute;top:5px;right:7px;background:var(--red);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;font-weight:700}
+    .rc-thread{max-height:300px;overflow:auto;margin:8px 0}
+    .rc-m{border:1px solid var(--line);border-radius:10px;padding:7px 10px;margin:6px 0;max-width:85%;white-space:pre-wrap;word-break:break-word;font-size:14px}
+    .rc-m small{display:block;color:var(--sub);font-size:11px}
+    .rc-m.to_student{margin-left:auto;background:#16351f}.rc-m.to_teacher{background:#12303d}
+    .rc-row{display:flex;gap:8px;align-items:flex-end}.rc-row textarea{flex:1;min-height:56px;font:inherit;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+  </style>
+  <div class="row" style="justify-content:space-between"><div style="font-size:18px;font-weight:750">🏫 우리 반 교실 연결</div><span id="rcSum" class="muted"></span></div>
+  <div class="hint">학생이 「우리 반 교실 연결」에 들어오면 여기에 보여요. 수업방을 열지 않아도 됩니다. ● 초록 접속 중 · ● 노랑 화면 안 봄 · ● 회색 접속 안 함</div>
+  <div class="rc-row" style="margin-top:10px"><textarea id="rcAnn" maxlength="500" placeholder="반 전체 공지 (예: 10분 뒤에 운동장에 모여요.)"></textarea><button id="rcAnnSend" class="primary">알리기</button></div>
+  <div id="rcGrid" class="rc-grid"></div>
+  <div id="rcDetail" class="hide" style="margin-top:12px">
+    <div class="row" style="justify-content:space-between"><b id="rcTitle"></b><button id="rcClose" style="padding:6px 10px;font-size:13px">닫기</button></div>
+    <div id="rcThread" class="rc-thread"></div>
+    <div class="rc-row"><textarea id="rcReply" maxlength="500" placeholder="이 학생에게만 보내요."></textarea><button id="rcReplySend" class="primary">보내기</button></div>
+  </div>
+  <div id="rcMsg" class="status"></div>
+</section>
 <section id="exams" class="panel hide">
   <style>
     .exam-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
@@ -187,6 +213,7 @@
     $('active').classList.add('hide');
     $('authBar').classList.add('hide');
     $('exams').classList.add('hide');
+    rcStop();$('rcPanel').classList.add('hide');
     $('coachAdmin').classList.add('hide');
     $('loginMsg').textContent=m||'';
   }
@@ -195,6 +222,7 @@
     $('authBar').classList.remove('hide');
     $('whoami').textContent=auth&&auth.email?auth.email:'교사';
     $('exams').classList.remove('hide');
+    $('rcPanel').classList.remove('hide');rcStart();
     $('coachAdmin').classList.remove('hide');
     loadExams();loadCoach();
     if(room){$('active').classList.remove('hide')}else{$('setup').classList.remove('hide')}
@@ -218,6 +246,78 @@
       throw Error(m||r.statusText);
     }
     return t?JSON.parse(t):null;
+  }
+
+  // ---- 우리 반 교실 연결: 접속 현황 · 공지 · 학생 메시지 (school-tool 과 같은 st_* 테이블) ----
+  let rcTimer=0,rcCls=null,rcStudents=[],rcPres={},rcMsgs=[],rcSel=null;
+  async function rcApi(path,opt={}){
+    const token=await freshToken();
+    const r=await fetch(U+'/rest/v1/'+path,{...opt,headers:{apikey:K,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal',...(opt.headers||{})}});
+    if(!r.ok){
+      if(r.status===401||r.status===403){showLogin('교사 계정 권한이 없거나 로그인이 만료되었습니다.');throw Error('unauthorized')}
+      throw Error((await r.text()).slice(0,160)||('HTTP '+r.status));
+    }
+    const t=await r.text();return t?JSON.parse(t):null;
+  }
+  const rcAge=iso=>(Date.now()-new Date(iso).getTime())/1000;
+  function rcStatus(id){const p=rcPres[id];if(!p||rcAge(p.last_seen)>75)return'off';return p.visible?'on':'away'}
+  function rcFmt(iso){const d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+  function rcUnread(id){return rcMsgs.filter(m=>m.student_id===id&&m.direction==='to_teacher'&&!m.read_at).length}
+  function rcDraw(){
+    const g=$('rcGrid');g.replaceChildren();let on=0;
+    rcStudents.forEach(s=>{
+      const st=rcStatus(s.id);if(st!=='off')on++;
+      const b=document.createElement('button');b.className='rc-st'+(rcSel===s.id?' sel':'');
+      const n=document.createElement('b');n.textContent=s.number+'번';
+      const d=document.createElement('span');d.className='rc-dot '+st;
+      const nm=document.createElement('span');nm.append(d,s.name);b.append(n,nm);
+      const u=rcUnread(s.id);if(u){const bd=document.createElement('span');bd.className='rc-badge';bd.textContent=u;b.append(bd)}
+      b.onclick=()=>rcOpen(s.id);g.append(b);
+    });
+    $('rcSum').textContent='접속 '+on+' / '+rcStudents.length+'명';
+  }
+  function rcDrawThread(){
+    if(!rcSel)return;const s=rcStudents.find(x=>x.id===rcSel);if(!s)return;
+    $('rcTitle').textContent=s.number+'번 '+s.name;
+    const t=$('rcThread');t.replaceChildren();
+    rcMsgs.filter(m=>m.student_id===rcSel).slice().reverse().forEach(m=>{
+      const d=document.createElement('div');d.className='rc-m '+m.direction;
+      const sm=document.createElement('small');sm.textContent=(m.direction==='to_teacher'?'학생':'선생님')+' · '+rcFmt(m.created_at);
+      d.append(sm,m.body);t.append(d);
+    });
+    t.scrollTop=t.scrollHeight;
+  }
+  async function rcOpen(id){
+    rcSel=id;$('rcDetail').classList.remove('hide');rcDraw();rcDrawThread();
+    const un=rcMsgs.filter(m=>m.student_id===id&&m.direction==='to_teacher'&&!m.read_at);
+    if(un.length){
+      try{await rcApi('st_messages?student_id=eq.'+id+'&direction=eq.to_teacher&read_at=is.null',{method:'PATCH',body:JSON.stringify({read_at:new Date().toISOString()})});un.forEach(m=>m.read_at=new Date().toISOString());rcDraw()}catch(_){}
+    }
+  }
+  async function rcLoad(){
+    try{
+      if(!rcCls){
+        const c=await rcApi('gt_classes?select=id,name&active=eq.true&limit=1',{headers:{Prefer:''}});
+        if(!c||!c.length){$('rcSum').textContent='사용 중인 학급이 없어요';return}
+        rcCls=c[0];
+        rcStudents=await rcApi('gt_students?select=id,number,name&class_id=eq.'+rcCls.id+'&order=number.asc',{headers:{Prefer:''}})||[];
+      }
+      const [p,m]=await Promise.all([
+        rcApi('st_presence?select=student_id,last_seen,visible',{headers:{Prefer:''}}),
+        rcApi('st_messages?select=id,student_id,direction,body,created_at,read_at&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=300',{headers:{Prefer:''}})
+      ]);
+      rcPres={};(p||[]).forEach(x=>rcPres[x.student_id]=x);rcMsgs=m||[];
+      if(rcSel&&rcMsgs.some(x=>x.student_id===rcSel&&x.direction==='to_teacher'&&!x.read_at))rcOpen(rcSel);
+      rcDraw();rcDrawThread();$('rcMsg').textContent='';
+    }catch(e){if(e.message!=='unauthorized')$('rcMsg').textContent='교실 연결 정보를 불러오지 못했어요.'}
+  }
+  function rcStart(){rcStop();rcLoad();rcTimer=setInterval(()=>{if(!document.hidden)rcLoad()},8000)}
+  function rcStop(){clearInterval(rcTimer);rcTimer=0;rcCls=null;rcSel=null;rcStudents=[];rcPres={};rcMsgs=[];if($('rcDetail'))$('rcDetail').classList.add('hide')}
+  async function rcSend(direction,student_id,ta,btn){
+    const t=ta.value.trim();if(!t||!rcCls)return;btn.disabled=true;
+    try{await rcApi('st_messages',{method:'POST',body:JSON.stringify({class_id:rcCls.id,student_id,direction,body:t.slice(0,500)})});ta.value='';$('rcMsg').textContent='';await rcLoad()}
+    catch(e){if(e.message!=='unauthorized')$('rcMsg').textContent='보내지 못했어요: '+e.message}
+    finally{btn.disabled=false}
   }
 
   function msg(s,where='setupMsg'){ $(where).textContent=s }
@@ -559,6 +659,9 @@
   };
 
   $('logout').onclick=()=>showLogin('로그아웃했습니다.');
+  $('rcAnnSend').onclick=()=>rcSend('announce',null,$('rcAnn'),$('rcAnnSend'));
+  $('rcReplySend').onclick=()=>rcSel&&rcSend('to_student',rcSel,$('rcReply'),$('rcReplySend'));
+  $('rcClose').onclick=()=>{rcSel=null;$('rcDetail').classList.add('hide');rcDraw()};
 
   // 시작: 저장된 로그인 정보가 있으면 사용하고, 없으면 로그인 화면만 보여줍니다.
   auth=loadAuth();
