@@ -22,6 +22,8 @@ input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--main);ou
 button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--main);color:var(--mainInk)}
 button.ghost{background:transparent;color:var(--main);border:2px solid var(--main);padding:8px 12px;font-size:16px}
 button:disabled{opacity:.5;cursor:not-allowed}
+button+button{margin-left:8px}
+details{margin-top:14px}summary{cursor:pointer}
 .hidden{display:none}
 .err{color:var(--err);font-weight:700;min-height:1.5em}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -35,6 +37,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .msg.to_student{background:var(--tc)}
 .msg.to_teacher{background:var(--me)}
 .msg.new{outline:3px solid var(--main)}
+label.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:16px}label.chk input{width:22px;height:22px;margin-top:4px;flex:none}
 .msg p{margin:2px 0 0;white-space:pre-wrap;word-break:break-word}
 </style>
 </head>
@@ -42,11 +45,37 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div class="wrap">
   <section id="login" class="card">
     <h1>우리 반 교실 연결</h1>
-    <p class="sub">번호와 이름을 써서 들어와요. 선생님의 알림을 받고, 선생님께 짧은 말을 보낼 수 있어요.</p>
-    <label for="num">번호</label><input id="num" type="number" inputmode="numeric" min="1" max="60" autocomplete="off">
-    <label for="nm">이름</label><input id="nm" type="text" autocomplete="off" maxlength="20">
+    <p class="sub">선생님의 알림을 받고, 선생님께 짧은 말을 보낼 수 있어요.</p>
+    <div id="gBox">
+      <p><b>구글 계정으로 들어가요</b></p>
+      <div id="gBtn"></div>
+      <p id="gNote" class="sub"></p>
+    </div>
+    <details id="nameBox">
+      <summary class="sub">구글로 안 될 때: 번호와 이름으로 들어가요</summary>
+      <label for="num">번호</label><input id="num" type="number" inputmode="numeric" min="1" max="60" autocomplete="off">
+      <label for="nm">이름</label><input id="nm" type="text" autocomplete="off" maxlength="20">
+      <p><button id="start">들어가기</button></p>
+    </details>
     <p id="loginErr" class="err" role="alert"></p>
-    <button id="start">들어가기</button>
+  </section>
+
+  <section id="request" class="card hidden">
+    <h1>처음 오셨어요</h1>
+    <p id="reqWho" class="sub"></p>
+    <label for="reqNum">내 번호</label><input id="reqNum" type="number" inputmode="numeric" min="1" max="60" autocomplete="off">
+    <label class="chk"><input type="checkbox" id="reqOk"> <span>내 구글 이메일과 이름을 선생님이 확인하는 데 쓰는 것에 동의해요. 이 정보는 선생님만 볼 수 있어요.</span></label>
+    <p id="reqErr" class="err" role="alert"></p>
+    <button id="reqGo">선생님께 확인 요청하기</button>
+    <button class="ghost" id="reqBack">처음으로</button>
+  </section>
+
+  <section id="pending" class="card hidden">
+    <h1>선생님 확인을 기다려요</h1>
+    <p>선생님이 확인하면 이 계정으로 들어올 수 있어요.</p>
+    <p id="pendErr" class="err" role="alert"></p>
+    <button id="pendCheck">다시 확인하기</button>
+    <button class="ghost" id="pendBack">처음으로</button>
   </section>
 
   <section id="app" class="hidden">
@@ -62,14 +91,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </section>
 </div>
 <script>
-const CONFIG={SUPABASE_URL:'https://erzdvlcbjneabxqwnwfy.supabase.co',FUNCTION_NAME:'school-tool'};
+const CONFIG={SUPABASE_URL:'https://erzdvlcbjneabxqwnwfy.supabase.co',FUNCTION_NAME:'school-tool',GOOGLE_CLIENT_ID:''};   // 구글 클라이언트 ID(공개 값). 비우면 번호+이름 입장만 보여요.
 const $=s=>document.querySelector(s);
-let session=null,timer=null,lastCursor=null,first=true;
+let session=null,timer=null,lastCursor=null,first=true,cred=null;
 const store={get(k){try{return sessionStorage.getItem(k)}catch{return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch{}},del(k){try{sessionStorage.removeItem(k)}catch{}}};
 async function call(payload){
   const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
   try{
-    const r=await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/${CONFIG.FUNCTION_NAME}`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({number:session.num,name:session.name,...payload})});
+    const r=await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/${CONFIG.FUNCTION_NAME}`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...(session&&session.token?{session:session.token}:{number:session&&session.num,name:session&&session.name}),...payload})});
     let j={};try{j=await r.json()}catch{}
     if(!r.ok)throw Object.assign(new Error(j.error||('HTTP '+r.status)),{code:j.error,status:r.status});
     return j;
@@ -96,27 +125,28 @@ async function tick(){
     render(r.messages||[]);
   }catch(e){
     $('#conn').innerHTML='';const dot=document.createElement('span');dot.className='dot off';$('#conn').append(dot,'연결 안 됨');
-    if(e.status===401){logout()}
+    if(e.status===401){logout('다시 들어와 봐요.')}
   }
 }
 function start(){
-  $('#login').classList.add('hidden');$('#app').classList.remove('hidden');
+  show('app');
   $('#who').textContent=`${session.num}번`;first=true;lastCursor=null;
   tick();clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)tick()},10000);
 }
-function logout(){clearInterval(timer);session=null;store.del('st_s');$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#loginErr').textContent='다시 번호와 이름을 써 봐요.'}
+function show(id){['login','request','pending','app'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==id))}
+function logout(msg){clearInterval(timer);if(session&&session.token){call({action:'logout'}).catch(()=>{})}session=null;cred=null;store.del('st_s');show('login');$('#loginErr').textContent=msg||''}
 async function login(num,name){
   $('#loginErr').textContent='';
   if(!(num>=1&&num<=60)){$('#loginErr').textContent='번호를 써 봐요.';return}
   if(!name){$('#loginErr').textContent='이름을 써 봐요.';return}
   $('#start').disabled=true;
-  try{session={num,name};await call({action:'hello'});store.set('st_s',JSON.stringify(session));start()}
+  try{session={num,name};const r=await call({action:'hello'});session={num:r.number||num,name};store.set('st_s',JSON.stringify(session));start()}
   catch(e){session=null;$('#loginErr').textContent=e.status===401?'번호와 이름이 명단과 맞지 않아요. 다시 써 봐요.':e.status===429?'잠시 뒤에 다시 해 봐요.':'연결이 안 돼요. 잠시 뒤에 다시 해 봐요.'}
   finally{$('#start').disabled=false}
 }
 $('#start').onclick=()=>login(parseInt($('#num').value,10),$('#nm').value.trim());
 $('#nm').addEventListener('keydown',e=>{if(e.key==='Enter')$('#start').click()});
-$('#out').onclick=()=>{clearInterval(timer);session=null;store.del('st_s');$('#app').classList.add('hidden');$('#login').classList.remove('hidden')};
+$('#out').onclick=()=>logout('');
 ['도와주세요','화장실 다녀올게요','다 했어요','질문 있어요'].forEach(t=>{const b=document.createElement('button');b.className='ghost';b.textContent=t;b.onclick=()=>{$('#body').value=t;$('#body').focus()};$('#quick').append(b)});
 $('#send').onclick=async()=>{
   const t=$('#body').value.trim(),e=$('#sendErr');e.textContent='';
@@ -127,8 +157,46 @@ $('#send').onclick=async()=>{
   catch(x){e.textContent=x.code==='too_many_messages'?'너무 많이 보냈어요. 잠시 뒤에 해 봐요.':'보내지 못했어요. 다시 해 봐요.'}
   finally{$('#send').disabled=false}
 };
+
+/* ===== 구글 로그인: 구글 버튼 -> 서버가 확인 -> (처음이면) 번호 신청 -> 교사 승인 ===== */
+function errText(e){return e.code==='bad_google'?'구글 확인에 실패했어요. 다시 해 봐요.':e.code==='google_not_configured'?'구글 로그인이 아직 준비되지 않았어요. 번호와 이름으로 들어가요.':e.code==='login_required'?'구글 계정으로 들어와야 해요.':e.status===429?'잠시 뒤에 다시 해 봐요.':'연결이 안 돼요. 잠시 뒤에 다시 해 봐요.'}
+async function onGoogle(resp){
+  $('#loginErr').textContent='';cred=resp&&resp.credential;
+  try{
+    session=null;const r=await call({action:'google_login',credential:cred});
+    if(r.session){session={num:r.number,token:r.session};store.set('st_s',JSON.stringify(session));start()}
+    else if(r.pending){show('pending');$('#pendErr').textContent=''}
+    else if(r.need_request){$('#reqWho').textContent=r.name?`${r.name} 님, 내 번호를 알려 줘요.`:'내 번호를 알려 줘요.';$('#reqNum').value='';$('#reqOk').checked=false;$('#reqErr').textContent='';show('request')}
+  }catch(e){session=null;$('#loginErr').textContent=errText(e)}
+}
+$('#reqGo').onclick=async()=>{
+  const n=parseInt($('#reqNum').value,10),e=$('#reqErr');e.textContent='';
+  if(!(n>=1&&n<=60)){e.textContent='번호를 써 봐요.';return}
+  if(!$('#reqOk').checked){e.textContent='동의에 체크해 줘요.';return}
+  $('#reqGo').disabled=true;
+  try{await call({action:'google_request',credential:cred,number:n,consent:true});show('pending');$('#pendErr').textContent=''}
+  catch(x){e.textContent=x.code==='no_student'?'그 번호는 명단에 없어요.':x.code==='bad_google'?'시간이 지났어요. 처음으로 가서 다시 해 봐요.':errText(x)}
+  finally{$('#reqGo').disabled=false}
+};
+$('#reqBack').onclick=$('#pendBack').onclick=()=>{cred=null;show('login')};
+$('#pendCheck').onclick=async()=>{
+  $('#pendErr').textContent='';
+  if(!cred){$('#pendErr').textContent='처음으로 가서 구글로 다시 들어와 봐요.';return}
+  await onGoogle({credential:cred});
+  if(!$('#pending').classList.contains('hidden'))$('#pendErr').textContent='아직 확인 중이에요. 조금 뒤에 다시 눌러 봐요.';
+};
+function initGoogle(){
+  if(!CONFIG.GOOGLE_CLIENT_ID){$('#gBox').classList.add('hidden');$('#nameBox').open=true;return}
+  $('#gNote').textContent='구글 버튼이 보이지 않으면 아래 번호와 이름으로 들어가요.';
+  const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;
+  sc.onload=()=>{try{google.accounts.id.initialize({client_id:CONFIG.GOOGLE_CLIENT_ID,callback:onGoogle,auto_select:false});
+    google.accounts.id.renderButton($('#gBtn'),{theme:'outline',size:'large',text:'signin_with',locale:'ko',width:280})}catch{$('#nameBox').open=true}};
+  sc.onerror=()=>{$('#nameBox').open=true};
+  document.head.append(sc);
+}
+initGoogle();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
-try{const s=JSON.parse(store.get('st_s')||'null');if(s&&s.num&&s.name){session=s;start()}}catch{}
+try{const s=JSON.parse(store.get('st_s')||'null');if(s&&s.num&&(s.name||s.token)){session=s;start()}}catch{}
 </script>
 </body>
 </html>
