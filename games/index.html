@@ -78,6 +78,7 @@ input:focus,textarea:focus{outline:2px solid var(--purple);outline-offset:1px}
 footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}footer a{color:var(--ink);border-bottom:1px solid var(--line)}
 @media(max-width:700px){.wrap{padding:0 13px 45px}.row{grid-template-columns:1fr}.prompt{flex-direction:column}.panel{padding:17px}}
 </style>
+<script src="/shared/play-limit.js"></script>
 </head>
 <body>
 <div class="glow"></div>
@@ -252,7 +253,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     b.disabled=true;
     fetch(URL+"?select=html&id=eq."+encodeURIComponent(b.dataset.id)+"&status=eq.approved",{headers:H})
       .then(function(r){return r.json()})
-      .then(function(rows){if(!rows[0])throw 0;open(b.dataset.t,b.dataset.a,rows[0].html,b.dataset.id)})
+      .then(function(rows){if(!rows[0])throw 0;return launch(b.dataset.id,b.dataset.t,b.dataset.a,rows[0].html)})
       .catch(function(){alert("게임을 열지 못했어요.")})
       .then(function(){b.disabled=false});
   });
@@ -264,30 +265,26 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
   function wrap(html){
     if(/<head[^>]*>/i.test(html))return html.replace(/<head[^>]*>/i,function(m){return m+GUARD});
     if(/<html[^>]*>/i.test(html))return html.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"<script>
-(function(){
-  var s=document.createElement('script');
-  s.defer=true;
-  if(location.protocol==='file:'){
-    var p=location.pathname.replace(/\\/g,'/');
-    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
-    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
-    else{s.src='classroom/monitor.js';}
-  }else{
-    s.src='/classroom/monitor.js';
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+html+"</body></html>";
   }
-  document.head.appendChild(s);
-})();
-</script></body></html>";
+  var curId="",stopWatch=null;
+  /* 게임 시간 규칙(하루 횟수·한 번 시간·열림/닫힘)을 지키며 시작해요 */
+  function launch(id,t,a,html){
+    if(!window.PlayLimit){open(t,a,html,id);return}
+    return PlayLimit.begin("gallery:"+id).then(function(res){
+      function again(){PlayLimit.unblock();launch(id,t,a,html)}
+      if(!res.ok){PlayLimit.block(res,{onRetry:again,onClose:function(){}});return}
+      open(t,a,html,id);
+      if(res.start)stopWatch=PlayLimit.watch("gallery:"+id,res.start,function(r){close();PlayLimit.block(r,{onRetry:again,onClose:function(){}})});
+    });
   }
-  var curId="";
   function open(t,a,html,id){
     curId=id||"";
     $("mTitle").textContent=t;$("mBy").textContent="만든 사람 · "+a;
     $("fb").classList.remove("show");$("fbMsg").className="msg";
     $("frame").srcdoc=wrap(html);$("modal").classList.add("show");document.body.style.overflow="hidden";
   }
-  function close(){$("modal").classList.remove("show");$("frame").srcdoc="";$("fb").classList.remove("show");document.body.style.overflow=""}
+  function close(){if(stopWatch){stopWatch();stopWatch=null}$("modal").classList.remove("show");$("frame").srcdoc="";$("fb").classList.remove("show");document.body.style.overflow=""}
   $("mClose").onclick=close;
   document.addEventListener("keydown",function(e){
     if(e.key!=="Escape")return;

@@ -64,6 +64,21 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
       <label style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="autoFb"> 💬 의견 카드 자동 공개 <small style="color:var(--sub)">(친구 이름·험한 말이 그대로 공개될 수 있어요)</small></label>
       <div class="msg" id="autoMsg" style="color:var(--green);min-height:18px;margin:4px 0 0"></div>
     </div>
+    <div class="item" style="margin-bottom:14px">
+      <h3>⏱ 게임 시간 설정</h3>
+      <p class="meta">윷놀이 · 분수 게임들 · 한붓 그리기 · 게임 극장에 적용돼요. <b>학생 기기 기준</b>이고, 저장하면 20초 안에 켜져 있는 화면에도 반영돼요.</p>
+      <label style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="plOpen"> 🎮 게임 열기 <small style="color:var(--sub)">(끄면 모든 게임이 "지금은 게임 시간이 아니에요"로 잠겨요)</small></label>
+      <div class="bar" style="margin:10px 0 6px">
+        <span>하루</span><input type="number" id="plDaily" min="0" max="50" style="width:78px"><span>번 <small style="color:var(--sub)">(0 = 제한 없음)</small></span>
+        <span style="margin-left:10px">한 번에</span><input type="number" id="plMin" min="0" max="180" style="width:78px"><span>분 <small style="color:var(--sub)">(0 = 제한 없음)</small></span>
+        <button class="p" id="plSave">저장</button>
+      </div>
+      <div class="bar" style="margin:6px 0">
+        <button id="plReset">오늘 횟수 모두 초기화</button>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="plExempt"> 이 기기는 제한 없이 쓰기 <small style="color:var(--sub)">(선생님 확인용)</small></label>
+      </div>
+      <div class="msg" id="plMsg" style="color:var(--green);min-height:18px;margin:4px 0 0"></div>
+    </div>
     <div class="bar tabs" id="views">
       <button data-v="games" class="on">🎮 게임</button><button data-v="fb">💬 의견 카드 <span id="fbCount"></span></button>
     </div>
@@ -145,7 +160,7 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
     return rpc("student_games_admin_list",{p_code:code}).then(function(d){
       rows=d||[];
       return rpc("shop_feedback_admin_list",{p_code:code}).then(function(f){fbRows=f||[]},function(){fbRows=[]});
-    }).then(function(){$("login").style.display="none";$("panel").style.display="block";loadSettings();render()})
+    }).then(function(){$("login").style.display="none";$("panel").style.display="block";loadSettings();loadPlay();render()})
       .catch(function(){$("msg").textContent="비밀번호가 맞지 않거나 불러오지 못했습니다.";$("panel").style.display="none";$("login").style.display="flex"});
   }
   function loadSettings(){
@@ -158,6 +173,29 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
       .catch(function(){$("autoMsg").style.color="var(--red)";$("autoMsg").textContent="저장하지 못했어요."});
   }
   $("autoGames").onchange=saveSettings;$("autoFb").onchange=saveSettings;
+
+  /* 게임 시간 설정 */
+  function plSay(ok,t){var m=$("plMsg");m.style.color=ok?"var(--green)":"var(--red)";m.textContent=t}
+  function loadPlay(){
+    fetch(BASE+"shop_public_play_rules",{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY,Authorization:"Bearer "+KEY},body:"{}"})
+      .then(function(r){return r.json()}).then(function(d){var x=d&&d[0];if(!x)return;$("plOpen").checked=x.open!==false;$("plDaily").value=x.daily||0;$("plMin").value=x.minutes||0}).catch(function(){});
+    try{$("plExempt").checked=localStorage.getItem("playlimit.exempt")==="1"}catch(e){}
+  }
+  function num(id,max){var v=parseInt($(id).value,10);if(isNaN(v)||v<0)v=0;return Math.min(v,max)}
+  function playSet(args,okText){
+    return rpc("shop_admin_set_play_rules",Object.assign({p_code:code,p_open:null,p_daily:null,p_minutes:null,p_reset:false},args))
+      .then(function(){plSay(true,okText)}).catch(function(){plSay(false,"저장하지 못했어요.")});
+  }
+  $("plOpen").onchange=function(){var on=$("plOpen").checked;playSet({p_open:on},on?"게임을 열었어요 ✓":"게임을 닫았어요 ✓ (켜져 있는 화면도 20초 안에 잠겨요)")};
+  $("plSave").onclick=function(){
+    var d=num("plDaily",50),m=num("plMin",180);$("plDaily").value=d;$("plMin").value=m;
+    playSet({p_daily:d,p_minutes:m},"저장했어요 ✓ (하루 "+(d||"제한 없음")+(d?"번":"")+" · 한 번에 "+(m||"제한 없음")+(m?"분":"")+")");
+  };
+  $("plReset").onclick=function(){
+    if(!confirm("모든 학생 기기의 \"오늘 한 횟수\"를 0으로 되돌릴까요?"))return;
+    playSet({p_reset:true},"오늘 횟수를 모두 초기화했어요 ✓");
+  };
+  $("plExempt").onchange=function(){try{if($("plExempt").checked)localStorage.setItem("playlimit.exempt","1");else localStorage.removeItem("playlimit.exempt")}catch(e){}plSay(true,$("plExempt").checked?"이 기기는 제한 없이 쓸 수 있어요 ✓":"이 기기도 제한이 적용돼요 ✓")};
   $("views").onclick=function(e){
     var b=e.target.closest("button[data-v]");if(!b)return;view=b.dataset.v;
     [].forEach.call($("views").querySelectorAll("button"),function(x){x.classList.toggle("on",x===b)});
@@ -186,21 +224,7 @@ button{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.
   function wrap(h){
     if(/<head[^>]*>/i.test(h))return h.replace(/<head[^>]*>/i,function(m){return m+GUARD});
     if(/<html[^>]*>/i.test(h))return h.replace(/<html[^>]*>/i,function(m){return m+"<head>"+GUARD+"</head>"});
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+h+"<script>
-(function(){
-  var s=document.createElement('script');
-  s.defer=true;
-  if(location.protocol==='file:'){
-    var p=location.pathname.replace(/\\/g,'/');
-    if(p.indexOf('/classroom/')!==-1){s.src='./monitor.js';}
-    else if(/\/(tests?|games|growth|yut)\//.test(p)){s.src='../classroom/monitor.js';}
-    else{s.src='classroom/monitor.js';}
-  }else{
-    s.src='/classroom/monitor.js';
-  }
-  document.head.appendChild(s);
-})();
-</script></body></html>";
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"+GUARD+"</head><body>"+h+"</body></html>";
   }
   $("list").onclick=function(e){
     var b=e.target.closest("button[data-a]");if(!b)return;
