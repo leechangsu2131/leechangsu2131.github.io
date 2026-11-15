@@ -91,7 +91,7 @@ label.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:
   </section>
 </div>
 <script>
-const CONFIG={SUPABASE_URL:'https://erzdvlcbjneabxqwnwfy.supabase.co',FUNCTION_NAME:'school-tool',KEY:'sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz',USE_GOOGLE:false};   // USE_GOOGLE: Supabase 의 구글 로그인을 켠 뒤 true 로. false 면 번호+이름 입장만 보여요.
+const CONFIG={SUPABASE_URL:'https://erzdvlcbjneabxqwnwfy.supabase.co',FUNCTION_NAME:'school-tool',KEY:'sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz',USE_GOOGLE:true};   // USE_GOOGLE: Supabase 의 구글 로그인을 켠 뒤 true 로. false 면 번호+이름 입장만 보여요.
 const $=s=>document.querySelector(s);
 let session=null,timer=null,lastCursor=null,first=true;
 const store={get(k){try{return sessionStorage.getItem(k)}catch{return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch{}},del(k){try{sessionStorage.removeItem(k)}catch{}}};
