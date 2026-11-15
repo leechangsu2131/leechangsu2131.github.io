@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>교실 연결 · 교사용</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--ink:#1d2433;--sub:#5b6577;--line:#d5dce8;--main:#2f6bd6;--mainInk:#fff;--err:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#12161d;--card:#1b212b;--ink:#e8ecf3;--sub:#9aa5b8;--line:#2f3846;--main:#6c9bff;--mainInk:#0d1522;--err:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:6px 0}
+.sub{color:var(--sub);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+input,textarea{width:100%;font:inherit;padding:9px 11px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 14px;cursor:pointer;background:var(--main);color:var(--mainInk)}
+button.ghost{background:transparent;color:var(--main);border:2px solid var(--main)}
+button:disabled{opacity:.5}
+.hidden{display:none}
+.err{color:var(--err);font-weight:700;min-height:1.4em}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.st{position:relative;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--card);color:var(--ink);text-align:left;font-weight:400}
+.st b{font-size:18px}
+.st.sel{border-color:var(--main)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:#9aa5b8;margin-right:5px;vertical-align:middle}
+.dot.on{background:#2e7d4f}.dot.away{background:#e0a100}
+.badge{position:absolute;top:6px;right:8px;background:#d93025;color:#fff;border-radius:99px;padding:0 8px;font-size:13px;font-weight:700}
+.thread{max-height:320px;overflow:auto;margin:8px 0}
+.m{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;max-width:85%;white-space:pre-wrap;word-break:break-word}
+.m small{display:block;color:var(--sub);font-size:12px}
+.m.to_teacher{background:rgba(47,107,214,.12)}
+.m.to_student{background:rgba(46,125,79,.14);margin-left:auto}
+.m.announce{background:rgba(224,161,0,.18);margin-left:auto}
+.row{display:flex;gap:8px;align-items:flex-end}.row textarea{flex:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="login" class="card">
+    <h1>교실 연결 · 교사용</h1>
+    <p class="sub">교사 계정(이메일·비밀번호)으로 로그인해요.</p>
+    <p><input id="em" type="email" placeholder="이메일" autocomplete="username"></p>
+    <p><input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password"></p>
+    <p id="loginErr" class="err" role="alert"></p>
+    <button id="go">로그인</button>
+  </section>
+
+  <section id="app" class="hidden">
+    <div class="bar"><h1 id="title">교실 연결</h1><div><span id="sum" class="sub"></span> <button class="ghost" id="out">로그아웃</button></div></div>
+    <div class="card">
+      <b>📢 반 전체에 알리기</b>
+      <div class="row" style="margin-top:6px"><textarea id="ann" maxlength="500" placeholder="예: 10분 뒤에 운동장에 모여요."></textarea><button id="annSend">알리기</button></div>
+      <p id="annErr" class="err" role="alert"></p>
+    </div>
+    <div class="card"><b>학생 현황</b> <span class="sub"><i class="dot on"></i>접속 중 · <i class="dot away"></i>화면을 보고 있지 않음 · <i class="dot"></i>접속 안 함</span>
+      <div id="grid" class="grid" style="margin-top:10px"></div></div>
+    <div id="detail" class="card hidden">
+      <div class="bar"><b id="dTitle"></b><button class="ghost" id="dClose">닫기</button></div>
+      <div id="thread" class="thread"></div>
+      <div class="row"><textarea id="reply" maxlength="500" placeholder="이 학생에게만 보내요."></textarea><button id="replySend">보내기</button></div>
+      <p id="replyErr" class="err" role="alert"></p>
+    </div>
+  </section>
+</div>
+<script>
+const SB='https://erzdvlcbjneabxqwnwfy.supabase.co';
+const KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+const $=s=>document.querySelector(s);
+let tok=null,timer=null,cls=null,students=[],pres={},msgs=[],sel=null;
+const store={get(k){try{return sessionStorage.getItem(k)}catch{return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch{}},del(k){try{sessionStorage.removeItem(k)}catch{}}};
+function saveTok(j){tok={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in-60)*1000};store.set('st_t',JSON.stringify(tok))}
+async function authCall(path,body){
+  const r=await fetch(`${SB}/auth/v1/${path}`,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||('HTTP '+r.status));return j;
+}
+async function ensure(){
+  if(!tok)throw new Error('login');
+  if(Date.now()>tok.exp){const j=await authCall('token?grant_type=refresh_token',{refresh_token:tok.refresh});saveTok(j)}
+}
+async function api(path,opt={}){
+  await ensure();
+  const r=await fetch(`${SB}/rest/v1/${path}`,{...opt,headers:{apikey:KEY,Authorization:'Bearer '+tok.access,'Content-Type':'application/json',Prefer:'return=minimal',...(opt.headers||{})}});
+  if(!r.ok){const t=await r.text();throw new Error(t.slice(0,200)||('HTTP '+r.status))}
+  const t=await r.text();return t?JSON.parse(t):null;
+}
+const age=iso=>(Date.now()-new Date(iso).getTime())/1000;
+function status(id){const p=pres[id];if(!p||age(p.last_seen)>75)return'off';return p.visible?'on':'away'}
+const fmt=iso=>{const d=new Date(iso);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
+function unread(id){return msgs.filter(m=>m.student_id===id&&m.direction==='to_teacher'&&!m.read_at).length}
+function drawGrid(){
+  const g=$('#grid');g.replaceChildren();let on=0;
+  students.forEach(s=>{
+    const st=status(s.id);if(st!=='off')on++;
+    const b=document.createElement('button');b.className='st'+(sel===s.id?' sel':'');
+    const d=document.createElement('span');d.className='dot '+st;
+    const n=document.createElement('b');n.textContent=`${s.number}번`;
+    const nm=document.createElement('div');nm.append(d,s.name);
+    b.append(n,nm);const u=unread(s.id);
+    if(u){const bd=document.createElement('span');bd.className='badge';bd.textContent=u;b.append(bd)}
+    b.onclick=()=>openStudent(s.id);g.append(b);
+  });
+  $('#sum').textContent=`접속 ${on} / ${students.length}명`;
+}
+function drawThread(){
+  if(!sel)return;const s=students.find(x=>x.id===sel);
+  $('#dTitle').textContent=`${s.number}번 ${s.name}`;
+  const t=$('#thread');t.replaceChildren();
+  msgs.filter(m=>m.student_id===sel).slice().reverse().forEach(m=>{
+    const d=document.createElement('div');d.className='m '+m.direction;
+    const sm=document.createElement('small');sm.textContent=(m.direction==='to_teacher'?'학생':'선생님')+' · '+fmt(m.created_at);
+    d.append(sm,m.body);t.append(d);
+  });
+  t.scrollTop=t.scrollHeight;
+}
+async function openStudent(id){
+  sel=id;$('#detail').classList.remove('hidden');drawGrid();drawThread();
+  const ids=msgs.filter(m=>m.student_id===id&&m.direction==='to_teacher'&&!m.read_at);
+  if(ids.length){
+    try{await api(`st_messages?student_id=eq.${id}&direction=eq.to_teacher&read_at=is.null`,{method:'PATCH',body:JSON.stringify({read_at:new Date().toISOString()})});ids.forEach(m=>m.read_at=new Date().toISOString());drawGrid()}catch{}
+  }
+}
+async function load(){
+  try{
+    if(!cls){
+      const c=await api('gt_classes?select=id,name&active=eq.true&limit=1',{headers:{Prefer:''}});
+      if(!c||!c.length){$('#sum').textContent='사용 중인 학급이 없어요';return}
+      cls=c[0];$('#title').textContent=`교실 연결 · ${cls.name}`;
+      students=await api(`gt_students?select=id,number,name&class_id=eq.${cls.id}&order=number.asc`,{headers:{Prefer:''}});
+    }
+    const [p,m]=await Promise.all([
+      api('st_presence?select=student_id,last_seen,visible',{headers:{Prefer:''}}),
+      api(`st_messages?select=id,student_id,direction,body,created_at,read_at&class_id=eq.${cls.id}&order=created_at.desc&limit=300`,{headers:{Prefer:''}})
+    ]);
+    pres={};p.forEach(x=>pres[x.student_id]=x);msgs=m;
+    if(sel){const cur=msgs.filter(x=>x.student_id===sel&&x.direction==='to_teacher'&&!x.read_at);if(cur.length&&!document.hidden)openStudent(sel);}
+    drawGrid();drawThread();
+  }catch(e){
+    if(String(e.message)==='login'||/JWT|401/.test(String(e.message)))logout('다시 로그인해 주세요.');
+    else $('#sum').textContent='불러오지 못했어요';
+  }
+}
+function begin(){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)load()},8000)}
+function logout(msg){clearInterval(timer);tok=null;cls=null;sel=null;store.del('st_t');$('#app').classList.add('hidden');$('#detail').classList.add('hidden');$('#login').classList.remove('hidden');$('#loginErr').textContent=msg||''}
+$('#go').onclick=async()=>{
+  $('#loginErr').textContent='';$('#go').disabled=true;
+  try{const j=await authCall('token?grant_type=password',{email:$('#em').value.trim(),password:$('#pw').value});saveTok(j);$('#pw').value='';begin()}
+  catch(e){$('#loginErr').textContent='로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.'}
+  finally{$('#go').disabled=false}
+};
+$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#go').click()});
+$('#out').onclick=()=>logout('');
+$('#dClose').onclick=()=>{sel=null;$('#detail').classList.add('hidden');drawGrid()};
+async function sendMsg(direction,student_id,ta,errEl,btn){
+  const t=ta.value.replace(/\s+$/,'').trim();errEl.textContent='';if(!t)return;
+  btn.disabled=true;
+  try{await api('st_messages',{method:'POST',body:JSON.stringify({class_id:cls.id,student_id,direction,body:t.slice(0,500)})});ta.value='';await load()}
+  catch(e){errEl.textContent='보내지 못했어요: '+e.message}
+  finally{btn.disabled=false}
+}
+$('#annSend').onclick=()=>sendMsg('announce',null,$('#ann'),$('#annErr'),$('#annSend'));
+$('#replySend').onclick=()=>sel&&sendMsg('to_student',sel,$('#reply'),$('#replyErr'),$('#replySend'));
+try{const t=JSON.parse(store.get('st_t')||'null');if(t&&t.refresh){tok=t;begin()}}catch{}
+</script>
+</body>
+</html>

@@ -29,6 +29,7 @@
 | 📚 교육 | 한붓그리기 (오일러 그래프) | `onedraw.html` |
 | 📚 교육 | 교사 셀프스터디 플랫폼 | `selfstudy.html` |
 | 📚 교육 | 단원평가 플랫폼 (학생 평가 & 교사 채점) | `tests/index.html` |
+| 📚 교육 | 우리 반 교실 연결 (접속 현황·공지·선생님↔학생 메시지, 번호·이름 입장, Edge Function `school-tool`, 테이블 `st_*`; 교사용은 교사 계정 로그인, 학생 명단은 `gt_students` 공용) | `school-tool/index.html`, `school-tool/teacher.html`, `school-tool/function.ts` |
 | 📚 교육 | 나의 성장 발표 준비 (학생 글쓰기 + AI 질문 피드백, 번호·이름 입장, Supabase Edge Function `growth-tutor`) | `growth/index.html` |
 | 📚 교육 (3학년 그림책) | 그림책 제작 코치 (12차시 활동지 막힘 칸 힌트 + Gem 코치 링크, 설정·막힘 기록은 Supabase RPC, 관리는 `classroom/teacher.html`의 "그림책 제작 코치 관리") | `picturebook/index.html`, `picturebook/schema.sql`, `picturebook/sheets.pdf` |
 | 📚 교육 | 오답노트·채점 결과 (나눗셈 기본1) | `tests/notebook_math-3-2-2-basic1.html` |
