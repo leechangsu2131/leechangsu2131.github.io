@@ -141,6 +141,7 @@ async function tick(){
   }
 }
 function start(){
+  const nx=store.get('st_next');if(nx==='education.html'){store.del('st_next');location.href='../education.html';return}
   show('app');
   $('#who').textContent=`${session.num}번`;first=true;lastCursor=null;
   tick();clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)tick()},10000);
