@@ -141,7 +141,7 @@ async function tick(){
   }
 }
 function start(){
-  const nx=store.get('st_next');if(nx==='education.html'){store.del('st_next');location.href='../education.html';return}
+  const nx=store.get('st_next');if(['education.html','growth/index.html'].includes(nx)){store.del('st_next');location.href='../'+nx;return}
   show('app');
   $('#who').textContent=`${session.num}번`;first=true;lastCursor=null;
   tick();clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)tick()},10000);
@@ -181,7 +181,7 @@ async function afterLogin(){
   // 로그인한 구글 계정의 상태를 서버에 물어본다
   try{
     const r=await call({action:'account'});
-    if(r.approved){session={...session,num:r.number};store.set('st_s',JSON.stringify(session));start()}
+    if(r.approved){session={...session,num:r.number,name:r.name};store.set('st_s',JSON.stringify(session));start()}
     else if(r.pending){show('pending');$('#pendErr').textContent=''}
     else if(r.need_request){$('#reqWho').textContent=r.name?`${r.name} 님, 내 번호를 알려 줘요.`:'내 번호를 알려 줘요.';$('#reqNum').value='';$('#reqOk').checked=false;$('#reqErr').textContent='';show('request')}
   }catch(e){session=null;store.del('st_s');show('login');$('#loginErr').textContent=errText(e)}
@@ -214,7 +214,7 @@ function initGoogle(){
 }
 initGoogle();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
-try{const s=JSON.parse(store.get('st_s')||'null');if(s&&s.access){session=s;(s.num?start():afterLogin())}else if(s&&s.num&&s.name){session=s;start()}}catch{}
+try{const s=JSON.parse(store.get('st_s')||'null');if(s&&s.access){session=s;(s.num&&s.name?start():afterLogin())}else if(s&&s.num&&s.name){session=s;start()}}catch{}
 </script>
 </body>
 </html>

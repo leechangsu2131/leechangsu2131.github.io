@@ -26,10 +26,10 @@ function json(body: unknown, status = 200, origin: string | null = null) {
 function nameKey(t: unknown): string {
   return String(t ?? "").normalize("NFC").replace(/\s+/g, "").toLowerCase().slice(0, 40);
 }
-type Student = { id: string; number: number; class_id: string };
+type Student = { id: string; number: number; class_id: string; name: string };
 
 async function findByNumber(num: number): Promise<Student | null> {
-  const { data } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)")
+  const { data } = await sb.from("gt_students").select("id,number,class_id,name,gt_classes!inner(active)")
     .eq("number", num).eq("gt_classes.active", true).limit(1);
   return (data?.[0] as Student) ?? null;
 }
@@ -76,9 +76,9 @@ Deno.serve(async (req) => {
     const { data: acc } = await sb.from("st_accounts").select("id,status,student_id").eq("auth_id", g.uid).maybeSingle();
     if (acc) {
       if (acc.status !== "approved") return json({ ok: true, pending: true }, 200, origin);
-      const { data: s } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
+      const { data: s } = await sb.from("gt_students").select("id,number,class_id,name,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
       if (!s) return json({ error: "no_student" }, 403, origin);
-      return json({ ok: true, approved: true, number: s.number }, 200, origin);
+      return json({ ok: true, approved: true, number: s.number, name: s.name }, 200, origin);
     }
     if (action === "account") return json({ ok: true, need_request: true, name: g.name }, 200, origin);
     const num = Number(body.number);
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     if (!g) return json({ error: "session_expired" }, 401, origin);
     const { data: acc } = await sb.from("st_accounts").select("status,student_id").eq("auth_id", g.uid).maybeSingle();
     if (!acc || acc.status !== "approved") return json({ error: "not_approved" }, 403, origin);
-    const { data: s } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
+    const { data: s } = await sb.from("gt_students").select("id,number,class_id,name,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
     st = (s as Student) ?? null;
     if (!st) return json({ error: "no_student" }, 403, origin);
   } else {
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
     const num = Number(body.number);
     const key = nameKey(body.name);
     if (!Number.isInteger(num) || num < 1 || num > 60 || !key) return json({ error: "not_found" }, 401, origin);
-    const { data: found } = await sb.from("gt_students").select("id,number,class_id,gt_classes!inner(active)")
+    const { data: found } = await sb.from("gt_students").select("id,number,class_id,name,gt_classes!inner(active)")
       .eq("number", num).eq("name_key", key).eq("gt_classes.active", true).limit(1);
     st = (found?.[0] as Student) ?? null;
     if (!st) return fail("not_found");
@@ -137,5 +137,5 @@ Deno.serve(async (req) => {
     sb.from("st_messages").select("id,direction,body,created_at").eq("class_id", st.class_id).eq("direction", "announce").gte("created_at", weekAgo).order("created_at", { ascending: false }).limit(10),
   ]);
   const messages = [...(mine ?? []), ...(ann ?? [])].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
-  return json({ ok: true, number: st.number, now: new Date().toISOString(), messages }, 200, origin);
+  return json({ ok: true, number: st.number, name: st.name, now: new Date().toISOString(), messages }, 200, origin);
 });

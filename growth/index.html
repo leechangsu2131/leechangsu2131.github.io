@@ -50,12 +50,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <div id="login" class="card">
     <h2>시작하기</h2>
-    <label for="num">내 번호</label>
-    <input id="num" type="number" inputmode="numeric" min="1" max="60" autocomplete="off" style="font-size:24px;width:120px">
-    <label for="nm" style="margin-top:10px;display:block">내 이름</label>
-    <input id="nm" type="text" autocomplete="off" spellcheck="false" maxlength="20" style="font-size:24px">
-    <p class="sub">번호와 이름을 쓰면 들어갈 수 있어요. 내 글은 선생님만 볼 수 있어요. 친구 글은 볼 수 없어요.</p>
-    <div class="row"><button id="start">시작</button><span id="loginErr" class="err"></span></div>
+    <p>우리 반 교실 연결에서 로그인하면 여기서도 바로 들어와요. 내 글은 선생님만 볼 수 있어요. 친구 글은 볼 수 없어요.</p>
+    <div class="row"><button id="goLogin">🔑 로그인하러 가기</button></div>
+    <details style="margin-top:14px">
+      <summary class="sub">로그인이 안 될 때: 번호와 이름으로 들어가요</summary>
+      <label for="num">내 번호</label>
+      <input id="num" type="number" inputmode="numeric" min="1" max="60" autocomplete="off" style="font-size:24px;width:120px">
+      <label for="nm" style="margin-top:10px;display:block">내 이름</label>
+      <input id="nm" type="text" autocomplete="off" spellcheck="false" maxlength="20" style="font-size:24px">
+      <div class="row"><button id="start">시작</button><span id="loginErr" class="err"></span></div>
+    </details>
     <p class="mode" id="modeNote"></p>
   </div>
 
@@ -350,17 +354,18 @@ async function login(numRaw,nameRaw){
     try{sessionStorage.setItem('growthTutor2:me',JSON.stringify({num,name}))}catch{}
     enterApp();
   }catch(e){
-    session=null;
+    session=null; document.querySelector('#login details').open=true;
     $('#loginErr').textContent=e.code==='too_many_attempts'?'잠시 뒤에 다시 해 봐요.':e.code==='not_found'?'번호와 이름을 다시 확인해 봐요.':e.code==='forbidden_origin'||e.code==='server_not_configured'?'아직 준비 중이에요. 선생님께 알려 줘요.':'지금은 연결이 안 돼요. 조금 뒤에 다시 해 봐요.';
   }
   $('#start').disabled=false;
 }
 $('#start').addEventListener('click',()=>login($('#num').value,$('#nm').value));
 ['#num','#nm'].forEach(s=>$(s).addEventListener('keydown',e=>{if(e.key==='Enter')login($('#num').value,$('#nm').value)}));
-$('#logout').addEventListener('click',()=>{session=null;cur=null;try{sessionStorage.removeItem('growthTutor2:me')}catch{}
+$('#goLogin').addEventListener('click',()=>{try{sessionStorage.setItem('st_next','growth/index.html')}catch{} location.href='../school-tool/index.html'});
+$('#logout').addEventListener('click',()=>{session=null;cur=null;try{sessionStorage.removeItem('growthTutor2:me');sessionStorage.removeItem('st_s')}catch{}
   $('#num').value='';$('#nm').value='';$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#loginErr').textContent=''});
-// 같은 탭에서 새로고침하면 다시 입력하지 않아도 된다(탭을 닫으면 사라짐).
-try{ const t=JSON.parse(sessionStorage.getItem('growthTutor2:me')||'null'); if(t&&t.num&&t.name) login(t.num,t.name); }catch{}
+// 같은 탭에서 새로고침하면 다시 입력하지 않아도 된다(탭을 닫으면 사라짐). 우리 반 교실 연결에서 한 로그인(st_s)도 그대로 쓴다.
+try{ const t=JSON.parse(sessionStorage.getItem('growthTutor2:me')||'null')||JSON.parse(sessionStorage.getItem('st_s')||'null'); if(t&&t.num&&t.name) login(t.num,t.name); }catch{}
 </script>
 <script>
 (function(){
