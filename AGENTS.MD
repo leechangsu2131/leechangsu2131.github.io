@@ -629,3 +629,24 @@
 **청사진 (업그레이드 방향)**
 - [x] **키워드 실시간 검색 및 필터링 기능 탑재 완료**
 - [ ] 새 공지 등록 시 FCM 웹 푸시 알림 연동 (프로토타입 모듈 연계)
+
+---
+
+## 진행 현황과 다음 할 일 (2026-11-16 기준)
+
+**완료**
+- 우리 반 교실 연결(접속 현황·공지·메시지) + 교사 화면 통합(`classroom/teacher.html`)
+- 구글 로그인(Supabase Auth): 학교 계정 18개 사전 등록(`st_accounts`, auth_id 비움 → 첫 로그인 때 `findAcc` 가 이메일로 연결), 개인 계정은 신청·승인
+- 성장 발표 로그인 통합(`growth/index.html` 이 `st_s` 를 읽음), `education.html` 로그인/게스트(`access.js`), 교사 메뉴를 `index.html` 로 이동, `privacy.html`
+- 공용 DB 장치 `handle_new_auth_user` 는 `app=care` 일 때만 돌봄 앱 행 생성
+
+**다음 할 일**
+1. 실제 접속 시험(사용자): 학교 계정 로그인 → 번호 신청 없이 입장 / 개인 계정 신청 → 교사 승인 → 입장 / 성장 발표 자동 로그인
+2. `GT_ALLOW_ORIGIN` 에 Vercel·github.io·gitlab.io 세 주소가 모두 들어 있는지 확인(GitLab 은 `Upload_to_GitLab.bat` 로 따로 올려야 반영)
+3. 4번 번호가 명단에 없음 → 필요하면 명단에 넣고 `262a163` 등록
+4. `growth-tutor` 함수를 구글 로그인 토큰(jwt)으로 확인하게 고친 뒤 번호+이름 입장 끄기(`ST_ALLOW_NAME_LOGIN=0`)
+5. 단원평가 학생 화면 번호·이름 칸을 `st_s` 로 미리 채우기(그림책은 익명 유지)
+6. `selfstudy.html` 로그인 보호 여부 결정
+7. Groq 대체 경로 끝까지 시험
+8. 선택: Gem 대화 붙여넣기 저장, 홈 화면 추가(PWA)+학부모 안내, 위치 공유는 "장소 고르기" 방식으로 나중에
+9. 알려진 위험(다른 사람과 공유해 그대로 둠): `lesson_*`, `storage_map_*` 테이블은 RLS 꺼짐+익명 전체 권한
