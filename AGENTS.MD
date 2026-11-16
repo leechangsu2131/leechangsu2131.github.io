@@ -30,7 +30,7 @@
 | 📚 교육 | 교사 셀프스터디 플랫폼 | `selfstudy.html` |
 | 📚 교육 | 단원평가 플랫폼 (학생 평가 & 교사 채점) | `tests/index.html` |
 | 📚 교육 | 우리 반 교실 연결 (접속 현황·공지·선생님↔학생 메시지, 번호·이름 입장, Edge Function `school-tool`, 테이블 `st_*`; 교사용은 교사 계정 로그인, 학생 명단은 `gt_students` 공용) | `school-tool/index.html`, `school-tool/teacher.html`, `school-tool/function.ts` |
-| 📚 교육 | 나의 성장 발표 준비 (학생 글쓰기 + AI 질문 피드백, 번호·이름 입장, Supabase Edge Function `growth-tutor`) | `growth/index.html` |
+| 📚 교육 | 나의 성장 발표 준비 (학생 글쓰기 + AI 질문 피드백, 구글 로그인 또는 번호·이름 입장, Supabase Edge Function `growth-tutor` = `growth/function.ts`) | `growth/index.html` |
 | 📚 교육 (3학년 그림책) | 그림책 제작 코치 (12차시 활동지 막힘 칸 힌트 + Gem 코치 링크, 설정·막힘 기록은 Supabase RPC, 관리는 `classroom/teacher.html`의 "그림책 제작 코치 관리") | `picturebook/index.html`, `picturebook/schema.sql`, `picturebook/sheets.pdf` |
 | 📚 교육 | 오답노트·채점 결과 (나눗셈 기본1) | `tests/notebook_math-3-2-2-basic1.html` |
 | 📚 교육 | 분수 조작판 | `fraction.html` |
@@ -644,7 +644,7 @@
 1. 실제 접속 시험(사용자): 학교 계정 로그인 → 번호 신청 없이 입장 / 개인 계정 신청 → 교사 승인 → 입장 / 성장 발표 자동 로그인
 2. `GT_ALLOW_ORIGIN` 에 Vercel·github.io·gitlab.io 세 주소가 모두 들어 있는지 확인(GitLab 은 `Upload_to_GitLab.bat` 로 따로 올려야 반영)
 3. 4번 번호가 명단에 없음 → 필요하면 명단에 넣고 `262a163` 등록
-4. `growth-tutor` 함수를 구글 로그인 토큰(jwt)으로 확인하게 고친 뒤 번호+이름 입장 끄기(`ST_ALLOW_NAME_LOGIN=0`) — `growth-tutor` 함수 소스는 저장소에 없고 Supabase 에만 있음(본보기: `school-tool/function.ts` 의 `whoIs`). 코드를 가져와 고친 뒤 `growth/function.ts` 로 저장소에 넣을 것
+4. `growth-tutor` 함수(소스: `growth/function.ts`, 배포본과 같게 유지)가 구글 로그인 토큰(jwt)으로 확인하도록 고침(2026-11-16, 번호+이름 입장도 기본 켜짐 유지). `growth/index.html` 은 같은 탭의 `st_s` 토큰을 보내고 만료 전에 갱신한다. **남은 일:** 함수 배포 → 화면 반영 → 사용자 접속 시험 뒤 `ST_ALLOW_NAME_LOGIN=0` 으로 번호+이름 입장 끄기(school-tool 과 같은 스위치)
 5. ✅ 완료(2026-11-16): 단원평가 학생 화면 6개(`tests/student_*.html`)가 같은 탭의 `st_s` 로 번호·이름을 미리 채움(페이지 load 뒤에 채우고, 임시 저장된 값이 있으면 그것을 우선, 고쳐 쓸 수 있음). 그림책은 익명 유지. 로그인 없이 열면 기존처럼 직접 입력
 6. ✅ 결정(2026-11-16): `selfstudy.html` 은 로그인으로 막지 않음(지금처럼 누구나 열 수 있음)
 7. Groq 대체 경로 끝까지 시험
