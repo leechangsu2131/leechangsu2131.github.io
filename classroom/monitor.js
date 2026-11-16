@@ -89,7 +89,7 @@
 (()=>{
   'use strict';
   const U0='https://erzdvlcbjneabxqwnwfy.supabase.co',K0='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
-  let booted=false;
+  let booted=false,retryTimer=0,dropHook=null;
   function readCfg(){try{return JSON.parse(localStorage.getItem('homeClassroom')||'null')}catch(_){return null}}
   function readLogin(){try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(_){return null}}
   async function autoJoin(){
@@ -106,6 +106,7 @@
       return true;
     }catch(_){return false}
   }
+  function dropped(){if(dropHook)dropHook()}
   function main(){
   if(booted)return;
   let cfg=readCfg();
@@ -435,7 +436,7 @@
       stopped=true;
       localStorage.removeItem('homeClassroom');
       showMessage('수업이 종료되었습니다.');
-      setTimeout(()=>location.href='/education.html',2200);
+      dropped();
     }
   }
 
@@ -450,9 +451,13 @@
       });
       if(d.removed){
         stopped=true;
-        try{sessionStorage.setItem('cls_kicked','1')}catch(_){}
         localStorage.removeItem('homeClassroom');
-        showMessage('수업에서 나왔습니다.');
+        if(d.kicked){                       // 선생님이 내보낸 경우: 이 탭에서는 다시 들어가지 않는다
+          try{sessionStorage.setItem('cls_kicked','1')}catch(_){}
+          showMessage('수업에서 나왔습니다.');
+        }else{                              // 수업이 새로 시작되어 이전 입장이 닫힌 경우: 다시 자동 입장
+          dropped();
+        }
         return;
       }
       for(const c of d.commands||[]){
@@ -464,7 +469,7 @@
         stopped=true;
         localStorage.removeItem('homeClassroom');
         showMessage('수업이 종료되었습니다.');
-        setTimeout(()=>location.href='/education.html',2200);
+        dropped();   // 선생님이 수업을 다시 열면 이 화면에서도 다시 자동 입장한다
       }
     }catch(_){}
     finally{
@@ -536,13 +541,17 @@
   }
   }
   main();
-  if(!booted){
-    let t=0;
-    const tryJoin=async()=>{
-      if(booted||document.hidden)return;
-      if(readCfg()){main();if(booted)clearInterval(t);return}
-      if(await autoJoin()){main();if(booted)clearInterval(t)}
-    };
-    if(readLogin()){setTimeout(tryJoin,1500+Math.random()*3000);t=setInterval(tryJoin,30000)}
-  }
+  const tryJoin=async()=>{
+    if(booted||document.hidden)return;
+    if(readCfg()){main();if(booted)clearInterval(retryTimer);return}
+    if(await autoJoin()){main();if(booted)clearInterval(retryTimer)}
+  };
+  // 수업이 끝나거나 새로 시작되어 입장이 닫히면: 화면 표시를 걷고 30초마다 다시 입장을 확인한다(수업을 다시 열면 자동 입장)
+  dropHook=()=>{
+    booted=false;
+    try{document.querySelectorAll('[data-classroom-ui="1"][data-html2canvas-ignore]').forEach(n=>{if(n.id!=='classroomMessage')n.remove()})}catch(_){}
+    clearInterval(retryTimer);
+    if(readLogin())retryTimer=setInterval(tryJoin,30000);
+  };
+  if(!booted&&readLogin()){setTimeout(tryJoin,1500+Math.random()*3000);retryTimer=setInterval(tryJoin,30000)}
 })();

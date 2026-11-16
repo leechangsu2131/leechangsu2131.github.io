@@ -35,6 +35,7 @@ create table if not exists public.classroom_students (
   removed_at timestamptz
 );
 alter table public.classroom_students add column if not exists sharing boolean not null default true;
+alter table public.classroom_students add column if not exists kicked boolean not null default false;   -- 교사가 내보낸 학생(수업 재시작으로 닫힌 입장과 구별)
 create index if not exists classroom_students_session_idx on public.classroom_students(session_id, joined_at);
 
 create table if not exists public.classroom_commands (
@@ -141,7 +142,7 @@ begin
   insert into public.classroom_commands(session_id,student_id,kind,payload)
   values(v_session,p_student,p_kind,coalesce(p_payload,'{}'::jsonb)) returning id into v_command;
   if p_kind='remove' and p_student is not null then
-    update public.classroom_students set removed_at=now() where id=p_student and session_id=v_session;
+    update public.classroom_students set removed_at=now(), kicked=true where id=p_student and session_id=v_session;
   end if;
   return v_command;
 end;
@@ -201,12 +202,16 @@ $$;
 create or replace function public.classroom_student_commands(p_student uuid,p_token text,p_after bigint default 0)
 returns jsonb language plpgsql security definer set search_path = public
 as $$
-declare v_session uuid; v_joined timestamptz; v_items jsonb;
+declare v_session uuid; v_joined timestamptz; v_items jsonb; v_kicked boolean;
 begin
   select s.session_id,s.joined_at into v_session,v_joined
   from public.classroom_students s join public.classroom_sessions c on c.id=s.session_id
   where s.id=p_student and s.removed_at is null and s.token_hash=encode(sha256(convert_to(coalesce(p_token,''),'utf8')),'hex');
-  if v_session is null then return jsonb_build_object('removed',true,'commands','[]'::jsonb); end if;
+  if v_session is null then
+    select coalesce(s.kicked,false) into v_kicked from public.classroom_students s
+    where s.id=p_student and s.token_hash=encode(sha256(convert_to(coalesce(p_token,''),'utf8')),'hex');
+    return jsonb_build_object('removed',true,'kicked',coalesce(v_kicked,false),'commands','[]'::jsonb);
+  end if;
   select coalesce(jsonb_agg(jsonb_build_object('id',x.id,'kind',x.kind,'payload',x.payload) order by x.id),'[]'::jsonb)
   into v_items from public.classroom_commands x
   where x.session_id=v_session and x.id>coalesce(p_after,0) and x.created_at>=v_joined
