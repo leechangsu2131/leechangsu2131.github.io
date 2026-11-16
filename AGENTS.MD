@@ -730,3 +730,10 @@
 11. 서버 함수 현황(Supabase `teacherlesson-table`, 2026-11-16 확인): `growth-tutor`(v13)·`school-tool`(v5)은 저장소 소스(`growth/function.ts`, `school-tool/function.ts`)와 같은 구조로 배포됨. `unit-test-tutor`(v11, 오답노트 AI 튜터)는 소스가 저장소에 없음 — 보관 필요
 13. 접속 표시 확인(사용자, 2026-11-16 수정 뒤): ① 학생 계정으로 `education.html` 부터 로그인 → 교사 화면(`classroom/teacher.html` 의 교실 연결)에 "접속 중" ② 그 학생이 성장 발표·단원평가 등 다른 도구로 옮긴 뒤에도 2분 넘게 유지 ③ 안 되면 증상이 나온 시각을 알려 주면 Edge Function 로그와 대조. 이상이 없으면 `ST_ALLOW_NAME_LOGIN=0`(4번)으로 넘어감
 12. 정리(2026-11-16): 내용이 같은 파일 제거 — `writing.html`(→`writing1.html`, 이때 `writing1.html` 의 `.sn{cursor:` 오타를 `cursor:pointer` 로 고침), `test/teacher.html`·`test/math-3-2-2-basic1.json`·`test/soc-3-2-1-1.json`·`test/soc-3-2-1-2.json`(각각 `test/templates/`·`test/tests/` 의 같은 파일이 원본), `test/assets/` 의 같은 그림 9개(`image1.bmp`·`image2.bmp`·`image3.bmp`·`image1.jpg`·`image2.png`·`math2_image2.png`·`soc12_image1~3.bmp`). 정리 전후 `python3 build.py --review` 결과가 완전히 같음을 확인. `test/` 는 빌드용, `tests/` 는 배포용
+
+### 2026-11-17 추가: 자동 입장 · 도움 신호 · 이야기방
+- **교실 모니터링 자동 입장**(`classroom/monitor.js`): 로그인(`st_s`)한 학생은 수업 코드·번호를 따로 입력하지 않는다. 교사가 수업을 시작해 둔 동안에만(수업 코드 HC302가 active) 자동 입장하고, 수업이 없으면 30초마다 조용히 다시 확인한다. 교사가 내보내거나 학생이 「나가기」를 누른 탭은 `sessionStorage cls_kicked` 로 다시 들어가지 않는다. 로그인만으로 화면이 전송되지는 않는다.
+- **🙋 도움 신호 버튼**(`monitor.js`, 로그인한 학생 화면 오른쪽 아래): 도와주세요·질문 있어요·화장실 다녀올게요·다 했어요 → `school-tool` `send` → 교사 화면 「우리 반 교실 연결」의 학생별 메시지. education.html·school.html·growth·tests 등 monitor.js 가 실린 곳에서 모두 보인다.
+- **💬 우리 반 이야기방**(`school.html` 「이야기방」 탭, 주소 `school.html#talk`): 로그인한 우리 반 학생끼리 대화(번호+이름 표시, 150자). 서버 `school-tool` 의 `chat_list`/`chat_send`, 테이블 `st_chat`·`st_chat_settings`(RLS: 교사만, 학생은 함수로만). 전화번호·이메일·주소·`@` 차단, 1분 8개·2초 간격·같은 말 반복 제한, 14일 뒤 자동 삭제. 교사 관리: `classroom/teacher.html` 「🏫 우리 반 교실 연결 → 💬 이야기방 관리」에서 숨기기·삭제·방 닫기/열기.
+- 시험: Playwright 모의 서버로 화면·자동 입장·도움 신호 확인(18항목 통과). 실제 서버 연결은 확인하지 못함 → 사용자가 학생 로그인으로 이야기방에 글을 쓰고, 교사 화면에 보이는지·숨기기·닫기가 되는지 확인.
+- **다음 할 일 추가:** 이야기방을 방과후 시간대에만 열지(자동 시간표) 정하기 / 신고(학생이 곤란한 글을 선생님께 알리는 버튼) / 교사 화면에서 이야기방 새 글 알림

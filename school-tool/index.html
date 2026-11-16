@@ -141,7 +141,7 @@ async function tick(){
   }
 }
 function start(){
-  const nx=store.get('st_next');if(['education.html','growth/index.html'].includes(nx)){
+  const nx=store.get('st_next');if(['education.html','growth/index.html','school.html#talk'].includes(nx)){
     store.del('st_next');
     // 다른 페이지로 가기 전에 '접속했어요'를 한 번 알린다(최대 2.5초만 기다림). 이후는 각 페이지의 monitor.js 가 이어서 알린다.
     Promise.race([call({action:'ping',visible:true}).catch(()=>{}),new Promise(r=>setTimeout(r,2500))]).then(()=>{location.href='../'+nx});

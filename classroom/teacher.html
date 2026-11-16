@@ -50,6 +50,12 @@
     <div id="rcThread" class="rc-thread"></div>
     <div class="rc-row"><textarea id="rcReply" maxlength="500" placeholder="이 학생에게만 보내요."></textarea><button id="rcReplySend" class="primary">보내기</button></div>
   </div>
+  <details id="rcChat" style="margin-top:12px">
+    <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span></summary>
+    <div class="hint">학생들이 school.html 「이야기방」에서 서로 나눈 이야기입니다(14일 뒤 자동 삭제). 곤란한 글은 숨기거나 지우고, 필요하면 방을 닫을 수 있어요.</div>
+    <div class="row" style="gap:8px;margin:6px 0"><button id="rcChatLock"></button><span id="rcChatState" class="muted"></span></div>
+    <div id="rcChatList" class="rc-thread" style="max-height:340px"></div>
+  </details>
   <div id="rcMsg" class="status"></div>
 </section>
 <section id="exams" class="panel hide">
@@ -346,9 +352,50 @@
       rcAccs=ac||[];
       rcPres={};(p||[]).forEach(x=>rcPres[x.student_id]=x);rcMsgs=m||[];
       if(rcSel&&rcMsgs.some(x=>x.student_id===rcSel&&x.direction==='to_teacher'&&!x.read_at))rcOpen(rcSel);
-      rcDraw();rcDrawAcc();rcDrawThread();$('rcMsg').textContent='';
+      rcDraw();rcDrawAcc();rcDrawThread();rcChatLoad();$('rcMsg').textContent='';
     }catch(e){if(e.message!=='unauthorized')$('rcMsg').textContent='교실 연결 정보를 불러오지 못했어요.'}
   }
+  // ---- 우리 반 이야기방 관리(st_chat): 숨기기·삭제·잠금 ----
+  let rcChatRows=[],rcChatLocked=false;
+  function rcChatDraw(){
+    const nm={};rcStudents.forEach(x=>nm[x.id]=x.number+'번 '+x.name);
+    $('rcChatN').textContent=rcChatRows.length?'('+rcChatRows.length+'개)':'';
+    $('rcChatState').textContent=rcChatLocked?'지금 닫혀 있어요':'지금 열려 있어요';
+    $('rcChatLock').textContent=rcChatLocked?'🔓 이야기방 열기':'🔒 이야기방 닫기';
+    const box=$('rcChatList');box.replaceChildren();
+    if(!rcChatRows.length){const p=document.createElement('div');p.className='muted';p.textContent='아직 글이 없어요.';box.append(p)}
+    rcChatRows.forEach(m=>{
+      const d=document.createElement('div');d.className='rc-acc';
+      const w=document.createElement('div');w.className='who';
+      w.textContent=(nm[m.student_id]||'?')+' · '+rcFmt(m.created_at)+(m.hidden?' · (숨김)':'')+'  '+m.body;
+      if(m.hidden)w.style.opacity='.5';
+      const a=document.createElement('button');a.textContent=m.hidden?'보이기':'숨기기';
+      const x=document.createElement('button');x.textContent='삭제';
+      a.onclick=async()=>{a.disabled=true;try{await rcApi('st_chat?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({hidden:!m.hidden})});m.hidden=!m.hidden;rcChatDraw()}catch(_){a.disabled=false}};
+      x.onclick=async()=>{if(!confirm('이 글을 지울까요? 되돌릴 수 없어요.'))return;x.disabled=true;try{await rcApi('st_chat?id=eq.'+m.id,{method:'DELETE'});rcChatRows=rcChatRows.filter(r=>r.id!==m.id);rcChatDraw()}catch(_){x.disabled=false}};
+      d.append(w,a,x);box.append(d);
+    });
+  }
+  async function rcChatLoad(){
+    if(!rcCls||!$('rcChat').open)return;
+    try{
+      const [rows,st]=await Promise.all([
+        rcApi('st_chat?select=id,student_id,body,hidden,created_at&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=60',{headers:{Prefer:''}}),
+        rcApi('st_chat_settings?select=locked&class_id=eq.'+rcCls.id,{headers:{Prefer:''}})
+      ]);
+      rcChatRows=rows||[];rcChatLocked=!!(st&&st[0]&&st[0].locked);rcChatDraw();
+    }catch(_){}
+  }
+  $('rcChat').addEventListener('toggle',rcChatLoad);
+  $('rcChatLock').onclick=async()=>{
+    if(!rcCls)return;const b=$('rcChatLock');b.disabled=true;
+    try{
+      await rcApi('st_chat_settings?on_conflict=class_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({class_id:rcCls.id,locked:!rcChatLocked,updated_at:new Date().toISOString()})});
+      rcChatLocked=!rcChatLocked;rcChatDraw();
+    }catch(_){}
+    b.disabled=false;
+  };
+
   function rcStart(){rcStop();rcLoad();rcTimer=setInterval(()=>{if(!document.hidden)rcLoad()},8000)}
   function rcStop(){clearInterval(rcTimer);rcTimer=0;rcCls=null;rcSel=null;rcStudents=[];rcPres={};rcMsgs=[];rcAccs=[];if($('rcDetail'))$('rcDetail').classList.add('hide')}
   async function rcSend(direction,student_id,ta,btn){
