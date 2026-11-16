@@ -106,12 +106,34 @@
       return true;
     }catch(_){return false}
   }
-  function dropped(){if(dropHook)dropHook()}
+  function dropped(reason){if(dropHook)dropHook(reason||'ended')}
+  /* 수업에 연결되어 있는지 학생이 항상 알 수 있게: 연결 안 됨 표시줄 + 끊겼을 때 사라지지 않는 안내 */
+  let chipEl=null,noticeEl=null;
+  function uiBase(el){el.dataset.classroomUi='1';el.setAttribute('data-keep-ui','1');return el}
+  function hideNotices(){if(chipEl){chipEl.remove();chipEl=null}if(noticeEl){noticeEl.remove();noticeEl=null}}
+  function showChip(text,onClick){
+    if(!document.body)return;
+    if(!chipEl){chipEl=uiBase(document.createElement('button'));chipEl.type='button';
+      chipEl.style.cssText='position:fixed;z-index:2147483500;left:12px;bottom:12px;max-width:calc(100vw - 96px);padding:7px 12px;border-radius:12px;border:1px solid #ffffff35;background:#3f3f46ee;color:#fff;font:13px/1.4 system-ui,sans-serif;cursor:default;text-align:left';
+      document.body.appendChild(chipEl)}
+    chipEl.textContent=text;chipEl.style.cursor=onClick?'pointer':'default';chipEl.onclick=onClick||null;
+  }
+  function showNotice(text,btnText,onBtn){
+    if(!document.body)return;
+    if(noticeEl)noticeEl.remove();
+    noticeEl=uiBase(document.createElement('div'));noticeEl.setAttribute('role','alert');
+    noticeEl.style.cssText='position:fixed;z-index:2147483590;left:50%;top:14px;transform:translateX(-50%);width:min(92vw,520px);padding:14px 16px;border-radius:16px;background:#fff7ed;color:#7c2d12;border:2px solid #f59e0b;box-shadow:0 8px 28px #0006;font:700 16px/1.5 system-ui,sans-serif;text-align:center';
+    const t=document.createElement('div');t.textContent=text;noticeEl.append(t);
+    const row=document.createElement('div');row.style.cssText='margin-top:10px;display:flex;gap:8px;justify-content:center';
+    if(btnText){const b=document.createElement('button');b.type='button';b.textContent=btnText;b.style.cssText='border:0;border-radius:10px;padding:9px 16px;background:#f59e0b;color:#fff;font:inherit;font-weight:800;cursor:pointer';b.onclick=()=>{onBtn&&onBtn()};row.append(b)}
+    const ok=document.createElement('button');ok.type='button';ok.textContent='확인';ok.style.cssText='border:0;border-radius:10px;padding:9px 16px;background:#e5e7eb;color:#111;font:inherit;font-weight:700;cursor:pointer';ok.onclick=()=>{noticeEl&&noticeEl.remove();noticeEl=null};row.append(ok);
+    noticeEl.append(row);document.body.appendChild(noticeEl);
+  }
   function main(){
   if(booted)return;
   let cfg=readCfg();
   if(!cfg||!cfg.studentId)return;
-  booted=true;
+  booted=true;hideNotices();
   cfg.room = cfg.room || 'HC302';
 
   const isMock=!!cfg.mock;
@@ -429,14 +451,12 @@
       stopped=true;
       try{sessionStorage.setItem('cls_kicked','1')}catch(_){}
       localStorage.removeItem('homeClassroom');
-      showMessage('선생님이 수업에서 내보냈습니다.');
-      setTimeout(()=>location.href='/education.html',1800);
+      dropped('kicked');
     }
     if(kind==='end'){
       stopped=true;
       localStorage.removeItem('homeClassroom');
-      showMessage('수업이 종료되었습니다.');
-      dropped();
+      dropped('ended');
     }
   }
 
@@ -454,9 +474,9 @@
         localStorage.removeItem('homeClassroom');
         if(d.kicked){                       // 선생님이 내보낸 경우: 이 탭에서는 다시 들어가지 않는다
           try{sessionStorage.setItem('cls_kicked','1')}catch(_){}
-          showMessage('수업에서 나왔습니다.');
+          dropped('kicked');
         }else{                              // 수업이 새로 시작되어 이전 입장이 닫힌 경우: 다시 자동 입장
-          dropped();
+          dropped('new');
         }
         return;
       }
@@ -468,8 +488,7 @@
       if(d.ended){
         stopped=true;
         localStorage.removeItem('homeClassroom');
-        showMessage('수업이 종료되었습니다.');
-        dropped();   // 선생님이 수업을 다시 열면 이 화면에서도 다시 자동 입장한다
+        dropped('ended');   // 선생님이 수업을 다시 열면 이 화면에서도 다시 자동 입장한다
       }
     }catch(_){}
     finally{
@@ -547,11 +566,34 @@
     if(await autoJoin()){main();if(booted)clearInterval(retryTimer)}
   };
   // 수업이 끝나거나 새로 시작되어 입장이 닫히면: 화면 표시를 걷고 30초마다 다시 입장을 확인한다(수업을 다시 열면 자동 입장)
-  dropHook=()=>{
-    booted=false;
-    try{document.querySelectorAll('[data-classroom-ui="1"][data-html2canvas-ignore]').forEach(n=>{if(n.id!=='classroomMessage')n.remove()})}catch(_){}
-    clearInterval(retryTimer);
-    if(readLogin())retryTimer=setInterval(tryJoin,30000);
+  const MSG={
+    ended:'수업이 끝났어요. 지금은 수업에 연결되어 있지 않아요.',
+    'new':'수업이 새로 시작되어 연결이 끊겼어요. 잠시 뒤 자동으로 다시 들어가요.',
+    kicked:'선생님이 수업에서 내보냈어요. 선생님께 말씀드려요.'
   };
+  function rejoin(){
+    try{sessionStorage.removeItem('cls_kicked')}catch(_){}
+    clearInterval(retryTimer);retryTimer=setInterval(tryJoin,30000);
+    tryJoin().then(()=>{if(!booted)showChip('⚪ 지금은 수업이 열려 있지 않아요',null)});
+  }
+  dropHook=(reason)=>{
+    booted=false;
+    try{document.querySelectorAll('[data-classroom-ui="1"][data-html2canvas-ignore]:not([data-keep-ui])').forEach(n=>{if(n.id!=='classroomMessage')n.remove()})}catch(_){}
+    clearInterval(retryTimer);
+    if(reason==='kicked'){
+      showChip('⛔ 수업에서 나갔어요 (눌러서 다시 들어가기)',rejoin);
+      showNotice(MSG.kicked,'다시 들어가기',rejoin);
+    }else{
+      showChip(reason==='new'?'⚪ 수업 다시 연결 중…':'⚪ 수업 연결 안 됨 (수업이 끝났어요)',null);
+      showNotice(MSG[reason]||MSG.ended);
+      if(readLogin())retryTimer=setInterval(tryJoin,30000);
+    }
+  };
+  // 처음부터 연결이 안 된 화면도 "연결 안 됨"을 보여 준다(내보내진 탭이면 눌러서 다시 들어가기)
+  setTimeout(()=>{
+    if(booted||!readLogin()||/\/school-tool\/|\/classroom\/teacher\.html/.test(location.pathname))return;
+    let kicked=false;try{kicked=!!sessionStorage.getItem('cls_kicked')}catch(_){}
+    showChip(kicked?'⛔ 수업에서 나갔어요 (눌러서 다시 들어가기)':'⚪ 수업 연결 안 됨',kicked?rejoin:null);
+  },9000);
   if(!booted&&readLogin()){setTimeout(tryJoin,1500+Math.random()*3000);retryTimer=setInterval(tryJoin,30000)}
 })();
