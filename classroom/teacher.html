@@ -651,18 +651,28 @@
     }
   };
 
+  // 수업을 끝낸 뒤 '수업 중' 영역을 닫고 시작 영역으로 돌아가, 수업방 열기 버튼이 다시 보이게 한다.
+  function backToSetup(text){
+    clearInterval(timer);
+    if(mockChannel){try{mockChannel.close()}catch(_){}mockChannel=null}
+    room='';rows=[];isMock=false;
+    $('mockBadge').classList.add('hide');
+    $('openStudentTab').classList.add('hide');
+    $('active').classList.add('hide');
+    $('setup').classList.remove('hide');
+    msg(text,'setupMsg');
+  }
+
   $('end').onclick=async()=>{
     if(!confirm('수업을 종료할까요?'))return;
     if(isMock){
       postMockMessage({type:'admin_command',kind:'end'});
-      clearInterval(timer);
-      msg('모의실험 수업을 종료했습니다.','liveMsg');
+      backToSetup('모의실험 수업을 종료했습니다. 다시 하려면 아래 버튼을 누르세요.');
       return;
     }
     try{
       await rpc('classroom_admin_end',{p_code:code,p_room:room});
-      clearInterval(timer);
-      msg('수업을 종료했습니다.','liveMsg');
+      backToSetup('수업을 종료했습니다. 다시 수업을 하려면 "수업방 열기"를 누르세요.');
     }catch(e){
       msg('종료하지 못했습니다: '+(e.message||e),'liveMsg');
     }
