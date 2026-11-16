@@ -17,6 +17,63 @@
   <span class="muted" id="whoami"></span>
   <button id="logout" style="padding:6px 10px;font-size:13px">로그아웃</button>
 </div>
+<section id="setup" class="panel hide">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-size:18px;font-weight:750">🏫 우리 반 수업방: <span style="color:var(--blue);letter-spacing:1px">HC302</span></div>
+      <div class="hint">선생님 수업 코드는 <b>HC302</b>로 항상 통일되어 있습니다. 학생들도 이 코드로 바로 입장합니다.</div>
+    </div>
+    <div class="row">
+      <button id="start" class="primary" style="font-size:16px;padding:12px 20px">🚀 수업방 열기 (HC302)</button>
+      <button id="startMock" class="mock-btn" style="font-size:14px;padding:12px 16px">🧪 모의실험 모드로 시작</button>
+    </div>
+  </div>
+  <div id="setupMsg" class="status"></div>
+
+  <!-- ## [다중 교사/비밀번호 설정 - 일단 묵혀둠]
+  <div class="row" style="margin-top:14px;opacity:0.6">
+    <input id="pw" type="password" placeholder="교사 비밀번호 (기본: 1234)">
+    <input id="title" maxlength="80" value="오늘 수업" placeholder="수업 이름">
+    <input id="roomIn" maxlength="6" value="HC302" placeholder="수업 코드">
+  </div>
+  -->
+</section>
+
+<section id="active" class="hide">
+  <div class="panel">
+    <div class="row">
+      <div>
+        <div class="muted">학생 입장 코드 <span id="mockBadge" class="mock-tag hide">모의실험(Mock) 중</span></div>
+        <div id="room" class="room"></div>
+      </div>
+      <button id="copy" class="primary">입장 링크 복사</button>
+      <button id="openStudentTab" class="open-student hide">👉 학생 창 열기 (테스트)</button>
+      <button id="refresh">새로고침</button>
+      <button id="end" class="danger">수업 종료</button>
+    </div>
+    <div class="muted" id="titleOut" style="margin-top:8px"></div>
+    <div class="hint">학생은 번호·이름으로 입장합니다. 화면 공유는 홈페이지 탭 안에서만 이루어지며 다른 앱이나 탭은 캡처되지 않습니다.</div>
+  </div>
+  <div class="panel">
+    <b>전체 학생 제어</b>
+    <div class="row" style="margin-top:8px">
+      <input id="noticeText" maxlength="180" placeholder="학생 화면에 보낼 안내">
+      <button id="sendNotice">안내 보내기</button>
+      <button id="focusAll">주의집중 화면</button>
+      <button id="resumeAll">화면 다시 보기</button>
+      <input id="navUrl" placeholder="홈페이지 안의 페이지 주소 (예: /fraction.html)">
+      <button id="navigateAll">페이지 함께 열기</button>
+    </div>
+    <div class="hint">페이지 이동은 이 홈페이지 주소 안으로 제한됩니다. 주의집중은 학생 페이지에 안내 덮개를 표시합니다.</div>
+  </div>
+  <div class="row" style="justify-content:space-between;margin:18px 2px 9px">
+    <b>참가 학생 <span id="count">0</span>명</b>
+    <span class="muted">초록: 접속 중 · 주황: 다른 탭 또는 창 · 회색: 응답 없음 (화면을 누르면 크게 볼 수 있습니다)</span>
+  </div>
+  <div id="students" class="grid"></div>
+  <div id="liveMsg" class="status"></div>
+</section>
+
 <section id="rcPanel" class="panel hide">
   <style>
     .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:10px}
@@ -111,62 +168,6 @@
     <div class="row" style="margin:8px 0"><button id="pbCpGem" style="padding:6px 10px;font-size:13px">지침문 복사</button><button id="pbCpPlan" style="padding:6px 10px;font-size:13px">계획서 양식 복사</button></div>
     <pre id="pbGemView"></pre>
   </details>
-</section>
-<section id="setup" class="panel hide">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-    <div>
-      <div style="font-size:18px;font-weight:750">🏫 우리 반 수업방: <span style="color:var(--blue);letter-spacing:1px">HC302</span></div>
-      <div class="hint">선생님 수업 코드는 <b>HC302</b>로 항상 통일되어 있습니다. 학생들도 이 코드로 바로 입장합니다.</div>
-    </div>
-    <div class="row">
-      <button id="start" class="primary" style="font-size:16px;padding:12px 20px">🚀 수업방 열기 (HC302)</button>
-      <button id="startMock" class="mock-btn" style="font-size:14px;padding:12px 16px">🧪 모의실험 모드로 시작</button>
-    </div>
-  </div>
-  <div id="setupMsg" class="status"></div>
-
-  <!-- ## [다중 교사/비밀번호 설정 - 일단 묵혀둠]
-  <div class="row" style="margin-top:14px;opacity:0.6">
-    <input id="pw" type="password" placeholder="교사 비밀번호 (기본: 1234)">
-    <input id="title" maxlength="80" value="오늘 수업" placeholder="수업 이름">
-    <input id="roomIn" maxlength="6" value="HC302" placeholder="수업 코드">
-  </div>
-  -->
-</section>
-
-<section id="active" class="hide">
-  <div class="panel">
-    <div class="row">
-      <div>
-        <div class="muted">학생 입장 코드 <span id="mockBadge" class="mock-tag hide">모의실험(Mock) 중</span></div>
-        <div id="room" class="room"></div>
-      </div>
-      <button id="copy" class="primary">입장 링크 복사</button>
-      <button id="openStudentTab" class="open-student hide">👉 학생 창 열기 (테스트)</button>
-      <button id="refresh">새로고침</button>
-      <button id="end" class="danger">수업 종료</button>
-    </div>
-    <div class="muted" id="titleOut" style="margin-top:8px"></div>
-    <div class="hint">학생은 번호·이름으로 입장합니다. 화면 공유는 홈페이지 탭 안에서만 이루어지며 다른 앱이나 탭은 캡처되지 않습니다.</div>
-  </div>
-  <div class="panel">
-    <b>전체 학생 제어</b>
-    <div class="row" style="margin-top:8px">
-      <input id="noticeText" maxlength="180" placeholder="학생 화면에 보낼 안내">
-      <button id="sendNotice">안내 보내기</button>
-      <button id="focusAll">주의집중 화면</button>
-      <button id="resumeAll">화면 다시 보기</button>
-      <input id="navUrl" placeholder="홈페이지 안의 페이지 주소 (예: /fraction.html)">
-      <button id="navigateAll">페이지 함께 열기</button>
-    </div>
-    <div class="hint">페이지 이동은 이 홈페이지 주소 안으로 제한됩니다. 주의집중은 학생 페이지에 안내 덮개를 표시합니다.</div>
-  </div>
-  <div class="row" style="justify-content:space-between;margin:18px 2px 9px">
-    <b>참가 학생 <span id="count">0</span>명</b>
-    <span class="muted">초록: 접속 중 · 주황: 다른 탭 또는 창 · 회색: 응답 없음 (화면을 누르면 크게 볼 수 있습니다)</span>
-  </div>
-  <div id="students" class="grid"></div>
-  <div id="liveMsg" class="status"></div>
 </section>
 
 <!-- 화면 확대 모달 -->
