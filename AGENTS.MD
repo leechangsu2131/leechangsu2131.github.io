@@ -728,4 +728,5 @@
 9. 알려진 위험(다른 사람과 공유해 그대로 둠): `lesson_*`, `storage_map_*` 테이블은 RLS 꺼짐+익명 전체 권한
 10. 알려진 위험(개인정보): 분수 놀이 앱 6개의 `ROSTER` 에 학생 이름 19명이 들어 있어 공개 저장소에서 보임 → 12-6 청사진 참고
 11. 서버 함수 현황(Supabase `teacherlesson-table`, 2026-11-16 확인): `growth-tutor`(v13)·`school-tool`(v5)은 저장소 소스(`growth/function.ts`, `school-tool/function.ts`)와 같은 구조로 배포됨. `unit-test-tutor`(v11, 오답노트 AI 튜터)는 소스가 저장소에 없음 — 보관 필요
+13. 접속 표시 확인(사용자, 2026-11-16 수정 뒤): ① 학생 계정으로 `education.html` 부터 로그인 → 교사 화면(`classroom/teacher.html` 의 교실 연결)에 "접속 중" ② 그 학생이 성장 발표·단원평가 등 다른 도구로 옮긴 뒤에도 2분 넘게 유지 ③ 안 되면 증상이 나온 시각을 알려 주면 Edge Function 로그와 대조. 이상이 없으면 `ST_ALLOW_NAME_LOGIN=0`(4번)으로 넘어감
 12. 정리(2026-11-16): 내용이 같은 파일 제거 — `writing.html`(→`writing1.html`, 이때 `writing1.html` 의 `.sn{cursor:` 오타를 `cursor:pointer` 로 고침), `test/teacher.html`·`test/math-3-2-2-basic1.json`·`test/soc-3-2-1-1.json`·`test/soc-3-2-1-2.json`(각각 `test/templates/`·`test/tests/` 의 같은 파일이 원본), `test/assets/` 의 같은 그림 9개(`image1.bmp`·`image2.bmp`·`image3.bmp`·`image1.jpg`·`image2.png`·`math2_image2.png`·`soc12_image1~3.bmp`). 정리 전후 `python3 build.py --review` 결과가 완전히 같음을 확인. `test/` 는 빌드용, `tests/` 는 배포용
