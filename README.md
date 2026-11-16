@@ -19,6 +19,8 @@ https://homepage-53dd99.gitlab.io/
 |---|---|
 | 교육 허브 | `education.html` (교육 도구 목록) |
 | 수업 연습 | `multiply.html`, `DEVIDE.HTML`, `fraction*.html`, `onedraw.html` 등 |
+| 분수 놀이 | `분수_놀이터.html`(허브)와 `분수_*.html` 놀이 앱 9개 — 가게놀이·징검다리·모둠릴레이·대결·빙고대결·수직선사냥·짝맞추기·손가락축구·순위표 |
+| 업무 도구 | `Pdf-splitter.html`, `운동장천막배치.html`, `쿠폰생성.html` (index.html 의 "업무" 칸) |
 | 평가 | `tests/index.html` (단원평가), `tests/notebook_*.html` (오답노트) |
 | 성장 발표 | `growth/index.html` — 학생 글쓰기 + AI 선생님 질문 피드백 |
 | 교실 연결 | `school-tool/index.html` — 학생 접속 현황·공지·선생님↔학생 메시지 |
@@ -41,6 +43,7 @@ https://homepage-53dd99.gitlab.io/
 |---|---|
 | `growth-tutor` | 성장 발표 AI 피드백(Gemini 우선, 실패 시 Groq) |
 | `school-tool` | 교실 연결(접속 현황·메시지). 소스: `school-tool/function.ts` |
+| `unit-test-tutor` | 오답노트(분수 기본4) AI 튜터 대화. 소스는 아직 저장소에 없음 |
 
 - 두 함수는 `GT_ALLOW_ORIGIN` 비밀값에 적힌 주소에서 온 요청만 받습니다. **학생이 접속하는 주소를 모두 쉼표로 넣어야 합니다.** 예: `https://school-api-alpha-gules.vercel.app,https://leechangsu2131.github.io,https://homepage-53dd99.gitlab.io`
 - AI 키(`GEMINI_API_KEY`, `GROQ_API_KEY`)와 모델 이름은 같은 곳의 비밀값입니다. 저장소에 올리지 않습니다.
