@@ -127,6 +127,21 @@ textarea.t{min-height:92px;resize:vertical}
   </div>
 </div>
 
+<script>
+// 우리 반 교실 연결에서 로그인한 학생이면 번호·이름을 미리 채운다(같은 탭의 sessionStorage 'st_s'). 페이지 시작 코드가 칸을 비운 뒤(load)에 채우고, 임시 저장된 값이 있으면 그것을 우선한다. 고쳐 쓸 수도 있다.
+window.addEventListener('load',function(){try{
+  var s=JSON.parse(sessionStorage.getItem('st_s')||'null');
+  var n=s&&parseInt(s.num,10), nm=s&&typeof s.name==='string'?s.name.trim().slice(0,12):'';
+  if(!(n>=1&&n<=60)||!nm) return;
+  var a=document.getElementById('inNo'), b=document.getElementById('inName');
+  if(!a||!b) return;
+  if(!a.value) a.value=n;
+  if(!b.value) b.value=nm;
+  var p=document.createElement('p'); p.className='hint'; p.textContent='로그인한 정보로 번호와 이름을 채웠어요. 맞는지 확인하세요.';
+  b.insertAdjacentElement('afterend',p);
+}catch(e){}});
+</script>
+
 <div id="quiz" hidden>
   <div class="bar"><div class="in"><span id="who"></span><span id="tm" class="tm" hidden></span><div class="prog"><i id="progBar"></i></div><span id="progTxt"></span></div></div>
   <div class="wrap"><div id="qs"></div></div>
