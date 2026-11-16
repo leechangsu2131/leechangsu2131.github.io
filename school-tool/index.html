@@ -141,7 +141,12 @@ async function tick(){
   }
 }
 function start(){
-  const nx=store.get('st_next');if(['education.html','growth/index.html'].includes(nx)){store.del('st_next');location.href='../'+nx;return}
+  const nx=store.get('st_next');if(['education.html','growth/index.html'].includes(nx)){
+    store.del('st_next');
+    // 다른 페이지로 가기 전에 '접속했어요'를 한 번 알린다(최대 2.5초만 기다림). 이후는 각 페이지의 monitor.js 가 이어서 알린다.
+    Promise.race([call({action:'ping',visible:true}).catch(()=>{}),new Promise(r=>setTimeout(r,2500))]).then(()=>{location.href='../'+nx});
+    return;
+  }
   show('app');
   $('#who').textContent=`${session.num}번`;first=true;lastCursor=null;
   tick();clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)tick()},10000);
@@ -184,7 +189,11 @@ async function afterLogin(){
     if(r.approved){session={...session,num:r.number,name:r.name};store.set('st_s',JSON.stringify(session));start()}
     else if(r.pending){show('pending');$('#pendErr').textContent=''}
     else if(r.need_request){$('#reqWho').textContent=r.name?`${r.name} 님, 내 번호를 알려 줘요.`:'내 번호를 알려 줘요.';$('#reqNum').value='';$('#reqOk').checked=false;$('#reqErr').textContent='';show('request')}
-  }catch(e){session=null;store.del('st_s');show('login');$('#loginErr').textContent=errText(e)}
+  }catch(e){
+    // 로그인이 정말 거절됐을 때(401)만 지운다. 네트워크가 잠깐 끊기거나 서버가 바쁜 경우에는 로그인을 남겨 두어 새로고침하면 이어지게 한다.
+    if(e.status===401||e.code==='bad_login'||e.code==='session_expired'){session=null;store.del('st_s')}
+    show('login');$('#loginErr').textContent=errText(e)
+  }
 }
 $('#reqGo').onclick=async()=>{
   const n=parseInt($('#reqNum').value,10),e=$('#reqErr');e.textContent='';

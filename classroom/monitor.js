@@ -1,3 +1,49 @@
+/* 접속 표시(우리 반 교실 연결): 같은 탭에 학생 로그인(st_s)이 있으면 어느 페이지에서든
+   20초마다 서버(school-tool 함수)에 '여기 있어요'를 알려, 교사 화면에 접속 중으로 보이게 한다.
+   - school-tool/index.html 은 자기 안에서 따로 알리므로 건너뛴다.
+   - 실패해도 조용히 넘어가고 로그인을 지우거나 페이지를 옮기지 않는다.
+   - 서버가 거절(401·403·429)하면 이 페이지에서는 더 보내지 않는다(잘못된 입력 잠금이 반 전체에 걸리는 것을 막기 위해). */
+(()=>{
+  'use strict';
+  try{
+    if(/\/school-tool\/(index\.html)?$/.test(location.pathname))return;
+    const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+    const rd=()=>{try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(_){return null}};
+    let busy=false,stopped=false,timer=0;
+    async function token(){
+      let s=rd();
+      if(Date.now()<=(s.exp||0)-60000)return s.access;
+      s=rd();   // 갱신 직전에 다시 읽어, 다른 스크립트가 방금 갱신한 값을 덮어쓰지 않게 한다
+      if(Date.now()<=(s.exp||0)-60000)return s.access;
+      const r=await fetch(U+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok||!j.access_token)return null;
+      s={...s,access:j.access_token,refresh:j.refresh_token||s.refresh,exp:Date.now()+(j.expires_in||3600)*1000};
+      try{sessionStorage.setItem('st_s',JSON.stringify(s))}catch(_){}
+      return s.access;
+    }
+    async function ping(){
+      if(busy||stopped)return;busy=true;
+      try{
+        const s=rd();if(!s||!s.num)return;   // 번호가 정해진(승인된) 로그인만
+        let who;
+        if(s.access){const j=await token();if(!j)return;who={jwt:j}}
+        else if(s.name){who={number:s.num,name:s.name}}
+        else return;
+        const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
+        try{
+          const r=await fetch(U+'/functions/v1/school-tool',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...who,action:'ping',visible:!document.hidden})});
+          if(r.status===401||r.status===403||r.status===429){stopped=true;clearInterval(timer)}
+        }finally{clearTimeout(to)}
+      }catch(_){}finally{busy=false}
+    }
+    if(rd()){
+      setTimeout(ping,Math.random()*3000);   // 반 전체가 한꺼번에 몰리지 않게 조금 흩뜨린다
+      timer=setInterval(ping,20000);
+      document.addEventListener('visibilitychange',()=>{ping()});
+    }
+  }catch(_){}
+})();
 /* 학생 화면 상태 전송 및 교사 명령 수신. */
 (()=>{
   'use strict';
