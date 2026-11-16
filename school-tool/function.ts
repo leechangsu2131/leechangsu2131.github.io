@@ -70,10 +70,20 @@ Deno.serve(async (req) => {
     return v;
   }
 
+  // 교사가 미리 등록해 둔 학교 계정(auth_id 비어 있음)은 첫 구글 로그인 때 연결한다
+  async function findAcc(g: { uid: string; email: string }) {
+    const { data: a } = await sb.from("st_accounts").select("id,status,student_id").eq("auth_id", g.uid).maybeSingle();
+    if (a) return a;
+    const { data: pre } = await sb.from("st_accounts").select("id,status,student_id").eq("email", g.email).is("auth_id", null).eq("status", "approved").maybeSingle();
+    if (!pre) return null;
+    const { error } = await sb.from("st_accounts").update({ auth_id: g.uid }).eq("id", pre.id).is("auth_id", null);
+    return error ? null : pre;
+  }
+
   if (action === "account" || action === "request") {
     const g = await whoIs(body.jwt);
     if (!g) return fail("bad_login");
-    const { data: acc } = await sb.from("st_accounts").select("id,status,student_id").eq("auth_id", g.uid).maybeSingle();
+    const acc = await findAcc(g);
     if (acc) {
       if (acc.status !== "approved") return json({ ok: true, pending: true }, 200, origin);
       const { data: s } = await sb.from("gt_students").select("id,number,class_id,name,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
@@ -96,7 +106,7 @@ Deno.serve(async (req) => {
   if (typeof body.jwt === "string" && body.jwt) {
     const g = await whoIs(body.jwt);
     if (!g) return json({ error: "session_expired" }, 401, origin);
-    const { data: acc } = await sb.from("st_accounts").select("status,student_id").eq("auth_id", g.uid).maybeSingle();
+    const acc = await findAcc(g);
     if (!acc || acc.status !== "approved") return json({ error: "not_approved" }, 403, origin);
     const { data: s } = await sb.from("gt_students").select("id,number,class_id,name,gt_classes!inner(active)").eq("id", acc.student_id).eq("gt_classes.active", true).maybeSingle();
     st = (s as Student) ?? null;
