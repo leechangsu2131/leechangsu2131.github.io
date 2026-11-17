@@ -78,73 +78,30 @@ $$;
 create or replace function public.classroom_admin_start(p_code text, p_title text default '오늘 수업')
 returns jsonb language plpgsql security definer set search_path = public
 as $$
-declare v_code text := 'HC302'; v_id uuid;
+declare v_code text := 'HC302'; v_id uuid; v_status text;
 begin
   if not public.classroom_admin_ok(p_code) then raise exception 'unauthorized'; end if;
 
-  -- ## 다중 사용자용 난수 생성 로직 (일단 묵혀둠)
-  /*
-  loop
-    v_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
-    exit when not exists(select 1 from public.classroom_sessions where room_code = v_code and status = 'active');
-  end loop;
-  */
-
   -- [단일 고정 수업 코드: HC302 로 항상 통일]
-  select id into v_id from public.classroom_sessions where room_code = v_code;
+  select id, status into v_id, v_status from public.classroom_sessions where room_code = v_code;
   if v_id is null then
     insert into public.classroom_sessions(room_code, title, status)
     values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80), 'active')
     returning id into v_id;
+  elsif v_status = 'active' then
+    -- 이미 수업 중인데 다시 '수업방 열기'를 누른 경우(교사 화면을 새로 고친 뒤 등): 들어와 있는 학생을 지우지 않는다
+    update public.classroom_sessions
+    set title = left(coalesce(nullif(trim(p_title),''),title),80)
+    where id = v_id;
   else
     update public.classroom_sessions
-    set status = 'active', title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
+    set status = 'active', ended_at = null, title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
     where id = v_id;
-    -- 새 수업 시작 시 이전 학생 목록 정리
-    update public.classroom_students set removed_at = now() where session_id = v_id;
+    -- 끝난 수업을 새로 시작할 때만 이전 학생 목록 정리
+    update public.classroom_students set removed_at = now() where session_id = v_id and removed_at is null;
   end if;
 
   return jsonb_build_object('id',v_id,'room_code',v_code,'title',p_title,'status','active');
-end;
-$$;
-
-create or replace function public.classroom_admin_list(p_code text, p_room text)
-returns jsonb language plpgsql security definer set search_path = public
-as $$
-declare v_session uuid; v_students jsonb;
-begin
-  if not public.classroom_admin_ok(p_code) then raise exception 'unauthorized'; end if;
-  select id into v_session from public.classroom_sessions where room_code=upper(p_room) and status='active';
-  if v_session is null then raise exception 'room not found'; end if;
-  select coalesce(jsonb_agg(jsonb_build_object(
-    'id',s.id,'student_no',s.student_no,'student_name',s.student_name,
-    'joined_at',s.joined_at,'last_seen',s.last_seen,
-    'online',s.last_seen > now()-interval '12 seconds',
-    'tab_active',s.tab_active,'sharing',s.sharing,'current_page',s.current_page,'screenshot',s.screenshot
-  ) order by s.student_no), '[]'::jsonb)
-  into v_students from public.classroom_students s
-  where s.session_id=v_session and s.removed_at is null;
-  return jsonb_build_object('room_code',upper(p_room),'students',v_students);
-end;
-$$;
-
-create or replace function public.classroom_admin_command(
-  p_code text, p_room text, p_student uuid, p_kind text, p_payload jsonb default '{}'::jsonb
-) returns bigint language plpgsql security definer set search_path = public
-as $$
-declare v_session uuid; v_command bigint;
-begin
-  if not public.classroom_admin_ok(p_code) then raise exception 'unauthorized'; end if;
-  if p_kind not in ('notice','focus','resume','navigate','remove') then raise exception 'invalid command'; end if;
-  select id into v_session from public.classroom_sessions where room_code=upper(p_room) and status='active';
-  if v_session is null then raise exception 'room not found'; end if;
-  if p_student is not null and not exists(select 1 from public.classroom_students where id=p_student and session_id=v_session and removed_at is null) then raise exception 'student not found'; end if;
-  insert into public.classroom_commands(session_id,student_id,kind,payload)
-  values(v_session,p_student,p_kind,coalesce(p_payload,'{}'::jsonb)) returning id into v_command;
-  if p_kind='remove' and p_student is not null then
-    update public.classroom_students set removed_at=now(), kicked=true where id=p_student and session_id=v_session;
-  end if;
-  return v_command;
 end;
 $$;
 
