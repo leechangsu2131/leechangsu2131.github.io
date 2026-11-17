@@ -389,6 +389,7 @@
         if(s.choices.length<2){say('보기를 2개 이상 적어 주세요.',true);return}
         cfg={choices:s.choices};if(typeof s.answer==='number'&&s.answer<s.choices.length)cfg.answer=s.answer;
       }
+      if(s.seconds&&(s.kind==='text'||s.kind==='choice'))cfg.seconds=s.seconds;
       if(s.kind==='video'){
         if(!/^https:\/\//i.test(s.url)){say('영상 주소는 https:// 로 시작해야 해요.',true);return}
         cfg={url:s.url};

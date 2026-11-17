@@ -240,8 +240,8 @@ begin
     from (select r.answer->>'choice' as k, count(*) as c from public.classroom_responses r where r.activity_id = a.id group by 1) t;
   end if;
   return jsonb_build_object(
-    'activity', jsonb_build_object('id',a.id,'kind',a.kind,'title',a.title,'config',v_cfg,'status',a.status,'reveal',a.reveal),
-    'my', v_my, 'counts', v_counts);
+    'activity', jsonb_build_object('id',a.id,'kind',a.kind,'title',a.title,'config',v_cfg,'status',a.status,'reveal',a.reveal,'created_at',a.created_at),
+    'my', v_my, 'counts', v_counts, 'now', now());
 end;
 $$;
 

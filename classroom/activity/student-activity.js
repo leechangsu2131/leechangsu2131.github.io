@@ -42,7 +42,13 @@
   function start(opt){
     const rpc=opt.rpc, sid=opt.studentId, tok=opt.token;
     let stopped=false, busy=false, timer=0;
-    let shownSig='', last=null, root=null, mini=null, card=null, ui={};
+    let shownSig='', last=null, root=null, mini=null, card=null, ui={}, clock=null;
+    function tickClock(){
+      if(!clock||!ui.tm)return;
+      const left=Math.ceil((clock.end-(Date.now()+clock.off))/1000);
+      ui.tm.textContent=left>0?'⏱ 남은 시간 '+(left>=60?Math.floor(left/60)+'분 '+(left%60)+'초':left+'초'):'⏱ 시간이 다 됐어요';
+    }
+    const clockTimer=setInterval(tickClock,500);
 
     const BTN='border:0;border-radius:14px;padding:12px 18px;font:700 20px/1.2 system-ui,"Apple SD Gothic Neo",sans-serif;cursor:pointer;touch-action:manipulation';
 
@@ -86,6 +92,17 @@
       }
       head.appendChild(hb);
       card.appendChild(head);
+      // 시간 제한: 서버 시각 기준으로 남은 시간을 센다(기기 시계가 달라도 같게)
+      clock=null;
+      const secs=a.config&&Number(a.config.seconds);
+      if(a.status==='open'&&secs>=10&&secs<=3600&&a.created_at&&d.now){
+        const off=Date.parse(d.now)-Date.now(), end=Date.parse(a.created_at)+secs*1000;
+        if(!isNaN(off)&&!isNaN(end)){
+          clock={end,off};
+          ui.tm=el('div','font:800 22px/1.3 system-ui;color:#b45309;margin:0 0 6px');
+          card.appendChild(ui.tm);tickClock();
+        }
+      }
       card.appendChild(el('div','font:800 clamp(22px,4.6vw,30px)/1.45 system-ui,"Apple SD Gothic Neo",sans-serif;margin:6px 0 16px;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere',a.title));
 
       ui.note=el('div','margin-top:12px;font:700 18px/1.5 system-ui;color:#475569;min-height:26px');
@@ -270,7 +287,7 @@
     document.addEventListener('visibilitychange',()=>{schedule();if(!document.hidden)poll()});
     setTimeout(poll,300+Math.random()*1200);   // 반 전체가 한꺼번에 몰리지 않게 조금 흩뜨린다
     schedule();
-    return {stop(){stopped=true;clearInterval(timer);hideAll()}};
+    return {stop(){stopped=true;clearInterval(timer);clearInterval(clockTimer);hideAll()}};
   }
 
   window.ClassroomActivityStudent={start};

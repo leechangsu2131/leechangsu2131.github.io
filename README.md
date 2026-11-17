@@ -46,7 +46,7 @@ https://homepage-53dd99.gitlab.io/
 |---|---|
 | `growth-tutor` | 성장 발표 AI 피드백(Gemini 우선, 실패 시 Groq) |
 | `school-tool` | 교실 연결(접속 현황·메시지). 소스: `school-tool/function.ts` |
-| `unit-test-tutor` | 오답노트(분수 기본4) AI 튜터 대화. 소스는 아직 저장소에 없음 |
+| `unit-test-tutor` | 오답노트(분수 기본4) AI 튜터 대화. 소스: `tests/tutor-function.ts` |
 
 - 두 함수는 `GT_ALLOW_ORIGIN` 비밀값에 적힌 주소에서 온 요청만 받습니다. **학생이 접속하는 주소를 모두 쉼표로 넣어야 합니다.** 예: `https://school-api-alpha-gules.vercel.app,https://leechangsu2131.github.io,https://homepage-53dd99.gitlab.io`
 - AI 키(`GEMINI_API_KEY`, `GROQ_API_KEY`)와 모델 이름은 같은 곳의 비밀값입니다. 저장소에 올리지 않습니다.
