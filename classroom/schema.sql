@@ -11,6 +11,7 @@ insert into public.student_games_admin (id, code_hash)
 values (1, encode(sha256(convert_to('1234', 'utf8')), 'hex'))
 on conflict (id) do update set code_hash = excluded.code_hash;
 
+-- 수업 시작 시각(2026-11-17 추가): alter table public.classroom_sessions add column if not exists started_at timestamptz not null default now();
 create table if not exists public.classroom_sessions (
   id uuid primary key default gen_random_uuid(),
   room_code text not null unique,
@@ -85,17 +86,17 @@ begin
   -- [단일 고정 수업 코드: HC302 로 항상 통일]
   select id, status into v_id, v_status from public.classroom_sessions where room_code = v_code;
   if v_id is null then
-    insert into public.classroom_sessions(room_code, title, status)
-    values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80), 'active')
+    insert into public.classroom_sessions(room_code, title, status, started_at)
+    values(v_code, left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80), 'active', now())
     returning id into v_id;
   elsif v_status = 'active' then
     -- 이미 수업 중인데 다시 '수업방 열기'를 누른 경우(교사 화면을 새로 고친 뒤 등): 들어와 있는 학생을 지우지 않는다
     update public.classroom_sessions
-    set title = left(coalesce(nullif(trim(p_title),''),title),80)
+    set title = left(coalesce(nullif(trim(p_title),''),title),80), started_at = now()
     where id = v_id;
   else
     update public.classroom_sessions
-    set status = 'active', ended_at = null, title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
+    set status = 'active', ended_at = null, started_at = now(), title = left(coalesce(nullif(trim(p_title),''),'오늘 수업'),80)
     where id = v_id;
     -- 끝난 수업을 새로 시작할 때만 이전 학생 목록 정리
     update public.classroom_students set removed_at = now() where session_id = v_id and removed_at is null;
@@ -127,7 +128,7 @@ as $$
 declare v_session uuid; v_student uuid; v_title text;
 begin
   select id,title into v_session,v_title from public.classroom_sessions
-  where room_code=upper(trim(p_room)) and status='active';
+  where room_code=upper(trim(p_room)) and status='active' and started_at > now() - interval '8 hours';   -- 수업 시작 8시간 뒤에는 자동 입장 불가(방과후 공유 방지)
   if v_session is null then raise exception '수업 코드를 확인해 주세요.'; end if;
   if length(coalesce(p_no,'')) not between 1 and 4 or length(trim(coalesce(p_name,''))) not between 1 and 20 then raise exception '번호와 이름을 확인해 주세요.'; end if;
   if length(coalesce(p_token,'')) < 30 then raise exception '잘못된 접속 정보입니다.'; end if;
