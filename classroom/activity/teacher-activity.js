@@ -28,6 +28,7 @@
   .cra-step input.t{flex:1;min-width:220px}
   .cra-step textarea{width:100%;min-height:84px;font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:8px}
   .cra-step .mini{padding:6px 10px;font-size:13px}
+  .cra-timer{margin-top:6px;font:800 20px system-ui;color:#f59e0b}
   .cra-choices{margin-top:8px;display:grid;gap:6px}
   .cra-crow{display:flex;gap:8px;align-items:center}
   .cra-crow .no{font-weight:800;min-width:1.6em;text-align:center}
@@ -160,7 +161,9 @@
       U.title,
       el('button',{type:'button',class:'primary',text:'💾 저장',onclick:saveFlow}),
       el('button',{type:'button',text:'새로 만들기',onclick:newFlow}),
-      el('button',{type:'button',class:'danger',text:'삭제',onclick:delFlow}));
+      el('button',{type:'button',class:'danger',text:'삭제',onclick:delFlow}),
+      el('button',{type:'button',text:'⬇ 파일로 내보내기',title:'지금 흐름을 .json 파일로 저장해요',onclick:exportFlow}),
+      el('button',{type:'button',text:'⬆ 파일에서 가져오기',title:'내보낸 .json 파일을 불러와요',onclick:importFlow}));
     U.steps=el('div');
     U.add=el('div',{class:'row',style:'margin:8px 0'},
       el('span',{class:'muted',text:'단계 추가:'}),
@@ -180,6 +183,7 @@
     loadFlows().catch(()=>{});
     refresh();
     M.timer=setInterval(refresh,POLL_MS);
+    M.tick=setInterval(tick,500);
     M.keyFn=e=>{
       if(e.key!=='Escape')return;
       if(document.getElementById('craZoom'))closeZoom();
@@ -189,7 +193,7 @@
   }
 
   function stop(quiet){
-    clearInterval(M.timer);M.timer=0;
+    clearInterval(M.timer);M.timer=0;clearInterval(M.tick);M.tick=0;M.deadline=null;
     if(M.keyFn){document.removeEventListener('keydown',M.keyFn);M.keyFn=null}
     closeBig();
     if(!quiet&&M.root)M.root.replaceChildren();
@@ -236,6 +240,32 @@
       await loadFlows();say('삭제했어요.');
     }catch(e){say('삭제하지 못했어요: '+String(e.message||e).slice(0,120),true)}
   }
+  function exportFlow(){
+    if(!M.flow.steps.length){say('내보낼 단계가 없어요.',true);return}
+    const data={app:'classroom-activity-flow',version:1,title:M.flow.title||'수업 흐름',steps:M.flow.steps.map(cleanStep)};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));
+    const a=el('a',{href:url,download:(M.flow.title||'수업흐름').replace(/[\\/:*?"<>|]+/g,'_')+'.json'});
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+    say('파일로 저장했어요.');
+  }
+  function importFlow(){
+    const inp=el('input',{type:'file',accept:'.json,application/json'});
+    inp.onchange=async()=>{
+      const f=inp.files&&inp.files[0];if(!f)return;
+      try{
+        if(f.size>200000)throw new Error('big');
+        const d=JSON.parse(await f.text());
+        if(!d||d.app!=='classroom-activity-flow'||!Array.isArray(d.steps))throw new Error('format');
+        const steps=d.steps.slice(0,40).filter(x=>x&&KINDS[x.kind]).map(cleanStep);
+        if(!steps.length)throw new Error('empty');
+        if(M.flow.steps.length&&!confirm('지금 편집 중인 내용이 사라져요. 가져올까요?'))return;
+        M.flow={id:null,title:String(d.title||'가져온 수업 흐름').slice(0,60),steps};M.idx=-1;
+        M.ui.title.value=M.flow.title;M.ui.sel.value='';
+        renderSteps();say('"'+M.flow.title+'" '+steps.length+'단계를 가져왔어요. 이름을 확인하고 💾 저장하세요.');
+      }catch(_){say('가져올 수 없는 파일이에요. 이 화면에서 내보낸 .json 파일만 가져올 수 있어요.',true)}
+    };
+    inp.click();
+  }
   function newFlow(){
     if(M.flow.steps.length&&!confirm('지금 편집 중인 내용이 사라져요. 새로 만들까요?'))return;
     M.flow={id:null,title:'새 수업 흐름',steps:[]};M.idx=-1;
@@ -251,6 +281,8 @@
       o.answer=at>=0?at:null;
     }
     if(s.kind==='video'||s.kind==='page')o.url=String(s.url||'').trim().slice(0,500);
+    const note=String(s.note||'').trim().slice(0,300);if(note)o.note=note;
+    const sec=Number(s.seconds);if((s.kind==='text'||s.kind==='choice')&&sec>=10&&sec<=3600)o.seconds=Math.round(sec);
     return o;
   }
 
@@ -276,6 +308,7 @@
       el('span',{class:'no',text:(i+1)+'.'}),kindSel,titleIn,
       el('button',{type:'button',class:'mini',text:'▲',title:'위로',onclick:()=>move(i,-1)}),
       el('button',{type:'button',class:'mini',text:'▼',title:'아래로',onclick:()=>move(i,1)}),
+      el('button',{type:'button',class:'mini',text:'복제',title:'이 단계를 복사해 바로 아래에 붙여요',onclick:()=>{M.flow.steps.splice(i+1,0,JSON.parse(JSON.stringify(s)));if(M.idx>i)M.idx++;renderSteps()}}),
       el('button',{type:'button',class:'mini danger',text:'삭제',onclick:()=>{M.flow.steps.splice(i,1);if(M.idx>=i)M.idx=Math.max(-1,M.idx-1);renderSteps()}}),
       el('button',{type:'button',class:'mini primary',text:'▶ 시작',onclick:()=>runStep(i)})));
     if(s.kind==='choice'){
@@ -309,6 +342,17 @@
       const u=el('input',{type:'text',style:'width:100%;margin-top:8px',placeholder:s.kind==='video'?'영상 주소 (https:// 로 시작, 유튜브는 화면 안에서 바로 재생)':'홈페이지 안의 주소 (예: /fraction.html)',value:s.url||'',oninput:()=>{s.url=u.value}});
       box.appendChild(u);
     }
+    const extra=el('div',{class:'sub'});
+    if(s.kind==='text'||s.kind==='choice'){
+      const tsel=el('select',{onchange:()=>{s.seconds=tsel.value?Number(tsel.value):null}},
+        ...[['','시간 제한 없음'],['30','30초'],['60','1분'],['120','2분'],['180','3분'],['300','5분'],['600','10분']].map(([v,t])=>el('option',{value:v,text:t})));
+      tsel.value=s.seconds?String(s.seconds):'';
+      if(s.seconds&&tsel.value==='')tsel.appendChild(el('option',{value:String(s.seconds),text:s.seconds+'초',selected:''}));
+      extra.append(el('span',{class:'muted',text:'⏱'}),tsel);
+    }
+    const memo=el('input',{type:'text',maxlength:'300',placeholder:'📝 교사 메모 (학생에게는 안 보여요: 발문, 예상 답, 시간 등)',value:s.note||'',style:'flex:1;min-width:200px',oninput:()=>{s.note=memo.value}});
+    extra.appendChild(memo);
+    box.appendChild(extra);
     return box;
   }
   function move(i,d){
@@ -351,8 +395,10 @@
       }
       await call('cra_admin_open',{p_room:room,p_kind:s.kind,p_title:s.title||'영상을 같이 봐요',p_config:cfg});
       M.idx=i;renderSteps();
-      say('▶ '+(i+1)+'단계를 학생 화면에 띄웠어요.');
+      say('▶ '+(i+1)+'단계를 학생 화면에 띄웠어요.'+(s.seconds?' ('+fmtSec(s.seconds)+' 뒤 자동 마감)':''));
+      M.deadline=null;M.memo=s.note||'';
       await refresh();
+      if(s.seconds&&M.cur&&M.cur.activity)M.deadline={id:M.cur.activity.id,end:Date.now()+s.seconds*1000};
     }catch(e){say('시작하지 못했어요: '+String(e.message||e).slice(0,140),true)}
   }
 
@@ -392,6 +438,8 @@
         el('i',{style:'width:'+Math.round(100*c[i]/max)+'%'}),el('span',{text:(MARK[i]||i+1)+' '+t+(ans===i?'  ✔ 정답':'')+'  —  '+c[i]+'명'}))));
       box.appendChild(bars);
     }
+    if(open&&M.deadline&&M.deadline.id===a.id)box.appendChild(el('div',{class:'cra-timer',id:'craTimer',text:''}));
+    if(M.idx>=0&&M.memo&&open)box.appendChild(el('div',{class:'hint',style:'margin-top:6px',text:'📝 '+M.memo}));
     const btns=el('div',{class:'row',style:'margin-top:10px'});
     if(a.kind!=='video')btns.appendChild(el('button',{type:'button',class:'primary',text:'🖥 큰 화면으로 보기',onclick:openBig}));
     if(open)btns.appendChild(el('button',{type:'button',text:'⏹ 마감하기',onclick:()=>closeAct(a)}));
@@ -400,6 +448,18 @@
     if(!open&&a.kind==='video')btns.appendChild(el('span',{class:'hint',text:'영상은 다음 단계를 시작하면 학생 화면에서 사라져요.'}));
     box.appendChild(btns);
     U.live.appendChild(box);
+  }
+  function fmtSec(n){return n>=60?Math.floor(n/60)+'분'+(n%60?' '+(n%60)+'초':''):n+'초'}
+  function tick(){
+    const d=M.deadline;if(!d)return;
+    const t=document.getElementById('craTimer');
+    const left=Math.ceil((d.end-Date.now())/1000);
+    if(t)t.textContent='⏱ 남은 시간 '+(left>0?fmtSec(left):'0초');
+    if(left<=0){
+      M.deadline=null;
+      const a=M.cur&&M.cur.activity;
+      if(a&&a.id===d.id&&a.status==='open')closeAct(a).then(()=>say('⏱ 시간이 다 되어 자동으로 마감했어요.'));
+    }
   }
   async function closeAct(a){
     try{await call('cra_admin_close',{p_room:M.getRoom(),p_activity:a.id});say('마감했어요.');await refresh()}
