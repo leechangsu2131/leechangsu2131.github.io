@@ -89,6 +89,7 @@
 (()=>{
   'use strict';
   const U0='https://erzdvlcbjneabxqwnwfy.supabase.co',K0='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+  const SELF=(document.currentScript&&document.currentScript.src)||'';   // 같은 폴더의 모듈(activity/)을 찾는 기준
   let booted=false,retryTimer=0,dropHook=null;
   function readCfg(){try{return JSON.parse(localStorage.getItem('homeClassroom')||'null')}catch(_){return null}}
   function readLogin(){try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(_){return null}}
@@ -551,6 +552,16 @@
     });
 
     if(!isMock)pollCommands();
+
+    // 수업 활동 모듈(주관식·객관식·영상): 선생님이 낸 활동을 지금 보는 페이지 위에 띄운다. 실패해도 수업 화면 공유에는 영향이 없다.
+    if(!isMock&&SELF){
+      try{
+        const s=document.createElement('script');
+        s.src=new URL('activity/student-activity.js',SELF).href;
+        s.onload=()=>{try{window.ClassroomActivityStudent.start({rpc,studentId:cfg.studentId,token:cfg.token})}catch(_){}};
+        document.head.appendChild(s);
+      }catch(_){}
+    }
   }
 
   if(document.readyState==='loading'){

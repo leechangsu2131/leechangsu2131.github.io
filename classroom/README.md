@@ -73,6 +73,27 @@ insert into public.classroom_teachers(email) values ('교사이메일@example.co
 
 ---
 
+## 📋 6. 수업 활동 (클래스툴처럼 활동 띄우기 · 수업 흐름 저장)
+
+수업방을 열면 교사 화면에 **"📋 수업 활동"** 칸이 생깁니다.
+
+1. 한 번만: Supabase **SQL Editor** 에서 [`activity/schema.sql`](activity/schema.sql) 을 실행합니다(이미 적용돼 있으면 건너뜁니다).
+2. **단계 추가**: ✍️ 주관식 / ✅ 객관식(보기·정답) / ▶️ 영상 보기(유튜브 주소) / 🌐 페이지 열기(이 사이트 안의 주소)를 순서대로 쌓습니다.
+3. 이름을 쓰고 **💾 저장**하면 다음 수업에 목록에서 **불러오기**로 같은 흐름을 쓸 수 있습니다.
+4. **▶ 처음부터**, **다음 단계 ▶** 로 진행합니다. 학생 화면에는 큰 카드가 뜹니다.
+5. 진행 중에는 제출 현황과 막대(객관식)가 보이고, **🖥 큰 화면으로 보기**로 모두의 답을 크게 띄웁니다(이름 가리기 가능). 객관식은 **정답·결과 공개**를 누르면 학생에게 정답이 나옵니다.
+6. **CSV 저장**(이 활동 / 오늘 수업 전체)은 엑셀에서 바로 열립니다.
+
+| 파일 | 역할 |
+|---|---|
+| `activity/schema.sql` | 표 3개와 `cra_` 함수 10개 |
+| `activity/teacher-activity.js` | 교사 쪽 모듈 (`ClassroomActivity`) |
+| `activity/student-activity.js` | 학생 쪽 모듈 (`ClassroomActivityStudent`, `monitor.js` 가 자동으로 불러옴) |
+
+모듈을 빼려면 `teacher.html` 의 `activityPanel`·스크립트·`mountActivity` 와 `monitor.js` 의 로더 부분만 지우면 됩니다. 앞으로의 계획(그림·사진·동시 그리기·ZIP 저장 등)은 `AGENTS.MD` 의 "다음 이행 목표" 를 보세요.
+
+---
+
 ## ⚙️ 5. 기술 구조 (유지보수 참고)
 
 | 파일 | 역할 |

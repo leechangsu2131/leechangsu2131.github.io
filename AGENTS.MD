@@ -51,6 +51,7 @@
 | 📚 교육 | 수학 분수(기본4) 단원평가·오답노트(AI 튜터 대화)·내 점수 확인 | `tests/student_math-3-2-4-basic4.html`, `tests/notebook_math-3-2-4-basic4.html`, `tests/score_math-3-2-4-basic4.html` |
 | 🏫 학교 | 학교정보 안내 (시간표·급식·학사일정·공지사항·가정통신문, NEIS API + GitHub Actions 매일 1회 크롤링) | `school.html`, `scripts/crawl_notices.py`, `data/notices.json`, `.github/workflows/crawl_notices.yml` |
 | 🏫 교실 | 실시간 학생 화면 모니터링·페이지 제어 (Supabase RPC, 3초 화면 캡처) | `classroom/teacher.html`, `classroom/student.html`, `classroom/monitor.js`, `classroom/schema.sql` |
+| 🏫 교실 | 수업 활동 모듈(주관식·객관식·영상 링크·페이지 열기, 수업 흐름 저장/불러오기, 교사 큰 화면, CSV) | `classroom/activity/` |
 | 📚 교육 (3학년 사회) | 옛날 살아보기 (한 사람의 일생 체험) | `oldlife.html` |
 | 📚 교육 (3학년 사회) | 윷놀이 대결 (온라인 방 대전) | `yut/index.html` |
 | 📚 교육 (3학년 사회) | 우리 반 AI 게임 극장 (AI 사이트 링크·학생 게임 업로드·갤러리) | `games/index.html` |
@@ -658,6 +659,21 @@
 - **알아 둘 점(교실 연결):** 교사 화면은 `last_seen` 이 75초보다 오래되면 "접속 안 함"으로 본다(서버 시각과 교사 컴퓨터 시계를 비교하므로 컴퓨터 시계가 1분 넘게 틀리면 표시가 어긋남). 학생 로그인(`st_s`)은 탭 단위(sessionStorage)라 탭을 닫거나 새 탭에서 열면 다시 로그인해야 하고, 구글 토큰은 약 1시간마다 갱신되어 같은 로그인을 여러 탭이 따로 갱신하면 서로의 갱신값을 무효로 만들 수 있음
 - **우리 반 교실 연결 칸:** `teacher.html` 상단의 "🏫 우리 반 교실 연결"은 수업방과 무관하게 학생 접속 현황(번호별 점)·읽지 않은 메시지·학생별 대화·반 전체 공지를 보여 준다. 같은 교사 로그인 토큰으로 `st_presence`·`st_messages`(RLS: `gt_is_teacher()`, 즉 교사 계정 `app_metadata.role=teacher`)를 8초마다 읽는다. 학생 쪽은 `school-tool/index.html` → Edge Function `school-tool`(`function.ts`). 허용 주소는 `GT_ALLOW_ORIGIN` 비밀값(성장 발표 튜터와 공용)에 Vercel·github.io·gitlab.io 주소를 모두 넣어야 한다. **구글 로그인(학생):** Supabase Auth 의 구글 로그인을 쓴다(`school-tool/index.html` 의 `CONFIG.USE_GOOGLE=true` 로 켬). 처음 보는 계정은 번호+동의로 신청 → `st_accounts`(pending) → 교사 화면 "🔑 구글 계정 신청"에서 승인. 번호+이름 입장은 서버 설정 `ST_ALLOW_NAME_LOGIN=0` 으로 끈다. 공용 DB 의 `handle_new_auth_user` 장치는 가입 정보에 `app=care` 가 있을 때만 `public.users`(돌봄 앱 부모 행)를 만든다.
 
+- **수업 활동 모듈 (`classroom/activity/`, 2026-11-17 1단계):** 수업방 안에서 클래스툴처럼 "활동"을 학생 화면에 띄우고 답을 모으는 **떼었다 붙일 수 있는 모듈**이다. 기존 수업방 코드는 연결점 3곳만 건드린다 — `teacher.html`(`<div id="activityPanel">`, 스크립트 1줄, `mountActivity()`), `monitor.js`(학생 입장 뒤 `activity/student-activity.js` 를 불러 `ClassroomActivityStudent.start({rpc,studentId,token})` 호출). 모듈을 빼려면 이 3곳만 지우면 된다.
+  - **파일:** `schema.sql`(DB, Supabase 에 적용 완료·함수 접두어 `cra_`, 표 `classroom_flows`·`classroom_activities`·`classroom_responses`), `teacher-activity.js`(교사: 흐름 편집·시작·진행 현황·큰 화면·CSV, `window.ClassroomActivity.mount/stop`), `student-activity.js`(학생: 큰 카드 한 장, `window.ClassroomActivityStudent.start`).
+  - **활동 종류(1단계):** ✍️ 주관식(1000자), ✅ 객관식(보기 2~6개, 정답 선택), ▶️ 영상 보기(유튜브는 화면 안 재생·그 밖은 https 링크), 🌐 페이지 열기(같은 사이트 주소만, 기존 `navigate` 명령 사용). 활동은 한 번에 하나만 열림(새로 열면 앞 것은 마감).
+  - **수업 흐름 저장/불러오기:** 단계 목록(종류·제목·보기·정답·주소)을 `classroom_flows` 에 이름 붙여 저장 → 다음 수업에 불러와 `▶ 처음부터`/`다음 단계 ▶`로 그 순서대로 진행. 흐름은 교사 공용 목록(교사 계정만 접근).
+  - **개인정보·안전:** 학생 신원은 수업방 참가 정보(`student id`+토큰)로 서버가 확인. 객관식 정답은 교사가 `정답·결과 공개`를 누르기 전에는 학생에게 보내지 않음(서버에서 제거). 모든 입력은 `textContent` 로만 출력. CSV 는 UTF-8 BOM, `= + - @` 로 시작하는 칸은 앞에 `'` 를 붙여 엑셀 수식 실행을 막음. 외부 AI 에는 아무것도 보내지 않음. 학생 답은 DB 에 남으므로 "학생 이름·번호를 외부 AI 에 보내지 않는다" 원칙과 충돌하지 않게 AI 연결은 만들지 않았다.
+  - **시험(2026-11-17):** Playwright + 가짜 서버 응답으로 27개 항목 통과(흐름 저장/불러오기, 4종 활동, 입력 유지, 정답 숨김·공개, 큰 화면, 이름 가리기, HTML 글자 처리, CSV, 외부 주소 거부). DB 는 롤백 시험으로 권한·정답 비공개·검증·중복 정리 확인. **실제 Supabase·학생 기기 연결은 아직 확인하지 못함.**
+  - **알아 둘 점:** "현재 활동"은 수업방 안에서 최근 6시간 이내에 연 것만 학생에게 보인다. 학생 모듈은 모의실험(Mock) 모드에서는 붙지 않는다. 같은 번호·이름의 중복 접속은 마지막 답만 센다.
+  - **다음 이행 목표(수업 활동 모듈):**
+    1. *흐름 개선:* 흐름 복제·단계 끼워 넣기·시간 제한 타이머·교사용 메모, 학급별/차시별 폴더 정리, 흐름 내보내기·가져오기(JSON), 다른 교사와 공유 여부 결정.
+    2. *2단계 활동:* 🎨 그림(학생 각자 그리기), 📷 사진 찍어 내기, 🧩 칸 나눠 그리기(번호별 칸), 🖍 모두 함께 한 화면에 동시 그리기. 그림·사진은 용량이 커서 Supabase 저장소(Storage) 또는 축소 이미지(≤200KB)로 DB 에 저장하는 방식을 먼저 정한다.
+    3. *3단계:* 결과 일괄 저장을 ZIP(이미지+CSV)으로, 활동 결과를 반 전체 갤러리·투표로 보기, 학생이 서로의 작품에 ⭐ 반응.
+    4. *연동:* 학생 로그인(`st_s`, 구글/번호) 정보와 수업방 참가를 하나로 합치기, 지금처럼 `monitor.js` 가 심겨 있는 페이지에서만 활동이 보이는 한계를 `education.html` 전체로 넓히기.
+    5. *개인정보 방침(사진·그림 전):* 학생 얼굴이 찍힐 수 있으므로 학교·학부모 동의 정리 뒤에만 켠다. 사진은 수업 종료 시 자동 삭제 기본값, 외부 AI 로 보내지 않음, 접근은 교사 계정만.
+    6. *유지보수:* `unit-test-tutor` 서버 함수 소스가 저장소에 없음 → `function.ts` 로 보관, 시험용 가짜 서버 시험 스크립트를 `classroom/activity/test/` 로 옮겨 두기.
+
 ### 현재 공통 한계
 - 모든 데이터가 **브라우저 LocalStorage**에만 저장 → 기기 변경 시 데이터 소실
 - 각 페이지가 **독립 HTML 파일**로 설계 → 공통 컴포넌트 재사용 없음
@@ -732,6 +748,7 @@
 10. 학생 명단 서버화 완료(2026-11-17). 남은 위험은 `ISSUE_LOG.md` 의 O-8(순위표 표 공개 접근)·O-9(결과 기록 표를 누구나 쓸 수 있음)·O-10(옛 커밋 기록에 명단 남음)
 11. 서버 함수 현황(Supabase `teacherlesson-table`, 2026-11-16 확인): `growth-tutor`(v13)·`school-tool`(v5)은 저장소 소스(`growth/function.ts`, `school-tool/function.ts`)와 같은 구조로 배포됨. `unit-test-tutor`(v11, 오답노트 AI 튜터)는 소스가 저장소에 없음 — 보관 필요
 13. 접속 표시 확인(사용자, 2026-11-16 수정 뒤): ① 학생 계정으로 `education.html` 부터 로그인 → 교사 화면(`classroom/teacher.html` 의 교실 연결)에 "접속 중" ② 그 학생이 성장 발표·단원평가 등 다른 도구로 옮긴 뒤에도 2분 넘게 유지 ③ 안 되면 증상이 나온 시각을 알려 주면 Edge Function 로그와 대조. 이상이 없으면 `ST_ALLOW_NAME_LOGIN=0`(4번)으로 넘어감
+14. 수업 활동 모듈 1단계(2026-11-17, `classroom/activity/`): 사용자 확인 순서 — ① 교사 로그인 → `수업방 열기` → "📋 수업 활동" 칸에서 단계(주관식·객관식·영상) 추가 → 이름 쓰고 💾 저장 ② 학생 탭에서 번호+이름으로 입장(`student.html`) ③ `▶ 처음부터` → 학생 화면에 카드가 뜨고 답이 교사 화면에 쌓이는지 ④ `🖥 큰 화면`·CSV ⑤ 새로고침 뒤 목록에서 흐름 불러오기. 다음 이행 목표는 "실시간 수업 모니터링" 절의 "수업 활동 모듈" 항목 참고.
 12. 정리(2026-11-16): 내용이 같은 파일 제거 — `writing.html`(→`writing1.html`, 이때 `writing1.html` 의 `.sn{cursor:` 오타를 `cursor:pointer` 로 고침), `test/teacher.html`·`test/math-3-2-2-basic1.json`·`test/soc-3-2-1-1.json`·`test/soc-3-2-1-2.json`(각각 `test/templates/`·`test/tests/` 의 같은 파일이 원본), `test/assets/` 의 같은 그림 9개(`image1.bmp`·`image2.bmp`·`image3.bmp`·`image1.jpg`·`image2.png`·`math2_image2.png`·`soc12_image1~3.bmp`). 정리 전후 `python3 build.py --review` 결과가 완전히 같음을 확인. `test/` 는 빌드용, `tests/` 는 배포용
 
 ### 2026-11-17 추가: 자동 입장 · 도움 신호 · 이야기방

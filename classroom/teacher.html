@@ -66,6 +66,8 @@
     </div>
     <div class="hint">페이지 이동은 이 홈페이지 주소 안으로 제한됩니다. 주의집중은 학생 페이지에 안내 덮개를 표시합니다.</div>
   </div>
+  <!-- 수업 활동 모듈(주관식·객관식·영상, 수업 흐름 저장/불러오기, 큰 화면 결과, CSV 저장): activity/teacher-activity.js -->
+  <div class="panel" id="activityPanel"></div>
   <div class="row" style="justify-content:space-between;margin:18px 2px 9px">
     <b>참가 학생 <span id="count">0</span>명</b>
     <span class="muted">초록: 접속 중 · 주황: 다른 탭 또는 창 · 회색: 응답 없음 (화면을 누르면 크게 볼 수 있습니다)</span>
@@ -179,6 +181,7 @@
   </div>
 </div>
 </main>
+<script src="activity/teacher-activity.js"></script>
 <script>
 (()=>{
   const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
@@ -563,6 +566,7 @@
       $('titleOut').innerHTML='<b>[모의실험]</b> 학생 참여 링크: <a href="'+studentUrl.href+'" target="_blank">'+studentUrl.href+'</a>';
       setupMockChannel();
       render();
+      mountActivity();
       msg('🧪 모의실험 준비 완료! [👉 학생 창 열기] 버튼을 눌러 새 창에서 학생으로 접속해보세요.','liveMsg');
     }else{
       $('mockBadge').classList.add('hide');
@@ -571,7 +575,11 @@
       await pull();
       clearInterval(timer);
       timer=setInterval(pull,3000);
+      mountActivity();
     }
+  }
+  function mountActivity(){
+    if(window.ClassroomActivity)window.ClassroomActivity.mount({root:$('activityPanel'),rpc,getRoom:()=>room,isMock,command});
   }
 
   async function pull(){
@@ -666,6 +674,7 @@
 
   $('end').onclick=async()=>{
     if(!confirm('수업을 종료할까요?'))return;
+    if(window.ClassroomActivity)window.ClassroomActivity.stop();
     if(isMock){
       postMockMessage({type:'admin_command',kind:'end'});
       backToSetup('모의실험 수업을 종료했습니다. 다시 하려면 아래 버튼을 누르세요.');
