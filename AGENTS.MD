@@ -661,7 +661,7 @@
 
 - **수업 활동 모듈 (`classroom/activity/`, 2026-11-17 1단계):** 수업방 안에서 클래스툴처럼 "활동"을 학생 화면에 띄우고 답을 모으는 **떼었다 붙일 수 있는 모듈**이다. 기존 수업방 코드는 연결점 3곳만 건드린다 — `teacher.html`(`<div id="activityPanel">`, 스크립트 1줄, `mountActivity()`), `monitor.js`(학생 입장 뒤 `activity/student-activity.js` 를 불러 `ClassroomActivityStudent.start({rpc,studentId,token})` 호출). 모듈을 빼려면 이 3곳만 지우면 된다.
   - **파일:** `schema.sql`(DB, Supabase 에 적용 완료·함수 접두어 `cra_`, 표 `classroom_flows`·`classroom_activities`·`classroom_responses`), `teacher-activity.js`(교사: 흐름 편집·시작·진행 현황·큰 화면·CSV, `window.ClassroomActivity.mount/stop`), `student-activity.js`(학생: 큰 카드 한 장, `window.ClassroomActivityStudent.start`).
-  - **활동 종류(1단계):** ✍️ 주관식(1000자), ✅ 객관식(보기 2~6개, 정답 선택), ▶️ 영상 보기(유튜브는 화면 안 재생·그 밖은 https 링크), 🌐 페이지 열기(같은 사이트 주소만, 기존 `navigate` 명령 사용). 활동은 한 번에 하나만 열림(새로 열면 앞 것은 마감).
+  - **활동 종류(1단계):** ✍️ 주관식(1000자), ✅ 객관식(보기 칸을 번호별로 따로 입력 ①~⑥, 2~6개, 정답은 보기 옆 "정답?" 체크), ▶️ 영상 보기(유튜브는 화면 안 재생·그 밖은 https 링크), 🌐 페이지 열기(같은 사이트 주소만, 기존 `navigate` 명령 사용). 활동은 한 번에 하나만 열림(새로 열면 앞 것은 마감).
   - **수업 흐름 저장/불러오기:** 단계 목록(종류·제목·보기·정답·주소)을 `classroom_flows` 에 이름 붙여 저장 → 다음 수업에 불러와 `▶ 처음부터`/`다음 단계 ▶`로 그 순서대로 진행. 흐름은 교사 공용 목록(교사 계정만 접근).
   - **개인정보·안전:** 학생 신원은 수업방 참가 정보(`student id`+토큰)로 서버가 확인. 객관식 정답은 교사가 `정답·결과 공개`를 누르기 전에는 학생에게 보내지 않음(서버에서 제거). 모든 입력은 `textContent` 로만 출력. CSV 는 UTF-8 BOM, `= + - @` 로 시작하는 칸은 앞에 `'` 를 붙여 엑셀 수식 실행을 막음. 외부 AI 에는 아무것도 보내지 않음. 학생 답은 DB 에 남으므로 "학생 이름·번호를 외부 AI 에 보내지 않는다" 원칙과 충돌하지 않게 AI 연결은 만들지 않았다.
   - **시험(2026-11-17):** Playwright + 가짜 서버 응답으로 27개 항목 통과(흐름 저장/불러오기, 4종 활동, 입력 유지, 정답 숨김·공개, 큰 화면, 이름 가리기, HTML 글자 처리, CSV, 외부 주소 거부). DB 는 롤백 시험으로 권한·정답 비공개·검증·중복 정리 확인. **실제 Supabase·학생 기기 연결은 아직 확인하지 못함.**

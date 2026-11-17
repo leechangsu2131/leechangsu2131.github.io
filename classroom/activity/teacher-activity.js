@@ -28,6 +28,12 @@
   .cra-step input.t{flex:1;min-width:220px}
   .cra-step textarea{width:100%;min-height:84px;font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:8px}
   .cra-step .mini{padding:6px 10px;font-size:13px}
+  .cra-choices{margin-top:8px;display:grid;gap:6px}
+  .cra-crow{display:flex;gap:8px;align-items:center}
+  .cra-crow .no{font-weight:800;min-width:1.6em;text-align:center}
+  .cra-crow input[type=text]{flex:1;min-width:0}
+  .cra-crow.ans input[type=text]{border-color:#16a34a}
+  .cra-crow label{white-space:nowrap;cursor:pointer}
   .cra-step .sub{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .cra-live{border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0;background:#15151b}
   .cra-chip{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#16351f;color:#75e38c}
@@ -238,7 +244,12 @@
   }
   function cleanStep(s){
     const o={kind:s.kind,title:String(s.title||'').slice(0,300)};
-    if(s.kind==='choice'){o.choices=(s.choices||[]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,6);o.answer=typeof s.answer==='number'?s.answer:null}
+    if(s.kind==='choice'){
+      const keep=[];(s.choices||[]).slice(0,6).forEach((x,k)=>{const t=String(x||'').trim();if(t)keep.push([k,t])});
+      o.choices=keep.map(x=>x[1]);
+      const at=typeof s.answer==='number'?keep.findIndex(x=>x[0]===s.answer):-1;
+      o.answer=at>=0?at:null;
+    }
     if(s.kind==='video'||s.kind==='page')o.url=String(s.url||'').trim().slice(0,500);
     return o;
   }
@@ -268,19 +279,31 @@
       el('button',{type:'button',class:'mini danger',text:'삭제',onclick:()=>{M.flow.steps.splice(i,1);if(M.idx>=i)M.idx=Math.max(-1,M.idx-1);renderSteps()}}),
       el('button',{type:'button',class:'mini primary',text:'▶ 시작',onclick:()=>runStep(i)})));
     if(s.kind==='choice'){
-      const ta=el('textarea',{placeholder:'보기를 한 줄에 하나씩 적어요 (2~6개)',oninput:()=>{s.choices=ta.value.split('\n');renderAns()}});
-      ta.value=(s.choices||[]).join('\n');
-      const ansSel=el('select');
-      function renderAns(){
-        const n=(s.choices||[]).map(x=>String(x).trim()).filter(Boolean).length;
-        ansSel.replaceChildren(el('option',{value:'',text:'정답 없음(의견 묻기)'}),
-          ...Array.from({length:Math.min(n,6)},(_,k)=>el('option',{value:String(k),text:'정답 '+MARK[k]+'번'})));
-        ansSel.value=typeof s.answer==='number'&&s.answer<n?String(s.answer):'';
-        if(!(typeof s.answer==='number'&&s.answer<n))s.answer=null;
+      if(!Array.isArray(s.choices)||!s.choices.length)s.choices=['',''];
+      const list=el('div',{class:'cra-choices'});
+      const note=el('div',{class:'hint'});
+      function paint(){
+        list.replaceChildren();
+        s.choices.forEach((c,k)=>{
+          const rb=el('input',{type:'radio',name:'cra-ans-'+i,title:'이 보기를 정답으로'});
+          rb.checked=s.answer===k;
+          rb.onclick=()=>{if(s.answer===k){s.answer=null;rb.checked=false}else s.answer=k;paint()};
+          const inp=el('input',{type:'text',maxlength:'100',placeholder:MARK[k]+'번 보기',value:c||'',oninput:()=>{s.choices[k]=inp.value}});
+          list.appendChild(el('div',{class:'cra-crow'+(s.answer===k?' ans':'')},
+            el('span',{class:'no',text:MARK[k]}),inp,
+            el('label',{class:'muted',title:'정답으로 고르기'},rb,s.answer===k?' 정답':' 정답?'),
+            el('button',{type:'button',class:'mini danger',text:'×',title:'이 보기 지우기',onclick:()=>{
+              if(s.choices.length<=2){say('보기는 2개 이상 있어야 해요.',true);return}
+              s.choices.splice(k,1);
+              if(s.answer===k)s.answer=null;else if(typeof s.answer==='number'&&s.answer>k)s.answer--;
+              paint();
+            }})));
+        });
+        if(s.choices.length<6)list.appendChild(el('button',{type:'button',class:'mini',text:'+ 보기 추가',onclick:()=>{s.choices.push('');paint()}}));
+        note.textContent=s.answer===null||s.answer===undefined?'정답을 고르지 않으면 "의견 묻기"로 진행돼요.':'정답은 [정답·결과 공개]를 누르기 전에는 학생에게 보이지 않아요.';
       }
-      ansSel.onchange=()=>{s.answer=ansSel.value===''?null:Number(ansSel.value)};
-      renderAns();
-      box.append(ta,el('div',{class:'sub'},el('span',{class:'muted',text:'정답:'}),ansSel,el('span',{class:'hint',text:'정답은 [정답·결과 공개]를 누르기 전에는 학생에게 보이지 않아요.'})));
+      paint();
+      box.append(list,note);
     }
     if(s.kind==='video'||s.kind==='page'){
       const u=el('input',{type:'text',style:'width:100%;margin-top:8px',placeholder:s.kind==='video'?'영상 주소 (https:// 로 시작, 유튜브는 화면 안에서 바로 재생)':'홈페이지 안의 주소 (예: /fraction.html)',value:s.url||'',oninput:()=>{s.url=u.value}});
