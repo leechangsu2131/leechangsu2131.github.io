@@ -314,6 +314,11 @@ function talkStop(){clearInterval(talkTimer);talkTimer=0}
 function talkOpen(){
   const box=$('#talkBox'), s=stRead();
   talkStop();
+  if(s&&s.teacher&&!s.num){
+    box.innerHTML='<div class="talk-login"><div style="font-size:40px">💬</div><b>우리 반 이야기방</b><p class="talk-rule">선생님 계정으로 들어왔어요.<br>이야기방은 학생 전용이에요. 숨기기·삭제·잠금은 교사 화면에서 해요.</p><button type="button" id="talkT">교사 화면으로 가기</button></div>';
+    $('#talkT').onclick=()=>{location.href='classroom/teacher.html'};
+    return;
+  }
   if(!s||!s.num){
     box.innerHTML='<div class="talk-login"><div style="font-size:40px">💬</div><b>우리 반 이야기방</b><p class="talk-rule">우리 반 친구들만 들어올 수 있어요.<br>로그인하면 이야기할 수 있어요.</p><button type="button" id="talkGo">🔑 로그인하러 가기</button></div>';
     $('#talkGo').onclick=()=>{try{sessionStorage.setItem('st_next','school.html#talk')}catch(e){} location.href='school-tool/index.html'};
