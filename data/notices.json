@@ -1,164 +1,13 @@
 {
   "school": "화천초등학교",
   "school_url": "https://school.gyo6.net/hc/main.do?sysId=hc",
-  "updated_at": "2026-11-16 10:28:51 KST",
+  "updated_at": "2026-11-17 13:15:56 KST",
   "boards": [
     {
       "board_id": "notice",
       "board_name": "공지사항",
-      "source_url": "https://school.gyo6.net/hc/na/ntt/selectNttList.do?mi=10219054&bbsId=20006608",
-      "posts": [
-        {
-          "post_id": "notice:17023571",
-          "ntt_sn": "17023571",
-          "category": "통합공지",
-          "title": "2026년 AI·디지털교육 축제 개최",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17023571",
-          "posted_at": "2026-11-11",
-          "author": "학**",
-          "views": "35956"
-        },
-        {
-          "post_id": "notice:17007383",
-          "ntt_sn": "17007383",
-          "category": "통합공지",
-          "title": "2026년 하반기 가족주말발명교실 참가 신청 안내(2차)",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007383",
-          "posted_at": "2026-10-28",
-          "author": "학**",
-          "views": "95612"
-        },
-        {
-          "post_id": "notice:16990219",
-          "ntt_sn": "16990219",
-          "category": "통합공지",
-          "title": "2026년 제1회 경북 학생 발명ㆍAI 창작 영상 공모전 참가 안내(변경안내)",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16990219",
-          "posted_at": "2026-10-13",
-          "author": "학**",
-          "views": "89048"
-        },
-        {
-          "post_id": "notice:16925596",
-          "ntt_sn": "16925596",
-          "category": "공지",
-          "title": "화천초등학교 학교규칙, 학생생활규정 제개정 결과 공포",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16925596",
-          "posted_at": "2026-07-24",
-          "author": "강**",
-          "views": "112"
-        },
-        {
-          "post_id": "notice:16875770",
-          "ntt_sn": "16875770",
-          "category": "공지",
-          "title": "학교장허가 교외체험학습 신청서 작성 방법 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16875770",
-          "posted_at": "2026-06-08",
-          "author": "강**",
-          "views": "140"
-        },
-        {
-          "post_id": "notice:17024033",
-          "ntt_sn": "17024033",
-          "category": "130",
-          "title": "2026학년도 배움터지킴이 위촉 공고",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17024033",
-          "posted_at": "2026-11-11",
-          "author": "이**",
-          "views": "70"
-        },
-        {
-          "post_id": "notice:17020416",
-          "ntt_sn": "17020416",
-          "category": "129",
-          "title": "수능기간 공중협박예방 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17020416",
-          "posted_at": "2026-11-08",
-          "author": "강**",
-          "views": "54"
-        },
-        {
-          "post_id": "notice:17017298",
-          "ntt_sn": "17017298",
-          "category": "128",
-          "title": "어린이 인플루엔자 국가예방접종 지원사업 집중접종기간 운영 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17017298",
-          "posted_at": "2026-11-04",
-          "author": "권**",
-          "views": "70"
-        },
-        {
-          "post_id": "notice:17015819",
-          "ntt_sn": "17015819",
-          "category": "127",
-          "title": "2026 단석도서관 교육프로그램 수강생 모집",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17015819",
-          "posted_at": "2026-11-03",
-          "author": "이**",
-          "views": "79"
-        },
-        {
-          "post_id": "notice:17009037",
-          "ntt_sn": "17009037",
-          "category": "126",
-          "title": "2027 모화초 지역공동영재학급 영재교육대상자 선발 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17009037",
-          "posted_at": "2026-10-29",
-          "author": "백**",
-          "views": "79"
-        },
-        {
-          "post_id": "notice:17007100",
-          "ntt_sn": "17007100",
-          "category": "125",
-          "title": "2027 월성초 지역공동영재학급 영재교육대상자 선발 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007100",
-          "posted_at": "2026-10-27",
-          "author": "백**",
-          "views": "73"
-        },
-        {
-          "post_id": "notice:17006801",
-          "ntt_sn": "17006801",
-          "category": "124",
-          "title": "경주시 복합문화도서관 운영 방안을 위한 시민원탁회의 개최 참가자 모집",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17006801",
-          "posted_at": "2026-10-27",
-          "author": "이**",
-          "views": "72"
-        },
-        {
-          "post_id": "notice:17003302",
-          "ntt_sn": "17003302",
-          "category": "123",
-          "title": "2026 다문화 가족과 함께하는 시낭송 콘테스트",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17003302",
-          "posted_at": "2026-10-26",
-          "author": "김**",
-          "views": "82"
-        },
-        {
-          "post_id": "notice:16999960",
-          "ntt_sn": "16999960",
-          "category": "122",
-          "title": "2026 독도의 날 기념 독도 사랑 그림 그리기 대회 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16999960",
-          "posted_at": "2026-10-22",
-          "author": "김**",
-          "views": "84"
-        },
-        {
-          "post_id": "notice:16999708",
-          "ntt_sn": "16999708",
-          "category": "121",
-          "title": "2027 산대초 지역공동영재학급 영재교육대상자 선발 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16999708",
-          "posted_at": "2026-10-21",
-          "author": "백**",
-          "views": "70"
-        }
-      ]
+      "error": "<urlopen error _ssl.c:1001: The handshake operation timed out>",
+      "posts": []
     },
     {
       "board_id": "letter",
@@ -173,7 +22,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "95612"
+          "views": "97200"
         },
         {
           "post_id": "letter:16999816",
@@ -183,7 +32,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16999816",
           "posted_at": "2026-10-21",
           "author": "학**",
-          "views": "45053"
+          "views": "45651"
         },
         {
           "post_id": "letter:16996942",
@@ -193,7 +42,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16996942",
           "posted_at": "2026-10-20",
           "author": "학**",
-          "views": "3749"
+          "views": "3801"
         },
         {
           "post_id": "letter:16990219",
@@ -203,7 +52,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16990219",
           "posted_at": "2026-10-13",
           "author": "학**",
-          "views": "89048"
+          "views": "90192"
         },
         {
           "post_id": "letter:16982036",
@@ -213,7 +62,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16982036",
           "posted_at": "2026-10-02",
           "author": "학**",
-          "views": "55601"
+          "views": "56087"
         },
         {
           "post_id": "letter:16945049",
@@ -223,7 +72,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16945049",
           "posted_at": "2026-08-27",
           "author": "학**",
-          "views": "27175"
+          "views": "27750"
         },
         {
           "post_id": "letter:16907957",
@@ -233,7 +82,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16907957",
           "posted_at": "2026-07-07",
           "author": "학**",
-          "views": "95244"
+          "views": "95807"
         },
         {
           "post_id": "letter:16852614",
@@ -243,7 +92,27 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16852614",
           "posted_at": "2026-05-15",
           "author": "학**",
-          "views": "105798"
+          "views": "106362"
+        },
+        {
+          "post_id": "letter:17028802",
+          "ntt_sn": "17028802",
+          "category": "143",
+          "title": "2026년 크리스마스 씰 모금 안내 &nbsp;신규글",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17028802",
+          "posted_at": "2026-11-17",
+          "author": "권**",
+          "views": "11"
+        },
+        {
+          "post_id": "letter:17027968",
+          "ntt_sn": "17027968",
+          "category": "142",
+          "title": "2026학년도 초등학교 수영실기교육 만족도 조사 안내 (3~4학년)",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17027968",
+          "posted_at": "2026-11-16",
+          "author": "이**",
+          "views": "27"
         },
         {
           "post_id": "letter:17020632",
@@ -253,7 +122,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17020632",
           "posted_at": "2026-11-09",
           "author": "김**",
-          "views": "176"
+          "views": "181"
         },
         {
           "post_id": "letter:17020517",
@@ -263,7 +132,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17020517",
           "posted_at": "2026-11-09",
           "author": "권**",
-          "views": "76"
+          "views": "77"
         },
         {
           "post_id": "letter:17018350",
@@ -273,7 +142,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17018350",
           "posted_at": "2026-11-05",
           "author": "화**",
-          "views": "78"
+          "views": "80"
         },
         {
           "post_id": "letter:17018148",
@@ -283,7 +152,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17018148",
           "posted_at": "2026-11-05",
           "author": "권**",
-          "views": "85"
+          "views": "86"
         },
         {
           "post_id": "letter:17017524",
@@ -293,7 +162,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17017524",
           "posted_at": "2026-11-04",
           "author": "화**",
-          "views": "80"
+          "views": "81"
         },
         {
           "post_id": "letter:17017511",
@@ -313,7 +182,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17014992",
           "posted_at": "2026-11-02",
           "author": "김**",
-          "views": "77"
+          "views": "78"
         },
         {
           "post_id": "letter:17013927",
@@ -324,26 +193,6 @@
           "posted_at": "2026-11-02",
           "author": "강**",
           "views": "79"
-        },
-        {
-          "post_id": "letter:17011246",
-          "ntt_sn": "17011246",
-          "category": "133",
-          "title": "경북 온가족 학교체육 한마당 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17011246",
-          "posted_at": "2026-10-30",
-          "author": "이**",
-          "views": "78"
-        },
-        {
-          "post_id": "letter:17008224",
-          "ntt_sn": "17008224",
-          "category": "132",
-          "title": "2026 자기 삶, 더불어 꽃내 축제 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17008224",
-          "posted_at": "2026-10-28",
-          "author": "우**",
-          "views": "86"
         }
       ]
     }
