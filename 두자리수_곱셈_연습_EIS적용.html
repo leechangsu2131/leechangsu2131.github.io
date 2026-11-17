@@ -966,6 +966,7 @@
   <footer>화천초등학교 3학년 2반 · 두 자리 수 곱셈 연습</footer>
 </div>
 
+<script src="shared/student-id.js"></script>
 <script>
 (function(){
   const assessScreen = document.getElementById('assessScreen');
@@ -1008,11 +1009,6 @@
   const manipContent = document.getElementById('manipContent');
 
   // ── 학생 명단 (번호 순서 = DB 등록 기준 이름) ──
-  const ROSTER = [
-    '강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온',
-    '오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기',
-    '황보검','최윤채','박선우'
-  ];
 
   function updateSubmitEnabled(){
     btnSubmit.disabled = !(numInput.value.trim() && nameInputField.value.trim());
@@ -1043,20 +1039,14 @@
   // 저장하고, 학생이 실제 입력한 값은 내용 앞부분에 그대로 남겨 나중에 한 번에
   // 모아 확인할 수 있게 한다 ('🧑‍🎓 이름' = '미분류' 로 검색하면 전부 모임).
   function resolveStudent(){
-    const numRaw = numInput.value.trim();
-    const nameRaw = nameInputField.value.trim();
-    const num = parseInt(numRaw, 10);
-    const matched = (num >= 1 && num <= ROSTER.length && ROSTER[num-1] === nameRaw);
-    return {
-      valid: !!(numRaw && nameRaw),
-      matched,
-      recordName: matched ? ROSTER[num-1] : '미분류',
-      noteIfMismatch: matched ? '' : `[확인필요 · 학생 입력: 번호 ${numRaw || '?'} / 이름 ${nameRaw || '?'}] `
-    };
+    // 학생 명단은 코드에 두지 않는다. 로그인한 학생이면 그 정보로, 아니면 서버(game-board)가 번호+이름이 맞는지만 확인한다.
+    // 안 맞거나 확인할 수 없으면 이름 필드는 '미분류'로 저장하고, 학생이 실제 입력한 값은 내용 앞부분에 남긴다.
+    return StudentID.resolve(numInput.value, nameInputField.value);
   }
+  window.addEventListener('load',function(){ StudentID.prefill(numInput,nameInputField); });
 
   async function submitResult(){
-    const who = resolveStudent();
+    const who = await resolveStudent();
     if(!who.valid){
       submitStatus.textContent = '먼저 내 번호와 이름을 입력해주세요.';
       submitStatus.className = 'submit-status err';

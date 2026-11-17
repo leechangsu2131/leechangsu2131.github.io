@@ -330,7 +330,7 @@
   - **6단계:** 실생활 속 분수 활용 문장제
 - **내장 분수 조작판 팝업 모달:** 막대 칠하기 및 묶음 나누기 시각적 인터랙션 지원
 - **터치/태블릿 최적화 내장 숫자패드:** 모바일 OS 가상 키보드로 인한 화면 가림 방지
-- **종합 테스트 & Supabase 결과 제출:** 10문항 종합 테스트 후 학생 명단(`ROSTER`) 검증을 거쳐 `class-manage` 테이블로 결과 자동 제출
+- **종합 테스트 & Supabase 결과 제출:** 10문항 종합 테스트 후 학생 확인(`shared/student-id.js` → 서버 `game-board` 함수, 로그인 우선)을 거쳐 `class-manage` 테이블로 결과 자동 제출
 
 **청사진 (업그레이드 방향)**
 - [ ] 오답 문항 유형별 맞춤형 복습 문제 생성
@@ -499,6 +499,7 @@
 ---
 
 ### 12-6. 분수 놀이터와 분수 놀이 앱 (`분수_*.html`) — 3학년 수학 4단원(분수)
+> 서버 함수 `game-board`(소스 `game-board/function.ts`, `verify_jwt=false`, 비밀값 `GT_ALLOW_ORIGIN`·`ST_ALLOW_NAME_LOGIN` 공유)와 브라우저용 `shared/student-id.js` 가 학생 확인·점수 기록·순위표 읽기를 맡는다. 시험·게임 페이지 11곳(`DEVIDE.HTML`, `multiply*.html`, `두자리수_곱셈_연습_EIS적용.html`, `fraction-practice.html`, `분수_*.html`)이 이 스크립트를 먼저 불러온다.
 
 **공통:** 각 앱은 단일 HTML(빌드 없음). 허브는 `분수_놀이터.html`(카드를 눌러 열기, 진도 값은 LocalStorage `fracHubBase`). 같은 폴더에 두거나 사이트에 올려 두면 카드가 열린다. 기록·순위가 있는 앱은 인터넷이 필요하다. `education.html` 의 3학년 수학 분수 칸에서 모두 연결됨.
 
@@ -515,11 +516,11 @@
 | `분수_순위표.html` | 정확도가 아니라 **꾸준히 연습한 날**(최근 120일)과 **경험치**를 칭찬하는 학급 순위·모두의 경험치 목표 | `class_board_events` 를 읽기만 함(5000건) |
 
 - **게임 시간 제한:** 가게놀이·징검다리·대결·짝맞추기·빙고대결·수직선사냥·손가락축구는 `shared/play-limit.js` 를 쓴다(키 `frac-store`·`frac-bridge`·`frac-battle`·`frac-match`·`frac-bingo`·`frac-hunt`·`frac-soccer`). 설정은 `games/teacher.html` 의 "⏱ 게임 시간 설정".
-- **학생 확인:** 기록하는 앱은 번호+이름을 입력받아 파일 안의 명단(`ROSTER`)과 맞춰 본다. 명단과 다르면 `미분류` 로 두고 "확인필요" 메모를 남긴다.
-- **⚠ 알려진 위험(개인정보):** `ROSTER` 에 학생 이름 19명이 들어 있고 저장소가 공개라서 `분수_대결`·`빙고대결`·`손가락축구`·`수직선사냥`·`짝맞추기`·`순위표` 여섯 파일에서 이름 목록이 그대로 보인다. 로그인(`sessionStorage st_s`) 또는 서버 확인(`gt_students` RPC)으로 바꾸고 파일에서 지우는 것이 좋다.
+- **학생 확인:** 학생 명단은 코드에 두지 않는다(2026-11-17 서버화). `shared/student-id.js`(`StudentID`) 가 ① 같은 탭의 구글 로그인(`st_s`)이 있으면 그 학생으로 보고 ② 없으면 직접 쓴 번호+이름을 서버 `game-board` 함수(`game-board/function.ts`)에 보내 맞는지만 확인한다(명단 목록은 받지 않음). 안 맞거나 서버 연결이 안 되면 `미분류` 로 두고 "확인필요" 메모를 남긴다. 로그인한 학생은 번호·이름 칸이 미리 채워진다. `ST_ALLOW_NAME_LOGIN=0` 이면 직접 입력 확인도 꺼져 로그인한 학생만 이름이 기록된다.
+- **점수·순위표:** 게임 점수는 `StudentID.boardPost` → `game-board` 의 `board_post` 로 올리고, 서버가 확인한 학생의 번호·이름을 쓴다(한 번 1~200 XP, 학생당 10분 30회). `분수_순위표.html` 은 `board_list` 로 읽으며 **로그인한 승인 학생과 교사 계정만** 볼 수 있다(로그인 없으면 안내 화면, 로그인 뒤 순위표로 돌아옴). `class_board_events` 를 공개로 읽고 쓰던 정책을 닫는 일은 사용자 시험 뒤 진행(`ISSUE_LOG.md` O-8).
 
 **청사진 (업그레이드 방향)**
-- [ ] `ROSTER` 제거: 번호만 받거나 `st_s` 의 번호·이름을 쓰고 서버에서 확인
+- [x] `ROSTER` 제거: 로그인 정보 또는 서버 확인으로 대체(2026-11-17, 11개 파일). **남은 것:** `class_board_events` 공개 접근 닫기(O-8), `class-manage` 쓰기 경로(O-9)
 - [ ] 분수 연습·조작판·놀이 앱의 기록을 한 곳에서 보는 교사 화면
 - [ ] 놀이터 카드 목록을 파일 하나(JSON)로 빼서 `education.html` 과 공유
 
@@ -728,7 +729,7 @@
 7. Groq 대체 경로 끝까지 시험
 8. 선택: Gem 대화 붙여넣기 저장, 홈 화면 추가(PWA)+학부모 안내, 위치 공유는 "장소 고르기" 방식으로 나중에
 9. 알려진 위험(다른 사람과 공유해 그대로 둠): `lesson_*`, `storage_map_*` 테이블은 RLS 꺼짐+익명 전체 권한
-10. 알려진 위험(개인정보): 분수 놀이 앱 6개의 `ROSTER` 에 학생 이름 19명이 들어 있어 공개 저장소에서 보임 → 12-6 청사진 참고
+10. 학생 명단 서버화 완료(2026-11-17). 남은 위험은 `ISSUE_LOG.md` 의 O-8(순위표 표 공개 접근)·O-9(결과 기록 표를 누구나 쓸 수 있음)·O-10(옛 커밋 기록에 명단 남음)
 11. 서버 함수 현황(Supabase `teacherlesson-table`, 2026-11-16 확인): `growth-tutor`(v13)·`school-tool`(v5)은 저장소 소스(`growth/function.ts`, `school-tool/function.ts`)와 같은 구조로 배포됨. `unit-test-tutor`(v11, 오답노트 AI 튜터)는 소스가 저장소에 없음 — 보관 필요
 13. 접속 표시 확인(사용자, 2026-11-16 수정 뒤): ① 학생 계정으로 `education.html` 부터 로그인 → 교사 화면(`classroom/teacher.html` 의 교실 연결)에 "접속 중" ② 그 학생이 성장 발표·단원평가 등 다른 도구로 옮긴 뒤에도 2분 넘게 유지 ③ 안 되면 증상이 나온 시각을 알려 주면 Edge Function 로그와 대조. 이상이 없으면 `ST_ALLOW_NAME_LOGIN=0`(4번)으로 넘어감
 12. 정리(2026-11-16): 내용이 같은 파일 제거 — `writing.html`(→`writing1.html`, 이때 `writing1.html` 의 `.sn{cursor:` 오타를 `cursor:pointer` 로 고침), `test/teacher.html`·`test/math-3-2-2-basic1.json`·`test/soc-3-2-1-1.json`·`test/soc-3-2-1-2.json`(각각 `test/templates/`·`test/tests/` 의 같은 파일이 원본), `test/assets/` 의 같은 그림 9개(`image1.bmp`·`image2.bmp`·`image3.bmp`·`image1.jpg`·`image2.png`·`math2_image2.png`·`soc12_image1~3.bmp`). 정리 전후 `python3 build.py --review` 결과가 완전히 같음을 확인. `test/` 는 빌드용, `tests/` 는 배포용

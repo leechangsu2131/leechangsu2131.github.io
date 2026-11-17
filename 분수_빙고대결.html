@@ -58,13 +58,13 @@ h1{font-family:"Jua",sans-serif;font-weight:400;font-size:30px;margin:0;color:va
   <h1>🎯 분수 빙고 대결</h1><p class="sub">미션에 맞는 분수 칸을 눌러 내 칸으로 만들고, 한 줄을 먼저 완성해요</p>
   <div id="main"></div>
 </div>
+<script src="shared/student-id.js"></script>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rand(0,a.length-1)];
 const SUPA_HOST='erzdvlcbjneabxqwnwfy.supabase.co', SUPA_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz', SUPA_URL='https://'+SUPA_HOST;
-const ROSTER=['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
 const MOCK=new URLSearchParams(location.search).get('mock')==='1';
 const EASY={dens:[2,3,4],types:['proper','improper','mixed','same'],cpu:.3}, HARD={dens:[2,3,4,5,6,7,8,9],types:['proper','improper','mixed','same','gt','lt'],cpu:.15};
 function mkCfg(N,hard){ const b=hard?HARD:EASY; return {N,line:N,dens:b.dens,types:b.types,cpu:b.cpu,hard,label:`${N}×${N} · ${hard?'어려운 분수 포함':'쉬운 분수만'}`}; }
@@ -110,8 +110,8 @@ function Net(code,onMsg,onStatus){
 
 let mode=null, me=[null,null], net=null, code='', names=['',''], S=null, recorded=false, myIdx=0, tmr=null, t0=Date.now(), seq=0;
 const main=$('main');
-function resolveStudent(p){ const n=parseInt(p.num,10), ok=(n>=1&&n<=ROSTER.length&&ROSTER[n-1]===p.name);
-  return {recordName:ok?ROSTER[n-1]:'미분류',note:ok?'':`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
+function resolveStudent(p){ /* 명단은 코드에 두지 않는다. 먼저 '미분류'로 두고, 서버 확인이 끝나면 채운다(아래 시작 코드) */
+  return {matched:false,recordName:'미분류',via:null,typedName:p.name,note:`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
 /* ── 보드·미션 ── */
 function genCell(L){ const d=pick(L.dens), t=pick(['p','i','m']);
   if(t==='p') return {k:'p',n:rand(1,d-1),d};
@@ -171,10 +171,11 @@ function gate(md){
     ${md==='guest'?'<div class="who"><b>방 번호</b><input type="text" class="code" id="code" maxlength="4" inputmode="numeric" placeholder="0000"></div>':''}
     <div class="row"><button class="btn org" id="go">${md==='host'?'방 만들기':md==='guest'?'들어가기':'시작 🎯'}</button><button class="btn ghost" id="back">← 뒤로</button></div><div class="msg" id="gmsg"></div></div>`;
   $('back').onclick=home;
+  StudentID.prefill($('n0'),$('m0'));
   $('go').onclick=()=>{
     const ps=(md==='local'?[0,1]:[0]).map(i=>({num:$('n'+i).value.trim(),name:$('m'+i).value.trim()}));
     if(ps.some(p=>!p.num||!p.name)){ $('gmsg').className='msg err'; $('gmsg').textContent='번호와 이름을 모두 써 주세요.'; return; }
-    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); });
+    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); const _m=me[i]; StudentID.resolve(p.num,p.name,{allowLogin:i===0}).then(r=>{ Object.assign(_m,r); }); });
     if(md==='solo'){ names=[me[0].name,'컴퓨터🤖']; myIdx=0; startGame(); }
     else if(md==='local'){ names=[me[0].name,me[1].name]; myIdx=0; startGame(); }
     else if(md==='host'){ names=[me[0].name,'']; myIdx=0; code=String(rand(1000,9999)); connect(true); }
@@ -259,7 +260,7 @@ function finish(){
   saveAll(sec);
 }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function boardPost(st,xp,src){ if(!st||st.recordName==='미분류'||xp<=0) return; try{ fetch(SUPA_URL+'/rest/v1/class_board_events',{method:'POST',keepalive:true,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({num:parseInt(st.num,10),name:st.recordName,xp:Math.min(200,xp),src:src})}).catch(()=>{}); }catch(e){} }
+function boardPost(st,xp,src){ StudentID.boardPost(st,xp,src); }
 function addXP(p,xp){ try{ const k='fracProf:'+p.num+':'+p.name; const o=JSON.parse(localStorage.getItem(k)||'null')||{xp:0,badges:[],lvl:1,att:0,cor:0}; o.xp=(o.xp||0)+xp; localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
 async function saveAll(sec){
   if(recorded) return; recorded=true; const w=S.winner;

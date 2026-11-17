@@ -68,6 +68,7 @@ h1{font-family:"Jua",sans-serif;font-weight:400;font-size:30px;margin:0;color:va
   <h1>⚔️ 분수 대결</h1><p class="sub">같은 분모의 분수 카드, 어느 쪽이 더 클까요? · 맞히면 카드를 가져가요</p>
   <div id="main"></div>
 </div>
+<script src="shared/student-id.js"></script>
 <script>
 (function(){
 'use strict';
@@ -75,7 +76,6 @@ const $=id=>document.getElementById(id);
 const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rand(0,a.length-1)];
 const SUPA_HOST='erzdvlcbjneabxqwnwfy.supabase.co', SUPA_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz', SUPA_URL='https://'+SUPA_HOST;
 const _unused='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyemR2bGNiam5lYWJ4cXdud2Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjIzMDMsImV4cCI6MjA5MDc5ODMwM30.CWxn8p4Ic9ilJO5ea5Z3tld82KhfHTLJdJ7q92oQHIk';
-const ROSTER=['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
 const ROUNDS=8, LIMIT=25000, QS=new URLSearchParams(location.search), MOCK=QS.get('mock')==='1';
 const fr=(n,d)=>`<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
 const mx=(w,n,d)=>`<span class="mx"><b>${w}</b>${fr(n,d)}</span>`;
@@ -132,8 +132,8 @@ function genRound(){
   else { do{ b=mkCard(d,pick(['i','m'])); }while(val(b,d)===val(a,d)); }
   return {d,a,b};
 }
-function resolveStudent(p){ const n=parseInt(p.num,10), ok=(n>=1&&n<=ROSTER.length&&ROSTER[n-1]===p.name);
-  return {matched:ok,recordName:ok?ROSTER[n-1]:'미분류',note:ok?'':`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
+function resolveStudent(p){ /* 명단은 코드에 두지 않는다. 먼저 '미분류'로 두고, 서버 확인이 끝나면 채운다(아래 시작 코드) */
+  return {matched:false,recordName:'미분류',via:null,typedName:p.name,note:`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
 
 /* ── 화면: 시작 ── */
 function home(){
@@ -154,10 +154,11 @@ function gate(md){
     ${md==='guest'?'<div class="who"><b>방 번호</b><input type="text" class="code" id="code" maxlength="4" inputmode="numeric" placeholder="0000"></div>':''}
     <div class="row"><button class="btn org" id="go">${md==='local'?'대결 시작 ⚔️':md==='host'?'방 만들기':'들어가기'}</button><button class="btn ghost" id="back">← 뒤로</button></div><div class="msg" id="gmsg"></div></div>`;
   $('back').onclick=home;
+  StudentID.prefill($('n0'),$('m0'));
   $('go').onclick=()=>{
     const ps=(md==='local'?[0,1]:[0]).map(i=>({num:$('n'+i).value.trim(),name:$('m'+i).value.trim()}));
     if(ps.some(p=>!p.num||!p.name)){ $('gmsg').className='msg err'; $('gmsg').textContent='번호와 이름을 모두 써 주세요.'; return; }
-    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); });
+    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); const _m=me[i]; StudentID.resolve(p.num,p.name,{allowLogin:i===0}).then(r=>{ Object.assign(_m,r); }); });
     if(md==='local'){ names=[me[0].name,me[1].name]; startGame(); }
     else if(md==='host'){ names=[me[0].name,'']; code=String(rand(1000,9999)); connect(true); }
     else { code=$('code').value.trim(); if(!/^\d{4}$/.test(code)){ $('gmsg').className='msg err'; $('gmsg').textContent='방 번호 4자리를 써 주세요.'; return; } names=['',me[0].name]; connect(false); }
@@ -269,7 +270,7 @@ function endScreen(){
 
 /* ── 기록 저장·경험치 ── */
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function boardPost(st,xp,src){ if(!st||st.recordName==='미분류'||xp<=0) return; try{ fetch(SUPA_URL+'/rest/v1/class_board_events',{method:'POST',keepalive:true,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({num:parseInt(st.num,10),name:st.recordName,xp:Math.min(200,xp),src:src})}).catch(()=>{}); }catch(e){} }
+function boardPost(st,xp,src){ StudentID.boardPost(st,xp,src); }
 function addXP(p,xp){ try{ const k='fracProf:'+p.num+':'+p.name; const o=JSON.parse(localStorage.getItem(k)||'null')||{xp:0,badges:[],lvl:1,att:0,cor:0}; o.xp=(o.xp||0)+xp; localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
 async function saveAll(){
   if(recorded) return; recorded=true;

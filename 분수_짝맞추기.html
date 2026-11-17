@@ -57,13 +57,13 @@ h1{font-family:"Jua",sans-serif;font-weight:400;font-size:30px;margin:0;color:va
   <h1>🃏 분수 짝 맞추기</h1><p class="sub">가분수 카드와 값이 같은 대분수 카드를 찾아 짝을 맞춰요</p>
   <div id="main"></div>
 </div>
+<script src="shared/student-id.js"></script>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rand(0,a.length-1)];
 const SUPA_HOST='erzdvlcbjneabxqwnwfy.supabase.co', SUPA_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz', SUPA_URL='https://'+SUPA_HOST;
-const ROSTER=['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
 const LVS={'쉬움':{pairs:3,dmin:3,dmax:5,wmax:1,show:4500,peek:25000,re:3,hint:0,cols:3,label:'🌱 쉬움'},'보통':{pairs:5,dmin:3,dmax:7,wmax:2,show:3000,peek:30000,re:2,hint:0,cols:5,label:'🌿 보통'},'어려움':{pairs:8,dmin:3,dmax:9,wmax:3,show:1700,peek:40000,re:1,hint:0,cols:4,label:'🌳 어려움'}};
 let lvName='쉬움', visMode=false, barMode=false; const LV=()=>LVS[lvName];
 const MOCK=new URLSearchParams(location.search).get('mock')==='1';
@@ -106,8 +106,8 @@ function Net(code,onMsg,onStatus){
 
 let mode=null, me=[null,null], net=null, code='', names=['',''], S=null, recorded=false, myIdx=0, tmr=null, t0=0;
 const main=$('main');
-function resolveStudent(p){ const n=parseInt(p.num,10), ok=(n>=1&&n<=ROSTER.length&&ROSTER[n-1]===p.name);
-  return {recordName:ok?ROSTER[n-1]:'미분류',note:ok?'':`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
+function resolveStudent(p){ /* 명단은 코드에 두지 않는다. 먼저 '미분류'로 두고, 서버 확인이 끝나면 채운다(아래 시작 코드) */
+  return {matched:false,recordName:'미분류',via:null,typedName:p.name,note:`[확인필요 · 학생 입력: 번호 ${p.num} / 이름 ${p.name}] `}; }
 function makeDeck(){
   const used=new Set(), pairs=[]; let guard=0;
   while(pairs.length<LV().pairs&&guard++<500){ const d=rand(LV().dmin,LV().dmax), w=rand(1,LV().wmax), q=rand(1,d-1), n=w*d+q, g=gcd(n,d), key=(n/g)+'/'+(d/g);
@@ -137,10 +137,11 @@ function gate(md){
     ${md==='guest'?'<div class="who"><b>방 번호</b><input type="text" class="code" id="code" maxlength="4" inputmode="numeric" placeholder="0000"></div>':''}
     <div class="row"><button class="btn org" id="go">${md==='host'?'방 만들기':md==='guest'?'들어가기':'시작 🃏'}</button><button class="btn ghost" id="back">← 뒤로</button></div><div class="msg" id="gmsg"></div></div>`;
   $('back').onclick=home;
+  StudentID.prefill($('n0'),$('m0'));
   $('go').onclick=()=>{
     const ps=(md==='local'?[0,1]:[0]).map(i=>({num:$('n'+i).value.trim(),name:$('m'+i).value.trim()}));
     if(ps.some(p=>!p.num||!p.name)){ $('gmsg').className='msg err'; $('gmsg').textContent='번호와 이름을 모두 써 주세요.'; return; }
-    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); });
+    ps.forEach((p,i)=>{ me[i]=Object.assign(p,resolveStudent(p)); const _m=me[i]; StudentID.resolve(p.num,p.name,{allowLogin:i===0}).then(r=>{ Object.assign(_m,r); }); });
     if(md==='solo'){ names=[me[0].name,'']; myIdx=0; startGame(makeDeck()); }
     else if(md==='local'){ names=[me[0].name,me[1].name]; myIdx=0; startGame(makeDeck()); }
     else if(md==='host'){ names=[me[0].name,'']; myIdx=0; code=String(rand(1000,9999)); connect(true); }
@@ -247,7 +248,7 @@ function finish(){
   saveAll(sec,w);
 }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function boardPost(st,xp,src){ if(!st||st.recordName==='미분류'||xp<=0) return; try{ fetch(SUPA_URL+'/rest/v1/class_board_events',{method:'POST',keepalive:true,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({num:parseInt(st.num,10),name:st.recordName,xp:Math.min(200,xp),src:src})}).catch(()=>{}); }catch(e){} }
+function boardPost(st,xp,src){ StudentID.boardPost(st,xp,src); }
 function addXP(p,xp){ try{ const k='fracProf:'+p.num+':'+p.name; const o=JSON.parse(localStorage.getItem(k)||'null')||{xp:0,badges:[],lvl:1,att:0,cor:0}; o.xp=(o.xp||0)+xp; localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
 async function saveAll(sec,w){
   if(recorded) return; recorded=true;

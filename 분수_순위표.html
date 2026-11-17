@@ -37,42 +37,49 @@ select{height:40px;border:2px solid var(--blue);border-radius:10px;font-size:16p
   <h1>🏅 분수 학급 순위표</h1><p class="sub">정확도가 아니라 <b>꾸준히 연습한 날</b>과 <b>함께 모은 경험치</b>를 칭찬해요</p>
   <div id="main"><div class="msg">불러오는 중...</div></div>
 </div>
+<script src="shared/student-id.js"></script>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const SUPA_URL='https://erzdvlcbjneabxqwnwfy.supabase.co', SUPA_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
-const ROSTER=['강시우','김가을','김동규','김주안','박민서','박서우','박현규','백다온','오지윤','이서우','이예나','이윤슬','정두영','조주아','천선율','한예기','황보검','최윤채','박선우'];
 const GOAL_STEP=500;
-let rows=null, tab='days', me=null; try{ me=localStorage.getItem('fracMe')||''; }catch(e){ me=''; }
+let rows=null, tab='days', me=null, myName='', isTeacher=false;   // me = 로그인한 학생의 번호(서버가 알려 줌)
 const main=$('main');
 const kstToday=()=>{ const d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,10); };
 function agg(){
   const today=kstToday(), weekAgo=new Date(Date.parse(today)-6*86400000).toISOString().slice(0,10); const m=new Map();
-  rows.forEach(r=>{ if(ROSTER[r.num-1]!==r.name) return; const k=r.num; let o=m.get(k); if(!o){ o={num:r.num,name:r.name,xp:0,days:new Set(),wdays:new Set(),n:0}; m.set(k,o); } o.xp+=r.xp; o.n++; o.days.add(r.day); if(r.day>=weekAgo) o.wdays.add(r.day); });
+  rows.forEach(r=>{ const k=r.num; let o=m.get(k); if(!o){ o={num:r.num,name:r.name,xp:0,days:new Set(),wdays:new Set(),n:0}; m.set(k,o); } o.xp+=r.xp; o.n++; o.days.add(r.day); if(r.day>=weekAgo) o.wdays.add(r.day); });
   return [...m.values()].map(o=>({num:o.num,name:o.name,xp:o.xp,days:o.days.size,wdays:o.wdays.size,n:o.n}));
 }
 function ranked(list,key,tie){ const s=list.slice().sort((a,b)=>b[key]-a[key]||b[tie]-a[tie]); let prev=null,rk=0; s.forEach((o,i)=>{ const sig=o[key]+'/'+o[tie]; if(sig!==prev){ rk=i+1; prev=sig; } o.rk=rk; }); return s; }
 const TABS={days:{label:'🌟 꾸준왕',key:'days',tie:'xp',unit:'일',desc:'연습한 날짜가 많을수록 높아요 (최근 120일)'},xp:{label:'⭐ 경험치',key:'xp',tie:'days',unit:'XP',desc:'게임과 연습으로 모은 경험치 합계예요'},week:{label:'🔥 이번 주',key:'wdays',tie:'xp',unit:'일',desc:'최근 7일 동안 연습한 날수예요'}};
 function render(){
   const list=agg(), total=list.reduce((s,o)=>s+o.xp,0), goal=Math.max(GOAL_STEP,Math.ceil((total+1)/GOAL_STEP)*GOAL_STEP), prevG=goal-GOAL_STEP;
-  const T=TABS[tab], s=ranked(list,T.key,T.tie), mine=s.find(o=>me&&ROSTER[o.num-1]===me);
+  const T=TABS[tab], s=ranked(list,T.key,T.tie), mine=s.find(o=>me&&o.num===me);
   main.innerHTML=`<div class="box team"><div class="t">🤝 우리 반 모두의 경험치</div><div class="big">${total.toLocaleString()} XP</div><div class="bar"><i style="width:${Math.round((total-prevG)/GOAL_STEP*100)}%"></i></div><div class="hint">다음 목표 ${goal.toLocaleString()} XP까지 ${ (goal-total).toLocaleString() } XP! · 함께한 친구 ${list.length}명</div></div>
   <div class="box"><div class="row" style="margin-bottom:10px">${Object.keys(TABS).map(k=>`<button class="btn ${k===tab?'on':''}" data-tab="${k}">${TABS[k].label}</button>`).join('')}</div>
    <div class="hint" style="margin:0 0 8px">${T.desc}</div>
-   <div class="row" style="margin-bottom:8px"><label style="font-size:15px">나는</label><select id="me"><option value="">(선택 안 함)</option>${ROSTER.map(n=>`<option ${n===me?'selected':''}>${n}</option>`).join('')}</select>${mine?`<span style="font-family:Jua;color:var(--org);font-size:18px">내 순위 ${mine.rk}위!</span>`:''}</div>
-   ${s.length?s.slice(0,10).map(o=>`<div class="li ${me&&ROSTER[o.num-1]===me?'me':''}"><span class="rk">${o.rk<=3?['🥇','🥈','🥉'][o.rk-1]:o.rk}</span><span class="nm">${o.name}</span><span class="vl">${o[T.key]}<small>${T.unit}</small></span></div>`).join(''):'<div class="msg">아직 기록이 없어요. 게임을 하고 오면 이름이 나타나요!</div>'}
+   <div class="row" style="margin-bottom:8px">${me?`<span style="font-size:15px">나는 <b>${myName}</b></span>`:(isTeacher?'<span style="font-size:15px">선생님 화면</span>':'')}${mine?`<span style="font-family:Jua;color:var(--org);font-size:18px">내 순위 ${mine.rk}위!</span>`:''}</div>
+   ${s.length?s.slice(0,10).map(o=>`<div class="li ${me&&o.num===me?'me':''}"><span class="rk">${o.rk<=3?['🥇','🥈','🥉'][o.rk-1]:o.rk}</span><span class="nm">${o.name}</span><span class="vl">${o[T.key]}<small>${T.unit}</small></span></div>`).join(''):'<div class="msg">아직 기록이 없어요. 게임을 하고 오면 이름이 나타나요!</div>'}
    ${(mine&&mine.rk>10)?`<div class="li me"><span class="rk">${mine.rk}</span><span class="nm">${mine.name} (나)</span><span class="vl">${mine[T.key]}<small>${T.unit}</small></span></div>`:''}
    <div class="hint">순위는 열심히 꾸준히 한 친구가 높아져요. 맞힌 개수나 이긴 횟수는 순위에 들어가지 않아요. 새로 고치려면 아래 버튼을 눌러요.</div>
    <div class="row" style="margin-top:8px"><button class="btn" id="rf">🔄 새로 고침</button></div></div>`;
   main.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; render(); });
-  $('me').onchange=e=>{ me=e.target.value; try{ localStorage.setItem('fracMe',me); }catch(x){} render(); };
   $('rf').onclick=load;
 }
 async function load(){
   main.innerHTML='<div class="msg">불러오는 중...</div>';
-  try{ const r=await fetch(SUPA_URL+'/rest/v1/class_board_events?select=num,name,xp,day&order=id.desc&limit=5000',{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); rows=await r.json(); render(); }
-  catch(e){ main.innerHTML='<div class="box"><div class="msg">❌ 불러오지 못했어요. 인터넷을 확인해 주세요.<br>('+(e.message||e)+')</div><div class="row" style="justify-content:center"><button class="btn" id="rf">다시 시도</button></div></div>'; $('rf').onclick=load; }
+  try{
+    const j=await StudentID.boardList();   // 로그인한 학생·선생님만 볼 수 있다(서버가 확인)
+    rows=j.rows||[]; me=j.me?j.me.num:null; myName=j.me?j.me.name:''; isTeacher=!!j.teacher; render();
+  }catch(e){
+    const need=(e&&['login_required','session_expired','not_approved'].includes(e.code));
+    main.innerHTML=need
+      ?'<div class="box"><div class="msg">🔑 순위표는 로그인한 친구만 볼 수 있어요.<br>'+(e.code==='not_approved'?'아직 선생님이 승인하지 않았어요. 선생님께 알려 줘요.':'로그인하고 다시 들어와요.')+'</div><div class="row" style="justify-content:center"><button class="btn" id="lg">로그인하러 가기</button></div></div>'
+      :'<div class="box"><div class="msg">❌ 불러오지 못했어요. 인터넷을 확인해 주세요.<br>('+((e&&e.message)||e)+')</div><div class="row" style="justify-content:center"><button class="btn" id="rf">다시 시도</button></div></div>';
+    if($('lg')) $('lg').onclick=()=>{ try{ sessionStorage.setItem('st_next','분수_순위표.html'); }catch(x){} location.href='school-tool/index.html'; };
+    if($('rf')) $('rf').onclick=load;
+  }
 }
 window.__lb={agg:()=>agg()};
 if(new URLSearchParams(location.search).get('demo')==='1'){ rows=JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get('rows')||'[]')); render(); } else load();
