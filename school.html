@@ -273,7 +273,11 @@ async function api(path){const r=await fetch(API_BASE+path);let d=null;try{d=awa
 const fail=(el,title,e)=>{el.innerHTML=`<div class="state err"><strong>${esc(title)}</strong>${esc(e.message||e)}</div>`};
 
 /* 상태 */
-let cls=ls.get('schoolClass',null);            // {grade,klass}
+/* 학급 고정: 지금은 3학년 2반만 쓴다(학급 선택 숨김).
+   다른 반도 쓰려면 바로 아래 둘째 줄 맨 앞의 // 를 지우세요(그러면 고정이 풀리고 예전처럼 학급을 고를 수 있어요). */
+let LOCK_CLASS={grade:3,klass:2};
+//LOCK_CLASS=null;
+let cls=LOCK_CLASS||ls.get('schoolClass',null);            // {grade,klass}
 let today=new Date(); today.setHours(12,0,0,0);
 const baseDay=()=>{const d=today.getDay();return d===6?plus(today,2):d===0?plus(today,1):new Date(today)};  // 주말이면 다음 월요일
 let selected=baseDay();
@@ -287,9 +291,13 @@ gSel.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="${n}">${n}학년</option>`).
 kSel.innerHTML=Array.from({length:15},(_,i)=>`<option value="${i+1}">${i+1}반</option>`).join('');
 function paintClass(){ $('#classLabel').textContent=cls?`${cls.grade}학년 ${cls.klass}반`:'학급 선택'; if(cls){gSel.value=cls.grade;kSel.value=cls.klass} }
 function togglePicker(open){const p=$('#picker');p.classList.toggle('open',open);$('#classBtn').setAttribute('aria-expanded',open)}
-$('#classBtn').onclick=()=>togglePicker(!$('#picker').classList.contains('open'));
-$('#apply').onclick=()=>{cls={grade:+gSel.value,klass:+kSel.value};ls.set('schoolClass',cls);paintClass();togglePicker(false);ttData=null;loadTimetable();if(schedEvents)renderSchedule()};
+$('#classBtn').onclick=()=>{if(LOCK_CLASS)return;togglePicker(!$('#picker').classList.contains('open'))};
+$('#apply').onclick=()=>{if(LOCK_CLASS)return;cls={grade:+gSel.value,klass:+kSel.value};ls.set('schoolClass',cls);paintClass();togglePicker(false);ttData=null;loadTimetable();if(schedEvents)renderSchedule()};
 paintClass(); if(!cls) togglePicker(true);
+if(LOCK_CLASS){                                   // 학급 고정이면 선택 버튼을 이름표로만 보여 준다
+  const cb=$('#classBtn'); cb.disabled=true; cb.style.cursor='default'; cb.querySelector('[aria-hidden]').remove();
+  $('#picker').remove();
+}
 
 /* 탭 */
 let curTab='timetable';

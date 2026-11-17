@@ -62,3 +62,6 @@ https://homepage-53dd99.gitlab.io/
 
 - 학생 이름·번호·글은 외부 AI 서비스에 보내지 않거나, 보내기 전에 전화번호·이메일을 가립니다.
 - 새 페이지를 만들면 `AGENTS.MD` 의 목차와 해당 영역에 한 줄씩 추가합니다.
+
+
+> 방과후 페이지(school.html)는 지금 3학년 2반 전용입니다. 다른 반 허용: school.html의 `//LOCK_CLASS=null;` 앞 `//` 삭제.
