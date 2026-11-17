@@ -11,7 +11,8 @@
   'use strict';
   if(window.ClassroomActivity)return;
 
-  const KINDS={text:'✍️ 주관식',choice:'✅ 객관식',draw:'🎨 그림',video:'▶️ 영상 보기',page:'🌐 페이지 열기'};
+  const KINDS={text:'✍️ 주관식',choice:'✅ 객관식',draw:'🎨 그림',photo:'📷 사진',video:'▶️ 영상 보기',page:'🌐 페이지 열기'};
+  const isImg=k=>k==='draw'||k==='photo';
   const MARK=['①','②','③','④','⑤','⑥'];
   const POLL_MS=3000;
 
@@ -109,7 +110,7 @@
       const i=ans.choice,cs=(act.config&&act.config.choices)||[];
       return typeof i==='number'?(MARK[i]||i+1)+' '+(cs[i]!=null?cs[i]:''):'';
     }
-    if(act.kind==='draw')return (ans.drawn||ans.img)?'(그림을 냄)':'';
+    if(isImg(act.kind))return (ans.drawn||ans.img)?(act.kind==='photo'?'(사진을 냄)':'(그림을 냄)'):'';
     return ans.text||'';
   }
   function correct(act,ans){
@@ -117,7 +118,7 @@
     return ans.choice===act.config.answer?'O':'X';
   }
   function rowsFor(act,responses){
-    const base=[act.title,{text:'주관식',choice:'객관식',draw:'그림',video:'영상'}[act.kind]||act.kind];
+    const base=[act.title,{text:'주관식',choice:'객관식',draw:'그림',photo:'사진',video:'영상'}[act.kind]||act.kind];
     if(!responses.length)return [[...base,'','','(낸 답 없음)','','']];
     return responses.map(r=>[...base,r.no,r.name,answerText(act,r.answer),correct(act,r.answer),r.updated_at?new Date(r.updated_at).toLocaleTimeString('ko-KR'):'']);
   }
@@ -174,7 +175,7 @@
     U.steps=el('div');
     U.add=el('div',{class:'row',style:'margin:8px 0'},
       el('span',{class:'muted',text:'단계 추가:'}),
-      ...['text','choice','draw','video','page'].map(k=>el('button',{type:'button',text:'+ '+KINDS[k],onclick:()=>{M.flow.steps.push(newStep(k));renderSteps()}})));
+      ...['text','choice','draw','photo','video','page'].map(k=>el('button',{type:'button',text:'+ '+KINDS[k],onclick:()=>{M.flow.steps.push(newStep(k));renderSteps()}})));
     U.pos=el('span',{class:'muted'});
     U.run=el('div',{class:'row',style:'margin:8px 0'},
       el('button',{type:'button',class:'primary',text:'▶ 처음부터',onclick:()=>runStep(0)}),
@@ -291,7 +292,7 @@
     }
     if(s.kind==='video'||s.kind==='page')o.url=String(s.url||'').trim().slice(0,500);
     const note=String(s.note||'').trim().slice(0,300);if(note)o.note=note;
-    const sec=Number(s.seconds);if((s.kind==='text'||s.kind==='choice'||s.kind==='draw')&&sec>=10&&sec<=3600)o.seconds=Math.round(sec);
+    const sec=Number(s.seconds);if((s.kind==='text'||s.kind==='choice'||isImg(s.kind))&&sec>=10&&sec<=3600)o.seconds=Math.round(sec);
     return o;
   }
 
@@ -311,7 +312,7 @@
       const ns=newStep(kindSel.value);ns.title=s.title&&kindSel.value!=='video'?s.title:ns.title;
       M.flow.steps[i]=ns;renderSteps();
     }},...Object.keys(KINDS).map(k=>el('option',{value:k,text:KINDS[k],...(k===s.kind?{selected:''}:{})})));
-    const ph=s.kind==='page'?'학생 화면에 열 페이지 주소 (예: /fraction.html)':s.kind==='video'?'영상 앞에서 학생에게 보일 말':s.kind==='draw'?'그릴 주제 (예: 우리 동네를 그려요)':'문제 (학생 화면에 크게 보여요)';
+    const ph=s.kind==='page'?'학생 화면에 열 페이지 주소 (예: /fraction.html)':s.kind==='video'?'영상 앞에서 학생에게 보일 말':s.kind==='draw'?'그릴 주제 (예: 우리 동네를 그려요)':s.kind==='photo'?'찍을 것 (예: 내가 만든 작품을 찍어요 — 얼굴은 나오지 않게)':'문제 (학생 화면에 크게 보여요)';
     const titleIn=el('input',{type:'text',class:'t',maxlength:'300',placeholder:s.kind==='page'?'(선택) 이 단계의 이름':ph,value:s.title||'',oninput:()=>{s.title=titleIn.value}});
     box.appendChild(el('div',{class:'top'},
       el('span',{class:'no',text:(i+1)+'.'}),kindSel,titleIn,
@@ -352,7 +353,7 @@
       box.appendChild(u);
     }
     const extra=el('div',{class:'sub'});
-    if(s.kind==='text'||s.kind==='choice'||s.kind==='draw'){
+    if(s.kind==='text'||s.kind==='choice'||isImg(s.kind)){
       const tsel=el('select',{onchange:()=>{s.seconds=tsel.value?Number(tsel.value):null}},
         ...[['','시간 제한 없음'],['30','30초'],['60','1분'],['120','2분'],['180','3분'],['300','5분'],['600','10분']].map(([v,t])=>el('option',{value:v,text:t})));
       tsel.value=s.seconds?String(s.seconds):'';
@@ -362,6 +363,7 @@
     const memo=el('input',{type:'text',maxlength:'300',placeholder:'📝 교사 메모 (학생에게는 안 보여요: 발문, 예상 답, 시간 등)',value:s.note||'',style:'flex:1;min-width:200px',oninput:()=>{s.note=memo.value}});
     extra.appendChild(memo);
     box.appendChild(extra);
+    if(s.kind==='photo')box.appendChild(el('div',{class:'hint',text:'📷 학기 초에 받은 초상권 동의 범위 안에서만 쓰세요. 학생 화면에는 "얼굴·이름이 나오지 않았어요" 확인이 뜨고, 사진은 7일 뒤 자동으로 지워져요.'}));
     return box;
   }
   function move(i,d){
@@ -398,7 +400,7 @@
         if(s.choices.length<2){say('보기를 2개 이상 적어 주세요.',true);return}
         cfg={choices:s.choices};if(typeof s.answer==='number'&&s.answer<s.choices.length)cfg.answer=s.answer;
       }
-      if(s.seconds&&(s.kind==='text'||s.kind==='choice'||s.kind==='draw'))cfg.seconds=s.seconds;
+      if(s.seconds&&(s.kind==='text'||s.kind==='choice'||isImg(s.kind)))cfg.seconds=s.seconds;
       if(s.kind==='video'){
         if(!/^https:\/\//i.test(s.url)){say('영상 주소는 https:// 로 시작해야 해요.',true);return}
         cfg={url:s.url};
@@ -420,7 +422,7 @@
     try{
       M.cur=await M.rpc('cra_admin_results',{p_room:room});
       const ca=M.cur&&M.cur.activity;
-      if(M.big&&ca&&ca.kind==='draw'){
+      if(M.big&&ca&&isImg(ca.kind)){
         const sig=ca.id+'|'+M.cur.responses.map(r=>r.student_id+r.updated_at).join(',');
         if(sig!==M.imgSig){
           const full=await M.rpc('cra_admin_results',{p_room:room,p_activity:ca.id,p_images:true});
@@ -463,7 +465,7 @@
     if(a.kind!=='video')btns.appendChild(el('button',{type:'button',class:'primary',text:'🖥 큰 화면으로 보기',onclick:openBig}));
     if(open)btns.appendChild(el('button',{type:'button',text:'⏹ 마감하기',onclick:()=>closeAct(a)}));
     if(a.kind==='choice')btns.appendChild(el('button',{type:'button',text:a.reveal?'정답·결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}));
-    if(a.kind==='draw')btns.appendChild(el('button',{type:'button',text:a.saved_at?'⬇ 그림 ZIP 다시 저장':'⬇ 그림 ZIP 저장',onclick:()=>saveDrawZip(a.id)}));
+    if(isImg(a.kind))btns.appendChild(el('button',{type:'button',text:a.saved_at?'⬇ ZIP 다시 저장':'⬇ '+(a.kind==='photo'?'사진':'그림')+' ZIP 저장',onclick:()=>saveDrawZip(a.id)}));
     else if(a.kind!=='video')btns.appendChild(el('button',{type:'button',text:'⬇ 이 활동 CSV',onclick:exportOne}));
     if(!open&&a.kind==='video')btns.appendChild(el('span',{class:'hint',text:'영상은 다음 단계를 시작하면 학생 화면에서 사라져요.'}));
     box.appendChild(btns);
@@ -525,7 +527,7 @@
       el('button',{type:'button',text:M.anon?'이름 보이기':'이름 가리기',onclick:()=>{M.anon=!M.anon;renderBig()}}),
       open?el('button',{type:'button',text:'⏹ 마감',onclick:()=>closeAct(a)}):null,
       a.kind==='choice'?el('button',{type:'button',text:a.reveal?'결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}):null,
-      a.kind==='draw'?el('button',{type:'button',text:'⬇ 그림 ZIP',onclick:()=>saveDrawZip(a.id)}):el('button',{type:'button',text:'⬇ CSV',onclick:exportOne}),
+      isImg(a.kind)?el('button',{type:'button',text:'⬇ ZIP',onclick:()=>saveDrawZip(a.id)}):el('button',{type:'button',text:'⬇ CSV',onclick:exportOne}),
       el('button',{type:'button',class:'primary',text:'✕ 닫기 (Esc)',onclick:closeBig}));
     const bd=el('div',{class:'bd'});
     const rs=d.responses;
@@ -541,7 +543,7 @@
         cards.appendChild(c);
       });
       bd.appendChild(cards);
-    }else if(a.kind==='draw'){
+    }else if(isImg(a.kind)){
       const n=rs.length,cw=n<=2?560:n<=6?400:n<=12?300:230;
       const cards=el('div',{class:'cards',style:'--cw:'+cw+'px'});
       rs.forEach((r,i)=>{
@@ -630,7 +632,7 @@
       U.warn.replaceChildren();
       if(!list||!list.length)return;
       const soon=list.map(x=>x.expires_at?Math.max(0,Math.ceil((Date.parse(x.expires_at)-Date.now())/86400000)):7);
-      const box=el('div',{class:'cra-warn'},el('b',{text:'🎨 아직 내려받지 않은 그림 '+list.length+'개 — 가장 빠른 것은 '+Math.min(...soon)+'일 뒤 자동으로 지워져요.'}));
+      const box=el('div',{class:'cra-warn'},el('b',{text:'🎨📷 아직 내려받지 않은 그림·사진 '+list.length+'개 — 가장 빠른 것은 '+Math.min(...soon)+'일 뒤 자동으로 지워져요.'}));
       const row=el('div',{class:'row'});
       list.forEach(x=>row.appendChild(el('button',{type:'button',text:'⬇ '+(x.title||'그림').slice(0,16)+' ('+x.count+'장)',onclick:()=>saveDrawZip(x.id)})));
       box.appendChild(row);U.warn.appendChild(box);

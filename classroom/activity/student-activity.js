@@ -71,7 +71,7 @@
     }
 
     function label(kind){
-      return kind==='text'?'✍️ 글로 답해요':kind==='choice'?'✅ 하나를 골라요':kind==='draw'?'🎨 그림으로 그려요':'▶️ 같이 봐요';
+      return kind==='text'?'✍️ 글로 답해요':kind==='choice'?'✅ 하나를 골라요':kind==='draw'?'🎨 그림으로 그려요':kind==='photo'?'📷 사진으로 내요':'▶️ 같이 봐요';
     }
 
     function build(d){
@@ -110,6 +110,7 @@
       if(a.kind==='text')buildText(a,d);
       else if(a.kind==='choice')buildChoice(a,d);
       else if(a.kind==='draw')buildDraw(a,d);
+      else if(a.kind==='photo')buildPhoto(a,d);
       else buildVideo(a);
       card.appendChild(ui.note);
       root.appendChild(card);
@@ -233,6 +234,58 @@
       }
     }
 
+    // 사진: 찍거나 고른 사진을 브라우저에서 줄여(긴 쪽 1280px JPEG) 보낸다. 다시 그리는 과정에서 위치(GPS) 등 사진 속 정보는 모두 사라진다.
+    function buildPhoto(a,d){
+      const closed=a.status==='closed';
+      if(closed){setNote(d.my?'마감되었어요. 사진을 보냈어요.':'마감되었어요.');return}
+      const warn=el('div','background:#fef3c7;border:2px solid #f59e0b;border-radius:14px;padding:12px 14px;font:700 18px/1.5 system-ui;color:#78350f;margin-bottom:10px','⚠️ 얼굴, 이름표, 집 주소가 나오지 않게 찍어요. 내 작품이나 물건만 찍어요.');
+      card.appendChild(warn);
+      let jpeg='',sentSig='';
+      const prev=el('canvas','width:100%;max-height:50vh;object-fit:contain;display:none;background:#e2e8f0;border-radius:12px;margin-top:10px');
+      ui.cv=prev;
+      const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.setAttribute('capture','environment');inp.style.display='none';
+      const pick=el('button',BTN+';background:#2563eb;color:#fff;width:100%','📷 사진 찍기 / 고르기');pick.type='button';pick.onclick=()=>inp.click();
+      card.append(pick,inp,prev);
+      const lab=el('label','display:flex;gap:10px;align-items:center;margin-top:12px;font:700 19px/1.4 system-ui;color:#0f172a;cursor:pointer');
+      const ck=document.createElement('input');ck.type='checkbox';ck.style.cssText='width:26px;height:26px;flex:none';
+      lab.append(ck,el('span','','얼굴과 이름이 나오지 않았어요.'));
+      card.appendChild(lab);
+      ui.send=el('button',BTN+';margin-top:12px;background:#16a34a;color:#fff;width:100%',d.my?'새 사진으로 다시 보내기':'선생님께 보내기');ui.send.type='button';
+      card.appendChild(ui.send);
+      async function load(file){
+        if(!file)return;
+        try{
+          if(!/^image\//.test(file.type))throw new Error('type');
+          const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});
+          const sc=Math.min(1,1280/Math.max(bmp.width,bmp.height));
+          const w=Math.max(1,Math.round(bmp.width*sc)),h=Math.max(1,Math.round(bmp.height*sc));
+          prev.width=w;prev.height=h;
+          const g=prev.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,w,h);g.drawImage(bmp,0,0,w,h);
+          if(bmp.close)bmp.close();
+          jpeg='';
+          for(const q of [0.75,0.6,0.45,0.3]){const u=prev.toDataURL('image/jpeg',q);if(u.length<=330000){jpeg=u;break}}
+          if(!jpeg)throw new Error('big');
+          prev.style.display='block';setNote('사진을 골랐어요. 아래 확인에 체크하고 보내요.');
+        }catch(_){jpeg='';prev.style.display='none';setNote('이 사진은 쓸 수 없어요. 다른 사진을 골라 주세요.','#b91c1c')}
+      }
+      inp.onchange=()=>load(inp.files&&inp.files[0]);
+      async function send(auto){
+        if(!jpeg){if(!auto)setNote('먼저 사진을 찍거나 골라 주세요.','#b45309');return}
+        if(!ck.checked){if(!auto)setNote('얼굴과 이름이 나오지 않았는지 확인하고 체크해 주세요.','#b45309');return}
+        if(jpeg===sentSig)return;
+        ui.send.disabled=true;setNote(auto?'시간이 다 되어 자동으로 보내는 중…':'보내는 중…');
+        try{
+          await rpc('cra_student_submit',{p_student:sid,p_token:tok,p_activity:a.id,p_answer:{img:jpeg}});
+          sentSig=jpeg;ui.send.textContent='새 사진으로 다시 보내기';
+          setNote('✔ 보냈어요! 마감 전까지는 다른 사진으로 바꿔 보낼 수 있어요.','#15803d');
+        }catch(e){setNote(/closed/.test(String(e.message))?'앗, 마감되었어요.':'보내지 못했어요. 잠시 뒤에 다시 눌러 보세요.','#b91c1c')}
+        ui.send.disabled=false;
+      }
+      ui.send.onclick=()=>send(false);
+      ui.autoSend=()=>send(true);
+      if(d.my)setNote('✔ 보낸 사진이 있어요. 새 사진으로 보내면 바뀌어요.','#15803d');
+    }
+
     function buildChoice(a,d){
       const choices=(a.config&&a.config.choices)||[];
       const closed=a.status==='closed';
@@ -342,7 +395,7 @@
       const typing=ui.ta&&document.activeElement===ui.ta&&shownSig.startsWith(a.id+'|')&&a.status==='open';
       if(typing&&!force){shownSig=sig;return}
       // 그리는 중인 그림은 서버 상태가 바뀌어도(내가 보낸 직후 등) 지워지지 않게 다시 그리지 않는다
-      const drawing=ui.cv&&a.kind==='draw'&&shownSig.startsWith(a.id+'|')&&a.status==='open';
+      const drawing=ui.cv&&(a.kind==='draw'||a.kind==='photo')&&shownSig.startsWith(a.id+'|')&&a.status==='open';
       if(drawing&&!force){shownSig=sig;return}
       shownSig=sig;
       build(d);

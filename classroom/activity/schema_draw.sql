@@ -1,4 +1,4 @@
--- 수업 활동 모듈 추가분: 🎨 그림 활동 + 시간 제한 보존 + 작품 7일 자동 삭제.
+-- 수업 활동 모듈 추가분: 🎨 그림 활동 · 📷 사진 활동(같은 방식으로 줄인 이미지를 DB 에 저장) + 시간 제한 보존 + 작품 7일 자동 삭제.
 -- 먼저 schema.sql 을 실행한 뒤 이 파일 전체를 Supabase SQL Editor 에서 한 번 실행하세요(여러 번 실행해도 안전).
 --
 -- 방침(사용자 결정 2026-11-17): 그림은 수업 중 바로 저장하고 오래 남기지 않는다.
@@ -7,7 +7,7 @@
 --   · 그림은 학생 브라우저에서 줄인 이미지(JPEG/PNG/WebP, 약 100~250KB)로 DB 에 저장한다(Storage 는 쓰지 않음).
 
 alter table public.classroom_activities drop constraint if exists classroom_activities_kind_check;
-alter table public.classroom_activities add constraint classroom_activities_kind_check check (kind in ('text','choice','video','draw'));
+alter table public.classroom_activities add constraint classroom_activities_kind_check check (kind in ('text','choice','video','draw','photo'));
 alter table public.classroom_activities add column if not exists saved_at timestamptz;
 
 -- ---------------------------------------------------------------- 오래된 그림 지우기
@@ -17,7 +17,7 @@ as $$
 declare n int;
 begin
   delete from public.classroom_responses r using public.classroom_activities a
-  where r.activity_id = a.id and a.kind = 'draw' and r.updated_at < now() - interval '7 days';
+  where r.activity_id = a.id and a.kind in ('draw','photo') and r.updated_at < now() - interval '7 days';
   get diagnostics n = row_count;
   return n;
 end;
@@ -32,7 +32,7 @@ begin
   if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
   select id into v_session from public.classroom_sessions where room_code = upper(p_room) and status = 'active';
   if v_session is null then raise exception 'room not found'; end if;
-  if p_kind not in ('text','choice','video','draw') then raise exception 'invalid kind'; end if;
+  if p_kind not in ('text','choice','video','draw','photo') then raise exception 'invalid kind'; end if;
   if length(btrim(coalesce(p_title,''))) not between 1 and 300 then raise exception 'bad title'; end if;
   if jsonb_typeof(v_cfg) is distinct from 'object' or length(v_cfg::text) > 6000 then raise exception 'bad config'; end if;
 
@@ -86,7 +86,7 @@ begin
   if not found then return jsonb_build_object('activity', null, 'responses', '[]'::jsonb, 'joined', 0); end if;
 
   select coalesce(jsonb_agg(jsonb_build_object('student_id',x.sid,'no',x.student_no,'name',x.student_name,
-           'answer', case when a.kind = 'draw' and not coalesce(p_images,false) then (x.answer - 'img') || jsonb_build_object('drawn', x.answer ? 'img') else x.answer end,
+           'answer', case when a.kind in ('draw','photo') and not coalesce(p_images,false) then (x.answer - 'img') || jsonb_build_object('drawn', x.answer ? 'img') else x.answer end,
            'updated_at',x.updated_at)
            order by nullif(regexp_replace(x.student_no,'\D','','g'),'')::int nulls last, x.student_no), '[]'::jsonb)
     into v_resp
@@ -117,7 +117,7 @@ begin
       'id',a.id,'kind',a.kind,'title',a.title,'config',a.config,'status',a.status,'reveal',a.reveal,'created_at',a.created_at,
       'responses', coalesce((
         select jsonb_agg(jsonb_build_object('no',x.student_no,'name',x.student_name,
-                   'answer', case when a.kind = 'draw' then (x.answer - 'img') || jsonb_build_object('drawn', x.answer ? 'img') else x.answer end,
+                   'answer', case when a.kind in ('draw','photo') then (x.answer - 'img') || jsonb_build_object('drawn', x.answer ? 'img') else x.answer end,
                    'updated_at',x.updated_at)
                  order by nullif(regexp_replace(x.student_no,'\D','','g'),'')::int nulls last, x.student_no)
         from (
@@ -142,12 +142,12 @@ begin
   if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
   perform public.cra_purge_old();
   return coalesce((
-    select jsonb_agg(jsonb_build_object('id',a.id,'title',a.title,'created_at',a.created_at,'count',c.n,
+    select jsonb_agg(jsonb_build_object('id',a.id,'title',a.title,'kind',a.kind,'created_at',a.created_at,'count',c.n,
              'expires_at', (select min(r.updated_at) + interval '7 days' from public.classroom_responses r where r.activity_id = a.id))
            order by a.created_at)
     from public.classroom_activities a
     join lateral (select count(*) as n from public.classroom_responses r where r.activity_id = a.id and r.answer ? 'img') c on c.n > 0
-    where a.kind = 'draw' and a.saved_at is null
+    where a.kind in ('draw','photo') and a.saved_at is null
   ), '[]'::jsonb);
 end;
 $$;
@@ -157,7 +157,7 @@ returns boolean language plpgsql security definer set search_path = public
 as $$
 begin
   if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
-  update public.classroom_activities set saved_at = now() where id = p_activity and kind = 'draw';
+  update public.classroom_activities set saved_at = now() where id = p_activity and kind in ('draw','photo');
   return found;
 end;
 $$;
@@ -182,7 +182,7 @@ begin
   v_cfg := a.config;
   if not a.reveal then v_cfg := v_cfg - 'answer'; end if;
   select r.answer into v_my from public.classroom_responses r where r.activity_id = a.id and r.student_id = p_student;
-  if a.kind = 'draw' and v_my is not null then v_my := jsonb_build_object('drawn', true); end if;
+  if a.kind in ('draw','photo') and v_my is not null then v_my := jsonb_build_object('drawn', true); end if;
   if a.reveal and a.kind = 'choice' then
     select coalesce(jsonb_object_agg(t.k, t.c), '{}'::jsonb) into v_counts
     from (select r.answer->>'choice' as k, count(*) as c from public.classroom_responses r where r.activity_id = a.id group by 1) t;
@@ -222,7 +222,7 @@ begin
       raise exception 'bad answer';
     end if;
     v_ans := jsonb_build_object('choice', (p_answer->>'choice')::int);
-  elsif v_kind = 'draw' then
+  elsif v_kind in ('draw','photo') then
     if coalesce(jsonb_typeof(p_answer->'img'),'') <> 'string' then raise exception 'bad answer'; end if;
     v_img := p_answer->>'img';
     if length(v_img) not between 200 and 400000 or v_img !~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$' then
