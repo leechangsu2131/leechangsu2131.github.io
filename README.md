@@ -25,6 +25,7 @@ https://homepage-53dd99.gitlab.io/
 | 성장 발표 | `growth/index.html` — 학생 글쓰기 + AI 선생님 질문 피드백 |
 | 교실 연결 | `school-tool/index.html` — 학생 접속 현황·공지·선생님↔학생 메시지 |
 | 교사 관리 | `classroom/teacher.html` — 수업 화면 모니터링, 단원평가 공개 설정, 그림책 코치 설정, 교실 연결 |
+| 수업 활동 | `classroom/activity/` — 수업방에서 주관식·객관식·영상 활동 띄우기, 수업 흐름 저장/불러오기, 큰 화면, CSV (교사 화면 "📋 수업 활동" 칸, 설명은 `classroom/README.md` 6번) |
 | 학교정보 | `school.html` (시간표·급식·학사일정) |
 | 게임·사회 | `games/`, `yut/`, `oldlife.html` |
 | 투자·기타 | `dcf*.html`, `investment-dashboard.html`, `exercise.html`, `Pdf-splitter.html` 등 |
