@@ -10,6 +10,17 @@
     const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
     const rd=()=>{try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(_){return null}};
     let busy=false,stopped=false,timer=0;
+    const SELF1=(document.currentScript&&document.currentScript.src)||'';
+    const state={msgs:[],dm:0,onUpdate:null};
+    let whereP=null;
+    function loadWhere(){
+      if(window.__stWhere)return Promise.resolve();
+      if(!whereP)whereP=new Promise(res=>{
+        try{const sc=document.createElement('script');sc.src=SELF1?SELF1.replace(/monitor\.js(\?.*)?$/,'where.js'):'/classroom/where.js';sc.onload=sc.onerror=()=>res();document.head.appendChild(sc)}catch(_){res()}
+      });
+      return whereP;
+    }
+    const hidden=()=>{try{return localStorage.getItem('st_hide')==='1'}catch(_){return false}};
     async function token(){
       let s=rd();
       if(Date.now()<=(s.exp||0)-60000)return s.access;
@@ -32,8 +43,11 @@
         else return;
         const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
         try{
-          const r=await fetch(U+'/functions/v1/school-tool',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...who,action:'ping',visible:!document.hidden})});
+          await loadWhere();
+          const wk=window.__stWhere?window.__stWhere.key():'';
+          const r=await fetch(U+'/functions/v1/school-tool',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({...who,action:'ping',visible:!document.hidden,where:wk,hide:hidden()})});
           if(r.status===401||r.status===403||r.status===429){stopped=true;clearInterval(timer)}
+          else if(r.ok){try{const d=await r.json();state.msgs=d.messages||[];state.dm=d.dm_unread||0;if(state.onUpdate)state.onUpdate()}catch(_){}}
         }finally{clearTimeout(to)}
       }catch(_){}finally{busy=false}
     }
@@ -42,7 +56,7 @@
       const s0=rd();if(!s0||!s0.num||/\/classroom\/teacher\.html/.test(location.pathname))return;
       const st=document.createElement('style');st.dataset.classroomUi='1';
       st.textContent='.hp-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9990;font:inherit}'
-        +'.hp-fab>button.main{width:54px;height:54px;border-radius:50%;border:0;background:#f59e0b;color:#fff;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer}'
+        +'.hp-fab>button.main{position:relative;width:54px;height:54px;border-radius:50%;border:0;background:#f59e0b;color:#fff;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer}'
         +'.hp-menu{display:none;position:absolute;right:0;bottom:64px;background:#fff;color:#222;border-radius:16px;padding:8px;min-width:190px;box-shadow:0 8px 28px rgba(0,0,0,.35)}'
         +'.hp-fab.open .hp-menu{display:block}'
         +'.hp-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:17px;font-weight:700;padding:12px 14px;border:0;background:none;border-radius:10px;cursor:pointer;color:#222}'
@@ -70,8 +84,51 @@
         const b=document.createElement('button');b.type='button';b.textContent=t;
         b.onclick=()=>send(t.replace(/^\S+\s/,''));menu.appendChild(b);
       });
-      main.onclick=()=>box.classList.toggle('open');
-      box.append(menu,main);document.body.appendChild(box);
+      /* 받은 메시지(선생님) · 친구와 이야기 · 내 접속 숨기기 */
+      const sep=document.createElement('div');sep.style.cssText='height:1px;background:#e5e7eb;margin:6px 4px';menu.appendChild(sep);
+      const inbox=document.createElement('button');inbox.type='button';menu.appendChild(inbox);
+      const talk=document.createElement('button');talk.type='button';menu.appendChild(talk);
+      const hide=document.createElement('button');hide.type='button';menu.appendChild(hide);
+      const badge=document.createElement('span');badge.style.cssText='position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#dc2626;color:#fff;font:700 12px/20px system-ui;text-align:center;padding:0 5px;display:none';
+      const panel=document.createElement('div');panel.dataset.classroomUi='1';panel.style.cssText='display:none;position:fixed;right:14px;bottom:80px;z-index:9992;width:min(92vw,360px);max-height:60vh;overflow:auto;background:#fff;color:#222;border-radius:16px;padding:12px;box-shadow:0 8px 28px rgba(0,0,0,.4);font:15px/1.5 system-ui,sans-serif';
+      const seenKey='st_seen_ts';
+      const seen=()=>{try{return Number(localStorage.getItem(seenKey)||0)}catch(_){return 0}};
+      const fromTeacher=()=>(state.msgs||[]).filter(m=>m.direction==='to_student'||m.direction==='announce');
+      const unreadT=()=>fromTeacher().filter(m=>new Date(m.created_at).getTime()>seen()).length;
+      function refresh(){
+        const nt=unreadT(),nd=state.dm||0,tot=nt+nd;
+        inbox.textContent='📨 선생님 메시지'+(nt?' ('+nt+')':'');
+        talk.textContent='💬 친구들과 이야기'+(nd?' ('+nd+')':'');
+        hide.textContent=hidden()?'👀 내 접속 보이기':'🙈 내 접속 숨기기';
+        badge.textContent=tot>9?'9+':String(tot);badge.style.display=tot?'block':'none';
+      }
+      state.onUpdate=refresh;
+      inbox.onclick=()=>{
+        box.classList.remove('open');panel.replaceChildren();
+        const h=document.createElement('div');h.style.cssText='font-weight:800;margin-bottom:6px';h.textContent='📨 선생님이 보낸 메시지';panel.append(h);
+        const list=fromTeacher().slice(0,10);
+        if(!list.length){const e=document.createElement('div');e.style.color='#6b7280';e.textContent='아직 받은 메시지가 없어요.';panel.append(e)}
+        list.forEach(m=>{
+          const d=document.createElement('div');d.style.cssText='background:#f3f4f6;border-radius:10px;padding:8px 10px;margin:6px 0;white-space:pre-wrap;word-break:break-word';
+          const t=document.createElement('div');t.style.cssText='font-size:12px;color:#6b7280';t.textContent=(m.direction==='announce'?'📢 우리 반 알림 · ':'💬 ')+new Date(m.created_at).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+          const b=document.createElement('div');b.textContent=m.body;d.append(t,b);panel.append(d);
+        });
+        const c=document.createElement('button');c.type='button';c.textContent='닫기';c.style.cssText='margin-top:6px;border:0;border-radius:10px;padding:8px 14px;background:#e5e7eb;font:inherit;font-weight:700;cursor:pointer';c.onclick=()=>{panel.style.display='none'};panel.append(c);
+        panel.style.display='block';
+        try{localStorage.setItem(seenKey,String(Date.now()))}catch(_){}
+        refresh();
+      };
+      talk.onclick=()=>{if(/\/school\.html$/.test(location.pathname)){location.hash='talk'}else location.href='/school.html#talk'};
+      hide.onclick=()=>{
+        try{localStorage.setItem('st_hide',hidden()?'0':'1')}catch(_){}
+        box.classList.remove('open');refresh();
+        toast(hidden()?'🙈 친구들에게 내 접속이 보이지 않아요':'👀 친구들에게 내 접속이 보여요');
+        ping();
+      };
+      refresh();
+      main.onclick=()=>{box.classList.toggle('open');panel.style.display='none'};
+      main.append(badge);
+      box.append(menu,main);document.body.appendChild(box);document.body.appendChild(panel);
     }
     if(!/\/school-tool\//.test(location.pathname)){
       if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',helpButton,{once:true});else helpButton();

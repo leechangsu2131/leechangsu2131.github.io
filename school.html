@@ -144,6 +144,19 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .n-item-meta{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
 
 /* 우리 반 이야기방 */
+.talk-seg{display:flex;gap:6px;margin:0 0 10px}
+.talk-seg button{flex:1;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 6px;font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.talk-seg button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.dm-badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#dc2626;color:#fff;font:700 11px/18px system-ui;font-style:normal;text-align:center;margin-left:4px}
+.who-list{display:flex;flex-direction:column;gap:6px}
+.who-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;text-align:left;font:inherit;font-size:15px;width:100%}
+.who-row.on{border-color:var(--green)}
+.who-dot{width:11px;height:11px;border-radius:50%;background:#9ca3af;flex:none}.who-dot.g{background:#22c55e}.who-dot.o{background:#f59e0b}
+.who-nm{font-weight:800;flex:none}.who-wh{flex:1;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who-row button{border:0;background:var(--bg);border-radius:10px;padding:6px 10px;font-size:16px;cursor:pointer}
+.chip{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;margin:3px 4px 3px 0;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.dm-peer{cursor:pointer}
+
 .talk-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .talk-top b{font-size:16px}
 .talk-rule{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 10px}
@@ -244,6 +257,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
   </main>
 </div>
 
+<script src="classroom/where.js"></script>
 <script>
 // GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요.
 const API_BASE='https://school-api-alpha-gules.vercel.app';
@@ -308,8 +322,8 @@ async function stCall(body){
   let d=null; try{d=await r.json()}catch(e){}
   return {status:r.status,data:d||{}};
 }
-const TALK_ERR={blocked_content:'주소·이메일·전화번호는 올릴 수 없어요.',too_fast:'조금 천천히 보내요.',too_many_messages:'잠깐 쉬었다가 보내요.',duplicate:'같은 말은 또 보내지 않아요.',chat_locked:'지금은 이야기방이 닫혀 있어요.',empty:'내용을 써 주세요.'};
-let talkTimer=0, talkBusy=false, talkLast='';
+const TALK_ERR={blocked_content:'주소·이메일·전화번호는 올릴 수 없어요.',too_fast:'조금 천천히 보내요.',too_many_messages:'잠깐 쉬었다가 보내요.',duplicate:'같은 말은 또 보내지 않아요.',chat_locked:'지금은 이야기방이 닫혀 있어요.',no_student:'그 친구를 찾지 못했어요.',empty:'내용을 써 주세요.'};
+let talkTimer=0, talkBusy=false, talkLast='', talkView='all', talkPeer=null;
 function talkStop(){clearInterval(talkTimer);talkTimer=0}
 function talkOpen(){
   const box=$('#talkBox'), s=stRead();
@@ -324,25 +338,114 @@ function talkOpen(){
     $('#talkGo').onclick=()=>{try{sessionStorage.setItem('st_next','school.html#talk')}catch(e){} location.href='school-tool/index.html'};
     return;
   }
+  talkView=talkView||'all'; talkPeer=null;
   box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방</b><span class="n-updated" id="talkMe"></span></div>'
-   +'<p class="talk-rule">서로 기분 좋은 말만 써요. 전화번호·주소·이메일·인터넷 주소는 올릴 수 없어요. 선생님이 볼 수 있어요.</p>'
-   +'<div id="talkLock" class="talk-lock" style="display:none">지금은 이야기방이 닫혀 있어요. 선생님이 열면 다시 쓸 수 있어요.</div>'
-   +'<div class="talk-list" id="talkList" aria-live="polite"></div>'
-   +'<form class="talk-form" id="talkForm"><input id="talkIn" maxlength="150" placeholder="친구들에게 하고 싶은 말" autocomplete="off"><button id="talkSend" type="submit">보내기</button></form>'
-   +'<div class="talk-msg" id="talkErr"></div>';
+   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button></div>'
+   +'<div id="talkBody"></div>';
   $('#talkMe').textContent=s.num+'번 '+(s.name||'');
-  $('#talkForm').onsubmit=async e=>{
-    e.preventDefault();
-    const inp=$('#talkIn'), t=inp.value.trim(); if(!t) return;
-    $('#talkSend').disabled=true; $('#talkErr').textContent='';
-    try{
-      const r=await stCall({action:'chat_send',body:t});
-      if(r.status===200){inp.value='';await talkLoad(true)}
-      else $('#talkErr').textContent=TALK_ERR[r.data.error]||(r.status===401||r.status===403?'다시 로그인해 주세요.':'보내지 못했어요. 다시 해 보세요.');
-    }catch(err){$('#talkErr').textContent='보내지 못했어요. 다시 해 보세요.'}
-    $('#talkSend').disabled=false; inp.focus();
-  };
+  $$('#talkSeg button').forEach(b=>b.onclick=()=>{talkView=b.dataset.v;talkPeer=null;talkRender()});
+  talkRender();
+}
+function talkRender(){
+  talkStop(); talkLast='';
+  $$('#talkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===talkView));
+  const body=$('#talkBody'); if(!body) return;
+  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
+}
+function talkForm(onSend,ph){
+  const f=document.createElement('form');f.className='talk-form';
+  const i=document.createElement('input');i.maxLength=150;i.placeholder=ph;i.autocomplete='off';i.id='talkIn';
+  const b=document.createElement('button');b.type='submit';b.id='talkSend';b.textContent='보내기';
+  f.append(i,b);
+  f.onsubmit=async e=>{e.preventDefault();const t=i.value.trim();if(!t)return;b.disabled=true;$('#talkErr').textContent='';
+    try{const ok=await onSend(t);if(ok)i.value=''}catch(err){$('#talkErr').textContent='보내지 못했어요. 다시 해 보세요.'}
+    b.disabled=false;i.focus()};
+  return f;
+}
+function talkErrText(r){return TALK_ERR[r.data.error]||(r.status===401||r.status===403?'다시 로그인해 주세요.':'보내지 못했어요. 다시 해 보세요.')}
+/* ---- 전체방 ---- */
+function talkAllUI(body){
+  body.innerHTML='<p class="talk-rule">서로 기분 좋은 말만 써요. 전화번호·주소·이메일·인터넷 주소는 올릴 수 없어요. 선생님이 볼 수 있어요.</p>'
+   +'<div id="talkLock" class="talk-lock" style="display:none">지금은 이야기방이 닫혀 있어요. 선생님이 열면 다시 쓸 수 있어요.</div>'
+   +'<div class="talk-list" id="talkList" aria-live="polite"></div><div id="talkFormBox"></div><div class="talk-msg" id="talkErr"></div>';
+  $('#talkFormBox').append(talkForm(async t=>{const r=await stCall({action:'chat_send',body:t});if(r.status===200){await talkLoad(true);return true}$('#talkErr').textContent=talkErrText(r);return false},'친구들에게 하고 싶은 말'));
   talkLoad(true); talkTimer=setInterval(()=>{if(!document.hidden)talkLoad(false)},5000);
+}
+/* ---- 접속 중인 친구 ---- */
+function whereText(k){return (window.__stWhere&&k)?window.__stWhere.label(k):''}
+async function whoLoad(){
+  const r=await stCall({action:'who_list'}); const box=$('#whoList'); if(!box||r.status!==200) return;
+  const fr=r.data.friends||[]; box.replaceChildren();
+  const on=fr.filter(f=>f.online); $('#whoSum').textContent='지금 접속 중 '+on.length+'명';
+  fr.forEach(f=>{
+    const d=document.createElement('div');d.className='who-row'+(f.online?' on':'');
+    const dot=document.createElement('span');dot.className='who-dot'+(f.online?(f.active?' g':' o'):'');
+    const nm=document.createElement('span');nm.className='who-nm';nm.textContent=f.num+'번 '+f.name+(f.mine?' (나)':'');
+    const wh=document.createElement('span');wh.className='who-wh';wh.textContent=f.online?(whereText(f.where)||(f.mine?'':'')):'';
+    d.append(dot,nm,wh);
+    if(!f.mine){const b=document.createElement('button');b.type='button';b.textContent='✉️';b.setAttribute('aria-label',f.num+'번에게 1:1 메시지');b.onclick=()=>{talkView='dm';talkPeer={num:f.num,name:f.name};talkRender()};d.append(b)}
+    box.append(d);
+  });
+}
+function talkWhoUI(body){
+  body.innerHTML='<p class="talk-rule">지금 홈페이지에 들어와 있는 친구와, 쓰고 있는 메뉴가 보여요. 🟢 화면을 보는 중 · 🟠 다른 창 · 회색 접속 안 함. 내 접속은 오른쪽 아래 🙋 버튼에서 숨길 수 있어요.</p><div class="talk-top"><b id="whoSum"></b></div><div id="whoList" class="who-list"></div>';
+  whoLoad(); talkTimer=setInterval(()=>{if(!document.hidden)whoLoad()},8000);
+}
+/* ---- 1:1 메시지 ---- */
+async function dmBadgeLoad(){
+  const r=await stCall({action:'dm_list'}); if(r.status!==200) return r;
+  const b=$('#dmBadge'); if(b){const n=r.data.unread||0;b.textContent=n;b.style.display=n?'inline-block':'none'}
+  return r;
+}
+async function talkDmListUI(body){
+  body.innerHTML='<p class="talk-rule">친구와 1:1로 이야기해요. <b>선생님이 볼 수 있어요.</b> 기분 좋은 말만 써요.</p><div id="dmLock" class="talk-lock" style="display:none">지금은 1:1 메시지가 닫혀 있어요.</div><div class="talk-top"><b>받은 대화</b></div><div id="dmPeers" class="who-list"></div><div class="talk-top" style="margin-top:12px"><b>새 대화 시작</b></div><div id="dmFriends" class="who-list"></div>';
+  const draw=async()=>{
+    const r=await dmBadgeLoad(); if(!r||r.status!==200||!$('#dmPeers')) return;
+    $('#dmLock').style.display=r.data.locked?'block':'none';
+    const box=$('#dmPeers'); box.replaceChildren();
+    if(!(r.data.peers||[]).length){const p=document.createElement('p');p.className='talk-rule';p.textContent='아직 대화가 없어요.';box.append(p)}
+    (r.data.peers||[]).forEach(p=>{
+      const d=document.createElement('button');d.type='button';d.className='who-row dm-peer';
+      const nm=document.createElement('span');nm.className='who-nm';nm.textContent=p.num+'번 '+p.name;
+      const lt=document.createElement('span');lt.className='who-wh';lt.textContent=p.last;
+      d.append(nm,lt);
+      if(p.unread){const u=document.createElement('i');u.className='dm-badge';u.textContent=p.unread;d.append(u)}
+      d.onclick=()=>{talkPeer={num:p.num,name:p.name};talkRender()};box.append(d);
+    });
+  };
+  draw();
+  const w=await stCall({action:'who_list'}); const fb=$('#dmFriends'); if(fb&&w.status===200){
+    (w.data.friends||[]).filter(f=>!f.mine).forEach(f=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=f.num+'번 '+f.name;b.onclick=()=>{talkPeer={num:f.num,name:f.name};talkRender()};fb.append(b)});
+  }
+  talkTimer=setInterval(()=>{if(!document.hidden)draw()},6000);
+}
+function talkThreadUI(body){
+  body.innerHTML='<div class="talk-top"><button type="button" id="dmBack" class="chip">← 목록</button><b id="dmWho"></b></div><p class="talk-rule">선생님이 볼 수 있어요. 전화번호·주소·이메일·인터넷 주소는 올릴 수 없어요.</p><div id="talkLock" class="talk-lock" style="display:none">지금은 1:1 메시지가 닫혀 있어요.</div><div class="talk-list" id="talkList"></div><div id="talkFormBox"></div><div class="talk-msg" id="talkErr"></div>';
+  $('#dmWho').textContent=talkPeer.num+'번 '+talkPeer.name+'와(과) 1:1';
+  $('#dmBack').onclick=()=>{talkPeer=null;talkRender()};
+  $('#talkFormBox').append(talkForm(async t=>{const r=await stCall({action:'dm_send',to:talkPeer.num,body:t});if(r.status===200){await dmThreadLoad(true);return true}$('#talkErr').textContent=talkErrText(r);return false},'친구에게 보낼 말'));
+  dmThreadLoad(true); talkTimer=setInterval(()=>{if(!document.hidden)dmThreadLoad(false)},5000);
+}
+async function dmThreadLoad(force){
+  if(talkBusy||curTab!=='talk'||!talkPeer) return; talkBusy=true;
+  try{
+    const r=await stCall({action:'dm_list',with:talkPeer.num});
+    if(r.status!==200){ if(r.status===401||r.status===403){talkStop()} return; }
+    const d=r.data, sig=JSON.stringify([d.locked,(d.messages||[]).map(m=>m.id)]);
+    $('#talkLock').style.display=d.locked?'block':'none';
+    const inp=$('#talkIn'),sb=$('#talkSend'); if(inp)inp.disabled=!!d.locked; if(sb)sb.disabled=!!d.locked;
+    if(!force&&sig===talkLast) return; talkLast=sig;
+    const list=$('#talkList'), atEnd=list.scrollHeight-list.scrollTop-list.clientHeight<60||force;
+    list.textContent='';
+    if(!(d.messages||[]).length){const p=document.createElement('p');p.className='talk-rule';p.style.textAlign='center';p.textContent='아직 이야기가 없어요. 먼저 인사해 볼까요?';list.append(p)}
+    (d.messages||[]).forEach(m=>{
+      const w=document.createElement('div');w.className='tk'+(m.mine?' me':'');
+      const who=document.createElement('div');who.className='who';who.textContent=(m.mine?'나':talkPeer.name)+' · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+      const b=document.createElement('div');b.className='bub';b.textContent=m.body;
+      w.append(who,b);list.append(w);
+    });
+    if(atEnd) list.scrollTop=list.scrollHeight;
+  }catch(e){}finally{talkBusy=false}
 }
 async function talkLoad(force){
   if(talkBusy||curTab!=='talk') return; talkBusy=true;
@@ -604,6 +707,7 @@ function paintSchoolName(s){if(s&&s.name)$('#schoolName').textContent=s.name}
 api('/api/school').then(d=>{if(d.school){paintSchoolName(d.school)}}).catch(()=>{});
 
 /* 시작 */
+window.addEventListener('hashchange',()=>{if(location.hash==='#talk')showTab('talk')});
 if(location.hash==='#talk')showTab('talk');else loadTimetable();
 </script>
 <script>

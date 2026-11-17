@@ -12,6 +12,7 @@ const ALLOW_LIST = (Deno.env.get("GT_ALLOW_ORIGIN") ?? "").split(",").map((s) =>
 const ALLOW_ANY = ALLOW_LIST.includes("*");
 const ALLOW_NAME_LOGIN = (Deno.env.get("ST_ALLOW_NAME_LOGIN") ?? "1") !== "0";
 const MAX_BODY = 300;
+const BLOCKED = /https?:|www\.|\.(com|net|kr|io)\b|@|0\d{1,2}[-.\s]?\d{3,4}[-.\s]?\d{4}/i;   // 주소·이메일·전화번호는 올릴 수 없다
 const tokenCache = new Map<string, { uid: string; email: string; name: string; teacher: boolean; exp: number }>();   // 같은 토큰을 60초 동안 다시 묻지 않는다
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -43,7 +44,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send"].includes(body.action) ? body.action : "";
+  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
 
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
@@ -134,7 +135,7 @@ Deno.serve(async (req) => {
       if (locked) return json({ error: "chat_locked" }, 403, origin);
       const text = String(body.body ?? "").replace(/\s+/g, " ").trim().slice(0, 150);
       if (!text) return json({ error: "empty" }, 400, origin);
-      if (/https?:|www\.|\.(com|net|kr|io)\b|@|0\d{1,2}[-.\s]?\d{3,4}[-.\s]?\d{4}/i.test(text)) return json({ error: "blocked_content" }, 400, origin);   // 주소·이메일·전화번호는 올릴 수 없다
+      if (BLOCKED.test(text)) return json({ error: "blocked_content" }, 400, origin);   // 주소·이메일·전화번호는 올릴 수 없다
       const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
       const { data: recent } = await sb.from("st_chat").select("body,created_at").eq("student_id", st.id).gte("created_at", minAgo).order("created_at", { ascending: false }).limit(10);
       if ((recent?.length ?? 0) >= 8) return json({ error: "too_many_messages" }, 429, origin);
@@ -150,6 +151,70 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     const list = (rows ?? []).reverse().map((r: any) => ({ id: r.id, body: r.body, at: r.created_at, num: r.gt_students?.number ?? 0, name: r.gt_students?.name ?? "", mine: r.student_id === st!.id }));
     return json({ ok: true, locked, me: st.number, messages: list }, 200, origin);
+  }
+
+  // ---------- 접속 중인 친구 · 1:1 메시지(교사가 모두 볼 수 있음) ----------
+  if (action === "who_list" || action === "dm_list" || action === "dm_send") {
+    const { data: mates } = await sb.from("gt_students").select("id,number,name").eq("class_id", st.class_id).order("number", { ascending: true });
+    const byId = new Map((mates ?? []).map((m: any) => [m.id, m]));
+    if (action === "who_list") {
+      const since = new Date(Date.now() - 75 * 1000).toISOString();
+      const { data: pr } = await sb.from("st_presence").select("student_id,last_seen,visible,where_path,hide_status").in("student_id", (mates ?? []).map((m: any) => m.id));
+      const pm = new Map((pr ?? []).map((r: any) => [r.student_id, r]));
+      const friends = (mates ?? []).map((m: any) => {
+        const r: any = pm.get(m.id);
+        const mine = m.id === st!.id;
+        const shown = !!r && r.last_seen >= since && (!r.hide_status || mine);
+        return { num: m.number, name: m.name, mine, online: shown, active: shown && r.visible !== false, where: shown && !r.hide_status ? (r.where_path ?? "") : "" };
+      });
+      return json({ ok: true, me: st.number, friends }, 200, origin);
+    }
+    const { data: setg } = await sb.from("st_chat_settings").select("dm_locked").eq("class_id", st.class_id).maybeSingle();
+    const locked = !!setg?.dm_locked;
+    if (action === "dm_list") {
+      const withNum = body.with === undefined || body.with === null ? null : Number(body.with);
+      if (withNum === null) {
+        const { data: rows } = await sb.from("st_dm").select("id,from_id,to_id,body,read_at,created_at").eq("hidden", false)
+          .or(`from_id.eq.${st.id},to_id.eq.${st.id}`).order("created_at", { ascending: false }).limit(200);
+        const peers = new Map<string, any>();
+        for (const r of (rows ?? []) as any[]) {
+          const pid = r.from_id === st.id ? r.to_id : r.from_id;
+          const m: any = byId.get(pid); if (!m) continue;
+          const p = peers.get(pid) ?? { num: m.number, name: m.name, last: r.body, at: r.created_at, unread: 0 };
+          if (r.to_id === st.id && !r.read_at) p.unread++;
+          peers.set(pid, p);
+        }
+        const list = [...peers.values()];
+        return json({ ok: true, locked, unread: list.reduce((a, p) => a + p.unread, 0), peers: list }, 200, origin);
+      }
+      const peer: any = (mates ?? []).find((m: any) => m.number === withNum);
+      if (!peer || peer.id === st.id) return json({ error: "no_student" }, 404, origin);
+      const { data: rows } = await sb.from("st_dm").select("id,from_id,body,created_at").eq("hidden", false)
+        .or(`and(from_id.eq.${st.id},to_id.eq.${peer.id}),and(from_id.eq.${peer.id},to_id.eq.${st.id})`).order("created_at", { ascending: false }).limit(60);
+      await sb.from("st_dm").update({ read_at: new Date().toISOString() }).eq("to_id", st.id).eq("from_id", peer.id).is("read_at", null);
+      const list = ((rows ?? []) as any[]).reverse().map((r) => ({ id: r.id, body: r.body, at: r.created_at, mine: r.from_id === st!.id }));
+      return json({ ok: true, locked, peer: { num: peer.number, name: peer.name }, messages: list }, 200, origin);
+    }
+    // dm_send
+    if (locked) return json({ error: "chat_locked" }, 403, origin);
+    const peer: any = (mates ?? []).find((m: any) => m.number === Number(body.to));
+    if (!peer || peer.id === st.id) return json({ error: "no_student" }, 404, origin);
+    const text = String(body.body ?? "").replace(/\s+/g, " ").trim().slice(0, 150);
+    if (!text) return json({ error: "empty" }, 400, origin);
+    if (BLOCKED.test(text)) return json({ error: "blocked_content" }, 400, origin);
+    const minAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const [{ data: recent }, { count: dayN }] = await Promise.all([
+      sb.from("st_dm").select("body,created_at").eq("from_id", st.id).gte("created_at", minAgo).order("created_at", { ascending: false }).limit(10),
+      sb.from("st_dm").select("id", { count: "exact", head: true }).eq("from_id", st.id).gte("created_at", dayAgo),
+    ]);
+    if ((recent?.length ?? 0) >= 8 || (dayN ?? 0) >= 150) return json({ error: "too_many_messages" }, 429, origin);
+    if (recent?.[0] && Date.now() - new Date(recent[0].created_at).getTime() < 2000) return json({ error: "too_fast" }, 429, origin);
+    if (recent?.some((r: any) => r.body === text)) return json({ error: "duplicate" }, 400, origin);
+    const { error } = await sb.from("st_dm").insert({ class_id: st.class_id, from_id: st.id, to_id: peer.id, body: text });
+    if (error) return json({ error: "save_failed" }, 500, origin);
+    if (Math.random() < 0.05) await sb.from("st_dm").delete().lt("created_at", new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString());
+    return json({ ok: true }, 200, origin);
   }
 
   if (action === "send") {
@@ -169,7 +234,8 @@ Deno.serve(async (req) => {
 
   // hello / ping: 접속 표시(last_seen 갱신) 후 받은 글 돌려주기
   if (action === "ping") {
-    await sb.from("st_presence").upsert({ student_id: st.id, last_seen: new Date().toISOString(), visible: body.visible !== false });
+    const wp = String(body.where ?? "").slice(0, 80);
+    await sb.from("st_presence").upsert({ student_id: st.id, last_seen: new Date().toISOString(), visible: body.visible !== false, where_path: /^[A-Za-z0-9_.\/%-]*$/.test(wp) ? wp : "", hide_status: body.hide === true });
   }
   const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
   const [{ data: mine }, { data: ann }] = await Promise.all([
@@ -177,5 +243,6 @@ Deno.serve(async (req) => {
     sb.from("st_messages").select("id,direction,body,created_at").eq("class_id", st.class_id).eq("direction", "announce").gte("created_at", weekAgo).order("created_at", { ascending: false }).limit(10),
   ]);
   const messages = [...(mine ?? []), ...(ann ?? [])].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
-  return json({ ok: true, number: st.number, name: st.name, now: new Date().toISOString(), messages }, 200, origin);
+  const { count: dmUnread } = await sb.from("st_dm").select("id", { count: "exact", head: true }).eq("to_id", st.id).eq("hidden", false).is("read_at", null);
+  return json({ ok: true, number: st.number, name: st.name, now: new Date().toISOString(), messages, dm_unread: dmUnread ?? 0 }, 200, origin);
 });
