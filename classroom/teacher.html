@@ -73,6 +73,8 @@
     <span class="muted">초록: 접속 중 · 주황: 다른 탭 또는 창 · 회색: 응답 없음 (화면을 누르면 크게 볼 수 있습니다)</span>
   </div>
   <div id="students" class="grid"></div>
+  <!-- 로그인은 했지만 수업 화면 공유에 연결되지 않은 학생(우리 반 교실 연결의 접속 표시 기준) -->
+  <div id="notJoined" class="panel hide" style="margin-top:12px"></div>
   <div id="liveMsg" class="status"></div>
 </section>
 
@@ -294,6 +296,7 @@
       b.onclick=()=>rcOpen(s.id);g.append(b);
     });
     $('rcSum').textContent='접속 '+on+' / '+rcStudents.length+'명';
+    rcNotJoined();
   }
   function rcDrawThread(){
     if(!rcSel)return;const s=rcStudents.find(x=>x.id===rcSel);if(!s)return;
@@ -599,6 +602,28 @@
     }
   }
 
+  // ---- 수업방에 안 보이는 학생 안내: 로그인(접속 표시)은 했지만 수업 화면에 연결 안 됨 / 아직 접속 없음 ----
+  function rcNotJoined(){
+    const box=$('notJoined');if(!box)return;
+    if(isMock||!rcStudents.length){box.classList.add('hide');return}
+    const joined=new Set(rows.filter(s=>s.online).map(s=>Number(s.student_no)));
+    const lost=rcStudents.filter(s=>!joined.has(s.number)&&rcStatus(s.id)!=='off');
+    const none=rcStudents.filter(s=>!joined.has(s.number)&&rcStatus(s.id)==='off');
+    box.replaceChildren();
+    function line(icon,title,list,hint){
+      if(!list.length)return;
+      const d=document.createElement('div');d.style.margin='4px 0';
+      const b=document.createElement('b');b.textContent=icon+' '+title+' ('+list.length+'명) ';
+      d.append(b);
+      list.forEach(s=>{const c=document.createElement('span');c.style.cssText='display:inline-block;margin:3px 4px 3px 0;padding:3px 9px;border-radius:999px;background:var(--panel2,#eee);font-size:13px';c.textContent=s.number+'번 '+s.name;d.append(c)});
+      if(hint){const h=document.createElement('div');h.className='hint';h.textContent=hint;d.append(h)}
+      box.append(d);
+    }
+    line('🔑','로그인했지만 수업 화면에 연결 안 됨',lost,'교육 도구 모음 등 수업 화면 공유가 되는 페이지가 아닌 곳에 있거나, 막 들어와서 30초 안에 자동 연결될 수 있어요.');
+    line('⚪','아직 접속 없음',none,null);
+    box.classList.toggle('hide',!lost.length&&!none.length);
+  }
+
   function render(){
     $('count').textContent=rows.length;
     $('students').innerHTML=rows.map(s=>{
@@ -609,6 +634,7 @@
       const image=pic.startsWith('data:image/')?'<img class="student-thumb" alt="'+esc(s.student_name)+' 학생 화면" src="'+pic+'" style="cursor:zoom-in" title="클릭하면 크게 봅니다">' :'<div class="preview-empty">'+(!sharing?'학생이 화면 공유를 껐어요.':'화면 캡처를 기다리는 중 (3초 간격)')+'</div>';
       return '<article class="student" data-id="'+s.id+'">'+image+'<div class="body"><div class="name">'+esc(s.student_no)+'번 '+esc(s.student_name)+'<span class="pill '+cls+'">'+state+'</span></div><div class="muted">현재 페이지: '+esc(s.current_page||'확인 중')+'<br>마지막 신호: '+new Date(s.last_seen).toLocaleTimeString('ko-KR')+'</div><div class="controls" data-id="'+s.id+'"><button data-k="notice">안내</button><button data-k="focus">주의집중</button><button data-k="resume">해제</button><button data-k="navigate">페이지 열기</button><button data-k="remove" class="danger">내보내기</button></div></div></article>';
     }).join('')||'<div class="panel muted" style="grid-column:1/-1;text-align:center;padding:36px">아직 입장한 학생이 없습니다.<br><span class="hint">위의 [입장 링크 복사] 또는 [👉 학생 창 열기]를 눌러 학생 화면을 띄워보세요.</span></div>';
+    rcNotJoined();
   }
 
   async function command(kind,payload={},student=null){
