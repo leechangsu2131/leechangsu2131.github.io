@@ -1,0 +1,4 @@
+-- 같이 놀자/공부하자 모임판 (적용됨: st_meetups 마이그레이션)
+-- st_meetups(id, class_id, host_id, kind play|study, activity, place, until_at, max_people 2~8, note, hidden, cancelled, created_at)
+-- st_meetup_joins(meetup_id, student_id) / st_chat_settings.meetup_locked
+-- RLS: 교사(gt_is_teacher())만 직접 접근, 학생은 school-tool 함수(meet_list/meet_create/meet_join/meet_cancel)로만. anon 권한 없음.

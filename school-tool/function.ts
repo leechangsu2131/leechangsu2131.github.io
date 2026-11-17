@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send"].includes(body.action) ? body.action : "";
+  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
 
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
@@ -151,6 +151,68 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     const list = (rows ?? []).reverse().map((r: any) => ({ id: r.id, body: r.body, at: r.created_at, num: r.gt_students?.number ?? 0, name: r.gt_students?.name ?? "", mine: r.student_id === st!.id }));
     return json({ ok: true, locked, me: st.number, messages: list }, 200, origin);
+  }
+
+  // ---------- 같이 놀자 / 같이 공부하자 모임판(고르기 중심, 공공장소만, 교사가 숨기기·삭제·잠금) ----------
+  if (action.startsWith("meet_")) {
+    const PLACES = ["ground", "school_lib", "playground", "town_lib"];                       // 미리 정한 공공장소만(집·주소 없음)
+    const ACTS: Record<string, string[]> = { play: ["tag", "ball", "board", "jump", "draw", "talk"], study: ["homework", "read", "math", "write"] };
+    const { data: setg } = await sb.from("st_chat_settings").select("meetup_locked").eq("class_id", st.class_id).maybeSingle();
+    const locked = !!setg?.meetup_locked;
+    const now = new Date();
+    if (action === "meet_list") {
+      const from = new Date(now.getTime() - 30 * 60 * 1000).toISOString();     // 끝난 지 30분 안 된 모임까지 보여 준다
+      const { data: rows } = await sb.from("st_meetups").select("id,host_id,kind,activity,place,until_at,max_people,note,created_at,st_meetup_joins(student_id)")
+        .eq("class_id", st.class_id).eq("hidden", false).eq("cancelled", false).gte("until_at", from).order("created_at", { ascending: false }).limit(40);
+      const { data: mates } = await sb.from("gt_students").select("id,number,name").eq("class_id", st.class_id);
+      const byId = new Map((mates ?? []).map((m: any) => [m.id, m]));
+      const list = ((rows ?? []) as any[]).map((r) => {
+        const ids: string[] = [r.host_id, ...r.st_meetup_joins.map((j: any) => j.student_id).filter((x: string) => x !== r.host_id)];
+        return { id: r.id, kind: r.kind, activity: r.activity, place: r.place, until: r.until_at, max: r.max_people, note: r.note, ended: r.until_at < now.toISOString(),
+          host: byId.get(r.host_id)?.name ?? "", mine: r.host_id === st!.id, joined: ids.includes(st!.id),
+          people: ids.map((i) => ({ num: byId.get(i)?.number ?? 0, name: byId.get(i)?.name ?? "" })) };
+      });
+      return json({ ok: true, locked, me: st.number, meetups: list }, 200, origin);
+    }
+    if (locked) return json({ error: "chat_locked" }, 403, origin);
+    if (action === "meet_create") {
+      const kind = String(body.kind ?? "");
+      const activity = String(body.activity ?? "");
+      const place = String(body.place ?? "");
+      const mins = Number(body.minutes);
+      const max = Number(body.max);
+      if (!(kind in ACTS) || !ACTS[kind].includes(activity) || !PLACES.includes(place) || ![30, 60, 90].includes(mins) || !Number.isInteger(max) || max < 2 || max > 8) return json({ error: "bad_input" }, 400, origin);
+      const note = String(body.note ?? "").replace(/\s+/g, " ").trim().slice(0, 100);
+      if (note && BLOCKED.test(note)) return json({ error: "blocked_content" }, 400, origin);
+      const dayAgo = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+      const { count: dayN } = await sb.from("st_meetups").select("id", { count: "exact", head: true }).eq("host_id", st.id).gte("created_at", dayAgo);
+      if ((dayN ?? 0) >= 5) return json({ error: "too_many_messages" }, 429, origin);
+      const { count: open } = await sb.from("st_meetups").select("id", { count: "exact", head: true }).eq("host_id", st.id).eq("cancelled", false).gte("until_at", now.toISOString());
+      if ((open ?? 0) >= 2) return json({ error: "too_many_open" }, 429, origin);
+      const { error } = await sb.from("st_meetups").insert({ class_id: st.class_id, host_id: st.id, kind, activity, place, until_at: new Date(now.getTime() + mins * 60000).toISOString(), max_people: max, note });
+      if (error) return json({ error: "save_failed" }, 500, origin);
+      if (Math.random() < 0.05) await sb.from("st_meetups").delete().lt("created_at", new Date(now.getTime() - 7 * 24 * 3600 * 1000).toISOString());
+      return json({ ok: true }, 200, origin);
+    }
+    const { data: m } = await sb.from("st_meetups").select("id,host_id,class_id,until_at,max_people,hidden,cancelled").eq("id", String(body.id ?? "")).maybeSingle();
+    if (!m || m.class_id !== st.class_id || m.hidden || m.cancelled) return json({ error: "no_meetup" }, 404, origin);
+    if (action === "meet_cancel") {
+      if (m.host_id !== st.id) return json({ error: "forbidden" }, 403, origin);
+      await sb.from("st_meetups").update({ cancelled: true }).eq("id", m.id);
+      return json({ ok: true }, 200, origin);
+    }
+    // meet_join: 누르면 참가, 다시 누르면 취소
+    if (m.host_id === st.id) return json({ error: "is_host" }, 400, origin);
+    const { data: cur } = await sb.from("st_meetup_joins").select("student_id").eq("meetup_id", m.id);
+    if (cur?.some((j: any) => j.student_id === st!.id)) {
+      await sb.from("st_meetup_joins").delete().eq("meetup_id", m.id).eq("student_id", st.id);
+      return json({ ok: true, joined: false }, 200, origin);
+    }
+    if (m.until_at < now.toISOString()) return json({ error: "ended" }, 400, origin);
+    if ((cur?.length ?? 0) + 1 >= m.max_people) return json({ error: "full" }, 400, origin);     // 만든 사람 1명 포함
+    const { error } = await sb.from("st_meetup_joins").insert({ meetup_id: m.id, student_id: st.id });
+    if (error) return json({ error: "save_failed" }, 500, origin);
+    return json({ ok: true, joined: true }, 200, origin);
   }
 
   // ---------- 접속 중인 친구 · 1:1 메시지(교사가 모두 볼 수 있음) ----------

@@ -779,3 +779,11 @@
 ### 학급 고정 (2026-11-18)
 - school.html: `LOCK_CLASS={grade:3,klass:2}` 로 3학년 2반만 사용. 학급 선택 창은 숨김, 예전에 다른 반을 골라 저장해 둬도 무시.
 - 다른 반을 열 때: school.html에서 `//LOCK_CLASS=null;` 줄 맨 앞의 `//` 를 지운다. (이야기방·친구 목록은 서버에서 3-2 명단 기준이라 따로 막힘)
+
+### 🤝 같이 놀자 / 같이 공부하자 모임판 (2026-11-18)
+- school.html 이야기방의 4번째 탭 「🤝 모임」. 글 대신 **고르기**(종류·할 일·장소·시간·인원)만 하고, 한마디(100자)만 직접 쓴다(주소·전화·이메일 차단).
+- **장소는 공공장소 4곳만**(ground 화천초 운동장, school_lib 학교 도서관, playground 동네 놀이터, town_lib 동네 도서관). 집·주소·GPS·지도 위치 표시는 일부러 넣지 않음(학부모 동의 정리 전). 장소 추가는 school-tool/function.ts `PLACES` + school.html `MEET_PLACES` + teacher.html `MEET_PLACE` 세 곳.
+- 서버 제한: 하루 5개 만들기, 동시에 열린 모임 2개, 시간 30/60/90분, 인원 2~8(만든 이 포함), 끝난 지 30분 뒤 목록에서 사라짐, 7일 뒤 자동 삭제.
+- 교사: teacher.html 「이야기방 관리」 맨 아래에서 모임 전체 보기·숨기기·삭제·모임판 잠금(`st_chat_settings.meetup_locked`).
+- DB: st_meetups, st_meetup_joins(school-tool/meetups.sql 참고). Edge Function school-tool v9.
+- 집에서 놀기·밥 주기는 모임판에 넣지 않음. 필요하면 학부모 동의 안내문을 먼저 정리한 뒤 별도 검토.
