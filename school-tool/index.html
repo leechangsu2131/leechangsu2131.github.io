@@ -186,6 +186,10 @@ async function afterLogin(){
   // 로그인한 구글 계정의 상태를 서버에 물어본다
   try{
     const r=await call({action:'account'});
+    if(r.teacher){ // 교사 계정: 학생 신청 대신 둘러보기로 들어간다(번호 없이 로그인만 유지)
+      session={...session,teacher:true};store.set('st_s',JSON.stringify(session));
+      const nx=store.get('st_next');store.del('st_next');
+      location.href='../'+(['education.html','school.html#talk','분수_순위표.html'].includes(nx)?nx:'education.html');return}
     if(r.approved){session={...session,num:r.number,name:r.name};store.set('st_s',JSON.stringify(session));start()}
     else if(r.pending){show('pending');$('#pendErr').textContent=''}
     else if(r.need_request){$('#reqWho').textContent=r.name?`${r.name} 님, 내 번호를 알려 줘요.`:'내 번호를 알려 줘요.';$('#reqNum').value='';$('#reqOk').checked=false;$('#reqErr').textContent='';show('request')}

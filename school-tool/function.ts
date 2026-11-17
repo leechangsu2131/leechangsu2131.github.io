@@ -12,7 +12,7 @@ const ALLOW_LIST = (Deno.env.get("GT_ALLOW_ORIGIN") ?? "").split(",").map((s) =>
 const ALLOW_ANY = ALLOW_LIST.includes("*");
 const ALLOW_NAME_LOGIN = (Deno.env.get("ST_ALLOW_NAME_LOGIN") ?? "1") !== "0";
 const MAX_BODY = 300;
-const tokenCache = new Map<string, { uid: string; email: string; name: string; exp: number }>();   // 같은 토큰을 60초 동안 다시 묻지 않는다
+const tokenCache = new Map<string, { uid: string; email: string; name: string; teacher: boolean; exp: number }>();   // 같은 토큰을 60초 동안 다시 묻지 않는다
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
@@ -53,18 +53,21 @@ Deno.serve(async (req) => {
   const fail = async (err: string, status = 401) => { await sb.from("gt_auth_failures").insert({ ip }); return json({ error: err }, status, origin); };
 
   // ---------- 로그인 토큰 확인(Supabase Auth, 구글 계정만) ----------
-  async function whoIs(jwt: unknown): Promise<{ uid: string; email: string; name: string } | null> {
+  async function whoIs(jwt: unknown): Promise<{ uid: string; email: string; name: string; teacher: boolean } | null> {
     if (typeof jwt !== "string" || jwt.length < 20 || jwt.length > 4000) return null;
     const hit = tokenCache.get(jwt);
     if (hit && hit.exp > Date.now()) return hit;
     const { data, error } = await sb.auth.getUser(jwt);
     const u = data?.user;
     if (error || !u || !u.email || !u.email_confirmed_at) return null;
+    // 교사 계정(app_metadata.role === 'teacher')은 로그인 방식과 관계없이 교사로 알아본다. 학생은 구글로 확인된 계정만.
     // deno-lint-ignore no-explicit-any
-    if (!(u.identities ?? []).some((i: any) => i.provider === "google")) return null;   // 구글로 확인된 계정만
+    const teacher = ((u.app_metadata ?? {}) as any).role === "teacher";
+    // deno-lint-ignore no-explicit-any
+    if (!teacher && !(u.identities ?? []).some((i: any) => i.provider === "google")) return null;
     // deno-lint-ignore no-explicit-any
     const md = (u.user_metadata ?? {}) as any;
-    const v = { uid: u.id, email: u.email.toLowerCase().slice(0, 200), name: String(md.full_name ?? md.name ?? "").slice(0, 100), exp: Date.now() + 60000 };
+    const v = { uid: u.id, email: u.email.toLowerCase().slice(0, 200), name: String(md.full_name ?? md.name ?? "").slice(0, 100), teacher, exp: Date.now() + 60000 };
     if (tokenCache.size > 200) tokenCache.clear();
     tokenCache.set(jwt, v);
     return v;
@@ -83,6 +86,7 @@ Deno.serve(async (req) => {
   if (action === "account" || action === "request") {
     const g = await whoIs(body.jwt);
     if (!g) return fail("bad_login");
+    if (g.teacher) return json({ ok: true, teacher: true }, 200, origin);   // 교사 계정은 학생 신청 대상이 아니다
     const acc = await findAcc(g);
     if (acc) {
       if (acc.status !== "approved") return json({ ok: true, pending: true }, 200, origin);
