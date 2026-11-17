@@ -77,8 +77,8 @@ insert into public.classroom_teachers(email) values ('교사이메일@example.co
 
 수업방을 열면 교사 화면에 **"📋 수업 활동"** 칸이 생깁니다.
 
-1. 한 번만: Supabase **SQL Editor** 에서 [`activity/schema.sql`](activity/schema.sql) 을 실행합니다(이미 적용돼 있으면 건너뜁니다).
-2. **단계 추가**: ✍️ 주관식 / ✅ 객관식(① ② ③ 보기를 칸마다 따로 쓰고 정답은 보기 옆에서 체크) / ▶️ 영상 보기(유튜브 주소) / 🌐 페이지 열기(이 사이트 안의 주소)를 순서대로 쌓습니다.
+1. 한 번만: Supabase **SQL Editor** 에서 [`activity/schema.sql`](activity/schema.sql) 다음에 [`activity/schema_draw.sql`](activity/schema_draw.sql)(그림 활동) 을 실행합니다(이미 적용돼 있으면 건너뜁니다).
+2. **단계 추가**: 🎨 그림(학생이 그림판에 그려 냄 — 큰 화면 갤러리, 그림 ZIP 저장, 7일 뒤 자동 삭제) / ✍️ 주관식 / ✅ 객관식(① ② ③ 보기를 칸마다 따로 쓰고 정답은 보기 옆에서 체크) / ▶️ 영상 보기(유튜브 주소) / 🌐 페이지 열기(이 사이트 안의 주소)를 순서대로 쌓습니다.
 3. 이름을 쓰고 **💾 저장**하면 다음 수업에 목록에서 **불러오기**로 같은 흐름을 쓸 수 있습니다.
 4. **▶ 처음부터**, **다음 단계 ▶** 로 진행합니다. 학생 화면에는 큰 카드가 뜹니다.
 5. 진행 중에는 제출 현황과 막대(객관식)가 보이고, **🖥 큰 화면으로 보기**로 모두의 답을 크게 띄웁니다(이름 가리기 가능). 객관식은 **정답·결과 공개**를 누르면 학생에게 정답이 나옵니다.
@@ -88,6 +88,7 @@ insert into public.classroom_teachers(email) values ('교사이메일@example.co
 | 파일 | 역할 |
 |---|---|
 | `activity/schema.sql` | 표 3개와 `cra_` 함수 10개 |
+| `activity/schema_draw.sql` | 그림 활동·시간 제한·7일 자동 삭제 추가분 |
 | `activity/teacher-activity.js` | 교사 쪽 모듈 (`ClassroomActivity`) |
 | `activity/student-activity.js` | 학생 쪽 모듈 (`ClassroomActivityStudent`, `monitor.js` 가 자동으로 불러옴) |
 

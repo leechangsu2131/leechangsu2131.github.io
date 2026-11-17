@@ -46,6 +46,7 @@
     function tickClock(){
       if(!clock||!ui.tm)return;
       const left=Math.ceil((clock.end-(Date.now()+clock.off))/1000);
+      if(left<=0&&ui.autoSend&&!ui.autoSent){ui.autoSent=true;ui.autoSend()}
       ui.tm.textContent=left>0?'⏱ 남은 시간 '+(left>=60?Math.floor(left/60)+'분 '+(left%60)+'초':left+'초'):'⏱ 시간이 다 됐어요';
     }
     const clockTimer=setInterval(tickClock,500);
@@ -70,7 +71,7 @@
     }
 
     function label(kind){
-      return kind==='text'?'✍️ 글로 답해요':kind==='choice'?'✅ 하나를 골라요':'▶️ 같이 봐요';
+      return kind==='text'?'✍️ 글로 답해요':kind==='choice'?'✅ 하나를 골라요':kind==='draw'?'🎨 그림으로 그려요':'▶️ 같이 봐요';
     }
 
     function build(d){
@@ -108,6 +109,7 @@
       ui.note=el('div','margin-top:12px;font:700 18px/1.5 system-ui;color:#475569;min-height:26px');
       if(a.kind==='text')buildText(a,d);
       else if(a.kind==='choice')buildChoice(a,d);
+      else if(a.kind==='draw')buildDraw(a,d);
       else buildVideo(a);
       card.appendChild(ui.note);
       root.appendChild(card);
@@ -148,6 +150,86 @@
         if(d.my)setNote('✔ 보낸 답이 있어요. 고쳐서 다시 보낼 수 있어요.','#15803d');
       }else{
         setNote(d.my?'마감되었어요. 내가 보낸 답이에요.':'마감되었어요.');
+      }
+    }
+
+    function buildDraw(a,d){
+      const closed=a.status==='closed';
+      const W=800,H=600;
+      const cv=el('canvas','width:100%;aspect-ratio:4/3;display:block;background:#fff;border:3px solid #94a3b8;border-radius:14px;touch-action:none;cursor:crosshair');
+      cv.width=W;cv.height=H;
+      const g=cv.getContext('2d');
+      g.fillStyle='#fff';g.fillRect(0,0,W,H);g.lineCap='round';g.lineJoin='round';
+      ui.cv=cv;
+      let color='#111827',size=6,erase=false,drew=false,sentSig='',last2=null;
+      const undo=[];
+      function snap(){try{undo.push(g.getImageData(0,0,W,H));if(undo.length>12)undo.shift()}catch(_){}}
+      function pos(e){const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
+      if(!closed){
+        cv.addEventListener('pointerdown',e=>{
+          e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}
+          snap();last2=pos(e);drew=true;
+          g.strokeStyle=erase?'#ffffff':color;g.lineWidth=erase?size*3:size;
+          g.beginPath();g.moveTo(last2[0],last2[1]);g.lineTo(last2[0]+0.01,last2[1]+0.01);g.stroke();
+        });
+        cv.addEventListener('pointermove',e=>{
+          if(!last2)return;e.preventDefault();
+          const p=pos(e);g.beginPath();g.moveTo(last2[0],last2[1]);g.lineTo(p[0],p[1]);g.stroke();last2=p;
+        });
+        const end=e=>{last2=null};
+        cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('pointerleave',end);
+      }
+      card.appendChild(cv);
+      if(!closed){
+        const bar=el('div','display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px');
+        const sw=[];
+        function mark(){sw.forEach(([b,c])=>{b.style.outline=(!erase&&c===color)?'4px solid #2563eb':'none'});eb.style.outline=erase?'4px solid #2563eb':'none';sz.forEach(([b,n])=>{b.style.background=n===size?'#dbeafe':'#f1f5f9'})}
+        ['#111827','#e11d48','#2563eb','#16a34a','#f59e0b','#92400e'].forEach(c=>{
+          const b=el('button','width:40px;height:40px;border-radius:50%;border:2px solid #cbd5e1;cursor:pointer;touch-action:manipulation;background:'+c);
+          b.type='button';b.setAttribute('aria-label','색 '+c);b.onclick=()=>{color=c;erase=false;mark()};sw.push([b,c]);bar.appendChild(b);
+        });
+        const eb=el('button','border:2px solid #cbd5e1;background:#f1f5f9;color:#111827;border-radius:12px;padding:8px 12px;font:700 16px system-ui;cursor:pointer;touch-action:manipulation','🧽 지우개');
+        eb.type='button';eb.onclick=()=>{erase=true;mark()};bar.appendChild(eb);
+        const sz=[];
+        [['가늘게',3],['보통',6],['굵게',14]].forEach(([t,n])=>{
+          const b=el('button','border:2px solid #cbd5e1;color:#111827;border-radius:12px;padding:8px 12px;font:700 16px system-ui;cursor:pointer;touch-action:manipulation',t);
+          b.type='button';b.onclick=()=>{size=n;mark()};sz.push([b,n]);bar.appendChild(b);
+        });
+        const ub=el('button','border:2px solid #cbd5e1;background:#f1f5f9;color:#111827;border-radius:12px;padding:8px 12px;font:700 16px system-ui;cursor:pointer;touch-action:manipulation','↩ 되돌리기');
+        ub.type='button';ub.onclick=()=>{const x=undo.pop();if(x)g.putImageData(x,0,0)};bar.appendChild(ub);
+        const cb=el('button','border:2px solid #cbd5e1;background:#f1f5f9;color:#111827;border-radius:12px;padding:8px 12px;font:700 16px system-ui;cursor:pointer;touch-action:manipulation','🗑 모두 지우기');
+        cb.type='button';cb.onclick=()=>{snap();g.fillStyle='#fff';g.fillRect(0,0,W,H);drew=false};bar.appendChild(cb);
+        card.appendChild(bar);mark();
+        function pack(){
+          for(const q of [0.8,0.65,0.5,0.35]){
+            const u=cv.toDataURL('image/jpeg',q);
+            if(u.length<=330000)return u;
+          }
+          return null;
+        }
+        async function send(auto){
+          if(!drew){if(!auto)setNote('먼저 그림을 그려 주세요.','#b45309');return}
+          const u=pack();
+          if(!u){setNote('그림이 너무 커요. 지우고 다시 그려 주세요.','#b91c1c');return}
+          if(u===sentSig)return;
+          ui.send.disabled=true;setNote(auto?'시간이 다 되어 자동으로 보내는 중…':'보내는 중…');
+          try{
+            await rpc('cra_student_submit',{p_student:sid,p_token:tok,p_activity:a.id,p_answer:{img:u}});
+            sentSig=u;
+            ui.send.textContent='고쳐서 다시 보내기';
+            setNote('✔ 보냈어요! 마감 전까지는 고쳐 그려서 다시 보낼 수 있어요.','#15803d');
+          }catch(e){
+            setNote(/closed/.test(String(e.message))?'앗, 마감되었어요.':'보내지 못했어요. 잠시 뒤에 다시 눌러 보세요.','#b91c1c');
+          }
+          ui.send.disabled=false;
+        }
+        ui.send=el('button',BTN+';margin-top:12px;background:#16a34a;color:#fff;width:100%',d.my?'새로 그려서 다시 보내기':'선생님께 보내기');
+        ui.send.type='button';ui.send.onclick=()=>send(false);
+        card.appendChild(ui.send);
+        ui.autoSend=()=>send(true);
+        if(d.my)setNote('✔ 보낸 그림이 있어요. 새로 그려서 보내면 바뀌어요.','#15803d');
+      }else{
+        setNote(d.my?'마감되었어요. 그림을 보냈어요.':'마감되었어요.');
       }
     }
 
@@ -259,6 +341,9 @@
       if(!force&&sig===shownSig)return;
       const typing=ui.ta&&document.activeElement===ui.ta&&shownSig.startsWith(a.id+'|')&&a.status==='open';
       if(typing&&!force){shownSig=sig;return}
+      // 그리는 중인 그림은 서버 상태가 바뀌어도(내가 보낸 직후 등) 지워지지 않게 다시 그리지 않는다
+      const drawing=ui.cv&&a.kind==='draw'&&shownSig.startsWith(a.id+'|')&&a.status==='open';
+      if(drawing&&!force){shownSig=sig;return}
       shownSig=sig;
       build(d);
     }

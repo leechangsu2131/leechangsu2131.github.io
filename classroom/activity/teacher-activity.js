@@ -11,7 +11,7 @@
   'use strict';
   if(window.ClassroomActivity)return;
 
-  const KINDS={text:'✍️ 주관식',choice:'✅ 객관식',video:'▶️ 영상 보기',page:'🌐 페이지 열기'};
+  const KINDS={text:'✍️ 주관식',choice:'✅ 객관식',draw:'🎨 그림',video:'▶️ 영상 보기',page:'🌐 페이지 열기'};
   const MARK=['①','②','③','④','⑤','⑥'];
   const POLL_MS=3000;
 
@@ -64,6 +64,12 @@
   #craBig .empty{color:#a1a1aa;text-align:center;padding:60px 10px;font-size:22px}
   #craZoom{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:30px;cursor:zoom-out}
   #craZoom .box{max-width:min(1100px,94vw);max-height:92vh;overflow:auto;background:#1c1c22;border:1px solid #34343d;border-radius:22px;padding:28px 34px;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;line-height:1.6;font-size:clamp(28px,4.4vw,56px)}
+  #craBig .card.pic{white-space:normal;padding:10px}
+  #craBig .card.pic img{width:100%;height:auto;display:block;background:#fff;border-radius:10px}
+  #craZoom .box.pic{padding:16px;background:#1c1c22}
+  #craZoom .box.pic img{max-width:100%;max-height:80vh;display:block;background:#fff;border-radius:10px;margin:auto}
+  .cra-warn{margin:10px 0;padding:10px 12px;border:1px solid #f59e0b;border-radius:12px;background:#f59e0b18}
+  .cra-warn .row{margin-top:6px}
   #craZoom small{display:block;color:#64d2ff;font-size:.4em;font-weight:800;margin-bottom:8px}
   `;
 
@@ -103,6 +109,7 @@
       const i=ans.choice,cs=(act.config&&act.config.choices)||[];
       return typeof i==='number'?(MARK[i]||i+1)+' '+(cs[i]!=null?cs[i]:''):'';
     }
+    if(act.kind==='draw')return (ans.drawn||ans.img)?'(그림을 냄)':'';
     return ans.text||'';
   }
   function correct(act,ans){
@@ -110,7 +117,7 @@
     return ans.choice===act.config.answer?'O':'X';
   }
   function rowsFor(act,responses){
-    const base=[act.title,{text:'주관식',choice:'객관식',video:'영상'}[act.kind]||act.kind];
+    const base=[act.title,{text:'주관식',choice:'객관식',draw:'그림',video:'영상'}[act.kind]||act.kind];
     if(!responses.length)return [[...base,'','','(낸 답 없음)','','']];
     return responses.map(r=>[...base,r.no,r.name,answerText(act,r.answer),correct(act,r.answer),r.updated_at?new Date(r.updated_at).toLocaleTimeString('ko-KR'):'']);
   }
@@ -167,7 +174,7 @@
     U.steps=el('div');
     U.add=el('div',{class:'row',style:'margin:8px 0'},
       el('span',{class:'muted',text:'단계 추가:'}),
-      ...['text','choice','video','page'].map(k=>el('button',{type:'button',text:'+ '+KINDS[k],onclick:()=>{M.flow.steps.push(newStep(k));renderSteps()}})));
+      ...['text','choice','draw','video','page'].map(k=>el('button',{type:'button',text:'+ '+KINDS[k],onclick:()=>{M.flow.steps.push(newStep(k));renderSteps()}})));
     U.pos=el('span',{class:'muted'});
     U.run=el('div',{class:'row',style:'margin:8px 0'},
       el('button',{type:'button',class:'primary',text:'▶ 처음부터',onclick:()=>runStep(0)}),
@@ -178,9 +185,11 @@
     U.all=el('div',{class:'row'},
       el('button',{type:'button',text:'⬇ 오늘 수업 전체 CSV 저장',onclick:exportAll}),
       el('span',{class:'hint',text:'오늘 낸 모든 활동과 답을 한 파일로 받아요(엑셀에서 열려요).'}));
-    box.append(U.bar,U.steps,U.add,U.run,U.live,U.all,U.msg);
+    U.warn=el('div');
+    box.append(U.warn,U.bar,U.steps,U.add,U.run,U.live,U.all,U.msg);
     renderSteps();renderLive();
     loadFlows().catch(()=>{});
+    loadUnsaved();
     refresh();
     M.timer=setInterval(refresh,POLL_MS);
     M.tick=setInterval(tick,500);
@@ -282,7 +291,7 @@
     }
     if(s.kind==='video'||s.kind==='page')o.url=String(s.url||'').trim().slice(0,500);
     const note=String(s.note||'').trim().slice(0,300);if(note)o.note=note;
-    const sec=Number(s.seconds);if((s.kind==='text'||s.kind==='choice')&&sec>=10&&sec<=3600)o.seconds=Math.round(sec);
+    const sec=Number(s.seconds);if((s.kind==='text'||s.kind==='choice'||s.kind==='draw')&&sec>=10&&sec<=3600)o.seconds=Math.round(sec);
     return o;
   }
 
@@ -302,7 +311,7 @@
       const ns=newStep(kindSel.value);ns.title=s.title&&kindSel.value!=='video'?s.title:ns.title;
       M.flow.steps[i]=ns;renderSteps();
     }},...Object.keys(KINDS).map(k=>el('option',{value:k,text:KINDS[k],...(k===s.kind?{selected:''}:{})})));
-    const ph=s.kind==='page'?'학생 화면에 열 페이지 주소 (예: /fraction.html)':s.kind==='video'?'영상 앞에서 학생에게 보일 말':'문제 (학생 화면에 크게 보여요)';
+    const ph=s.kind==='page'?'학생 화면에 열 페이지 주소 (예: /fraction.html)':s.kind==='video'?'영상 앞에서 학생에게 보일 말':s.kind==='draw'?'그릴 주제 (예: 우리 동네를 그려요)':'문제 (학생 화면에 크게 보여요)';
     const titleIn=el('input',{type:'text',class:'t',maxlength:'300',placeholder:s.kind==='page'?'(선택) 이 단계의 이름':ph,value:s.title||'',oninput:()=>{s.title=titleIn.value}});
     box.appendChild(el('div',{class:'top'},
       el('span',{class:'no',text:(i+1)+'.'}),kindSel,titleIn,
@@ -343,7 +352,7 @@
       box.appendChild(u);
     }
     const extra=el('div',{class:'sub'});
-    if(s.kind==='text'||s.kind==='choice'){
+    if(s.kind==='text'||s.kind==='choice'||s.kind==='draw'){
       const tsel=el('select',{onchange:()=>{s.seconds=tsel.value?Number(tsel.value):null}},
         ...[['','시간 제한 없음'],['30','30초'],['60','1분'],['120','2분'],['180','3분'],['300','5분'],['600','10분']].map(([v,t])=>el('option',{value:v,text:t})));
       tsel.value=s.seconds?String(s.seconds):'';
@@ -389,7 +398,7 @@
         if(s.choices.length<2){say('보기를 2개 이상 적어 주세요.',true);return}
         cfg={choices:s.choices};if(typeof s.answer==='number'&&s.answer<s.choices.length)cfg.answer=s.answer;
       }
-      if(s.seconds&&(s.kind==='text'||s.kind==='choice'))cfg.seconds=s.seconds;
+      if(s.seconds&&(s.kind==='text'||s.kind==='choice'||s.kind==='draw'))cfg.seconds=s.seconds;
       if(s.kind==='video'){
         if(!/^https:\/\//i.test(s.url)){say('영상 주소는 https:// 로 시작해야 해요.',true);return}
         cfg={url:s.url};
@@ -410,6 +419,15 @@
     M.busy=true;
     try{
       M.cur=await M.rpc('cra_admin_results',{p_room:room});
+      const ca=M.cur&&M.cur.activity;
+      if(M.big&&ca&&ca.kind==='draw'){
+        const sig=ca.id+'|'+M.cur.responses.map(r=>r.student_id+r.updated_at).join(',');
+        if(sig!==M.imgSig){
+          const full=await M.rpc('cra_admin_results',{p_room:room,p_activity:ca.id,p_images:true});
+          M.imgs={};(full.responses||[]).forEach(r=>{if(r.answer&&r.answer.img)M.imgs[r.student_id]=r.answer.img});
+          M.imgSig=sig;
+        }
+      }
       renderLive();
       if(M.big)renderBig();
     }catch(_){}
@@ -445,7 +463,8 @@
     if(a.kind!=='video')btns.appendChild(el('button',{type:'button',class:'primary',text:'🖥 큰 화면으로 보기',onclick:openBig}));
     if(open)btns.appendChild(el('button',{type:'button',text:'⏹ 마감하기',onclick:()=>closeAct(a)}));
     if(a.kind==='choice')btns.appendChild(el('button',{type:'button',text:a.reveal?'정답·결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}));
-    if(a.kind!=='video')btns.appendChild(el('button',{type:'button',text:'⬇ 이 활동 CSV',onclick:exportOne}));
+    if(a.kind==='draw')btns.appendChild(el('button',{type:'button',text:a.saved_at?'⬇ 그림 ZIP 다시 저장':'⬇ 그림 ZIP 저장',onclick:()=>saveDrawZip(a.id)}));
+    else if(a.kind!=='video')btns.appendChild(el('button',{type:'button',text:'⬇ 이 활동 CSV',onclick:exportOne}));
     if(!open&&a.kind==='video')btns.appendChild(el('span',{class:'hint',text:'영상은 다음 단계를 시작하면 학생 화면에서 사라져요.'}));
     box.appendChild(btns);
     U.live.appendChild(box);
@@ -474,7 +493,7 @@
   // ---------------------------------------------------------------- 큰 화면
   function openBig(){
     if(!M.cur||!M.cur.activity)return;
-    M.big=true;renderBig();
+    M.big=true;M.imgSig='';renderBig();refresh();
   }
   function closeBig(){
     M.big=false;
@@ -484,6 +503,12 @@
   function zoom(label,text){
     closeZoom();
     const z=el('div',{id:'craZoom',onclick:closeZoom},el('div',{class:'box'},el('small',{text:label}),document.createTextNode(text)));
+    document.body.appendChild(z);
+  }
+  function zoomImg(label,src){
+    closeZoom();
+    const im=el('img',{alt:'학생 그림'});im.src=src;
+    const z=el('div',{id:'craZoom',onclick:closeZoom},el('div',{class:'box pic'},el('small',{text:label}),im));
     document.body.appendChild(z);
   }
   function renderBig(){
@@ -500,7 +525,7 @@
       el('button',{type:'button',text:M.anon?'이름 보이기':'이름 가리기',onclick:()=>{M.anon=!M.anon;renderBig()}}),
       open?el('button',{type:'button',text:'⏹ 마감',onclick:()=>closeAct(a)}):null,
       a.kind==='choice'?el('button',{type:'button',text:a.reveal?'결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}):null,
-      el('button',{type:'button',text:'⬇ CSV',onclick:exportOne}),
+      a.kind==='draw'?el('button',{type:'button',text:'⬇ 그림 ZIP',onclick:()=>saveDrawZip(a.id)}):el('button',{type:'button',text:'⬇ CSV',onclick:exportOne}),
       el('button',{type:'button',class:'primary',text:'✕ 닫기 (Esc)',onclick:closeBig}));
     const bd=el('div',{class:'bd'});
     const rs=d.responses;
@@ -513,6 +538,17 @@
       rs.forEach((r,i)=>{
         const t=(r.answer&&r.answer.text)||'';
         const c=el('div',{class:'card',onclick:()=>zoom(who(r,i),t)},el('small',{text:who(r,i)}),document.createTextNode(t));
+        cards.appendChild(c);
+      });
+      bd.appendChild(cards);
+    }else if(a.kind==='draw'){
+      const n=rs.length,cw=n<=2?560:n<=6?400:n<=12?300:230;
+      const cards=el('div',{class:'cards',style:'--cw:'+cw+'px'});
+      rs.forEach((r,i)=>{
+        const src=M.imgs&&M.imgs[r.student_id];
+        const c=el('div',{class:'card pic',onclick:()=>src&&zoomImg(who(r,i),src)},el('small',{text:who(r,i)}));
+        if(src&&/^data:image\/(jpeg|png|webp);base64,/.test(src)){const im=el('img',{alt:'학생 그림'});im.src=src;c.appendChild(im)}
+        else c.appendChild(el('div',{class:'muted',text:'그림 불러오는 중…'}));
         cards.appendChild(c);
       });
       bd.appendChild(cards);
@@ -530,6 +566,75 @@
     }
     big.append(hd,bd);
     bd.scrollTop=keepScroll;
+  }
+
+  // ---------------------------------------------------------------- 그림 ZIP 저장 (압축 없이 묶기: 이미지는 이미 줄여 있음)
+  const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+  function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+  function zipBlob(files){
+    const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+    const now=new Date(),dt=((now.getFullYear()-1980)<<9|(now.getMonth()+1)<<5|now.getDate()),tm=(now.getHours()<<11|now.getMinutes()<<5|(now.getSeconds()>>1));
+    files.forEach(f=>{
+      const nm=enc.encode(f.name),crc=crc32(f.bytes),n=f.bytes.length;
+      const lh=new DataView(new ArrayBuffer(30));
+      lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);
+      lh.setUint16(10,tm,true);lh.setUint16(12,dt,true);lh.setUint32(14,crc,true);lh.setUint32(18,n,true);lh.setUint32(22,n,true);
+      lh.setUint16(26,nm.length,true);lh.setUint16(28,0,true);
+      parts.push(lh.buffer,nm,f.bytes);
+      const ch=new DataView(new ArrayBuffer(46));
+      ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);
+      ch.setUint16(12,tm,true);ch.setUint16(14,dt,true);ch.setUint32(16,crc,true);ch.setUint32(20,n,true);ch.setUint32(24,n,true);
+      ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+      cen.push(ch.buffer,nm);
+      off+=30+nm.length+n;
+    });
+    let csz=0;cen.forEach(x=>csz+=x.byteLength||x.length);
+    const end=new DataView(new ArrayBuffer(22));
+    end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,csz,true);end.setUint32(16,off,true);
+    return new Blob([...parts,...cen,end.buffer],{type:'application/zip'});
+  }
+  function dataUrlBytes(u){
+    const m=/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+=*)$/.exec(u||'');
+    if(!m)return null;
+    const bin=atob(m[2]),b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
+    return {ext:m[1]==='jpeg'?'jpg':m[1],bytes:b};
+  }
+  function safeName(x){return String(x||'').replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,30)}
+  async function saveDrawZip(actId){
+    try{
+      const room=M.getRoom();
+      const full=await call('cra_admin_results',{p_room:room,p_activity:actId,p_images:true});
+      const a=full.activity,files=[],list=[['번호','이름','파일','낸 시각']];
+      (full.responses||[]).forEach(r=>{
+        const im=dataUrlBytes(r.answer&&r.answer.img);if(!im)return;
+        const fn=String(r.no).padStart(2,'0')+'_'+safeName(r.name)+'.'+im.ext;
+        files.push({name:fn,bytes:im.bytes});
+        list.push([r.no,r.name,fn,r.updated_at?new Date(r.updated_at).toLocaleString('ko-KR'):'']);
+      });
+      if(!files.length){say('저장할 그림이 아직 없어요.',true);return}
+      const csv='\uFEFF'+list.map(r=>r.map(csvCell).join(',')).join('\r\n');
+      files.push({name:'목록.csv',bytes:new TextEncoder().encode(csv)});
+      const blob=zipBlob(files);
+      const link=el('a',{href:URL.createObjectURL(blob),download:'그림_'+safeName(a.title).slice(0,20)+'_'+stamp()+'.zip'});
+      document.body.appendChild(link);link.click();
+      setTimeout(()=>{URL.revokeObjectURL(link.href);link.remove()},800);
+      try{await M.rpc('cra_admin_mark_saved',{p_activity:actId})}catch(_){}
+      say('🎨 그림 '+(files.length-1)+'장을 ZIP 으로 저장했어요. 다운로드 폴더를 확인하세요.');
+      loadUnsaved();refresh();
+    }catch(e){say('저장하지 못했어요: '+String(e.message||e).slice(0,120),true)}
+  }
+  async function loadUnsaved(){
+    const U=M.ui;if(!U||!U.warn)return;
+    try{
+      const list=await M.rpc('cra_admin_unsaved',{});
+      U.warn.replaceChildren();
+      if(!list||!list.length)return;
+      const soon=list.map(x=>x.expires_at?Math.max(0,Math.ceil((Date.parse(x.expires_at)-Date.now())/86400000)):7);
+      const box=el('div',{class:'cra-warn'},el('b',{text:'🎨 아직 내려받지 않은 그림 '+list.length+'개 — 가장 빠른 것은 '+Math.min(...soon)+'일 뒤 자동으로 지워져요.'}));
+      const row=el('div',{class:'row'});
+      list.forEach(x=>row.appendChild(el('button',{type:'button',text:'⬇ '+(x.title||'그림').slice(0,16)+' ('+x.count+'장)',onclick:()=>saveDrawZip(x.id)})));
+      box.appendChild(row);U.warn.appendChild(box);
+    }catch(_){}
   }
 
   // ---------------------------------------------------------------- CSV 저장
