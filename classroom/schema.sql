@@ -139,11 +139,17 @@ begin
 end;
 $$;
 
+-- 시작한 지 8시간이 지난 수업은 종료 처리(들어와 있는 학생도 끊김). 학생 화면이 신호를 보낼 때마다 확인한다.
+create or replace function public.classroom_expire_old() returns void language sql security definer set search_path = public
+as $$ update public.classroom_sessions set status='ended', ended_at=now() where status='active' and started_at < now() - interval '8 hours'; $$;
+revoke all on function public.classroom_expire_old() from public,anon,authenticated;
+
 create or replace function public.classroom_student_update(
   p_student uuid,p_token text,p_page text,p_active boolean,p_sharing boolean,p_screenshot text default null
 ) returns boolean language plpgsql security definer set search_path = public
 as $$
 begin
+  perform public.classroom_expire_old();
   if p_screenshot is not null and length(p_screenshot)>110000 then raise exception '화면 이미지가 너무 큽니다.'; end if;
   update public.classroom_students s set
     last_seen=now(), tab_active=coalesce(p_active,false), sharing=coalesce(p_sharing,false),
@@ -162,6 +168,7 @@ returns jsonb language plpgsql security definer set search_path = public
 as $$
 declare v_session uuid; v_joined timestamptz; v_items jsonb; v_kicked boolean;
 begin
+  perform public.classroom_expire_old();
   select s.session_id,s.joined_at into v_session,v_joined
   from public.classroom_students s join public.classroom_sessions c on c.id=s.session_id
   where s.id=p_student and s.removed_at is null and s.token_hash=encode(sha256(convert_to(coalesce(p_token,''),'utf8')),'hex');
