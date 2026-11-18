@@ -84,6 +84,16 @@
         const b=document.createElement('button');b.type='button';b.textContent=t;
         b.onclick=()=>send(t.replace(/^\S+\s/,''));menu.appendChild(b);
       });
+      /* 직접 쓰기: 수업 중 어느 화면에서든 선생님께 짧은 글을 바로 보낸다(전화번호·이메일은 보내지 않는다) */
+      const wr=document.createElement('form');wr.style.cssText='display:flex;gap:6px;padding:6px 4px 2px';
+      const wi=document.createElement('input');wi.type='text';wi.maxLength=100;wi.placeholder='✏️ 선생님께 하고 싶은 말';wi.setAttribute('aria-label','선생님께 보낼 말');wi.autocomplete='off';
+      wi.style.cssText='flex:1;min-width:0;font:inherit;font-size:16px;padding:9px 10px;border:1px solid #d1d5db;border-radius:10px;color:#222;background:#fff';
+      const wb=document.createElement('button');wb.type='submit';wb.textContent='보내기';wb.style.cssText='width:auto;flex:none;background:#f59e0b;color:#fff;text-align:center;padding:9px 12px';
+      wr.append(wi,wb);menu.appendChild(wr);
+      wr.addEventListener('click',e=>e.stopPropagation());
+      wr.onsubmit=e=>{e.preventDefault();const t=wi.value.replace(/\s+/g,' ').trim();if(!t)return;
+        if(/\d{2,4}[-\s]?\d{3,4}[-\s]?\d{4}/.test(t)||/@/.test(t)){toast('전화번호나 이메일은 쓰지 않아요.');return}
+        wi.value='';send(t)};
       /* 받은 메시지(선생님) · 친구와 이야기 · 내 접속 숨기기 */
       const sep=document.createElement('div');sep.style.cssText='height:1px;background:#e5e7eb;margin:6px 4px';menu.appendChild(sep);
       const inbox=document.createElement('button');inbox.type='button';menu.appendChild(inbox);
