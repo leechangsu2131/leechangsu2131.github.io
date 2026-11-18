@@ -181,6 +181,12 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .game-bar{height:12px;border-radius:99px;background:#e2e8f0;overflow:hidden}.game-bar i{display:block;height:100%;background:#16a34a;border-radius:99px}
 .game-go{display:block;text-align:center;margin:12px 0 6px;padding:16px;border-radius:16px;background:#2563eb;color:#fff;font-size:20px;font-weight:900;text-decoration:none}
 .game-go.off{background:#cbd5e1;color:#475569}
+.rpt-btn{justify-self:end;background:none;border:0;font-size:15px;opacity:.55;padding:4px 8px;cursor:pointer}
+.rpt-btn:hover{opacity:1}.tk .rpt-btn{margin-left:6px;vertical-align:middle}
+.rpt-panel{background:#fff7ed;border:2px solid #fb923c;border-radius:14px;padding:10px;margin:6px 0;display:grid;gap:6px}
+.rpt-q{font-size:15px;font-weight:800}
+.rpt-panel button{min-height:44px;border-radius:12px;border:2px solid #fdba74;background:#fff;font-size:16px;font-weight:700;cursor:pointer}
+.rpt-panel button.ghost{border-color:#cbd5e1;color:#475569}
 .meet-hero{background:linear-gradient(135deg,#fde68a,#fbcfe8);border-radius:16px;padding:12px 14px;display:grid;gap:4px;margin:8px 0}
 .meet-hero b{font-size:20px}.meet-hero span{font-size:14px;color:#44403c}
 .meet-filter{display:flex;gap:6px;overflow-x:auto;padding:4px 0}
@@ -462,6 +468,25 @@ function talkAllUI(body){
   $('#talkFormBox').append(talkForm(async t=>{const r=await stCall({action:'chat_send',body:t});if(r.status===200){await talkLoad(true);return true}$('#talkErr').textContent=talkErrText(r);return false},'친구들에게 하고 싶은 말'));
   talkLoad(true); talkTimer=setInterval(()=>{if(!document.hidden)talkLoad(false)},5000);
 }
+/* ---- 🚩 신고: 곤란한 글·모임을 선생님께만 알린다(상대는 몰라요) ---- */
+const RPT_REASONS=[['words','😣 말이 불편해요'],['scary','😨 무서워요'],['private','🔒 개인정보가 있어요'],['other','❓ 다른 일이에요']];
+function reportBtn(kind,id,host){
+  const b=document.createElement('button');b.type='button';b.className='rpt-btn';b.textContent='🚩';b.title='선생님께 알리기';b.setAttribute('aria-label','선생님께 알리기');
+  b.onclick=()=>{
+    const old=document.querySelector('.rpt-panel'); if(old){const same=old.parentNode===host; old.remove(); if(same) return}
+    const pn=document.createElement('div');pn.className='rpt-panel';
+    const q=document.createElement('div');q.className='rpt-q';q.textContent='선생님께만 알려 줘요. 어떤 일이에요?';pn.append(q);
+    RPT_REASONS.forEach(([k,t])=>{const x=document.createElement('button');x.type='button';x.textContent=t;
+      x.onclick=async()=>{pn.querySelectorAll('button').forEach(y=>y.disabled=true);
+        const r=await stCall({action:'report_send',kind,id,reason:k});
+        pn.textContent='';const m=document.createElement('div');m.className='rpt-q';
+        m.textContent=r.status===200?'✅ 선생님께 알렸어요. 알려 줘서 고마워요.':(TALK_ERR[(r.data||{}).error]||'알리지 못했어요. 잠시 뒤에 다시 해 보세요.');pn.append(m);
+        setTimeout(()=>pn.remove(),3500)};pn.append(x)});
+    const c=document.createElement('button');c.type='button';c.className='ghost';c.textContent='그만두기';c.onclick=()=>pn.remove();pn.append(c);
+    host.append(pn);
+  };
+  return b;
+}
 /* ---- 접속 중인 친구 ---- */
 function whereText(k){return (window.__stWhere&&k)?window.__stWhere.label(k):''}
 async function whoLoad(){
@@ -616,7 +641,7 @@ async function meetReviewOpen(m){
   const done=el('button','meet-join','다 했어요');done.type='button';done.onclick=x.onclick;sheet.append(done);
 }
 function meetPaint(){
-  const list=$('#meetList'); if(!list) return; list.textContent='';
+  const list=$('#meetList'); if(!list) return; if(document.querySelector('.rpt-panel')) return; list.textContent='';
   tempPaint();
   $$('#meetFilter button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.f===meetFilter)));
   const rows=meetData.filter(m=>meetFilter==='all'||(meetFilter==='mine'?m.joined:m.kind===meetFilter));
@@ -640,6 +665,7 @@ function meetPaint(){
     who.append(av,el('span','meet-cnt',m.people.length+' / '+m.max+'명'));
     c.append(bar,who,el('div','meet-names','모인 친구: '+m.people.map(p=>p.name).join(', ')));
     if(m.ended&&m.review){const rb=el('button','meet-join','💛 칭찬 남기기');rb.type='button';rb.onclick=()=>meetReviewOpen(m);c.append(rb)}
+    if(!m.mine)c.append(reportBtn('meetup',m.id,c));
     if(!m.ended){
       const b=el('button','meet-join');b.type='button';
       if(m.mine){b.textContent='❌ 모임 닫기';b.classList.add('ghost');b.onclick=()=>meetAct('meet_cancel',m.id)}
@@ -694,7 +720,7 @@ async function dmThreadLoad(force){
     const d=r.data, sig=JSON.stringify([d.locked,(d.messages||[]).map(m=>m.id)]);
     $('#talkLock').style.display=d.locked?'block':'none';
     const inp=$('#talkIn'),sb=$('#talkSend'); if(inp)inp.disabled=!!d.locked; if(sb)sb.disabled=!!d.locked;
-    if(!force&&sig===talkLast) return; talkLast=sig;
+    if(!force&&sig===talkLast) return; if(!force&&document.querySelector('.rpt-panel')) return; talkLast=sig;
     const list=$('#talkList'), atEnd=list.scrollHeight-list.scrollTop-list.clientHeight<60||force;
     list.textContent='';
     if(!(d.messages||[]).length){const p=document.createElement('p');p.className='talk-rule';p.style.textAlign='center';p.textContent='아직 이야기가 없어요. 먼저 인사해 볼까요?';list.append(p)}
@@ -702,7 +728,7 @@ async function dmThreadLoad(force){
       const w=document.createElement('div');w.className='tk'+(m.mine?' me':'');
       const who=document.createElement('div');who.className='who';who.textContent=(m.mine?'나':talkPeer.name)+' · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
       const b=document.createElement('div');b.className='bub';b.textContent=m.body;
-      w.append(who,b);list.append(w);
+      w.append(who,b);if(!m.mine)w.append(reportBtn('dm',m.id,w));list.append(w);
     });
     if(atEnd) list.scrollTop=list.scrollHeight;
   }catch(e){}finally{talkBusy=false}
@@ -715,7 +741,7 @@ async function talkLoad(force){
     const d=r.data, sig=JSON.stringify([d.locked,(d.messages||[]).map(m=>m.id)]);
     $('#talkLock').style.display=d.locked?'block':'none';
     $('#talkIn').disabled=!!d.locked; $('#talkSend').disabled=!!d.locked;
-    if(!force&&sig===talkLast) return; talkLast=sig;
+    if(!force&&sig===talkLast) return; if(!force&&document.querySelector('.rpt-panel')) return; talkLast=sig;
     const list=$('#talkList'), atEnd=list.scrollHeight-list.scrollTop-list.clientHeight<60||force;
     list.textContent='';
     if(!(d.messages||[]).length){const p=document.createElement('p');p.className='talk-rule';p.style.textAlign='center';p.textContent='아직 이야기가 없어요. 먼저 인사해 볼까요?';list.append(p)}
@@ -723,7 +749,7 @@ async function talkLoad(force){
       const w=document.createElement('div');w.className='tk'+(m.mine?' me':'');
       const who=document.createElement('div');who.className='who';who.textContent=m.num+'번 '+m.name+' · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
       const b=document.createElement('div');b.className='bub';b.textContent=m.body;
-      w.append(who,b);list.append(w);
+      w.append(who,b);if(!m.mine)w.append(reportBtn('chat',m.id,w));list.append(w);
     });
     if(atEnd) list.scrollTop=list.scrollHeight;
   }catch(e){}finally{talkBusy=false}

@@ -112,7 +112,12 @@
     <div class="rc-row"><textarea id="rcReply" maxlength="500" placeholder="이 학생에게만 보내요."></textarea><button id="rcReplySend" class="primary">보내기</button></div>
   </div>
   <details id="rcChat" style="margin-top:12px">
-    <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span></summary>
+    <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span> <span id="rcRptN" style="color:#b91c1c;font-weight:800"></span></summary>
+    <div id="rcRptBox" style="display:none;margin:8px 0;padding:10px;border:2px solid #fb923c;border-radius:12px;background:#fff7ed">
+      <div style="font-weight:800">🚩 학생이 알려 준 것 <span id="rcRptSub" class="muted"></span></div>
+      <div class="hint">신고한 학생은 상대에게 알려지지 않아요. 확인한 뒤 「확인함」을 누르면 목록에서 빠져요. 「글 숨기기」는 그 글(모임)을 학생 화면에서 가려요.</div>
+      <div id="rcRptList"></div>
+    </div>
     <div class="hint">학생들이 school.html 「이야기방」에서 서로 나눈 이야기입니다(14일 뒤 자동 삭제). 곤란한 글은 숨기거나 지우고, 필요하면 방을 닫을 수 있어요.</div>
     <div class="row" style="gap:8px;margin:6px 0"><button id="rcChatLock"></button><span id="rcChatState" class="muted"></span></div>
     <div id="rcChatList" class="rc-thread" style="max-height:340px"></div>
@@ -370,8 +375,38 @@
       rcAccs=ac||[];
       rcPres={};(p||[]).forEach(x=>rcPres[x.student_id]=x);rcMsgs=m||[];
       if(rcSel&&rcMsgs.some(x=>x.student_id===rcSel&&x.direction==='to_teacher'&&!x.read_at))rcOpen(rcSel);
-      rcDraw();rcDrawAcc();rcDrawThread();rcChatLoad();$('rcMsg').textContent='';
+      rcDraw();rcDrawAcc();rcDrawThread();rcChatLoad();rcRptLoad();$('rcMsg').textContent='';
     }catch(e){if(e.message!=='unauthorized')$('rcMsg').textContent='교실 연결 정보를 불러오지 못했어요.'}
+  }
+  // ---- 🚩 학생 신고(st_reports): 이야기방·1:1·모임에서 학생이 선생님께만 알린 것 ----
+  const RPT_WHY={words:'말이 불편해요',scary:'무서워요',private:'개인정보가 있어요',other:'다른 일이에요'};
+  const RPT_KIND={chat:'전체방',dm:'1:1',meetup:'모임'};
+  let rcRpt=[];
+  function rcRptDraw(){
+    const nm={};(rcStudents||[]).forEach(x=>{nm[x.id]=x.number+'번 '+x.name});
+    const open=rcRpt.filter(r=>!r.handled);
+    $('rcRptN').textContent=open.length?'🚩 신고 '+open.length+'건':'';
+    $('rcRptBox').style.display=open.length?'block':'none';
+    $('rcRptSub').textContent='('+open.length+'건)';
+    const box=$('rcRptList');box.replaceChildren();
+    open.forEach(r=>{
+      const d=document.createElement('div');d.className='rc-acc';
+      const w=document.createElement('div');w.className='who';
+      w.textContent=rcFmt(r.created_at)+' · ['+(RPT_KIND[r.kind]||r.kind)+'] '+(nm[r.from_id]||'?')+' → 글쓴이 '+(nm[r.target_id]||'?')+' · '+(RPT_WHY[r.reason]||r.reason)+' · “'+r.snapshot+'”';
+      const ok=document.createElement('button');ok.textContent='확인함';
+      ok.onclick=async()=>{ok.disabled=true;try{await rcApi('st_reports?id=eq.'+r.id,{method:'PATCH',body:JSON.stringify({handled:true})});r.handled=true;rcRptDraw()}catch(_){ok.disabled=false}};
+      const hide=document.createElement('button');hide.textContent='글 숨기기';
+      hide.onclick=async()=>{hide.disabled=true;try{
+        const t=r.kind==='chat'?'st_chat':r.kind==='dm'?'st_dm':'st_meetups';
+        await rcApi(t+'?id=eq.'+r.ref_id,{method:'PATCH',body:JSON.stringify({hidden:true})});
+        await rcApi('st_reports?id=eq.'+r.id,{method:'PATCH',body:JSON.stringify({handled:true})});r.handled=true;rcRptDraw();rcChatLoad();
+      }catch(_){hide.disabled=false}};
+      d.append(w,ok,hide);box.append(d);
+    });
+  }
+  async function rcRptLoad(){
+    if(!rcCls)return;
+    try{rcRpt=await rcApi('st_reports?select=id,from_id,target_id,kind,ref_id,reason,snapshot,handled,created_at&class_id=eq.'+rcCls.id+'&handled=eq.false&order=created_at.desc&limit=50',{headers:{Prefer:''}})||[];rcRptDraw()}catch(_){}
   }
   // ---- 우리 반 이야기방 관리(st_chat): 숨기기·삭제·잠금 ----
   let rcChatRows=[],rcChatLocked=false,rcDmRows=[],rcDmLocked=false,rcMeetRows=[],rcMeetLocked=false;

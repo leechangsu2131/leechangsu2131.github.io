@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel", "meet_review", "meet_praise", "meet_concern"].includes(body.action) ? body.action : "";
+  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel", "meet_review", "meet_praise", "meet_concern", "report_send"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
 
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
@@ -125,6 +125,36 @@ Deno.serve(async (req) => {
       .eq("number", num).eq("name_key", key).eq("gt_classes.active", true).limit(1);
     st = (found?.[0] as Student) ?? null;
     if (!st) return fail("not_found");
+  }
+
+  // ---------- 신고: 곤란한 글·모임을 선생님께만 알린다(상대에게는 알려지지 않음) ----------
+  if (action === "report_send") {
+    const kind = String(body.kind ?? "");
+    const reason = String(body.reason ?? "");
+    if (!["chat", "dm", "meetup"].includes(kind) || !["words", "scary", "private", "other"].includes(reason)) return json({ error: "bad_input" }, 400, origin);
+    const rid = String(body.id ?? "");
+    let target: string | null = null;
+    let snap = "";
+    if (kind === "chat") {
+      const { data: r } = await sb.from("st_chat").select("student_id,class_id,body").eq("id", rid).maybeSingle();
+      if (!r || r.class_id !== st.class_id || r.student_id === st.id) return json({ error: "bad_input" }, 400, origin);
+      target = r.student_id; snap = String(r.body ?? "");
+    } else if (kind === "dm") {
+      const { data: r } = await sb.from("st_dm").select("from_id,to_id,class_id,body").eq("id", rid).maybeSingle();
+      if (!r || r.class_id !== st.class_id || r.to_id !== st.id) return json({ error: "bad_input" }, 400, origin);   // 내가 받은 글만 신고할 수 있다
+      target = r.from_id; snap = String(r.body ?? "");
+    } else {
+      const { data: r } = await sb.from("st_meetups").select("host_id,class_id,activity,title,place,note").eq("id", rid).maybeSingle();
+      if (!r || r.class_id !== st.class_id || r.host_id === st.id) return json({ error: "bad_input" }, 400, origin);
+      target = r.host_id; snap = `[모임] ${r.activity === "custom" ? r.title : r.activity} / ${r.place}${r.note ? " / " + r.note : ""}`;
+    }
+    const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const { count: dayN } = await sb.from("st_reports").select("id", { count: "exact", head: true }).eq("from_id", st.id).gte("created_at", dayAgo);
+    if ((dayN ?? 0) >= 10) return json({ error: "too_many_messages" }, 429, origin);
+    const { error } = await sb.from("st_reports").upsert({ class_id: st.class_id, from_id: st.id, target_id: target, kind, ref_id: rid, reason, snapshot: snap.slice(0, 200) }, { onConflict: "from_id,kind,ref_id", ignoreDuplicates: true });
+    if (error) return json({ error: "save_failed" }, 500, origin);
+    if (Math.random() < 0.05) await sb.from("st_reports").delete().lt("created_at", new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString());
+    return json({ ok: true }, 200, origin);
   }
 
   // ---------- 우리 반 이야기방(학생끼리 대화, 교사가 숨기기·삭제·잠금) ----------
