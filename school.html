@@ -212,6 +212,13 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .meet-sheet{background:#fff;border:2px solid #111827;border-radius:18px;padding:12px;display:grid;gap:8px;margin:8px 0 20px}
 .meet-sheet-h{display:flex;justify-content:space-between;align-items:center}.meet-sheet-h b{font-size:19px}
 .meet-x{width:40px;height:40px;border-radius:50%;border:0;background:#f1f5f9;font-size:18px}
+.meet-temp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:8px 12px;margin:6px 0;font-weight:800;font-size:15px}
+.meet-temp b{font-size:20px;color:#c2410c}.meet-temp small{font-weight:700;color:#78716c;font-size:13px}
+.rv-p{border:2px solid #e2e8f0;border-radius:14px;padding:8px 10px;display:grid;gap:6px}.rv-p>b{font-size:17px}
+.rv-tags{display:flex;flex-wrap:wrap;gap:6px}.rv-tags button{min-height:44px;padding:6px 12px;border-radius:999px;border:2px solid #fcd34d;background:#fffbeb;font-size:15px;font-weight:800;cursor:pointer}
+.rv-tags button[aria-pressed="true"]{background:#f59e0b;border-color:#f59e0b;color:#fff}
+.rv-worry{border-top:2px dashed #cbd5e1;padding-top:8px;display:grid;gap:6px}.rv-worry select{min-height:46px;font-size:16px;border:2px solid #cbd5e1;border-radius:12px;padding:6px}
+.rv-worry .rv-tags button{border-color:#cbd5e1;background:#f8fafc}
 .meet-lab{font-size:14px;font-weight:800;color:#64748b;margin-top:4px}
 .meet-quick{display:flex;flex-wrap:wrap;gap:6px}
 .meet-quick button{min-height:44px;padding:6px 12px;border-radius:999px;border:2px solid #fcd34d;background:#fffbeb;font-size:15px;font-weight:800;cursor:pointer}
@@ -480,7 +487,7 @@ const MEET_PLACES=[['ground','🏫 화천초 운동장'],['school_lib','📚 학
 const MEET_ACTS={play:[['ball','⚽ 공놀이'],['tag','🏃 술래잡기'],['jump','🪢 줄넘기'],['board','🎲 보드게임'],['draw','🎨 그림 그리기'],['talk','💬 이야기하기']],
   study:[['homework','📝 숙제 같이 하기'],['read','📖 책 읽기'],['math','➕ 수학 문제'],['write','✏️ 글쓰기']]};
 const MEET_QUICK=[['play','ball','ground',60,4],['play','tag','ground',30,6],['play','jump','playground',30,4],['study','homework','school_lib',60,3],['study','read','school_lib',60,3],['play','talk','playground',30,3]];
-let meetForm=null, meetFilter='all';
+let meetForm=null, meetFilter='all', meetRev=null, meetTemp=null;
 const fmtT=d=>new Date(d).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
 const WD_K=['일','월','화','수','목','금','토'];
 function meetDays(){            // 오늘부터 일주일(7일)
@@ -506,13 +513,14 @@ const meetActName=(kind,k,title)=>k==='custom'?'✏️ '+(title||'우리끼리 �
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
 function talkMeetUI(body){
   body.innerHTML='<div class="meet-hero"><b>🎈 같이 모이자</b><span>같이 놀 친구, 같이 공부할 친구를 모아 봐요. 장소는 학교·동네 열린 곳만! 집에서 놀기는 부모님과 먼저 이야기해요. 선생님도 볼 수 있어요.</span></div>'
+   +'<div class="meet-temp" id="meetTemp" style="display:none"></div>'
    +'<div class="meet-filter" id="meetFilter"></div><div id="meetLock" class="talk-lock" style="display:none">지금은 모임판이 닫혀 있어요.</div>'
    +'<div class="talk-msg" id="talkErr"></div><div id="meetList" class="meet-list"></div><div id="meetFormBox"></div>'
    +'<button type="button" id="meetNew" class="meet-fab">＋ 모임 만들기</button>';
   const fb=$('#meetFilter');
   [['all','전체'],['play','🎈 놀자'],['study','📚 공부'],['mine','⭐ 내 모임']].forEach(([k,t])=>{const b=el('button','',t);b.type='button';b.dataset.f=k;b.onclick=()=>{meetFilter=k;meetPaint()};fb.append(b)});
   $('#meetNew').onclick=()=>{meetForm={kind:'play',activity:'ball',title:'',place:'ground',day:0,time:'',minutes:60,max:4};meetFormUI()};
-  meetLoad(); talkTimer=setInterval(()=>{if(!document.hidden&&!meetForm)meetLoad()},10000);
+  meetLoad(); talkTimer=setInterval(()=>{if(!document.hidden&&!meetForm&&!meetRev)meetLoad()},10000);
 }
 function meetFormUI(){
   const box=$('#meetFormBox'); box.textContent=''; $('#meetNew').style.display=meetForm?'none':'';
@@ -566,11 +574,50 @@ async function meetLoad(){
   if(curTab!=='talk') return;
   const r=await stCall({action:'meet_list'}); if(!$('#meetList')) return;
   if(r.status!==200){ if(r.status===401||r.status===403){$('#talkErr').textContent='다시 로그인해 주세요.';talkStop()} return; }
+  meetTemp=typeof r.data.temp==='number'?{temp:r.data.temp,count:r.data.count||0,tags:r.data.tags||{}}:null;
   meetData=r.data.meetups||[]; $('#meetLock').style.display=r.data.locked?'block':'none'; $('#meetNew').disabled=!!r.data.locked;
   meetPaint();
 }
+const RV_PRAISE=[['thanks','😊 고마웠어요'],['fun','🎉 같이 놀아서 즐거웠어요'],['kind','💛 친절했어요'],['rule','🤝 약속을 잘 지켰어요'],['lead','🌟 잘 이끌어 줬어요']];
+const RV_WORRY=[['rule','약속을 안 지켰어요'],['words','말이 기분 나빴어요'],['absent','약속에 안 나왔어요'],['other','다른 일이 있었어요']];
+function tempPaint(){
+  const t=$('#meetTemp'); if(!t) return;
+  if(!meetTemp){t.style.display='none';return}
+  t.style.display='flex';t.textContent='';
+  t.append(el('span','','🌡️ 내 매너온도'),el('b','',meetTemp.temp.toFixed(1)+'℃'),el('small','','받은 칭찬 '+meetTemp.count+'개 · 나만 볼 수 있어요'));
+}
+async function meetReviewOpen(m){
+  meetRev=m; const box=$('#meetFormBox'); box.textContent=''; $('#meetNew').style.display='none';
+  const sheet=el('div','meet-sheet'),head=el('div','meet-sheet-h');head.append(el('b','','💛 모임 어땠어요?'));
+  const x=el('button','meet-x','✕');x.type='button';x.setAttribute('aria-label','닫기');x.onclick=()=>{meetRev=null;box.textContent='';$('#meetNew').style.display='';meetLoad()};head.append(x);sheet.append(head);
+  sheet.append(el('div','meet-i','같이 모인 친구에게 고마운 마음을 남겨요. 받은 칭찬이 쌓이면 매너온도가 올라가요. 하나 더 고르면 바뀌고, 같은 걸 다시 누르면 그대로예요.'));
+  box.append(sheet);
+  const r=await stCall({action:'meet_review',id:m.id});
+  if(r.status!==200){sheet.append(el('div','talk-msg',r.data&&r.data.error==='review_closed'?'칭찬을 남길 수 있는 기간(3일)이 지났어요.':(TALK_ERR[(r.data||{}).error]||'불러오지 못했어요.')));return}
+  const people=r.data.people||[];
+  people.forEach(p=>{
+    const row=el('div','rv-p');row.append(el('b','',p.num+'번 '+p.name));
+    const tg=el('div','rv-tags');
+    RV_PRAISE.forEach(([k,t])=>{const b=el('button','',t);b.type='button';b.setAttribute('aria-pressed',String(p.tag===k));
+      b.onclick=async()=>{b.disabled=true;const q=await stCall({action:'meet_praise',id:m.id,to:p.num,tag:k});b.disabled=false;
+        if(q.status===200){p.tag=k;[...tg.children].forEach((c,i)=>c.setAttribute('aria-pressed',String(RV_PRAISE[i][0]===k)));sheet.querySelector('.talk-msg')&&sheet.querySelector('.talk-msg').remove()}
+        else sheet.append(Object.assign(el('div','talk-msg',TALK_ERR[(q.data||{}).error]||'잠시 뒤에 다시 해 보세요.')))};
+      tg.append(b)});
+    row.append(tg);sheet.append(row)});
+  const w=el('div','rv-worry');w.append(el('div','meet-lab','😥 불편했던 일이 있었나요? (선생님께만 전해져요. 친구들 점수에는 들어가지 않아요)'));
+  const sel=el('select');const o0=el('option','','누구 일인지 고르지 않아요');o0.value='';sel.append(o0);
+  people.forEach(p=>{const o=el('option','',p.num+'번 '+p.name);o.value=String(p.num);sel.append(o)});
+  w.append(sel);const wt=el('div','rv-tags');
+  RV_WORRY.forEach(([k,t])=>{const b=el('button','',t);b.type='button';
+    b.onclick=async()=>{b.disabled=true;const body={action:'meet_concern',id:m.id,tag:k};if(sel.value)body.to=Number(sel.value);const q=await stCall(body);
+      b.textContent=q.status===200?'✔️ 선생님께 전했어요':t;b.disabled=q.status===200;if(q.status!==200)sheet.append(el('div','talk-msg',TALK_ERR[(q.data||{}).error]||'잠시 뒤에 다시 해 보세요.'))};
+    wt.append(b)});
+  w.append(wt);sheet.append(w);
+  const done=el('button','meet-join','다 했어요');done.type='button';done.onclick=x.onclick;sheet.append(done);
+}
 function meetPaint(){
   const list=$('#meetList'); if(!list) return; list.textContent='';
+  tempPaint();
   $$('#meetFilter button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.f===meetFilter)));
   const rows=meetData.filter(m=>meetFilter==='all'||(meetFilter==='mine'?m.joined:m.kind===meetFilter));
   if(!rows.length){const e=el('div','meet-empty');e.append(el('div','meet-empty-i','🎈'),el('div','','아직 모임이 없어요'),el('div','meet-i','아래 「모임 만들기」로 먼저 친구들을 불러 봐요!'));list.append(e);return}
@@ -592,6 +639,7 @@ function meetPaint(){
     if(m.people.length>5)av.append(el('span','more','+'+(m.people.length-5)));
     who.append(av,el('span','meet-cnt',m.people.length+' / '+m.max+'명'));
     c.append(bar,who,el('div','meet-names','모인 친구: '+m.people.map(p=>p.name).join(', ')));
+    if(m.ended&&m.review){const rb=el('button','meet-join','💛 칭찬 남기기');rb.type='button';rb.onclick=()=>meetReviewOpen(m);c.append(rb)}
     if(!m.ended){
       const b=el('button','meet-join');b.type='button';
       if(m.mine){b.textContent='❌ 모임 닫기';b.classList.add('ghost');b.onclick=()=>meetAct('meet_cancel',m.id)}

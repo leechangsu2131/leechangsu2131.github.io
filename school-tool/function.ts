@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel"].includes(body.action) ? body.action : "";
+  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel", "meet_review", "meet_praise", "meet_concern"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
 
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
@@ -160,8 +160,18 @@ Deno.serve(async (req) => {
     const { data: setg } = await sb.from("st_chat_settings").select("meetup_locked").eq("class_id", st.class_id).maybeSingle();
     const locked = !!setg?.meetup_locked;
     const now = new Date();
+    const PRAISE = ["thanks", "fun", "kind", "rule", "lead"];
+    const CONCERN = ["rule", "words", "absent", "other"];
+    const REVIEW_DAYS = 3;     // 모임이 끝난 뒤 3일 안에만 남길 수 있다
+    const warm = (n: number) => Math.min(99.9, Math.round((36.5 + 0.5 * n) * 10) / 10);   // 36.5℃에서 시작, 칭찬 1개당 +0.5, 내려가지 않는다
+    async function myTemp() {
+      const { data: got } = await sb.from("st_meetup_praise").select("tag").eq("to_id", st!.id);
+      const tags: Record<string, number> = {};
+      for (const g of got ?? []) tags[g.tag] = (tags[g.tag] ?? 0) + 1;
+      return { temp: warm((got ?? []).length), count: (got ?? []).length, tags };
+    }
     if (action === "meet_list") {
-      const from = new Date(now.getTime() - 30 * 60 * 1000).toISOString();     // 끝난 지 30분 안 된 모임까지 보여 준다
+      const from = new Date(now.getTime() - REVIEW_DAYS * 24 * 3600 * 1000).toISOString();     // 끝난 지 3일 안 된 모임까지 가져온다(30분 지난 모임은 칭찬을 남길 수 있을 때만 보여 준다)
       const { data: rows } = await sb.from("st_meetups").select("id,host_id,kind,activity,title,place,start_at,until_at,max_people,note,created_at,st_meetup_joins(student_id)")
         .eq("class_id", st.class_id).eq("hidden", false).eq("cancelled", false).gte("until_at", from).order("created_at", { ascending: false }).limit(40);
       const { data: mates } = await sb.from("gt_students").select("id,number,name").eq("class_id", st.class_id);
@@ -170,9 +180,44 @@ Deno.serve(async (req) => {
         const ids: string[] = [r.host_id, ...r.st_meetup_joins.map((j: any) => j.student_id).filter((x: string) => x !== r.host_id)];
         return { id: r.id, kind: r.kind, activity: r.activity, title: r.title ?? "", place: r.place, start: r.start_at ?? r.created_at, until: r.until_at, max: r.max_people, note: r.note, ended: r.until_at < now.toISOString(),
           host: byId.get(r.host_id)?.name ?? "", mine: r.host_id === st!.id, joined: ids.includes(st!.id),
+          review: ids.includes(st!.id) && r.until_at < now.toISOString() && ids.length > 1 && now.getTime() - new Date(r.until_at).getTime() <= REVIEW_DAYS * 24 * 3600 * 1000,
           people: ids.map((i) => ({ num: byId.get(i)?.number ?? 0, name: byId.get(i)?.name ?? "" })) };
       });
-      return json({ ok: true, locked, me: st.number, meetups: list }, 200, origin);
+      const shown = list.filter((m) => !m.ended || m.review || now.getTime() - new Date(m.until).getTime() <= 30 * 60 * 1000);
+      return json({ ok: true, locked, me: st.number, meetups: shown, ...(await myTemp()) }, 200, origin);
+    }
+    // ---------- 모임 뒤 매너온도: 칭찬 스티커(온도 오름)와 '불편했어요'(선생님에게만, 점수 아님) ----------
+    if (action === "meet_review" || action === "meet_praise" || action === "meet_concern") {
+      const { data: m } = await sb.from("st_meetups").select("id,host_id,class_id,until_at,hidden,cancelled,st_meetup_joins(student_id)").eq("id", String(body.id ?? "")).maybeSingle();
+      if (!m || m.class_id !== st.class_id || m.hidden || m.cancelled) return json({ error: "no_meetup" }, 404, origin);
+      const ids: string[] = [m.host_id, ...(m.st_meetup_joins ?? []).map((j: any) => j.student_id).filter((x: string) => x !== m.host_id)];
+      if (!ids.includes(st.id)) return json({ error: "forbidden" }, 403, origin);
+      const endedAt = new Date(m.until_at).getTime();
+      if (endedAt > Date.now()) return json({ error: "not_ended" }, 400, origin);
+      if (Date.now() - endedAt > REVIEW_DAYS * 24 * 3600 * 1000) return json({ error: "review_closed" }, 400, origin);
+      if (action === "meet_review") {
+        const others = ids.filter((i) => i !== st!.id);
+        const { data: mates } = await sb.from("gt_students").select("id,number,name").in("id", others);
+        const { data: done } = await sb.from("st_meetup_praise").select("to_id,tag").eq("meetup_id", m.id).eq("from_id", st.id);
+        const dm = new Map((done ?? []).map((d: any) => [d.to_id, d.tag]));
+        const people = (mates ?? []).sort((a: any, b: any) => a.number - b.number).map((p: any) => ({ num: p.number, name: p.name, tag: dm.get(p.id) ?? "" }));
+        return json({ ok: true, people, ...(await myTemp()) }, 200, origin);
+      }
+      const peer = body.to === undefined || body.to === null ? null : (await sb.from("gt_students").select("id,number").eq("class_id", st.class_id).eq("number", Number(body.to)).maybeSingle()).data;
+      if (action === "meet_praise") {
+        const tag = String(body.tag ?? "");
+        if (!PRAISE.includes(tag) || !peer || peer.id === st.id || !ids.includes(peer.id)) return json({ error: "bad_input" }, 400, origin);
+        const { error } = await sb.from("st_meetup_praise").upsert({ meetup_id: m.id, from_id: st.id, to_id: peer.id, tag }, { onConflict: "meetup_id,from_id,to_id" });
+        if (error) return json({ error: "save_failed" }, 500, origin);
+        return json({ ok: true }, 200, origin);
+      }
+      // meet_concern: 선생님에게만 전해진다. 점수·온도에는 반영되지 않는다.
+      const tag = String(body.tag ?? "");
+      if (!CONCERN.includes(tag)) return json({ error: "bad_input" }, 400, origin);
+      if (body.to !== undefined && body.to !== null && (!peer || peer.id === st.id || !ids.includes(peer.id))) return json({ error: "bad_input" }, 400, origin);
+      const { error } = await sb.from("st_meetup_concerns").upsert({ meetup_id: m.id, from_id: st.id, to_id: peer?.id ?? null, tag }, { onConflict: "meetup_id,from_id,to_id,tag", ignoreDuplicates: true });
+      if (error) return json({ error: "save_failed" }, 500, origin);
+      return json({ ok: true }, 200, origin);
     }
     if (locked) return json({ error: "chat_locked" }, 403, origin);
     if (action === "meet_create") {

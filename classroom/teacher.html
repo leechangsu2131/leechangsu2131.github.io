@@ -413,6 +413,32 @@
       d.append(w,a,x);db.append(d);
     });
   }
+  let rcPraise=[], rcConcern=[];
+  const RC_WORRY={rule:'약속을 안 지켰어요',words:'말이 기분 나빴어요',absent:'약속에 안 나왔어요',other:'다른 일이 있었어요'};
+  // 모임 뒤 매너온도(칭찬 수로 36.5℃+0.5℃씩)와 학생이 선생님께만 남긴 '불편했어요'
+  function rcMeetTempDraw(){
+    let box=$('rcMeetTemp');
+    if(!box){box=document.createElement('div');box.id='rcMeetTemp';box.style.marginTop='10px';$('rcMeetList').after(box)}
+    box.replaceChildren();
+    const nm={};(rcStudents||[]).forEach(x=>{nm[x.id]=x.number+'번 '+x.name});
+    const cnt={};rcPraise.forEach(r=>{cnt[r.to_id]=(cnt[r.to_id]||0)+1});
+    const h=document.createElement('div');h.className='muted';h.textContent='🌡️ 매너온도 (받은 칭찬 수 · 친구들에게는 각자 자기 것만 보여요)';box.append(h);
+    const line=document.createElement('div');line.className='who';
+    const arr=(rcStudents||[]).filter(x=>!/^\s*(테스트|test)/i.test(x.name||'')).slice().sort((a,b)=>a.number-b.number);
+    line.textContent=arr.length?arr.map(x=>x.number+'번 '+x.name+' '+Math.min(99.9,36.5+0.5*(cnt[x.id]||0)).toFixed(1)+'℃').join(' · '):'학생 명단을 불러오면 보여요.';
+    box.append(line);
+    const open=rcConcern.filter(c=>!c.seen);
+    const h2=document.createElement('div');h2.className='muted';h2.style.marginTop='8px';h2.textContent='😥 불편했어요(선생님께만 전해진 글) '+(open.length?'· 새 글 '+open.length+'개':'· 새 글 없음');box.append(h2);
+    rcConcern.slice(0,30).forEach(c=>{
+      const d=document.createElement('div');d.className='rc-acc';
+      const w=document.createElement('div');w.className='who';
+      w.textContent=(nm[c.from_id]||'?')+' → '+(c.to_id?(nm[c.to_id]||'?'):'(누구인지 안 골랐어요)')+' · '+(RC_WORRY[c.tag]||c.tag)+' · '+rcFmt(c.created_at)+(c.seen?' · (확인함)':'');
+      if(c.seen)w.style.opacity='.5';
+      const b=document.createElement('button');b.textContent=c.seen?'다시 새 글로':'확인했어요';
+      b.onclick=async()=>{b.disabled=true;try{await rcApi('st_meetup_concerns?id=eq.'+c.id,{method:'PATCH',body:JSON.stringify({seen:!c.seen})});c.seen=!c.seen;rcMeetTempDraw()}catch(_){b.disabled=false}};
+      d.append(w,b);box.append(d);
+    });
+  }
   function rcMeetDraw(){
     const nm={};(rcStudents||[]).forEach(x=>{nm[x.id]=x.number+'번 '+x.name});
     $('rcMeetN').textContent=rcMeetRows.length?'('+rcMeetRows.length+'개)':'';
@@ -432,6 +458,7 @@
       x.onclick=async()=>{if(!confirm('이 모임을 지울까요? 되돌릴 수 없어요.'))return;x.disabled=true;try{await rcApi('st_meetups?id=eq.'+m.id,{method:'DELETE'});rcMeetRows=rcMeetRows.filter(r=>r.id!==m.id);rcMeetDraw()}catch(_){x.disabled=false}};
       d.append(w,a,x);box.append(d);
     });
+    rcMeetTempDraw();
   }
   $('rcMeetLock').onclick=async()=>{
     if(!rcCls)return;const b=$('rcMeetLock');b.disabled=true;
@@ -444,12 +471,15 @@
   async function rcChatLoad(){
     if(!rcCls||!$('rcChat').open)return;
     try{
-      const [rows,st,dms,mts]=await Promise.all([
+      const [rows,st,dms,mts,pr,cn]=await Promise.all([
         rcApi('st_chat?select=id,student_id,body,hidden,created_at&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=60',{headers:{Prefer:''}}),
         rcApi('st_chat_settings?select=locked,dm_locked,meetup_locked&class_id=eq.'+rcCls.id,{headers:{Prefer:''}}),
         rcApi('st_dm?select=id,from_id,to_id,body,hidden,created_at&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=80',{headers:{Prefer:''}}),
-        rcApi('st_meetups?select=id,host_id,kind,activity,title,place,start_at,until_at,note,hidden,cancelled,created_at,st_meetup_joins(student_id)&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=40',{headers:{Prefer:''}})
+        rcApi('st_meetups?select=id,host_id,kind,activity,title,place,start_at,until_at,note,hidden,cancelled,created_at,st_meetup_joins(student_id)&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=40',{headers:{Prefer:''}}),
+        rcApi('st_meetup_praise?select=to_id&limit=5000',{headers:{Prefer:''}}).catch(()=>[]),
+        rcApi('st_meetup_concerns?select=id,meetup_id,from_id,to_id,tag,seen,created_at&order=created_at.desc&limit=60',{headers:{Prefer:''}}).catch(()=>[])
       ]);
+      rcPraise=pr||[];rcConcern=cn||[];
       rcChatRows=rows||[];rcChatLocked=!!(st&&st[0]&&st[0].locked);rcDmRows=dms||[];rcDmLocked=!!(st&&st[0]&&st[0].dm_locked);rcMeetRows=mts||[];rcMeetLocked=!!(st&&st[0]&&st[0].meetup_locked);rcChatDraw();rcMeetDraw();
     }catch(_){}
   }

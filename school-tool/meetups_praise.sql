@@ -1,0 +1,5 @@
+-- 모임 뒤 매너온도(적용됨, 2026-11-18, I-16)
+-- st_meetup_praise(meetup_id, from_id, to_id, tag thanks|fun|kind|rule|lead) unique(meetup_id,from_id,to_id)
+-- st_meetup_concerns(meetup_id, from_id, to_id null, tag rule|words|absent|other, seen) — 선생님에게만 전달, 온도에 반영 안 됨
+-- RLS: 교사(gt_is_teacher())만 직접 접근, 학생은 school-tool 함수(meet_review/meet_praise/meet_concern)로만. anon 권한 없음.
+-- 온도 = 36.5 + 0.5 × (받은 칭찬 수), 최대 99.9
