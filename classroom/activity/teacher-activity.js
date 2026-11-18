@@ -60,6 +60,8 @@
   #craBig .fill{height:100%;background:#2d6a96;min-width:2px;transition:width .4s}
   #craBig .row2.ans .fill{background:#1f9a4a}
   #craBig .row2.ans .lab{color:#75e38c}
+  #craBig .row2.dim{opacity:.45}
+  #craBig .row2.ans .lab{font-size:clamp(22px,3.2vw,38px)}
   #craBig .names{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
   #craBig .names span{background:#26262e;border-radius:99px;padding:2px 10px;font-size:15px}
   #craBig .empty{color:#a1a1aa;text-align:center;padding:60px 10px;font-size:22px}
@@ -427,7 +429,7 @@
       await call('cra_admin_open',{p_room:room,p_kind:s.kind,p_title:s.title||'영상을 같이 봐요',p_config:cfg});
       M.idx=i;renderSteps();
       say('▶ '+(i+1)+'단계를 학생 화면에 띄웠어요.'+(s.seconds?' ('+fmtSec(s.seconds)+' 뒤 자동 마감)':''));
-      M.deadline=null;M.memo=s.note||'';
+      M.deadline=null;M.showBars=false;M.memo=s.note||'';
       await refresh();
       if(s.seconds&&M.cur&&M.cur.activity)M.deadline={id:M.cur.activity.id,end:Date.now()+s.seconds*1000};
     }catch(e){say('시작하지 못했어요: '+String(e.message||e).slice(0,140),true)}
@@ -546,6 +548,7 @@
       el('span',{class:'st',text:(open?'● 진행 중  ':'■ 마감  ')+'제출 '+d.responses.length+' / '+d.joined+'명'}),
       el('button',{type:'button',text:M.anon?'이름 보이기':'이름 가리기',onclick:()=>{M.anon=!M.anon;renderBig()}}),
       open?el('button',{type:'button',text:'⏹ 마감',onclick:()=>closeAct(a)}):null,
+      a.kind==='choice'&&!a.reveal?el('button',{type:'button',text:M.showBars?'📊 막대 숨기기':'📊 막대 미리 보기',onclick:()=>{M.showBars=!M.showBars;renderBig()}}):null,
       a.kind==='choice'?el('button',{type:'button',text:a.reveal?'결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}):null,
       isImg(a.kind)?el('button',{type:'button',text:'⬇ ZIP',onclick:()=>saveDrawZip(a.id)}):el('button',{type:'button',text:'⬇ CSV',onclick:exportOne}),
       el('button',{type:'button',class:'primary',text:'✕ 닫기 (Esc)',onclick:closeBig}));
@@ -575,14 +578,23 @@
       });
       bd.appendChild(cards);
     }else if(a.kind==='choice'){
-      const cs=(a.config&&a.config.choices)||[],c=tally(a,rs),max=Math.max(1,...c),ans=a.config&&a.config.answer;
+      // 정답은 교사가 [정답·결과 공개]를 누른 뒤에만 큰 화면에 나온다(앞에서 빔 프로젝터로 보고 있는 학생에게 새지 않게).
+      // 공개 전에는 막대(남의 선택 분포)도 기본으로 가리고 "N명이 골랐어요"만 보여 준다. 📊 버튼으로 미리 볼 수 있다.
+      const cs=(a.config&&a.config.choices)||[],c=tally(a,rs),total=c.reduce((x,y)=>x+y,0),max=Math.max(1,...c);
+      const ans=a.reveal?(a.config&&a.config.answer):undefined;
+      const bars=a.reveal||M.showBars;
+      if(!bars)bd.appendChild(el('div',{class:'empty',text:'✋ '+total+'명이 골랐어요. 아직 결과는 비밀!'}));
       cs.forEach((t,i)=>{
-        const row=el('div',{class:'row2'+(ans===i?' ans':'')});
-        row.appendChild(el('div',{class:'lab'},el('span',{text:(MARK[i]||i+1)+' '+t+(ans===i?'  ✔ 정답':'')}),el('span',{text:c[i]+'명'})));
-        row.appendChild(el('div',{class:'track'},el('div',{class:'fill',style:'width:'+Math.round(100*c[i]/max)+'%'})));
-        const names=el('div',{class:'names'});
-        rs.forEach((r,k)=>{if(r.answer&&r.answer.choice===i&&!M.anon)names.appendChild(el('span',{text:r.no+'번 '+r.name}))});
-        if(names.childNodes.length)row.appendChild(names);
+        const hasAns=typeof ans==='number';
+        const row=el('div',{class:'row2'+(ans===i?' ans':'')+(hasAns&&ans!==i?' dim':'')});
+        const pct=total?Math.round(100*c[i]/total):0;
+        row.appendChild(el('div',{class:'lab'},el('span',{text:(MARK[i]||i+1)+' '+t+(ans===i?'  ✔ 정답':'')}),el('span',{text:bars?c[i]+'명 · '+pct+'%':''})));
+        if(bars){
+          row.appendChild(el('div',{class:'track'},el('div',{class:'fill',style:'width:'+Math.round(100*c[i]/max)+'%'})));
+          const names=el('div',{class:'names'});
+          rs.forEach((r,k)=>{if(r.answer&&r.answer.choice===i&&!M.anon)names.appendChild(el('span',{text:r.no+'번 '+r.name}))});
+          if(names.childNodes.length)row.appendChild(names);
+        }
         bd.appendChild(row);
       });
     }
