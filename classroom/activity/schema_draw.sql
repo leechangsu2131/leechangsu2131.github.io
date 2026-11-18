@@ -9,6 +9,8 @@
 alter table public.classroom_activities drop constraint if exists classroom_activities_kind_check;
 alter table public.classroom_activities add constraint classroom_activities_kind_check check (kind in ('text','choice','video','draw','photo'));
 alter table public.classroom_activities add column if not exists saved_at timestamptz;
+-- 학생 화면이 "활동을 받을 준비가 됐는지"(옛 화면 파일로 도는 학생을 찾기 위함): 학생이 활동을 확인할 때마다 갱신(10초에 한 번만 기록)
+alter table public.classroom_students add column if not exists cra_seen timestamptz;
 
 -- ---------------------------------------------------------------- 오래된 그림 지우기
 create or replace function public.cra_purge_old()
@@ -73,17 +75,19 @@ drop function if exists public.cra_admin_results(text, uuid);
 create or replace function public.cra_admin_results(p_room text, p_activity uuid default null, p_images boolean default false)
 returns jsonb language plpgsql security definer set search_path = public
 as $$
-declare v_session uuid; a public.classroom_activities; v_resp jsonb; v_joined int; v_test int;
+declare v_session uuid; a public.classroom_activities; v_resp jsonb; v_joined int; v_test int; v_ready int; v_ready_test int;
 begin
   if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
   select id into v_session from public.classroom_sessions where room_code = upper(p_room) and status = 'active';
   if v_session is null then raise exception 'room not found'; end if;
+  select count(*), count(*) filter (where j.student_name ~* '^\s*(테스트|test)') into v_joined, v_test from (select distinct student_no, student_name from public.classroom_students where session_id = v_session and removed_at is null) j;
+  select count(*), count(*) filter (where j.student_name ~* '^\s*(테스트|test)') into v_ready, v_ready_test from (select distinct student_no, student_name from public.classroom_students where session_id = v_session and removed_at is null and cra_seen > now() - interval '20 seconds') j;
   if p_activity is null then
     select * into a from public.classroom_activities where session_id = v_session and created_at > now() - interval '6 hours' order by created_at desc limit 1;
   else
     select * into a from public.classroom_activities where id = p_activity and session_id = v_session;
   end if;
-  if not found then return jsonb_build_object('activity', null, 'responses', '[]'::jsonb, 'joined', 0); end if;
+  if not found then return jsonb_build_object('activity', null, 'responses', '[]'::jsonb, 'joined', v_joined, 'joined_test', v_test, 'ready', v_ready, 'ready_test', v_ready_test); end if;
 
   select coalesce(jsonb_agg(jsonb_build_object('student_id',x.sid,'no',x.student_no,'name',x.student_name,
            'answer', case when a.kind in ('draw','photo') and not coalesce(p_images,false) then (x.answer - 'img') || jsonb_build_object('drawn', x.answer ? 'img') else x.answer end,
@@ -96,10 +100,9 @@ begin
     where r.activity_id = a.id
     order by s.student_no, s.student_name, r.updated_at desc
   ) x;
-  select count(*), count(*) filter (where j.student_name ~* '^\s*(테스트|test)') into v_joined, v_test from (select distinct student_no, student_name from public.classroom_students where session_id = v_session and removed_at is null) j;
   return jsonb_build_object(
     'activity', jsonb_build_object('id',a.id,'kind',a.kind,'title',a.title,'config',a.config,'status',a.status,'reveal',a.reveal,'created_at',a.created_at,'saved_at',a.saved_at),
-    'responses', v_resp, 'joined', v_joined, 'joined_test', v_test);
+    'responses', v_resp, 'joined', v_joined, 'joined_test', v_test, 'ready', v_ready, 'ready_test', v_ready_test);
 end;
 $$;
 
@@ -173,6 +176,7 @@ begin
   where s.id = p_student and s.removed_at is null and c.status = 'active'
     and s.token_hash = encode(sha256(convert_to(coalesce(p_token,''),'utf8')),'hex');
   if v_session is null then return jsonb_build_object('removed', true); end if;
+  update public.classroom_students set cra_seen = now() where id = p_student and (cra_seen is null or cra_seen < now() - interval '10 seconds');
 
   select * into a from public.classroom_activities
   where session_id = v_session and created_at > now() - interval '6 hours'

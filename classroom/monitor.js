@@ -554,6 +554,27 @@
     }
   }
 
+  /* 새 버전 안내: 탭을 오래 켜 두면 옛 화면 파일로 돌아 새 기능(그림 등)이 안 뜰 수 있다.
+     이 파일과 활동 모듈의 ETag/Last-Modified 를 5분마다 확인해, 바뀌었으면 학생이 직접 누를 수 있는 새로고침 안내를 띄운다(수업 중 갑자기 새로고침하지 않음). */
+  let versionWatching=false;
+  function watchVersion(){
+    if(versionWatching||!SELF)return;
+    versionWatching=true;
+    const urls=[SELF.split('?')[0],new URL('activity/student-activity.js',SELF).href];
+    const sig=async u=>{try{const r=await fetch(u,{method:'HEAD',cache:'no-store'});return r.ok?(r.headers.get('etag')||r.headers.get('last-modified')||''):''}catch(_){return ''}};
+    let base=null,told=false;
+    const check=async()=>{
+      if(told||document.hidden)return;
+      const now=await Promise.all(urls.map(sig));
+      if(!base){base=now;return}
+      if(now.some((x,i)=>x&&base[i]&&x!==base[i])){
+        told=true;
+        showNotice('새 기능이 들어왔어요. 새로고침하면 쓸 수 있어요.','새로고침',()=>location.reload());
+      }
+    };
+    setTimeout(check,window.__versionFirstMs||4000);
+    setInterval(check,window.__versionEveryMs||300000);
+  }
   async function begin(){
     makeUi();
     loadCaptureLib().catch(()=>{});
@@ -618,6 +639,7 @@
         s.onload=()=>{try{window.ClassroomActivityStudent.start({rpc,studentId:cfg.studentId,token:cfg.token})}catch(_){}};
         document.head.appendChild(s);
       }catch(_){}
+      watchVersion();
     }
   }
 

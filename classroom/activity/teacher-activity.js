@@ -146,7 +146,7 @@
     try{
       if(name==='cra_admin_results'&&d&&Array.isArray(d.responses)){
         d.test=d.responses.filter(r=>isTest(r.name)).length;
-        if(!M.incTest){d.responses=d.responses.filter(r=>!isTest(r.name));d.joined=Math.max(0,(d.joined||0)-(d.joined_test||0))}
+        if(!M.incTest){d.responses=d.responses.filter(r=>!isTest(r.name));d.joined=Math.max(0,(d.joined||0)-(d.joined_test||0));d.ready=Math.max(0,(d.ready||0)-(d.ready_test||0))}
       }else if(name==='cra_admin_export'&&Array.isArray(d)&&!M.incTest){
         d.forEach(a=>{if(Array.isArray(a.responses))a.responses=a.responses.filter(r=>!isTest(r.name))});
       }
@@ -203,8 +203,8 @@
       el('button',{type:'button',text:'⬇ 오늘 수업 전체 CSV 저장',onclick:exportAll}),
       el('button',{type:'button',text:'⬇ 오늘 수업 전체 ZIP (그림·사진 포함)',onclick:exportAllZip}),
       el('span',{class:'hint',text:'오늘 낸 모든 활동과 답을 한 파일로 받아요(엑셀에서 열려요).'}));
-    U.warn=el('div');
-    box.append(U.warn,U.bar,U.steps,U.add,U.run,U.live,U.all,U.msg);
+    U.warn=el('div');U.ready=el('div',{class:'hint'});
+    box.append(U.ready,U.warn,U.bar,U.steps,U.add,U.run,U.live,U.all,U.msg);
     renderSteps();renderLive();
     loadFlows().catch(()=>{});
     loadUnsaved();
@@ -442,6 +442,7 @@
     M.busy=true;
     try{
       M.cur=await M.rpc('cra_admin_results',{p_room:room});
+      showReady(M.cur);
       const ca=M.cur&&M.cur.activity;
       if(M.big&&ca&&isImg(ca.kind)){
         const sig=ca.id+'|'+M.cur.responses.map(r=>r.student_id+r.updated_at).join(',');
@@ -656,6 +657,14 @@
       say('🎨 그림 '+(files.length-1)+'장을 ZIP 으로 저장했어요. 다운로드 폴더를 확인하세요.');
       loadUnsaved();refresh();
     }catch(e){say('저장하지 못했어요: '+String(e.message||e).slice(0,120),true)}
+  }
+  // 학생 화면이 활동을 받을 준비가 됐는지(옛 화면 파일로 도는 학생 찾기)
+  function showReady(d){
+    const U=M.ui;if(!U||!U.ready||!d)return;
+    const j=d.joined||0,r=Math.min(d.ready||0,j);
+    if(!j){U.ready.textContent='';return}
+    U.ready.style.color=r<j?'#f59e0b':'';
+    U.ready.textContent='📝 활동을 받을 수 있는 학생 '+r+' / '+j+'명'+(r<j?' — 나머지 학생은 화면을 새로고침(다시 로그인)해야 활동이 떠요.':'');
   }
   async function loadUnsaved(){
     const U=M.ui;if(!U||!U.warn)return;
