@@ -504,6 +504,7 @@
     if(d.test>0||M.incTest)btns.appendChild(el('button',{type:'button',title:'이름이 "테스트"로 시작하는 학생은 시험용으로 보고 집계에서 빼요',text:M.incTest?'🧪 테스트 학생 포함 중 (누르면 제외)':'🧪 테스트 학생 '+d.test+'명 제외됨 (누르면 포함)',onclick:()=>{M.incTest=!M.incTest;M.imgSig='';refresh()}}));
     if(open)btns.appendChild(el('button',{type:'button',text:'⏹ 마감하기',onclick:()=>closeAct(a)}));
     if(a.kind==='choice')btns.appendChild(el('button',{type:'button',text:a.reveal?'정답·결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}));
+    if(isImg(a.kind))btns.appendChild(el('button',{type:'button',title:'학생 화면에 이름 없이 작품을 모아 보여 줘요(마감도 함께 돼요)',text:a.reveal?'🙈 친구들에게 공개 끄기':'📣 친구들에게 공개',onclick:()=>reveal(a,!a.reveal)}));
     if(isImg(a.kind))btns.appendChild(el('button',{type:'button',text:a.saved_at?'⬇ ZIP 다시 저장':'⬇ '+(a.kind==='photo'?'사진':'그림')+' ZIP 저장',onclick:()=>saveDrawZip(a.id)}));
     else if(a.kind!=='video')btns.appendChild(el('button',{type:'button',text:'⬇ 이 활동 CSV',onclick:exportOne}));
     if(!open&&a.kind==='video')btns.appendChild(el('span',{class:'hint',text:'영상은 다음 단계를 시작하면 학생 화면에서 사라져요.'}));
@@ -527,7 +528,7 @@
     catch(e){say('마감하지 못했어요.',true)}
   }
   async function reveal(a,on){
-    try{await call('cra_admin_reveal',{p_room:M.getRoom(),p_activity:a.id,p_reveal:on});say(on?'정답·결과를 학생 화면에 공개했어요(마감도 함께 됐어요).':'정답·결과를 다시 숨겼어요.');await refresh()}
+    try{await call('cra_admin_reveal',{p_room:M.getRoom(),p_activity:a.id,p_reveal:on});say(on?(isImg(a.kind)?'작품을 이름 없이 학생 화면에 공개했어요(마감도 함께 됐어요).':'정답·결과를 학생 화면에 공개했어요(마감도 함께 됐어요).'):(isImg(a.kind)?'공개를 껐어요.':'정답·결과를 다시 숨겼어요.'));await refresh()}
     catch(e){say('바꾸지 못했어요.',true)}
   }
 
@@ -567,6 +568,7 @@
       open?el('button',{type:'button',text:'⏹ 마감',onclick:()=>closeAct(a)}):null,
       a.kind==='choice'&&!a.reveal?el('button',{type:'button',text:M.showBars?'📊 막대 숨기기':'📊 막대 미리 보기',onclick:()=>{M.showBars=!M.showBars;renderBig()}}):null,
       a.kind==='choice'?el('button',{type:'button',text:a.reveal?'결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}):null,
+      isImg(a.kind)?el('button',{type:'button',text:a.reveal?'🙈 공개 끄기':'📣 친구들에게 공개',onclick:()=>reveal(a,!a.reveal)}):null,
       isImg(a.kind)?el('button',{type:'button',text:'⬇ ZIP',onclick:()=>saveDrawZip(a.id)}):el('button',{type:'button',text:'⬇ CSV',onclick:exportOne}),
       el('button',{type:'button',class:'primary',text:'✕ 닫기 (Esc)',onclick:closeBig}));
     const bd=el('div',{class:'bd'});

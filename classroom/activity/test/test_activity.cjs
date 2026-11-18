@@ -48,6 +48,7 @@ function rpc(name, a) {
       if (x.reveal && x.kind==='choice') { counts={}; DB.resps.filter(r=>r.act===x.id).forEach(r=>{counts[r.answer.choice]=(counts[r.answer.choice]||0)+1}); }
       return j(200, {activity:{id:x.id,kind:x.kind,title:x.title,config:cfg,status:x.status,reveal:x.reveal,created_at:x.created_at}, my, counts, now:new Date().toISOString()});
     }
+    case 'cra_student_gallery': { const x=DB.acts.find(x=>x.id===a.p_activity); DB.galCalls=(DB.galCalls||0)+1; if(!x||!x.reveal||!['draw','photo'].includes(x.kind)) return j(200,{items:[]}); return j(200,{items:DB.resps.filter(r=>r.act===x.id&&r.answer.img).map(r=>({img:r.answer.img,mine:r.stu===a.p_student}))}); }
     case 'cra_student_submit': {
       const x = DB.acts.find(x=>x.id===a.p_activity);
       if (!x || x.status!=='open') return j(400, 'closed');
@@ -315,6 +316,19 @@ async function mkContext(browser, init) {
   const [pz] = await Promise.all([T.waitForEvent('download'), T.click('#activityPanel button:has-text("⬇ 사진 ZIP 저장")')]);
   const pl = require('child_process').execSync(`unzip -l "${await pz.path()}"`).toString();
   ok('52 사진 ZIP 에 사진 파일이 들어 있다', pl.includes('03_홍길동.jpg') && pl.includes('목록.csv'), pl);
+  // ===== 친구들에게 공개(갤러리) =====
+  ok('71 공개 전에는 학생에게 작품 목록을 주지 않는다', (DB.galCalls||0)===0 && !(await S.locator('#craStudent').innerText()).includes('친구들의 작품'));
+  await T.click('#activityPanel button:has-text("📣 친구들에게 공개")');
+  await S.waitForSelector('#craStudent :text("친구들의 작품")', {timeout: 8000});
+  ok('72 공개하면 학생 화면에 갤러리가 뜬다', await S.locator('#craStudent img[alt="친구 작품"]').count()===1);
+  const gt=await S.locator('#craStudent').innerText();
+  ok('73 내 작품에는 "내 것" 표시가 있고 이름은 보이지 않는다', gt.includes('내 것') && !gt.includes('홍길동'), gt);
+  await S.click('#craStudent img[alt="친구 작품"]');
+  ok('74 작품을 누르면 크게 보인다', await S.locator('body > div img').count()>=1);
+  await S.mouse.click(5,5);
+  await T.click('#activityPanel button:has-text("🙈 친구들에게 공개 끄기")');
+  await S.waitForFunction(() => !document.querySelector('#craStudent img[alt="친구 작품"]'), null, {timeout: 8000});
+  ok('75 공개를 끄면 학생 화면에서 작품이 사라진다', true);
 
 
   // ===== 다른 이름으로 저장 · 전체 ZIP =====

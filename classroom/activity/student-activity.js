@@ -109,6 +109,7 @@
       ui.note=el('div','margin-top:12px;font:700 18px/1.5 system-ui;color:#475569;min-height:26px');
       if(a.kind==='text')buildText(a,d);
       else if(a.kind==='choice')buildChoice(a,d);
+      else if((a.kind==='draw'||a.kind==='photo')&&a.reveal)buildGallery(a);
       else if(a.kind==='draw')buildDraw(a,d);
       else if(a.kind==='photo')buildPhoto(a,d);
       else buildVideo(a);
@@ -342,6 +343,38 @@
       b.style.borderColor=isAns?'#16a34a':isMine?'#2563eb':'#94a3b8';
       b.style.background=isMine&&!isAns?'#eff6ff':'#fff';
       b.style.opacity=closed&&!isMine&&!isAns?'.85':'1';
+    }
+
+    // 교사가 '친구들에게 공개'한 그림·사진: 이름 없이 모아 보여 준다(서버가 이름·번호를 주지 않는다)
+    function buildGallery(a){
+      card.appendChild(el('div','font:700 18px/1.5 system-ui;color:#475569;margin-bottom:10px','친구들의 작품이에요. 누르면 크게 보여요.'));
+      const grid=el('div','display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px');
+      grid.textContent='불러오는 중…';
+      card.appendChild(grid);
+      ui.grid=grid;
+      rpc('cra_student_gallery',{p_student:sid,p_token:tok,p_activity:a.id}).then(g=>{
+        if(ui.grid!==grid)return;
+        const items=(g&&g.items)||[];
+        grid.textContent='';
+        if(!items.length){grid.textContent='보여 줄 작품이 아직 없어요.';return}
+        items.forEach(it=>{
+          if(typeof it.img!=='string'||!/^data:image\/(jpeg|png|webp);base64,/.test(it.img))return;
+          const b=el('button','border:'+(it.mine?'3px solid #2563eb':'1px solid #cbd5e1')+';border-radius:12px;padding:0;background:#fff;cursor:pointer;overflow:hidden;position:relative');
+          b.type='button';
+          const im=document.createElement('img');im.src=it.img;im.alt='친구 작품';im.style.cssText='display:block;width:100%;height:auto';
+          b.appendChild(im);
+          if(it.mine)b.appendChild(el('span','position:absolute;left:6px;top:6px;background:#2563eb;color:#fff;border-radius:8px;padding:2px 8px;font:700 14px system-ui','내 것'));
+          b.onclick=()=>zoom(it.img);
+          grid.appendChild(b);
+        });
+      }).catch(()=>{if(ui.grid===grid)grid.textContent='작품을 불러오지 못했어요.'});
+    }
+    function zoom(src){
+      const ov=el('div','position:fixed;inset:0;z-index:'+(Z+1)+';background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:10px;cursor:pointer');
+      ov.dataset.classroomUi='1';
+      const im=document.createElement('img');im.src=src;im.style.cssText='max-width:100%;max-height:100%;border-radius:8px;background:#fff';
+      ov.appendChild(im);ov.onclick=()=>ov.remove();
+      document.body.appendChild(ov);
     }
 
     function buildVideo(a){

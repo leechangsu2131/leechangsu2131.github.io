@@ -289,3 +289,32 @@ revoke all on function public.cra_admin_flows_list() from public, anon, authenti
 revoke all on function public.cra_admin_flow_touch(uuid) from public, anon, authenticated;
 grant execute on function public.cra_admin_flows_list() to authenticated;
 grant execute on function public.cra_admin_flow_touch(uuid) to authenticated;
+
+-- ---------------------------------------------------------------- 친구들에게 공개(그림·사진 갤러리)
+-- 교사가 cra_admin_reveal 로 공개해 둔 그림·사진 활동에 한해, 같은 수업방 학생이 이름 없이 작품을 볼 수 있다.
+-- 이름·번호는 돌려주지 않고(내 것만 mine 표시), 순서는 활동마다 고정된 무작위, 최대 40장. 시험용 학생("테스트"/test)은 뺀다.
+create or replace function public.cra_student_gallery(p_student uuid, p_token text, p_activity uuid)
+returns jsonb language plpgsql security definer set search_path = public
+as $$
+declare v_session uuid; a public.classroom_activities;
+begin
+  select s.session_id into v_session
+  from public.classroom_students s join public.classroom_sessions c on c.id = s.session_id
+  where s.id = p_student and s.removed_at is null and c.status = 'active'
+    and s.token_hash = encode(sha256(convert_to(coalesce(p_token,''),'utf8')),'hex');
+  if v_session is null then return jsonb_build_object('items', '[]'::jsonb); end if;
+  select * into a from public.classroom_activities where id = p_activity and session_id = v_session;
+  if not found or not a.reveal or a.kind not in ('draw','photo') then return jsonb_build_object('items', '[]'::jsonb); end if;
+  return jsonb_build_object('items', coalesce((
+    select jsonb_agg(jsonb_build_object('img', t.img, 'mine', t.mine) order by t.k)
+    from (
+      select r.answer->>'img' as img, (r.student_id = p_student) as mine, md5(r.student_id::text || a.id::text) as k
+      from public.classroom_responses r join public.classroom_students s on s.id = r.student_id
+      where r.activity_id = a.id and r.answer ? 'img'
+        and s.student_name !~* '^\s*(테스트|test)'
+      order by md5(r.student_id::text || a.id::text) limit 40
+    ) t), '[]'::jsonb));
+end;
+$$;
+revoke all on function public.cra_student_gallery(uuid, text, uuid) from public, anon, authenticated;
+grant execute on function public.cra_student_gallery(uuid, text, uuid) to anon, authenticated;
