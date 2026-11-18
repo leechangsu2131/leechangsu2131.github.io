@@ -800,3 +800,9 @@
 - 교사: teacher.html 「이야기방 관리」 맨 아래에서 모임 전체 보기·숨기기·삭제·모임판 잠금(`st_chat_settings.meetup_locked`).
 - DB: st_meetups, st_meetup_joins(school-tool/meetups.sql 참고). Edge Function school-tool v9.
 - 집에서 놀기·밥 주기는 모임판에 넣지 않음. 필요하면 학부모 동의 안내문을 먼저 정리한 뒤 별도 검토.
+
+### 🎮 방과후 게임 하루 30분 (2026-11-18)
+- school.html 7번째 탭 「🎮 게임」: 오늘 남은 시간(막대)과 「게임 하러 가기」(`games/index.html?from=school#play`). 시간을 다 쓰면 버튼이 잠긴다.
+- 공용 스크립트 `shared/after-budget.js`(상수 `LIMIT_MIN=30`): URL에 `from=school`이 있을 때만 방과후 모드(`sessionStorage ps_after`)가 켜지고, 게임 창이 열려 있고 화면을 보고 있는 시간만 더한다(`localStorage afterplay.<날짜>`, 초). `from=school`이 없는 접속(수업 시간 게임극장)은 제한 없음. 선생님 기기(`playlimit.exempt`)는 제외.
+- `games/index.html`: 게임 시작 전에 남은 시간 확인, 게임 중 왼쪽 아래 「🎮 오늘 남은 시간」 표시, 0이 되면 게임을 닫고 안내(`shared/play-limit.js`에 `reason:"budget"` 안내 문구 추가). 기존 「하루 N번·한 번 N분」 규칙(games/teacher.html)은 그대로 함께 적용된다.
+- 한계: 이 기기 브라우저에만 저장(시크릿 창·사이트 데이터 삭제로 우회 가능, 기존 PlayLimit과 같음). 서버에 학생별로 쌓는 방식은 필요하면 따로 추가.

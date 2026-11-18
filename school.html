@@ -175,6 +175,12 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .talk-login{text-align:center;padding:24px 8px}
 .talk-login button{border:0;background:var(--green);color:#fff;font:inherit;font-weight:800;font-size:17px;padding:14px 22px;border-radius:14px;cursor:pointer;margin-top:10px}
 
+.game-hero{background:linear-gradient(135deg,#bfdbfe,#fbcfe8);border-radius:16px;padding:16px;display:grid;gap:6px;text-align:center;margin-bottom:10px}
+.game-emoji{font-size:54px}.game-hero b{font-size:22px}.game-hero span{font-size:15px;color:#334155}
+.game-left{background:#f8fafc;border-radius:14px;padding:12px;display:grid;gap:8px}.game-left-t{font-size:19px;font-weight:900;text-align:center}
+.game-bar{height:12px;border-radius:99px;background:#e2e8f0;overflow:hidden}.game-bar i{display:block;height:100%;background:#16a34a;border-radius:99px}
+.game-go{display:block;text-align:center;margin:12px 0 6px;padding:16px;border-radius:16px;background:#2563eb;color:#fff;font-size:20px;font-weight:900;text-decoration:none}
+.game-go.off{background:#cbd5e1;color:#475569}
 .meet-hero{background:linear-gradient(135deg,#fde68a,#fbcfe8);border-radius:16px;padding:12px 14px;display:grid;gap:4px;margin:8px 0}
 .meet-hero b{font-size:20px}.meet-hero span{font-size:14px;color:#44403c}
 .meet-filter{display:flex;gap:6px;overflow-x:auto;padding:4px 0}
@@ -238,6 +244,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
     <button role="tab" data-tab="schedule" aria-selected="false"><span class="ic">📅</span>학사일정</button>
     <button role="tab" data-tab="notice" aria-selected="false"><span class="ic">📢</span>공지</button>
     <button role="tab" data-tab="talk" aria-selected="false"><span class="ic">💬</span>이야기방</button>
+    <button role="tab" data-tab="game" aria-selected="false"><span class="ic">🎮</span>게임</button>
     <button role="tab" data-tab="school" aria-selected="false"><span class="ic">🏫</span>학교정보</button>
   </nav>
 
@@ -292,6 +299,10 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
       <div class="card" id="talkBox"></div>
     </section>
 
+    <section class="pane" id="pane-game">
+      <div class="card" id="gameBox"></div>
+    </section>
+
     <section class="pane" id="pane-school">
       <div class="card" id="infoBox"><div class="state"><strong>학교 정보를 불러오고 있어요.</strong>잠시만 기다려 주세요.</div></div>
     </section>
@@ -301,6 +312,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 </div>
 
 <script src="classroom/where.js"></script>
+<script src="shared/after-budget.js"></script>
 <script>
 // GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요.
 const API_BASE='https://school-api-alpha-gules.vercel.app';
@@ -345,10 +357,31 @@ if(LOCK_CLASS){                                   // 학급 고정이면 선택 
 /* 탭 */
 let curTab='timetable';
 function showTab(t){curTab=t;$$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));
-  if(t==='timetable')loadTimetable(); if(t==='meal')loadMeal(); if(t==='schedule')loadSchedule(); if(t==='notice')loadNotices(); if(t==='school')loadSchool(); if(t==='talk')talkOpen(); else talkStop(); window.scrollTo({top:0})}
+  if(t==='timetable')loadTimetable(); if(t==='meal')loadMeal(); if(t==='schedule')loadSchedule(); if(t==='notice')loadNotices(); if(t==='school')loadSchool(); if(t==='game')gameOpen(); if(t==='talk')talkOpen(); else talkStop(); window.scrollTo({top:0})}
 $$('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
 
+/* ===== 🎮 친구들이 만든 게임 (방과후 하루 30분 합계, shared/after-budget.js) ===== */
+function gameOpen(){
+  const box=$('#gameBox'); box.textContent='';
+  const B=window.AfterBudget; const ex=B&&B.exempt();
+  const left=B?B.left():1800, total=B?B.limitSec:1800;
+  const h=document.createElement('div'); h.className='game-hero';
+  const e1=document.createElement('div'); e1.className='game-emoji'; e1.textContent='🎮';
+  const t=document.createElement('b'); t.textContent='친구들이 만든 게임';
+  const p=document.createElement('span'); p.textContent='선생님이 확인한 게임만 있어요. 방과후에는 하루 '+Math.round(total/60)+'분까지 할 수 있어요.';
+  h.append(e1,t,p); box.append(h);
+  const m=document.createElement('div'); m.className='game-left';
+  const lt=document.createElement('div'); lt.className='game-left-t'; lt.textContent=ex?'선생님 기기라서 시간 제한이 없어요':(left>0?'오늘 남은 시간  '+B.fmt(left):'오늘 게임 시간을 다 썼어요. 내일 또 만나요!');
+  const bar=document.createElement('div'); bar.className='game-bar'; const fill=document.createElement('i'); fill.style.width=(ex?100:Math.round(left/total*100))+'%'; bar.append(fill);
+  m.append(lt,bar); box.append(m);
+  const a=document.createElement('a'); a.className='game-go'; a.href='games/index.html?from=school#play';
+  a.textContent=(!ex&&left<=0)?'🔒 내일 다시 만나요':'🎮 게임 하러 가기';
+  if(!ex&&left<=0){a.removeAttribute('href');a.setAttribute('aria-disabled','true');a.classList.add('off')}
+  box.append(a);
+  const r=document.createElement('p'); r.className='talk-rule'; r.textContent='게임 창을 열고 화면을 보고 있는 시간만 세어요. 다른 창을 보고 있으면 멈춰요.';
+  box.append(r);
+}
 /* ===== 우리 반 이야기방 (로그인한 우리 반 학생끼리, 선생님이 관리) ===== */
 const ST_URL='https://erzdvlcbjneabxqwnwfy.supabase.co', ST_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
 const stRead=()=>{try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(e){return null}};

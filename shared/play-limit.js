@@ -51,6 +51,7 @@
   function injectCss(){if(document.getElementById("plCss"))return;var s=document.createElement("style");s.id="plCss";s.textContent=css;(document.head||document.documentElement).appendChild(s)}
   function msg(res){
     var left=res.left;
+    if(res.reason==="budget")return {e:"😴",h:"오늘 방과후 게임은 여기까지!",p:"하루 30분을 모두 썼어요. 내일 또 만나요."};
     if(res.reason==="closed")return {e:"🔒",h:"지금은 게임 시간이 아니에요",p:"선생님이 게임을 열어 주면 할 수 있어요."};
     if(res.reason==="daily")return {e:"😴",h:"오늘 게임은 여기까지!",p:"오늘 할 수 있는 "+(res.rules?res.rules.daily:"")+"번을 모두 했어요. 내일 또 만나요."};
     return {e:"⏰",h:"시간이 끝났어요",p:left===0?"오늘 할 수 있는 게임을 모두 했어요. 내일 또 만나요.":(left>0?"오늘 "+left+"번 더 할 수 있어요.":"쉬었다가 다시 시작해도 좋아요.")};
