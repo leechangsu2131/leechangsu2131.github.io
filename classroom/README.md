@@ -93,7 +93,7 @@ insert into public.classroom_teachers(email) values ('교사이메일@example.co
 | `activity/teacher-activity.js` | 교사 쪽 모듈 (`ClassroomActivity`) |
 | `activity/student-activity.js` | 학생 쪽 모듈 (`ClassroomActivityStudent`, `monitor.js` 가 자동으로 불러옴) |
 
-모듈을 빼려면 `teacher.html` 의 `activityPanel`·스크립트·`mountActivity` 와 `monitor.js` 의 로더 부분만 지우면 됩니다. 앞으로의 계획(그림·사진·동시 그리기·ZIP 저장 등)은 `AGENTS.MD` 의 "다음 이행 목표" 를 보세요.
+모듈을 빼려면 `teacher.html` 의 `activityPanel`·스크립트·`mountActivity` 와 `monitor.js` 의 로더 부분만 지우면 됩니다. 흐름 목록은 최근 사용순/이름순으로 정렬되고 마지막 사용일이 보입니다. 앞으로의 계획(그림·사진·동시 그리기·ZIP 저장 등)은 `AGENTS.MD` 의 "다음 이행 목표" 를 보세요.
 
 ---
 

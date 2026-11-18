@@ -260,3 +260,32 @@ grant execute on function public.cra_admin_unsaved() to authenticated;
 grant execute on function public.cra_admin_mark_saved(uuid) to authenticated;
 grant execute on function public.cra_student_current(uuid, text) to anon, authenticated;
 grant execute on function public.cra_student_submit(uuid, text, uuid, jsonb) to anon, authenticated;
+
+-- ---------------------------------------------------------------- 수업 흐름 목록: 마지막 사용일
+alter table public.classroom_flows add column if not exists last_used_at timestamptz;
+
+create or replace function public.cra_admin_flows_list()
+returns jsonb language plpgsql security definer set search_path = public
+as $$
+begin
+  if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('id',f.id,'title',f.title,'steps',f.steps,'updated_at',f.updated_at,'last_used_at',f.last_used_at)
+                                    order by coalesce(f.last_used_at, f.updated_at) desc)
+                   from public.classroom_flows f), '[]'::jsonb);
+end;
+$$;
+
+create or replace function public.cra_admin_flow_touch(p_id uuid)
+returns boolean language plpgsql security definer set search_path = public
+as $$
+begin
+  if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
+  update public.classroom_flows set last_used_at = now() where id = p_id;
+  return found;
+end;
+$$;
+
+revoke all on function public.cra_admin_flows_list() from public, anon, authenticated;
+revoke all on function public.cra_admin_flow_touch(uuid) from public, anon, authenticated;
+grant execute on function public.cra_admin_flows_list() to authenticated;
+grant execute on function public.cra_admin_flow_touch(uuid) to authenticated;

@@ -177,9 +177,12 @@
     }
     const U=M.ui={};
     U.sel=el('select',{style:'min-width:170px'});
+    U.sort=el('select',{title:'목록 정렬',onchange:()=>{M.sortBy=U.sort.value;loadFlows().catch(()=>{})}},
+      el('option',{value:'recent',text:'최근 사용순'}),el('option',{value:'name',text:'이름순'}));
+    U.sort.value=M.sortBy||'recent';
     U.title=el('input',{type:'text',maxlength:'60',placeholder:'수업 흐름 이름 (예: 분수 4단원 1차시)',oninput:()=>{M.flow.title=U.title.value}});
     U.bar=el('div',{class:'cra-flowbar'},
-      U.sel,
+      U.sort,U.sel,
       el('button',{type:'button',text:'불러오기',onclick:loadSelected}),
       U.title,
       el('button',{type:'button',class:'primary',text:'💾 저장',onclick:()=>saveFlow(false)}),
@@ -194,7 +197,7 @@
       ...['text','choice','draw','photo','video','page'].map(k=>el('button',{type:'button',text:'+ '+KINDS[k],onclick:()=>{M.flow.steps.push(newStep(k));renderSteps()}})));
     U.pos=el('span',{class:'muted'});
     U.run=el('div',{class:'row',style:'margin:8px 0'},
-      el('button',{type:'button',class:'primary',text:'▶ 처음부터',onclick:()=>runStep(0)}),
+      el('button',{type:'button',class:'primary',text:'▶ 처음부터',onclick:startFlow}),
       el('button',{type:'button',text:'다음 단계 ▶',onclick:()=>runStep(M.idx+1)}),
       U.pos);
     U.live=el('div');
@@ -230,10 +233,23 @@
   async function loadFlows(){
     M.flows=await call('cra_admin_flows_list',{})||[];
     const U=M.ui;
+    const md=t=>{if(!t)return '';const d=new Date(t);return isNaN(d)?'':(d.getMonth()+1)+'/'+d.getDate()};
+    const shown=M.flows.slice();
+    if((M.sortBy||'recent')==='name')shown.sort((a,b)=>String(a.title).localeCompare(String(b.title),'ko'));
     U.sel.replaceChildren(el('option',{value:'',text:M.flows.length?'— 저장된 수업 흐름 —':'(저장된 흐름이 없어요)'}),
-      ...M.flows.map(f=>el('option',{value:f.id,text:f.title+' ('+((f.steps||[]).length)+'단계)'})));
+      ...shown.map(f=>{
+        const used=md(f.last_used_at),made=md(f.updated_at);
+        return el('option',{value:f.id,text:f.title+' ('+((f.steps||[]).length)+'단계 · '+(used?'사용 '+used:'저장 '+made)+')'});
+      }));
     if(M.flow.id)U.sel.value=M.flow.id;
     U.title.value=M.flow.title;
+  }
+  // ▶ 처음부터: 저장된 흐름이면 "마지막 사용일"을 기록해 목록의 최근 사용순에 반영한다.
+  async function startFlow(){
+    await runStep(0);
+    if(M.flow.id){
+      try{await M.rpc('cra_admin_flow_touch',{p_id:M.flow.id});const f=M.flows.find(x=>x.id===M.flow.id);if(f)f.last_used_at=new Date().toISOString();loadFlows().catch(()=>{})}catch(_){}
+    }
   }
   function loadSelected(){
     const f=M.flows.find(x=>x.id===M.ui.sel.value);
