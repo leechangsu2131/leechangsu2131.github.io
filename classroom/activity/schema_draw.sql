@@ -73,7 +73,7 @@ drop function if exists public.cra_admin_results(text, uuid);
 create or replace function public.cra_admin_results(p_room text, p_activity uuid default null, p_images boolean default false)
 returns jsonb language plpgsql security definer set search_path = public
 as $$
-declare v_session uuid; a public.classroom_activities; v_resp jsonb; v_joined int;
+declare v_session uuid; a public.classroom_activities; v_resp jsonb; v_joined int; v_test int;
 begin
   if not public.classroom_admin_ok('') then raise exception 'unauthorized'; end if;
   select id into v_session from public.classroom_sessions where room_code = upper(p_room) and status = 'active';
@@ -96,10 +96,10 @@ begin
     where r.activity_id = a.id
     order by s.student_no, s.student_name, r.updated_at desc
   ) x;
-  select count(*) into v_joined from (select distinct student_no, student_name from public.classroom_students where session_id = v_session and removed_at is null) j;
+  select count(*), count(*) filter (where j.student_name ~* '^\s*(테스트|test)') into v_joined, v_test from (select distinct student_no, student_name from public.classroom_students where session_id = v_session and removed_at is null) j;
   return jsonb_build_object(
     'activity', jsonb_build_object('id',a.id,'kind',a.kind,'title',a.title,'config',a.config,'status',a.status,'reveal',a.reveal,'created_at',a.created_at,'saved_at',a.saved_at),
-    'responses', v_resp, 'joined', v_joined);
+    'responses', v_resp, 'joined', v_joined, 'joined_test', v_test);
 end;
 $$;
 

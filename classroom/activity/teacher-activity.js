@@ -138,6 +138,19 @@
     M.ui.msg.textContent=text||'';
     M.ui.msg.style.color=bad?'var(--red)':'var(--sub)';
   }
+  // 이름이 "테스트"(또는 test)로 시작하는 학생은 시험용으로 보고 제출 수·큰 화면·CSV·ZIP 에서 뺀다(🧪 버튼으로 포함할 수 있음).
+  const isTest=n=>/^\s*(테스트|test)/i.test(String(n||''));
+  function shape(name,d){
+    try{
+      if(name==='cra_admin_results'&&d&&Array.isArray(d.responses)){
+        d.test=d.responses.filter(r=>isTest(r.name)).length;
+        if(!M.incTest){d.responses=d.responses.filter(r=>!isTest(r.name));d.joined=Math.max(0,(d.joined||0)-(d.joined_test||0))}
+      }else if(name==='cra_admin_export'&&Array.isArray(d)&&!M.incTest){
+        d.forEach(a=>{if(Array.isArray(a.responses))a.responses=a.responses.filter(r=>!isTest(r.name))});
+      }
+    }catch(_){}
+    return d;
+  }
   async function call(name,args){
     try{return await M.rpc(name,args)}
     catch(e){
@@ -149,7 +162,7 @@
 
   // ---------------------------------------------------------------- 화면 뼈대
   function mount(opt){
-    M.root=opt.root;M.rpc=opt.rpc;M.getRoom=opt.getRoom;M.isMock=!!opt.isMock;M.command=opt.command;
+    M.root=opt.root;M.rpc=async(n,a)=>shape(n,await opt.rpc(n,a));M.getRoom=opt.getRoom;M.isMock=!!opt.isMock;M.command=opt.command;
     stop(true);
     M.root.replaceChildren();
     if(!document.getElementById('craStyle'))document.head.appendChild(el('style',{id:'craStyle'},CSS));
@@ -469,6 +482,7 @@
     if(M.idx>=0&&M.memo&&open)box.appendChild(el('div',{class:'hint',style:'margin-top:6px',text:'📝 '+M.memo}));
     const btns=el('div',{class:'row',style:'margin-top:10px'});
     if(a.kind!=='video')btns.appendChild(el('button',{type:'button',class:'primary',text:'🖥 큰 화면으로 보기',onclick:openBig}));
+    if(d.test>0||M.incTest)btns.appendChild(el('button',{type:'button',title:'이름이 "테스트"로 시작하는 학생은 시험용으로 보고 집계에서 빼요',text:M.incTest?'🧪 테스트 학생 포함 중 (누르면 제외)':'🧪 테스트 학생 '+d.test+'명 제외됨 (누르면 포함)',onclick:()=>{M.incTest=!M.incTest;M.imgSig='';refresh()}}));
     if(open)btns.appendChild(el('button',{type:'button',text:'⏹ 마감하기',onclick:()=>closeAct(a)}));
     if(a.kind==='choice')btns.appendChild(el('button',{type:'button',text:a.reveal?'정답·결과 숨기기':'📣 정답·결과 공개',onclick:()=>reveal(a,!a.reveal)}));
     if(isImg(a.kind))btns.appendChild(el('button',{type:'button',text:a.saved_at?'⬇ ZIP 다시 저장':'⬇ '+(a.kind==='photo'?'사진':'그림')+' ZIP 저장',onclick:()=>saveDrawZip(a.id)}));
