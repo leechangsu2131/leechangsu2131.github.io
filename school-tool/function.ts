@@ -184,11 +184,11 @@ Deno.serve(async (req) => {
       if (!(kind in ACTS) || !(activity === "custom" || ACTS[kind].includes(activity)) || !PLACES.includes(place) || ![30, 60, 90].includes(mins) || !Number.isInteger(max) || max < 2 || max > 8) return json({ error: "bad_input" }, 400, origin);
       const title = activity === "custom" ? String(body.title ?? "").replace(/\s+/g, " ").trim().slice(0, 20) : "";
       if (activity === "custom" && (!title || BLOCKED.test(title))) return json({ error: title ? "blocked_content" : "bad_input" }, 400, origin);   // 직접 쓰는 제목도 주소·전화·이메일은 막는다
-      // 시작 시각: 안 보내면 지금. 보내면 지금부터 8시간 안의 시각만(과거 2분까지 허용)
+      // 시작 시각: 안 보내면 지금. 보내면 지금부터 7일 안의 시각만(과거 2분까지 허용)
       let startMs = now.getTime();
       if (body.start) {
         const t = new Date(String(body.start)).getTime();
-        if (!Number.isFinite(t) || t < now.getTime() - 2 * 60000 || t > now.getTime() + 8 * 3600000) return json({ error: "bad_input" }, 400, origin);
+        if (!Number.isFinite(t) || t < now.getTime() - 2 * 60000 || t > now.getTime() + 7 * 24 * 3600000) return json({ error: "bad_input" }, 400, origin);
         startMs = Math.max(t, now.getTime());
       }
       const note = String(body.note ?? "").replace(/\s+/g, " ").trim().slice(0, 100);
