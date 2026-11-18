@@ -1,7 +1,7 @@
 {
   "school": "화천초등학교",
   "school_url": "https://school.gyo6.net/hc/main.do?sysId=hc",
-  "updated_at": "2026-11-17 13:15:56 KST",
+  "updated_at": "2026-11-18 12:14:37 KST",
   "boards": [
     {
       "board_id": "notice",
@@ -15,6 +15,16 @@
       "source_url": "https://school.gyo6.net/hc/na/ntt/selectNttList.do?mi=10219055&bbsId=20006609",
       "posts": [
         {
+          "post_id": "letter:17030025",
+          "ntt_sn": "17030025",
+          "category": "통합공지",
+          "title": "2027학년도 경주교육지원청부설영재교육원 영재교육대상자 추가 선발 요강",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17030025",
+          "posted_at": "2026-11-18",
+          "author": "학**",
+          "views": "267"
+        },
+        {
           "post_id": "letter:17007383",
           "ntt_sn": "17007383",
           "category": "통합공지",
@@ -22,7 +32,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "97200"
+          "views": "98097"
         },
         {
           "post_id": "letter:16999816",
@@ -32,7 +42,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16999816",
           "posted_at": "2026-10-21",
           "author": "학**",
-          "views": "45651"
+          "views": "45960"
         },
         {
           "post_id": "letter:16996942",
@@ -42,7 +52,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16996942",
           "posted_at": "2026-10-20",
           "author": "학**",
-          "views": "3801"
+          "views": "3807"
         },
         {
           "post_id": "letter:16990219",
@@ -52,7 +62,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16990219",
           "posted_at": "2026-10-13",
           "author": "학**",
-          "views": "90192"
+          "views": "90783"
         },
         {
           "post_id": "letter:16982036",
@@ -62,7 +72,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16982036",
           "posted_at": "2026-10-02",
           "author": "학**",
-          "views": "56087"
+          "views": "56305"
         },
         {
           "post_id": "letter:16945049",
@@ -72,7 +82,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16945049",
           "posted_at": "2026-08-27",
           "author": "학**",
-          "views": "27750"
+          "views": "28050"
         },
         {
           "post_id": "letter:16907957",
@@ -82,7 +92,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16907957",
           "posted_at": "2026-07-07",
           "author": "학**",
-          "views": "95807"
+          "views": "96104"
         },
         {
           "post_id": "letter:16852614",
@@ -92,17 +102,27 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16852614",
           "posted_at": "2026-05-15",
           "author": "학**",
-          "views": "106362"
+          "views": "106659"
+        },
+        {
+          "post_id": "letter:17029444",
+          "ntt_sn": "17029444",
+          "category": "144",
+          "title": "8,9월 우유비 징수 안내(스쿨뱅킹 수익자부담경비 자동이체 안내) &nbsp;신규글",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17029444",
+          "posted_at": "2026-11-17",
+          "author": "권**",
+          "views": "23"
         },
         {
           "post_id": "letter:17028802",
           "ntt_sn": "17028802",
           "category": "143",
-          "title": "2026년 크리스마스 씰 모금 안내 &nbsp;신규글",
+          "title": "2026년 크리스마스 씰 모금 안내",
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17028802",
           "posted_at": "2026-11-17",
           "author": "권**",
-          "views": "11"
+          "views": "35"
         },
         {
           "post_id": "letter:17027968",
@@ -112,7 +132,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17027968",
           "posted_at": "2026-11-16",
           "author": "이**",
-          "views": "27"
+          "views": "48"
         },
         {
           "post_id": "letter:17020632",
@@ -122,7 +142,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17020632",
           "posted_at": "2026-11-09",
           "author": "김**",
-          "views": "181"
+          "views": "185"
         },
         {
           "post_id": "letter:17020517",
@@ -132,7 +152,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17020517",
           "posted_at": "2026-11-09",
           "author": "권**",
-          "views": "77"
+          "views": "78"
         },
         {
           "post_id": "letter:17018350",
@@ -142,7 +162,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17018350",
           "posted_at": "2026-11-05",
           "author": "화**",
-          "views": "80"
+          "views": "81"
         },
         {
           "post_id": "letter:17018148",
@@ -183,16 +203,6 @@
           "posted_at": "2026-11-02",
           "author": "김**",
           "views": "78"
-        },
-        {
-          "post_id": "letter:17013927",
-          "ntt_sn": "17013927",
-          "category": "134",
-          "title": "11월 식단표 및 영양소식지 안내",
-          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17013927",
-          "posted_at": "2026-11-02",
-          "author": "강**",
-          "views": "79"
         }
       ]
     }
