@@ -167,7 +167,8 @@
       U.sel,
       el('button',{type:'button',text:'불러오기',onclick:loadSelected}),
       U.title,
-      el('button',{type:'button',class:'primary',text:'💾 저장',onclick:saveFlow}),
+      el('button',{type:'button',class:'primary',text:'💾 저장',onclick:()=>saveFlow(false)}),
+      el('button',{type:'button',text:'다른 이름으로 저장',title:'지금 흐름을 복사해 새 이름으로 저장해요(원래 흐름은 그대로)',onclick:()=>saveFlow(true)}),
       el('button',{type:'button',text:'새로 만들기',onclick:newFlow}),
       el('button',{type:'button',class:'danger',text:'삭제',onclick:delFlow}),
       el('button',{type:'button',text:'⬇ 파일로 내보내기',title:'지금 흐름을 .json 파일로 저장해요',onclick:exportFlow}),
@@ -185,6 +186,7 @@
     U.msg=el('div',{class:'status',role:'status'});
     U.all=el('div',{class:'row'},
       el('button',{type:'button',text:'⬇ 오늘 수업 전체 CSV 저장',onclick:exportAll}),
+      el('button',{type:'button',text:'⬇ 오늘 수업 전체 ZIP (그림·사진 포함)',onclick:exportAllZip}),
       el('span',{class:'hint',text:'오늘 낸 모든 활동과 답을 한 파일로 받아요(엑셀에서 열려요).'}));
     U.warn=el('div');
     box.append(U.warn,U.bar,U.steps,U.add,U.run,U.live,U.all,U.msg);
@@ -227,9 +229,13 @@
     M.ui.title.value=M.flow.title;
     renderSteps();say('"'+f.title+'" 흐름을 불러왔어요. [▶ 처음부터]로 시작해요.');
   }
-  async function saveFlow(){
+  async function saveFlow(asNew){
     const title=(M.ui.title.value||'').trim();
     if(!title){say('수업 흐름 이름을 적어 주세요.',true);return}
+    if(asNew===true){
+      if(M.flows.some(f=>f.title===title)&&!confirm('같은 이름의 수업 흐름이 이미 있어요. 그래도 새로 저장할까요?'))return;
+      M.flow.id=null;
+    }
     M.flow.title=title;
     try{
       const steps=M.flow.steps.map(cleanStep);
@@ -655,6 +661,38 @@
       list.filter(a=>a.kind!=='video').forEach(a=>rows.push(...rowsFor(a,a.responses||[])));
       download('수업활동_전체_'+stamp()+'.csv',rows);
       say('오늘 수업의 활동 '+list.length+'개를 CSV 로 저장했어요.');
+    }catch(e){say('저장하지 못했어요: '+String(e.message||e).slice(0,120),true)}
+  }
+
+  // 오늘 수업 전체를 한 파일로: 전체결과.csv + 그림·사진 활동은 활동별 폴더에 이미지
+  async function exportAllZip(){
+    try{
+      const room=M.getRoom();
+      const since=new Date();since.setHours(0,0,0,0);
+      const list=await call('cra_admin_export',{p_room:room,p_since:since.toISOString()});
+      if(!list||!list.length){say('오늘 낸 활동이 아직 없어요.',true);return}
+      const rows=[CSV_HEAD];
+      list.filter(a=>a.kind!=='video').forEach(a=>rows.push(...rowsFor(a,a.responses||[])));
+      const files=[{name:'전체결과.csv',bytes:new TextEncoder().encode('\uFEFF'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'))}];
+      let pics=0;const savedIds=[];
+      for(let i=0;i<list.length;i++){
+        const a=list[i];
+        if(!isImg(a.kind)||!(a.responses||[]).some(r=>r.answer&&r.answer.drawn))continue;
+        const full=await call('cra_admin_results',{p_room:room,p_activity:a.id,p_images:true});
+        const dir=String(i+1).padStart(2,'0')+'_'+safeName(a.title).slice(0,20)+'/';
+        (full.responses||[]).forEach(r=>{
+          const im=dataUrlBytes(r.answer&&r.answer.img);if(!im)return;
+          files.push({name:dir+String(r.no).padStart(2,'0')+'_'+safeName(r.name)+'.'+im.ext,bytes:im.bytes});pics++;
+        });
+        savedIds.push(a.id);
+      }
+      const blob=zipBlob(files);
+      const link=el('a',{href:URL.createObjectURL(blob),download:'수업활동_전체_'+stamp()+'.zip'});
+      document.body.appendChild(link);link.click();
+      setTimeout(()=>{URL.revokeObjectURL(link.href);link.remove()},800);
+      for(const id of savedIds){try{await M.rpc('cra_admin_mark_saved',{p_activity:id})}catch(_){}}
+      say('📦 오늘 수업의 활동 '+list.length+'개(그림·사진 '+pics+'장)를 ZIP 으로 저장했어요.');
+      loadUnsaved();
     }catch(e){say('저장하지 못했어요: '+String(e.message||e).slice(0,120),true)}
   }
 
