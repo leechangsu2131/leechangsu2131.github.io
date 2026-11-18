@@ -79,7 +79,7 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
 @media(max-width:700px){.wrap{padding:0 13px 45px}.row{grid-template-columns:1fr}.prompt{flex-direction:column}.panel{padding:17px}}
 </style>
 <script src="/shared/play-limit.js"></script>
-<script src="../shared/after-budget.js"></script>
+<script src="../shared/after-budget.js?v=2"></script>
 <script>if(window.AfterBudget)AfterBudget.sync();</script>
 </head>
 <body>
@@ -278,17 +278,17 @@ footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}foo
     if(!window.AfterBudget||!AfterBudget.on())return;
     abStop();var n=0;
     var b=$("abBadge");if(!b){b=document.createElement("div");b.id="abBadge";b.style.cssText="position:fixed;left:12px;bottom:12px;z-index:2147482000;background:rgba(15,18,24,.88);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:6px 14px;font:700 15px/1.2 -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;pointer-events:none";document.body.appendChild(b)}
-    function paint(){var l=AfterBudget.left();b.textContent="🎮 오늘 남은 시간 "+AfterBudget.fmt(l);b.style.background=l<=60?"#b91c1c":(l<=300?"#b45309":"rgba(15,18,24,.88)");b.style.display="block"}
+    function paint(){var l=AfterBudget.left();b.textContent=AfterBudget.exempt()?"🎮 선생님 기기(제한 없음) · 오늘 "+AfterBudget.fmt(AfterBudget.used())+" 사용":"🎮 오늘 남은 시간 "+AfterBudget.fmt(l);b.style.background=AfterBudget.exempt()?"rgba(15,18,24,.88)":l<=60?"#b91c1c":(l<=300?"#b45309":"rgba(15,18,24,.88)");b.style.display="block"}
     paint();
     abTimer=setInterval(function(){
       if(!$("modal").classList.contains("show")){abStop();return}
       if(document.hidden)return;
       AfterBudget.add(1);paint();
-      if(AfterBudget.left()<=0){close();if(window.PlayLimit)PlayLimit.block({ok:false,reason:"budget"},{onClose:function(){}});else alert("오늘 방과후 게임은 여기까지!")}
+      if(AfterBudget.limited()&&AfterBudget.left()<=0){close();if(window.PlayLimit)PlayLimit.block({ok:false,reason:"budget"},{onClose:function(){}});else alert("오늘 방과후 게임은 여기까지!")}
     },1000);
   }
   function launch(id,t,a,html){
-    if(window.AfterBudget&&AfterBudget.on()&&AfterBudget.left()<=0){if(window.PlayLimit)PlayLimit.block({ok:false,reason:"budget"},{onClose:function(){}});else alert("오늘 방과후 게임은 여기까지!");return}
+    if(window.AfterBudget&&AfterBudget.limited()&&AfterBudget.left()<=0){if(window.PlayLimit)PlayLimit.block({ok:false,reason:"budget"},{onClose:function(){}});else alert("오늘 방과후 게임은 여기까지!");return}
     if(!window.PlayLimit){open(t,a,html,id);abStart();return}
     return PlayLimit.begin("gallery:"+id).then(function(res){
       function again(){PlayLimit.unblock();launch(id,t,a,html)}

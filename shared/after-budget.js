@@ -17,7 +17,8 @@
     exempt:function(){return ls("playlimit.exempt")==="1"},
     /* 방과후에서 들어왔는지: URL 에 from=school 이 있으면 켜고, 없으면 끈다(수업용 접속은 제한 없음) */
     sync:function(){var f=/[?&]from=school\b/.test(location.search);if(f)ss("ps_after","1");else ss("ps_after",null);return f},
-    on:function(){return ss("ps_after")==="1"&&!this.exempt()},
+    on:function(){return ss("ps_after")==="1"},                 /* 방과후에서 들어왔는지(선생님 기기도 시간은 센다) */
+    limited:function(){return this.on()&&!this.exempt()},       /* 실제로 막는지(선생님 기기는 막지 않는다) */
     used:used,
     left:function(){return Math.max(0,this.limitSec-used())},
     add:function(sec){ls(key(),String(used()+sec))},

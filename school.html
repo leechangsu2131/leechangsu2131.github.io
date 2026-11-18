@@ -319,7 +319,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 </div>
 
 <script src="classroom/where.js"></script>
-<script src="shared/after-budget.js"></script>
+<script src="shared/after-budget.js?v=2"></script>
 <script>
 // GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요.
 const API_BASE='https://school-api-alpha-gules.vercel.app';
@@ -379,7 +379,7 @@ function gameOpen(){
   const p=document.createElement('span'); p.textContent='선생님이 확인한 게임만 있어요. 방과후에는 하루 '+Math.round(total/60)+'분까지 할 수 있어요.';
   h.append(e1,t,p); box.append(h);
   const m=document.createElement('div'); m.className='game-left';
-  const lt=document.createElement('div'); lt.className='game-left-t'; lt.textContent=ex?'선생님 기기라서 시간 제한이 없어요':(left>0?'오늘 남은 시간  '+B.fmt(left):'오늘 게임 시간을 다 썼어요. 내일 또 만나요!');
+  const lt=document.createElement('div'); lt.className='game-left-t'; lt.textContent=ex?'선생님 기기라서 제한은 없어요 (오늘 '+B.fmt(B.used())+' 사용)':(left>0?'오늘 남은 시간  '+B.fmt(left):'오늘 게임 시간을 다 썼어요. 내일 또 만나요!');
   const bar=document.createElement('div'); bar.className='game-bar'; const fill=document.createElement('i'); fill.style.width=(ex?100:Math.round(left/total*100))+'%'; bar.append(fill);
   m.append(lt,bar); box.append(m);
   const a=document.createElement('a'); a.className='game-go'; a.href='games/index.html?from=school#play';
