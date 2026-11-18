@@ -644,10 +644,14 @@
     // 수업 활동 모듈(주관식·객관식·영상): 선생님이 낸 활동을 지금 보는 페이지 위에 띄운다. 실패해도 수업 화면 공유에는 영향이 없다.
     if(!isMock&&SELF){
       try{
-        const s=document.createElement('script');
-        s.src=new URL('activity/student-activity.js',SELF).href;
-        s.onload=()=>{try{window.ClassroomActivityStudent.start({rpc,studentId:cfg.studentId,token:cfg.token})}catch(_){}};
-        document.head.appendChild(s);
+        const go=()=>{try{window.ClassroomActivityStudent.start({rpc,studentId:cfg.studentId,token:cfg.token})}catch(_){}};
+        if(window.ClassroomActivityStudent)go();   // 다시 입장한 경우: 이미 불러온 모듈을 새 입장 정보로 다시 시작
+        else{
+          const s=document.createElement('script');
+          s.src=new URL('activity/student-activity.js',SELF).href;
+          s.onload=go;
+          document.head.appendChild(s);
+        }
       }catch(_){}
       watchVersion();
     }
@@ -673,11 +677,12 @@
   };
   function rejoin(){
     try{sessionStorage.removeItem('cls_kicked')}catch(_){}
-    clearInterval(retryTimer);retryTimer=setInterval(tryJoin,30000);
+    clearInterval(retryTimer);retryTimer=setInterval(tryJoin,12000);
     tryJoin().then(()=>{if(!booted)showChip('⚪ 지금은 수업이 열려 있지 않아요',null)});
   }
   dropHook=(reason)=>{
     booted=false;
+    try{window.ClassroomActivityStudent&&window.ClassroomActivityStudent.stop()}catch(_){}
     try{document.querySelectorAll('[data-classroom-ui="1"][data-html2canvas-ignore]:not([data-keep-ui])').forEach(n=>{if(n.id!=='classroomMessage')n.remove()})}catch(_){}
     clearInterval(retryTimer);
     if(reason==='kicked'){
@@ -686,7 +691,7 @@
     }else{
       showChip(reason==='new'?'⚪ 수업 다시 연결 중…':'⚪ 수업 연결 안 됨 (수업이 끝났어요)',null);
       showNotice(MSG[reason]||MSG.ended);
-      if(readLogin())retryTimer=setInterval(tryJoin,30000);
+      if(readLogin())retryTimer=setInterval(tryJoin,12000);
     }
   };
   // 처음부터 연결이 안 된 화면도 "연결 안 됨"을 보여 준다(내보내진 탭이면 눌러서 다시 들어가기)
@@ -695,5 +700,8 @@
     let kicked=false;try{kicked=!!sessionStorage.getItem('cls_kicked')}catch(_){}
     showChip(kicked?'⛔ 수업에서 나갔어요 (눌러서 다시 들어가기)':'⚪ 수업 연결 안 됨',kicked?rejoin:null);
   },9000);
-  if(!booted&&readLogin()){setTimeout(tryJoin,1500+Math.random()*3000);retryTimer=setInterval(tryJoin,30000)}
+  // 화면으로 돌아오거나 다시 눌렀을 때 바로 확인(그 사이 수업이 열렸을 수 있다)
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!booted&&readLogin())tryJoin()});
+  window.addEventListener('focus',()=>{if(!booted&&readLogin())tryJoin()});
+  if(!booted&&readLogin()){setTimeout(tryJoin,1500+Math.random()*3000);retryTimer=setInterval(tryJoin,12000)}
 })();

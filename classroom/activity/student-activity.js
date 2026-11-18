@@ -39,7 +39,9 @@
     try{const u=new URL(url);return u.protocol==='https:'?u.href:null}catch(_){return null}
   }
 
+  let current=null;   // 한 화면에는 활동 모듈이 하나만: 다시 입장하면 이전 것을 끄고 새로 시작한다
   function start(opt){
+    if(current){try{current.stop()}catch(_){}current=null}
     const rpc=opt.rpc, sid=opt.studentId, tok=opt.token;
     let stopped=false, busy=false, timer=0;
     let shownSig='', last=null, root=null, mini=null, card=null, ui={}, clock=null;
@@ -455,11 +457,13 @@
       clearInterval(timer);
       timer=setInterval(poll,document.hidden?POLL_HIDDEN_MS:POLL_MS);
     }
-    document.addEventListener('visibilitychange',()=>{schedule();if(!document.hidden)poll()});
+    const onVis=()=>{if(stopped)return;schedule();if(!document.hidden)poll()};
+    document.addEventListener('visibilitychange',onVis);
     setTimeout(poll,300+Math.random()*1200);   // 반 전체가 한꺼번에 몰리지 않게 조금 흩뜨린다
     schedule();
-    return {stop(){stopped=true;clearInterval(timer);clearInterval(clockTimer);hideAll()}};
+    current={stop(){stopped=true;clearInterval(timer);try{clearInterval(clockTimer)}catch(_){}document.removeEventListener('visibilitychange',onVis);hideAll()}};
+    return current;
   }
 
-  window.ClassroomActivityStudent={start};
+  window.ClassroomActivityStudent={start,stop(){if(current){try{current.stop()}catch(_){}current=null}}};
 })();
