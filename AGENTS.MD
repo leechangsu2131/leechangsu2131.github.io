@@ -788,6 +788,7 @@
 - school.html 이야기방의 4번째 탭 「🎈 모이자」(화면 제목 「같이 모이자」). 모임 앱처럼 피드 카드(남은 시간·모인 인원 막대·번호 동그라미·🔥1자리 남음)+필터(전체/놀자/공부/내 모임)+「＋ 모임 만들기」. 만들기는 한 화면(빠른 선택 칩 6개 또는 드롭다운 4개+미리보기)이고, 한마디(100자)만 직접 쓴다(주소·전화·이메일 차단).
 - **장소는 공공장소 4곳만**(ground 화천초 운동장, school_lib 학교 도서관, playground 동네 놀이터, town_lib 동네 도서관). 집·주소·GPS·지도 위치 표시는 일부러 넣지 않음(학부모 동의 정리 전). 장소 추가는 school-tool/function.ts `PLACES` + school.html `MEET_PLACES` + teacher.html `MEET_PLACE` 세 곳.
 - 서버 제한: 하루 5개 만들기, 동시에 열린 모임 2개, 시간 30/60/90분, 인원 2~8(만든 이 포함), 끝난 지 30분 뒤 목록에서 사라짐, 7일 뒤 자동 삭제.
+- 「✏️ 내가 적을게요」: 뭐 할까요 칸에서 고르면 하고 싶은 것을 20자까지 직접 적는다(activity='custom', st_meetups.title). 주소·전화·이메일은 서버가 막는다. Edge Function v10.
 - 교사: teacher.html 「이야기방 관리」 맨 아래에서 모임 전체 보기·숨기기·삭제·모임판 잠금(`st_chat_settings.meetup_locked`).
 - DB: st_meetups, st_meetup_joins(school-tool/meetups.sql 참고). Edge Function school-tool v9.
 - 집에서 놀기·밥 주기는 모임판에 넣지 않음. 필요하면 학부모 동의 안내문을 먼저 정리한 뒤 별도 검토.

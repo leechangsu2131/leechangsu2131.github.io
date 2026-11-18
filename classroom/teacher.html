@@ -424,7 +424,7 @@
       const d=document.createElement('div');d.className='rc-acc';
       const ppl=(m.st_meetup_joins||[]).map(j=>nm[j.student_id]||'?');
       const w=document.createElement('div');w.className='who';
-      w.textContent=(nm[m.host_id]||'?')+' · '+(m.kind==='study'?'같이 공부':'같이 놀기')+' · '+(MEET_ACT[m.activity]||m.activity)+' · '+(MEET_PLACE[m.place]||m.place)+' · '+rcFmt(m.until_at)+'까지 · 참가: '+(ppl.length?ppl.join(', '):'없음')+(m.cancelled?' · (닫음)':'')+(m.hidden?' · (숨김)':'')+(m.note?'  “'+m.note+'”':'');
+      w.textContent=(nm[m.host_id]||'?')+' · '+(m.kind==='study'?'같이 공부':'같이 놀기')+' · '+(m.activity==='custom'?'✏️ '+m.title:(MEET_ACT[m.activity]||m.activity))+' · '+(MEET_PLACE[m.place]||m.place)+' · '+rcFmt(m.until_at)+'까지 · 참가: '+(ppl.length?ppl.join(', '):'없음')+(m.cancelled?' · (닫음)':'')+(m.hidden?' · (숨김)':'')+(m.note?'  “'+m.note+'”':'');
       if(m.hidden||m.cancelled)w.style.opacity='.5';
       const a=document.createElement('button');a.textContent=m.hidden?'보이기':'숨기기';
       const x=document.createElement('button');x.textContent='삭제';
@@ -448,7 +448,7 @@
         rcApi('st_chat?select=id,student_id,body,hidden,created_at&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=60',{headers:{Prefer:''}}),
         rcApi('st_chat_settings?select=locked,dm_locked,meetup_locked&class_id=eq.'+rcCls.id,{headers:{Prefer:''}}),
         rcApi('st_dm?select=id,from_id,to_id,body,hidden,created_at&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=80',{headers:{Prefer:''}}),
-        rcApi('st_meetups?select=id,host_id,kind,activity,place,until_at,note,hidden,cancelled,created_at,st_meetup_joins(student_id)&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=40',{headers:{Prefer:''}})
+        rcApi('st_meetups?select=id,host_id,kind,activity,title,place,until_at,note,hidden,cancelled,created_at,st_meetup_joins(student_id)&class_id=eq.'+rcCls.id+'&order=created_at.desc&limit=40',{headers:{Prefer:''}})
       ]);
       rcChatRows=rows||[];rcChatLocked=!!(st&&st[0]&&st[0].locked);rcDmRows=dms||[];rcDmLocked=!!(st&&st[0]&&st[0].dm_locked);rcMeetRows=mts||[];rcMeetLocked=!!(st&&st[0]&&st[0].meetup_locked);rcChatDraw();rcMeetDraw();
     }catch(_){}
