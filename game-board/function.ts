@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
   if (evErr) return json({ error: "load_failed" }, 500, origin);
   const keyByNum = new Map<number, string>();
   for (const r of roster ?? []) keyByNum.set(Number(r.number), String(r.name_key ?? nameKey(r.name)));
-  // 명단과 번호·이름이 맞는 줄만 준다
-  const rows = (events ?? []).filter((e) => keyByNum.get(Number(e.num)) === nameKey(e.name)).map((e) => ({ num: e.num, name: e.name, xp: e.xp, day: e.day }));
+  // 명단과 번호·이름이 맞는 줄만 준다(이름이 '테스트'·test 로 시작하는 시험용 학생은 순위표에서 뺀다)
+  const rows = (events ?? []).filter((e) => keyByNum.get(Number(e.num)) === nameKey(e.name) && !/^(테스트|test)/i.test(String(e.name ?? "").trim())).map((e) => ({ num: e.num, name: e.name, xp: e.xp, day: e.day }));
   return json({ ok: true, teacher: !!w.teacher, me: w.st ? { num: w.st.number, name: w.st.name } : null, rows }, 200, origin);
 });
