@@ -447,6 +447,13 @@ const MEET_ACTS={play:[['ball','⚽ 공놀이'],['tag','🏃 술래잡기'],['ju
   study:[['homework','📝 숙제 같이 하기'],['read','📖 책 읽기'],['math','➕ 수학 문제'],['write','✏️ 글쓰기']]};
 const MEET_QUICK=[['play','ball','ground',60,4],['play','tag','ground',30,6],['play','jump','playground',30,4],['study','homework','school_lib',60,3],['study','read','school_lib',60,3],['play','talk','playground',30,3]];
 let meetForm=null, meetFilter='all';
+const fmtT=d=>new Date(d).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+function meetSlots(){            // 지금 + 15분 간격으로 6시간 뒤까지 (시각으로 고르기)
+  const out=[['','⚡ 지금 바로']], t=new Date(); t.setSeconds(0,0); t.setMinutes(Math.ceil((t.getMinutes()+1)/15)*15);
+  for(let i=0;i<24;i++){const d=new Date(t.getTime()+i*15*60000);out.push([d.toISOString(),'🕓 '+fmtT(d)+' 시작'])}
+  return out;
+}
+function meetRange(startIso,mins){const s0=startIso?new Date(startIso):new Date();return fmtT(s0)+' ~ '+fmtT(new Date(s0.getTime()+mins*60000))}
 const meetPlaceName=k=>(MEET_PLACES.find(x=>x[0]===k)||[0,k])[1];
 const meetActName=(kind,k,title)=>k==='custom'?'✏️ '+(title||'우리끼리 정한 놀이'):((MEET_ACTS[kind]||[]).find(x=>x[0]===k)||[0,k])[1];
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
@@ -457,7 +464,7 @@ function talkMeetUI(body){
    +'<button type="button" id="meetNew" class="meet-fab">＋ 모임 만들기</button>';
   const fb=$('#meetFilter');
   [['all','전체'],['play','🎈 놀자'],['study','📚 공부'],['mine','⭐ 내 모임']].forEach(([k,t])=>{const b=el('button','',t);b.type='button';b.dataset.f=k;b.onclick=()=>{meetFilter=k;meetPaint()};fb.append(b)});
-  $('#meetNew').onclick=()=>{meetForm={kind:'play',activity:'ball',title:'',place:'ground',minutes:60,max:4};meetFormUI()};
+  $('#meetNew').onclick=()=>{meetForm={kind:'play',activity:'ball',title:'',place:'ground',start:'',minutes:60,max:4};meetFormUI()};
   meetLoad(); talkTimer=setInterval(()=>{if(!document.hidden&&!meetForm)meetLoad()},10000);
 }
 function meetFormUI(){
@@ -469,7 +476,7 @@ function meetFormUI(){
   sheet.append(el('div','meet-lab','⚡ 한 번에 고르기'));
   const quick=el('div','meet-quick');
   MEET_QUICK.forEach(q=>{const b=el('button','',meetPlaceName(q[2]).replace(/^\S+\s/,'')+' '+meetActName(q[0],q[1]));b.type='button';
-    b.onclick=()=>{meetForm={kind:q[0],activity:q[1],title:'',place:q[2],minutes:q[3],max:q[4]};meetFormUI()};quick.append(b)});
+    b.onclick=()=>{meetForm={kind:q[0],activity:q[1],title:'',place:q[2],start:'',minutes:q[3],max:q[4]};meetFormUI()};quick.append(b)});
   sheet.append(quick);
   sheet.append(el('div','meet-lab','✏️ 내가 정하기'));
   const seg=el('div','meet-seg');
@@ -479,7 +486,7 @@ function meetFormUI(){
   const sel=(label,opts,val,on)=>{const w=el('label','meet-f');w.append(el('span','',label));const s=document.createElement('select');
     opts.forEach(o=>{const op=el('option','',o[1]);op.value=o[0];if(String(o[0])===String(val))op.selected=true;s.append(op)});s.onchange=()=>{on(s.value);meetPreview(pv,f)};w.append(s);return w};
   grid.append(sel('뭐 할까요',[...MEET_ACTS[f.kind],['custom','✏️ 내가 적을게요']],f.activity,v=>{f.activity=v;meetFormUI()}),sel('어디서',MEET_PLACES,f.place,v=>f.place=v),
-    sel('얼마나',[[30,'30분'],[60,'1시간'],[90,'1시간 30분']],f.minutes,v=>f.minutes=+v),sel('몇 명(나 포함)',[2,3,4,5,6,8].map(n=>[n,n+'명']),f.max,v=>f.max=+v));
+    sel('몇 시에',meetSlots(),f.start,v=>f.start=v),sel('얼마나',[[30,'30분'],[60,'1시간'],[90,'1시간 30분']],f.minutes,v=>f.minutes=+v),sel('몇 명(나 포함)',[2,3,4,5,6,8].map(n=>[n,n+'명']),f.max,v=>f.max=+v));
   sheet.append(grid);
   if(f.activity==='custom'){
     const t=document.createElement('input');t.maxLength=20;t.id='meetTitle';t.value=f.title||'';t.autocomplete='off';
@@ -491,17 +498,17 @@ function meetFormUI(){
   const ok=el('button','meet-go','✅ 모임 열기');ok.type='button';ok.id='meetOk';
   ok.onclick=async()=>{if(f.activity==='custom'&&!(f.title||'').trim()){$('#talkErr').textContent='하고 싶은 것을 적어 주세요.';return}
     ok.disabled=true;$('#talkErr').textContent='';
-    const r=await stCall({action:'meet_create',kind:f.kind,activity:f.activity,place:f.place,minutes:f.minutes,max:f.max,title:(f.activity==='custom'?(f.title||'').trim():''),note:note.value.trim()});
+    const r=await stCall({action:'meet_create',kind:f.kind,activity:f.activity,place:f.place,minutes:f.minutes,max:f.max,start:f.start||undefined,title:(f.activity==='custom'?(f.title||'').trim():''),note:note.value.trim()});
     ok.disabled=false;
     if(r.status===200){meetForm=null;meetFormUI();meetLoad()} else $('#talkErr').textContent=TALK_ERR[(r.data||{}).error]||'만들지 못했어요. 다시 해 보세요.';};
   sheet.append(ok);box.append(sheet);box.scrollIntoView({behavior:'smooth',block:'end'});
 }
 function meetPreview(pv,f){
   pv.textContent='';
-  pv.append(el('div','meet-t',meetActName(f.kind,f.activity,f.title)+' 같이 해요'),el('div','meet-i',meetPlaceName(f.place)+' · '+f.minutes+'분 · '+f.max+'명 모집'));
+  pv.append(el('div','meet-t',meetActName(f.kind,f.activity,f.title)+' 같이 해요'),el('div','meet-i',meetPlaceName(f.place)+' · 🕓 '+meetRange(f.start,f.minutes)+' · '+f.max+'명 모집'));
 }
 let meetData=[];
-function meetLeft(m){const min=Math.round((new Date(m.until)-Date.now())/60000);return min<=0?'끝남':(min>=60?Math.floor(min/60)+'시간 '+(min%60?min%60+'분 ':''):min+'분 ')+'남음'}
+function meetLeft(m){const wait=Math.round((new Date(m.start)-Date.now())/60000);if(wait>=2)return '⏰ '+(wait>=60?Math.floor(wait/60)+'시간 '+(wait%60?wait%60+'분 ':''):wait+'분 ')+'뒤 시작';const min=Math.round((new Date(m.until)-Date.now())/60000);return min<=0?'끝남':(min>=60?Math.floor(min/60)+'시간 '+(min%60?min%60+'분 ':''):min+'분 ')+'남음'}
 async function meetAct(action,id){
   const r=await stCall({action,id}); $('#talkErr').textContent=r.status===200?'':(TALK_ERR[(r.data||{}).error]||'잠시 뒤에 다시 해 보세요.');
   meetLoad();
@@ -524,7 +531,7 @@ function meetPaint(){
     top.append(el('span','meet-tag',m.kind==='study'?'📚 같이 공부':'🎈 같이 놀기'));
     const left=el('span','meet-left',meetLeft(m));top.append(left);
     if(!m.ended&&m.max-m.people.length===1)top.append(el('span','meet-hot','🔥 1자리 남음'));
-    c.append(top,el('div','meet-t',meetActName(m.kind,m.activity,m.title)+' 같이 해요'),el('div','meet-i',meetPlaceName(m.place)+' · '+m.host+' 친구가 열었어요'));
+    c.append(top,el('div','meet-t',meetActName(m.kind,m.activity,m.title)+' 같이 해요'),el('div','meet-i','🕓 '+fmtT(m.start)+' ~ '+fmtT(m.until)),el('div','meet-i',meetPlaceName(m.place)+' · '+m.host+' 친구가 열었어요'));
     if(m.note)c.append(el('div','meet-note','“'+m.note+'”'));
     const bar=el('div','meet-bar'),fill=el('i');fill.style.width=Math.min(100,m.people.length/m.max*100)+'%';bar.append(fill);
     const who=el('div','meet-who'),av=el('div','meet-av');

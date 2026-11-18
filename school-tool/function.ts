@@ -162,13 +162,13 @@ Deno.serve(async (req) => {
     const now = new Date();
     if (action === "meet_list") {
       const from = new Date(now.getTime() - 30 * 60 * 1000).toISOString();     // 끝난 지 30분 안 된 모임까지 보여 준다
-      const { data: rows } = await sb.from("st_meetups").select("id,host_id,kind,activity,title,place,until_at,max_people,note,created_at,st_meetup_joins(student_id)")
+      const { data: rows } = await sb.from("st_meetups").select("id,host_id,kind,activity,title,place,start_at,until_at,max_people,note,created_at,st_meetup_joins(student_id)")
         .eq("class_id", st.class_id).eq("hidden", false).eq("cancelled", false).gte("until_at", from).order("created_at", { ascending: false }).limit(40);
       const { data: mates } = await sb.from("gt_students").select("id,number,name").eq("class_id", st.class_id);
       const byId = new Map((mates ?? []).map((m: any) => [m.id, m]));
       const list = ((rows ?? []) as any[]).map((r) => {
         const ids: string[] = [r.host_id, ...r.st_meetup_joins.map((j: any) => j.student_id).filter((x: string) => x !== r.host_id)];
-        return { id: r.id, kind: r.kind, activity: r.activity, title: r.title ?? "", place: r.place, until: r.until_at, max: r.max_people, note: r.note, ended: r.until_at < now.toISOString(),
+        return { id: r.id, kind: r.kind, activity: r.activity, title: r.title ?? "", place: r.place, start: r.start_at ?? r.created_at, until: r.until_at, max: r.max_people, note: r.note, ended: r.until_at < now.toISOString(),
           host: byId.get(r.host_id)?.name ?? "", mine: r.host_id === st!.id, joined: ids.includes(st!.id),
           people: ids.map((i) => ({ num: byId.get(i)?.number ?? 0, name: byId.get(i)?.name ?? "" })) };
       });
@@ -184,6 +184,13 @@ Deno.serve(async (req) => {
       if (!(kind in ACTS) || !(activity === "custom" || ACTS[kind].includes(activity)) || !PLACES.includes(place) || ![30, 60, 90].includes(mins) || !Number.isInteger(max) || max < 2 || max > 8) return json({ error: "bad_input" }, 400, origin);
       const title = activity === "custom" ? String(body.title ?? "").replace(/\s+/g, " ").trim().slice(0, 20) : "";
       if (activity === "custom" && (!title || BLOCKED.test(title))) return json({ error: title ? "blocked_content" : "bad_input" }, 400, origin);   // 직접 쓰는 제목도 주소·전화·이메일은 막는다
+      // 시작 시각: 안 보내면 지금. 보내면 지금부터 8시간 안의 시각만(과거 2분까지 허용)
+      let startMs = now.getTime();
+      if (body.start) {
+        const t = new Date(String(body.start)).getTime();
+        if (!Number.isFinite(t) || t < now.getTime() - 2 * 60000 || t > now.getTime() + 8 * 3600000) return json({ error: "bad_input" }, 400, origin);
+        startMs = Math.max(t, now.getTime());
+      }
       const note = String(body.note ?? "").replace(/\s+/g, " ").trim().slice(0, 100);
       if (note && BLOCKED.test(note)) return json({ error: "blocked_content" }, 400, origin);
       const dayAgo = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
@@ -191,7 +198,7 @@ Deno.serve(async (req) => {
       if ((dayN ?? 0) >= 5) return json({ error: "too_many_messages" }, 429, origin);
       const { count: open } = await sb.from("st_meetups").select("id", { count: "exact", head: true }).eq("host_id", st.id).eq("cancelled", false).gte("until_at", now.toISOString());
       if ((open ?? 0) >= 2) return json({ error: "too_many_open" }, 429, origin);
-      const { error } = await sb.from("st_meetups").insert({ class_id: st.class_id, host_id: st.id, kind, activity, title, place, until_at: new Date(now.getTime() + mins * 60000).toISOString(), max_people: max, note });
+      const { error } = await sb.from("st_meetups").insert({ class_id: st.class_id, host_id: st.id, kind, activity, title, place, start_at: new Date(startMs).toISOString(), until_at: new Date(startMs + mins * 60000).toISOString(), max_people: max, note });
       if (error) return json({ error: "save_failed" }, 500, origin);
       if (Math.random() < 0.05) await sb.from("st_meetups").delete().lt("created_at", new Date(now.getTime() - 7 * 24 * 3600 * 1000).toISOString());
       return json({ ok: true }, 200, origin);

@@ -3,3 +3,4 @@
 -- st_meetup_joins(meetup_id, student_id) / st_chat_settings.meetup_locked
 -- RLS: 교사(gt_is_teacher())만 직접 접근, 학생은 school-tool 함수(meet_list/meet_create/meet_join/meet_cancel)로만. anon 권한 없음.
 -- 추가: st_meetups.title text not null default ''  (activity='custom'일 때 학생이 직접 쓴 20자 제목)
+-- 추가: st_meetups.start_at timestamptz (시작 시각, 기존 행은 created_at 으로 채움)
