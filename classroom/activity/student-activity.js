@@ -58,7 +58,7 @@
     function ensureRoot(){
       if(root)return;
       root=el('div','display:none;position:fixed;inset:0;z-index:'+Z+';background:rgba(15,23,42,.38);align-items:center;justify-content:center;padding:12px;overflow:auto;font-family:system-ui,"Apple SD Gothic Neo",sans-serif');
-      root.dataset.classroomUi='1';root.id='craStudent';
+      root.id='craStudent';   // 교사의 학생 화면 미리보기에 활동 카드(그리는 중인 그림)도 찍히도록 classroomUi 표시는 달지 않는다
       document.body.appendChild(root);
       mini=el('button','display:none;position:fixed;right:12px;bottom:12px;z-index:'+Z+';'+BTN+';background:#2563eb;color:#fff;box-shadow:0 6px 20px #0006','📝 활동 열기');
       mini.dataset.classroomUi='1';
