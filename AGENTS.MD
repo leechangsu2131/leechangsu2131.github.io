@@ -893,3 +893,6 @@
 
 ### 🏠 첫 화면 정리 (2026-11-19)
 - `index.html`에서 투자·업무·마음/몸 칸을 빼고 「교육 · 기타 · 교사 메뉴」만 남겼다. 투자(`investment-dashboard`, `investstr`, `PETER`, `dcfdamodaran`, `dcf`, `narrative_dcf`, 체크리스트)·업무(`운동장천막배치`, `쿠폰생성`)·마음/몸/도구(`resetmind`, `fight`, `exercise`, `Pdf-splitter`)는 새 `etc.html`에 같은 디자인으로 옮겼다. 파일 주소는 그대로라 즐겨찾기·다른 링크는 영향 없다. 교사 메뉴는 첫 화면에 남겨 두었다(옮기려면 `index.html`의 `#teacher` 칸을 `etc.html`로 옮기면 된다).
+
+### 2026-11-20 추가: GitHub → GitLab 자동 미러(I-20)
+- `.github/workflows/mirror_to_gitlab.yml`: main push 때(또는 수동) `git push --force` 로 gitlab.com/changsu423/homepage 의 main 을 GitHub 와 같게 맞춤. 비밀값 `GITLAB_TOKEN`(GitHub Secrets). GitHub 가 기준, 한 방향.

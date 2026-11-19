@@ -1,0 +1,28 @@
+# GitHub main 에 올라가면 GitLab(changsu423/homepage)에도 같은 내용을 자동으로 올린다. (GitHub → GitLab 한 방향)
+# 필요한 비밀값: GitHub 저장소 Settings > Secrets and variables > Actions 에 GITLAB_TOKEN (GitLab 액세스 토큰, write_repository)
+# 토큰은 이 파일이나 대화에 적지 않는다. 직접 실행: Actions 탭 > "GitLab 미러" > Run workflow
+name: GitLab 미러
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: gitlab-mirror
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: GitLab 으로 올리기
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          if [ -z "$GITLAB_TOKEN" ]; then echo "GITLAB_TOKEN 비밀값이 없습니다. GitHub Settings > Secrets 에 추가해 주세요."; exit 1; fi
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/changsu423/homepage.git"
+          # GitLab 쪽이 달라져 있어도 GitHub main 내용으로 맞춘다(GitHub 가 기준)
+          git push --force gitlab HEAD:refs/heads/main

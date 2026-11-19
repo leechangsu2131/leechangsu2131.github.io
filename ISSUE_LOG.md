@@ -32,6 +32,12 @@
 
 ## 해결한 이슈 (최신순)
 
+### 2026-11-20 · I-20 GitHub → GitLab 자동 올리기  🧪
+- 요청: GitHub에 올리면 GitLab(changsu423/homepage)에도 자동으로 반영.
+- 한 것: `.github/workflows/mirror_to_gitlab.yml` 추가(main에 올라가면 GitLab main을 GitHub 내용으로 맞춤, 수동 실행도 가능). 토큰은 GitHub Secrets의 `GITLAB_TOKEN`(GitLab 액세스 토큰, write_repository, Maintainer)만 사용 — 파일·대화에 적지 않음.
+- 주의: 한 방향(GitHub → GitLab). GitLab에 직접 올린 내용은 덮어써짐. `Upload_to_GitLab.bat`은 이제 필요 없음.
+- 남은 것: 선생님이 `GITLAB_TOKEN` 저장 후 Actions 탭에서 「GitLab 미러」 실행 결과(초록 체크)와 GitLab에 반영된 것 확인(🧪 → ✅).
+
 ### 2026-11-19 · I-19 모이자(모임판) 시간: 만들기는 정해진 시간만, 보기는 항상  🧪
 - 요청: 모임 만들기는 평일 13:40~20:00, 주말 08:00~20:00에만. 보는 건 항상.
 - 한 것: school-tool(v16) `meet_list`는 시간과 관계없이 열람 가능, `meet_create`만 `createClosed`(한국 시간 기준)일 때 `create_closed`로 막음. 화면에는 안내 문구, 「모임 만들기」 버튼 비활성. 선생님 잠금(meetup_locked)은 그대로 전체를 막음. 참가·취소·칭찬은 시간 제한 없음(전에는 이야기방과 같은 14~19시 제한이었음). 이야기방·1:1은 기존 14~19시 그대로.
