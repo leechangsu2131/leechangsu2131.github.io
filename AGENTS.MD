@@ -822,6 +822,7 @@
 - 위치: school.html 「이야기방 → 🔁 바꾸자」(학생), classroom/teacher.html 「🔁 물물장터 관리」(교사). 서버 `swap-market`(verify_jwt=false, Origin 허용 목록·횟수 제한·명단 확인·교사는 `t_` 동작만, 학생은 `t_` 불가).
 - DB: `st_swap_items`, `st_swap_offers`(RLS, anon 없음, 교사 정책 `gt_is_teacher()`). 사진: 비공개 버킷 `swap-photos`(JPEG, 200KB 이하, 1시간 서명 주소로만 봄).
 - 흐름: 올리기(기한 1·2·3·7일) → 제안(공개 제안이지만 올린 친구·선택된 짝·교사만 봄) → 한 명 고름 → 약속(학교 안 시간·장소) → 양쪽 확인 → 끝.
+- 사진 입력: 「📷 사진 찍기」(`capture=environment`, 카메라 바로 열림)와 「🖼️ 갤러리에서 고르기」 두 버튼(`swPhotoInput`, school.html). 둘 다 640px·200KB 이하 JPEG로 줄여 올림.
 - 규칙: 돈 관련 말·전화·주소 차단, 교사는 숨기기/삭제, 주 1회 「한 주 기록 저장」(CSV, 사진 제외) 후 「기록 모두 지우기」로 글·제안·사진 삭제.
 
 ### ⏰ 이야기방 방과후 시간대 열기·닫기 (2026-11-19)
@@ -829,3 +830,8 @@
 - 바꾸는 법: Supabase 대시보드 → Edge Functions → Secrets 에 `ST_OPEN_HOURS` = `14-19`(시작시-끝시) 형식으로 넣는다. `off`면 항상 열림(수업 시간에 시험할 때). 비밀값을 바꾼 뒤 함수를 다시 배포할 필요는 없지만 반영에 잠깐 걸릴 수 있다. 교사 화면의 「이야기방 닫기/열기」 잠금(`locked`, `dm_locked`, `meetup_locked`)과는 별개이며, 둘 중 하나라도 걸리면 닫힌다.
 - 학생 화면(school.html): `timeClosed`일 때 "지금은 닫혀 있어요. 방과후(오후 2시~7시)에 열려요." 문구(`TIME_MSG`)를 보여 준다. 시간을 바꾸면 이 문구의 시각도 같이 고쳐야 한다.
 - 시험은 가짜 서버로 `timeClosed` 응답 때 문구·입력 막힘만 확인했다. 실제 서버 시각 판단은 확인하지 못했다.
+
+### 2026-11-19 추가: 열린 수업방 안내 · 교사 메뉴(I-18)
+- classroom/teacher.html: 교사 로그인 직후 `liveCheck()`가 `classroom_admin_list`(열린 방이 없으면 'room not found' 오류)로 HC302가 열려 있는지 확인 → `#liveNow` 상자(들어가기 / 종료). DB 변경 없음.
+- education.html: 하단 `#teacherBar`(「🧑‍🏫 교사 관리 화면」→ classroom/teacher.html)는 `sessionStorage st_s`에 `teacher:true`가 있을 때만 보임.
+- 열린 수업방 자동 종료 시간(현재 8시간)을 줄일지는 선생님 결정 대기.
