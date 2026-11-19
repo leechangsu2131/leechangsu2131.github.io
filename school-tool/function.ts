@@ -42,6 +42,12 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405, origin);
   if (!ALLOW_ANY && origin && !ALLOW_LIST.includes(origin)) return json({ error: "forbidden_origin" }, 403, origin);
 
+  // 이야기방·1:1·모임판은 방과후 시간대(한국 시간)에만 열린다. 비밀값 ST_OPEN_HOURS="14-19"(시작시-끝시), "off"면 항상 열림
+  const OH = (Deno.env.get("ST_OPEN_HOURS") ?? "14-19").trim();
+  const kstHour = (new Date().getUTCHours() + 9) % 24;
+  const [ohA, ohB] = OH.split("-").map(Number);
+  const timeClosed = OH !== "off" && Number.isFinite(ohA) && Number.isFinite(ohB) && !(kstHour >= ohA && kstHour < ohB);
+
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
   const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel", "meet_review", "meet_praise", "meet_concern", "report_send"].includes(body.action) ? body.action : "";
@@ -160,7 +166,7 @@ Deno.serve(async (req) => {
   // ---------- 우리 반 이야기방(학생끼리 대화, 교사가 숨기기·삭제·잠금) ----------
   if (action === "chat_list" || action === "chat_send") {
     const { data: setg } = await sb.from("st_chat_settings").select("locked").eq("class_id", st.class_id).maybeSingle();
-    const locked = !!setg?.locked;
+    const locked = !!setg?.locked || timeClosed;
     if (action === "chat_send") {
       if (locked) return json({ error: "chat_locked" }, 403, origin);
       const text = String(body.body ?? "").replace(/\s+/g, " ").trim().slice(0, 150);
@@ -180,7 +186,7 @@ Deno.serve(async (req) => {
       .eq("class_id", st.class_id).eq("hidden", false).order("created_at", { ascending: false }).limit(60);
     // deno-lint-ignore no-explicit-any
     const list = (rows ?? []).reverse().map((r: any) => ({ id: r.id, body: r.body, at: r.created_at, num: r.gt_students?.number ?? 0, name: r.gt_students?.name ?? "", mine: r.student_id === st!.id }));
-    return json({ ok: true, locked, me: st.number, messages: list }, 200, origin);
+    return json({ ok: true, locked, timeClosed, me: st.number, messages: list }, 200, origin);
   }
 
   // ---------- 같이 놀자 / 같이 공부하자 모임판(고르기 중심, 공공장소만, 교사가 숨기기·삭제·잠금) ----------
@@ -188,7 +194,7 @@ Deno.serve(async (req) => {
     const PLACES = ["ground", "school_lib", "playground", "town_lib"];                       // 미리 정한 공공장소만(집·주소 없음)
     const ACTS: Record<string, string[]> = { play: ["tag", "ball", "board", "jump", "draw", "talk"], study: ["homework", "read", "math", "write"] };
     const { data: setg } = await sb.from("st_chat_settings").select("meetup_locked").eq("class_id", st.class_id).maybeSingle();
-    const locked = !!setg?.meetup_locked;
+    const locked = !!setg?.meetup_locked || timeClosed;
     const now = new Date();
     const PRAISE = ["thanks", "fun", "kind", "rule", "lead"];
     const CONCERN = ["rule", "words", "absent", "other"];
@@ -214,7 +220,7 @@ Deno.serve(async (req) => {
           people: ids.map((i) => ({ num: byId.get(i)?.number ?? 0, name: byId.get(i)?.name ?? "" })) };
       });
       const shown = list.filter((m) => !m.ended || m.review || now.getTime() - new Date(m.until).getTime() <= 30 * 60 * 1000);
-      return json({ ok: true, locked, me: st.number, meetups: shown, ...(await myTemp()) }, 200, origin);
+      return json({ ok: true, locked, timeClosed, me: st.number, meetups: shown, ...(await myTemp()) }, 200, origin);
     }
     // ---------- 모임 뒤 매너온도: 칭찬 스티커(온도 오름)와 '불편했어요'(선생님에게만, 점수 아님) ----------
     if (action === "meet_review" || action === "meet_praise" || action === "meet_concern") {
@@ -316,7 +322,7 @@ Deno.serve(async (req) => {
       return json({ ok: true, me: st.number, friends }, 200, origin);
     }
     const { data: setg } = await sb.from("st_chat_settings").select("dm_locked").eq("class_id", st.class_id).maybeSingle();
-    const locked = !!setg?.dm_locked;
+    const locked = !!setg?.dm_locked || timeClosed;
     if (action === "dm_list") {
       const withNum = body.with === undefined || body.with === null ? null : Number(body.with);
       if (withNum === null) {
@@ -331,7 +337,7 @@ Deno.serve(async (req) => {
           peers.set(pid, p);
         }
         const list = [...peers.values()];
-        return json({ ok: true, locked, unread: list.reduce((a, p) => a + p.unread, 0), peers: list }, 200, origin);
+        return json({ ok: true, locked, timeClosed, unread: list.reduce((a, p) => a + p.unread, 0), peers: list }, 200, origin);
       }
       const peer: any = (mates ?? []).find((m: any) => m.number === withNum);
       if (!peer || peer.id === st.id) return json({ error: "no_student" }, 404, origin);
@@ -339,7 +345,7 @@ Deno.serve(async (req) => {
         .or(`and(from_id.eq.${st.id},to_id.eq.${peer.id}),and(from_id.eq.${peer.id},to_id.eq.${st.id})`).order("created_at", { ascending: false }).limit(60);
       await sb.from("st_dm").update({ read_at: new Date().toISOString() }).eq("to_id", st.id).eq("from_id", peer.id).is("read_at", null);
       const list = ((rows ?? []) as any[]).reverse().map((r) => ({ id: r.id, body: r.body, at: r.created_at, mine: r.from_id === st!.id }));
-      return json({ ok: true, locked, peer: { num: peer.number, name: peer.name }, messages: list }, 200, origin);
+      return json({ ok: true, locked, timeClosed, peer: { num: peer.number, name: peer.name }, messages: list }, 200, origin);
     }
     // dm_send
     if (locked) return json({ error: "chat_locked" }, 403, origin);
