@@ -229,7 +229,8 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .sw-card{border:2px solid #e2e8f0;border-radius:16px;padding:10px;display:grid;gap:6px;background:#fff;margin:8px 0}.sw-card img{width:100%;max-height:260px;object-fit:contain;background:#f1f5f9;border-radius:12px}
 .sw-card h3{margin:0;font-size:18px}.sw-m{font-size:14px;color:#57534e}.sw-want{background:#ecfeff;border-radius:10px;padding:6px 10px;font-weight:700}
 .sw-off{border:2px dashed #94a3b8;border-radius:12px;padding:8px;display:grid;gap:4px}.sw-card input,.sw-card textarea,.sw-card select,.sw-form input,.sw-form textarea,.sw-form select{font:inherit;font-size:16px;min-height:44px;padding:6px 10px;border:2px solid #cbd5e1;border-radius:12px;width:100%;box-sizing:border-box}
-.sw-form{border:2px solid #86efac;border-radius:16px;padding:10px;display:grid;gap:8px;background:#f0fdf4;margin:8px 0}.sw-btn{min-height:46px;border-radius:12px;border:2px solid #16a34a;background:#16a34a;color:#fff;font-weight:800;font-size:16px;padding:6px 14px;cursor:pointer}.sw-btn.ghost{background:#fff;color:#166534}.sw-btn.ghost[aria-pressed=true]{background:#dcfce7;border-color:#15803d;color:#14532d}
+.sw-form{border:2px solid #86efac;border-radius:16px;padding:10px;display:grid;gap:8px;background:#f0fdf4;margin:8px 0}.sw-btn{min-height:46px;border-radius:12px;border:2px solid #16a34a;background:#16a34a;color:#fff;font-weight:800;font-size:16px;padding:6px 14px;cursor:pointer}.sw-btn.ghost{background:#fff;color:#166534}.ch-av{vertical-align:middle;margin-right:4px}.ch-opt{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.ch-opt button{min-height:40px;padding:4px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;font:inherit;cursor:pointer}.ch-opt button[aria-pressed=true]{border-color:#15803d;background:#dcfce7}.ch-opt button:disabled{opacity:.45;cursor:not-allowed}.ch-prev{display:flex;align-items:center;gap:12px;margin:6px 0}
+.sw-btn.ghost[aria-pressed=true]{background:#dcfce7;border-color:#15803d;color:#14532d}
 .sw-deal{background:#fef9c3;border:2px solid #facc15;border-radius:12px;padding:8px;display:grid;gap:6px}.sw-ok{color:#b91c1c;font-weight:700;font-size:14px}
 .meet-lab{font-size:14px;font-weight:800;color:#64748b;margin-top:4px}
 .meet-quick{display:flex;flex-wrap:wrap;gap:6px}
@@ -332,6 +333,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 
 <script src="classroom/where.js"></script>
 <script src="shared/after-budget.js?v=2"></script>
+<script src="shared/char.js?v=1"></script>
 <script>
 // GitHub Pages는 정적 호스팅이라 /api를 실행하지 못합니다. Vercel 배포 주소를 넣으세요.
 const API_BASE='https://school-api-alpha-gules.vercel.app';
@@ -445,7 +447,7 @@ function talkOpen(){
   }
   talkView=talkView||'all'; talkPeer=null;
   box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방</b><span class="n-updated" id="talkMe"></span></div>'
-   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button></div>'
+   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button><button type="button" data-v="char">🧙 캐릭터</button></div>'
    +'<div id="talkBody"></div>';
   $('#talkMe').textContent=s.num+'번 '+(s.name||'');
   $$('#talkSeg button').forEach(b=>b.onclick=()=>{talkView=b.dataset.v;talkPeer=null;talkRender()});
@@ -455,7 +457,7 @@ function talkRender(){
   talkStop(); talkLast='';
   $$('#talkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===talkView));
   const body=$('#talkBody'); if(!body) return;
-  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
+  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkView==='char') talkCharUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
 }
 function talkForm(onSend,ph){
   const f=document.createElement('form');f.className='talk-form';
@@ -854,7 +856,8 @@ async function dmThreadLoad(force){
   try{
     const r=await stCall({action:'dm_list',with:talkPeer.num});
     if(r.status!==200){ if(r.status===401||r.status===403){talkStop()} return; }
-    const d=r.data, sig=JSON.stringify([d.locked,(d.messages||[]).map(m=>m.id)]);
+    await chEnsure();
+    const d=r.data, sig=JSON.stringify([d.locked,(d.messages||[]).map(m=>m.id),chSig()]);
     $('#talkLock').style.display=d.locked?'block':'none'; if(d.timeClosed)$('#talkLock').textContent=TIME_MSG;
     const inp=$('#talkIn'),sb=$('#talkSend'); if(inp)inp.disabled=!!d.locked; if(sb)sb.disabled=!!d.locked;
     if(!force&&sig===talkLast) return; if(!force&&document.querySelector('.rpt-panel')) return; talkLast=sig;
@@ -884,12 +887,77 @@ async function talkLoad(force){
     if(!(d.messages||[]).length){const p=document.createElement('p');p.className='talk-rule';p.style.textAlign='center';p.textContent='아직 이야기가 없어요. 먼저 인사해 볼까요?';list.append(p)}
     (d.messages||[]).forEach(m=>{
       const w=document.createElement('div');w.className='tk'+(m.mine?' me':'');
-      const who=document.createElement('div');who.className='who';who.textContent=m.num+'번 '+m.name+' · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+      const who=document.createElement('div');who.className='who';const av=chAvatar(m.num,24);if(av)who.append(av);who.append(document.createTextNode(m.num+'번 '+m.name+' · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'})));
       const b=document.createElement('div');b.className='bub';b.textContent=m.body;
       w.append(who,b);if(!m.mine)w.append(reportBtn('chat',m.id,w));list.append(w);
     });
     if(atEnd) list.scrollTop=list.scrollHeight;
   }catch(e){}finally{talkBusy=false}
+}
+
+/* ---------- 🧙 캐릭터(조합형): 몸·색·눈·입·모자·꾸밈을 골라 만들고 저장. 서버 char-hub. 조합 코드만 저장해요(사진·그림 파일 없음) ---------- */
+let chMap={}, chAt=0, chBusy=null;
+async function chCall(body){
+  const who=await stWho(); if(!who||!who.jwt) return {status:401,data:{error:'login_required'}};
+  const r=await fetch(ST_URL+'/functions/v1/char-hub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:who.jwt,...body})});
+  let d=null;try{d=await r.json()}catch(e){} return {status:r.status,data:d||{}};
+}
+// 우리 반 캐릭터를 1분에 한 번만 가져온다(이야기방 글 옆 작은 얼굴용). 로그인 없이 들어온 친구는 건너뛴다.
+async function chEnsure(force){
+  if(!window.CharArt) return;
+  if(!force&&Date.now()-chAt<60000) return;
+  if(chBusy) return chBusy;
+  chBusy=(async()=>{try{const r=await chCall({action:'list'});if(r.status===200&&r.data.chars){chMap=r.data.chars}chAt=Date.now()}catch(e){chAt=Date.now()}finally{chBusy=null}})();
+  return chBusy;
+}
+function chSig(){return Object.keys(chMap).length+':'+chAt}
+function chAvatar(num,size){
+  if(!window.CharArt) return null;
+  const p=chMap[String(num)]; if(!p) return null;
+  const a=window.CharArt.svg(p,size||24); if(a) a.classList.add('ch-av'); return a;
+}
+const CH_ROWS=[['b','몸 모양'],['c','색'],['e','눈'],['m','입'],['h','모자'],['a','꾸미기']];
+async function talkCharUI(body){
+  body.textContent='';
+  const msg=el('div','talk-msg'); const box=el('div');
+  body.append(el('p','talk-rule','나만의 캐릭터를 만들어요. 고른 조합만 저장돼요(사진은 올리지 않아요). 우리 반 이야기방 글 옆에 작게 보여요.'),box,msg);
+  const r=await chCall({action:'get'});
+  if(r.status===401&&r.data.error==='login_required'){box.append(el('p','talk-rule','구글로 로그인한 친구만 캐릭터를 만들 수 있어요.'));return}
+  if(r.status!==200){msg.textContent='불러오지 못했어요. 잠시 뒤에 다시 해 보세요.';return}
+  const d=r.data, A=window.CharArt, sp=new Set();
+  Object.entries(d.special||{}).forEach(([k,l])=>l.forEach(i=>sp.add(k+i)));
+  const open=d.temp>=d.special_temp;
+  let cur=A.normalize(d.mine||{b:0,c:3,e:0,m:0,h:0,a:0}); let dirty=!d.mine;
+  const prev=el('div','ch-prev'), pv=el('div'), info=el('div');
+  info.append(el('b','','🌡️ 내 매너온도 '+d.temp.toFixed(1)+'℃'),el('div','sw-m',open?'✨ 특별 모자와 꾸미기를 쓸 수 있어요!':'✨ 매너온도가 '+d.special_temp+'℃가 되면 특별 모자와 꾸미기가 열려요. 칭찬을 받으면 올라가요.'));
+  prev.append(pv,info);
+  const draw=()=>{pv.textContent='';pv.append(A.svg(cur,96))};
+  const rows=el('div');
+  const btns={};
+  CH_ROWS.forEach(([k,label])=>{
+    rows.append(el('b','',label));
+    const w=el('div','ch-opt');btns[k]=[];
+    for(let i=0;i<A.SIZE[k];i++){
+      const b=el('button','',k==='c'?'':A.NAMES[k][i]);b.type='button';
+      if(k==='c'){b.style.background=A.COLORS[i];b.style.minWidth='40px';b.setAttribute('aria-label',A.NAMES.c[i]);b.textContent=' '}
+      const locked=sp.has(k+i)&&!open; if(locked){b.disabled=true;b.textContent='🔒 '+A.NAMES[k][i].replace(' ✨','')}
+      b.setAttribute('aria-pressed',String(cur[k]===i));
+      b.onclick=()=>{cur[k]=i;dirty=true;btns[k].forEach((x,j)=>x.setAttribute('aria-pressed',String(j===i)));draw();save.disabled=false;msg.textContent=''};
+      btns[k].push(b);w.append(b);
+    }
+    rows.append(w);
+  });
+  const row=el('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+  const rnd=el('button','sw-btn ghost','🎲 아무거나');rnd.type='button';
+  rnd.onclick=()=>{CH_ROWS.forEach(([k])=>{let i;do{i=Math.floor(Math.random()*A.SIZE[k])}while(sp.has(k+i)&&!open);cur[k]=i;btns[k].forEach((x,j)=>x.setAttribute('aria-pressed',String(j===i)))});dirty=true;draw();save.disabled=false};
+  const save=el('button','sw-btn','💾 저장');save.type='button';save.disabled=!dirty;
+  save.onclick=async()=>{save.disabled=true;const q=await chCall({action:'save',parts:cur});
+    if(q.status===200){msg.textContent='✅ 저장했어요! 이야기방에서 내 캐릭터가 보여요.';chMap[String(d.me)]=cur;chEnsure(true)}
+    else{msg.textContent=q.data.error==='special_locked'?'특별 꾸미기는 매너온도 '+d.special_temp+'℃부터 쓸 수 있어요.':'저장하지 못했어요. 잠시 뒤에 다시 해 보세요.';save.disabled=false}};
+  row.append(rnd,save);
+  box.append(prev,rows,row);
+  if(d.hidden)box.append(el('p','talk-rule','선생님이 지금은 이 캐릭터를 숨겨 두었어요.'));
+  draw();
 }
 
 /* 주 이동 + 요일 선택 (시간표·급식 공유) */

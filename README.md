@@ -25,6 +25,7 @@ https://homepage-53dd99.gitlab.io/
 | 수업 진행판 | `castle-class.html` — 성 수업(교육연극) 진행 + 녹음·단계 기록 (index.html 의 "교육" 칸, 학생용 교육 도구 모음에는 없음) |
 | 성장 발표 | `growth/index.html` — 학생 글쓰기 + AI 선생님 질문 피드백 |
 | 교실 연결 | `school-tool/index.html` — 학생 접속 현황·공지·선생님↔학생 메시지 |
+| 학생 캐릭터 | `school.html` 이야기방 「🧙 캐릭터」 탭 — 조합형 캐릭터 만들기(`shared/char.js`, 서버 `char-hub`) |
 | 교사 관리 | `classroom/teacher.html` — 수업 화면 모니터링, 단원평가 공개 설정, 그림책 코치 설정, 교실 연결 |
 | 수업 활동 | `classroom/activity/` — 수업방에서 주관식·객관식·영상 활동 띄우기, 수업 흐름 저장/불러오기, 큰 화면, CSV (교사 화면 "📋 수업 활동" 칸, 설명은 `classroom/README.md` 6번) |
 | 학교정보 | `school.html` (시간표·급식·학사일정) |
