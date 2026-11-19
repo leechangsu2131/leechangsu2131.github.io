@@ -20,8 +20,9 @@ https://homepage-53dd99.gitlab.io/
 | 교육 허브 | `education.html` (교육 도구 목록) |
 | 수업 연습 | `multiply.html`, `DEVIDE.HTML`, `fraction*.html`, `onedraw.html` 등 |
 | 분수 놀이 | `분수_놀이터.html`(허브)와 `분수_*.html` 놀이 앱 9개 — 가게놀이·징검다리·모둠릴레이·대결·빙고대결·수직선사냥·짝맞추기·손가락축구·순위표 |
-| 업무 도구 | `Pdf-splitter.html`, `운동장천막배치.html`, `쿠폰생성.html`, `castle-class.html` (index.html 의 "업무" 칸) |
+| 업무 도구 | `Pdf-splitter.html`, `운동장천막배치.html`, `쿠폰생성.html` (index.html 의 "업무" 칸) |
 | 평가 | `tests/index.html` (단원평가), `tests/notebook_*.html` (오답노트) |
+| 수업 진행판 | `castle-class.html` — 성 수업(교육연극) 진행 + 녹음·단계 기록 (index.html 의 "교육" 칸, 학생용 교육 도구 모음에는 없음) |
 | 성장 발표 | `growth/index.html` — 학생 글쓰기 + AI 선생님 질문 피드백 |
 | 교실 연결 | `school-tool/index.html` — 학생 접속 현황·공지·선생님↔학생 메시지 |
 | 교사 관리 | `classroom/teacher.html` — 수업 화면 모니터링, 단원평가 공개 설정, 그림책 코치 설정, 교실 연결 |

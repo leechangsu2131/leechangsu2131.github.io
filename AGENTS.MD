@@ -28,6 +28,7 @@
 | 📚 교육 | 나눗셈 연습 | `DEVIDE.HTML` |
 | 📚 교육 | 한붓그리기 (오일러 그래프) | `onedraw.html` |
 | 📚 교육 | 교사 셀프스터디 플랫폼 | `selfstudy.html` |
+| 📚 교육 | 성 수업 진행판 (교육연극 80분 수업 진행 + 녹음·단계 기록, index.html 교육 칸) | `castle-class.html` |
 | 📚 교육 | 단원평가 플랫폼 (학생 평가 & 교사 채점) | `tests/index.html` |
 | 📚 교육 | 우리 반 교실 연결 (접속 현황·공지·선생님↔학생 메시지, 번호·이름 입장, Edge Function `school-tool`, 테이블 `st_*`; 교사용은 교사 계정 로그인, 학생 명단은 `gt_students` 공용) | `school-tool/index.html`, `school-tool/teacher.html`, `school-tool/function.ts` |
 | 📚 교육 | 나의 성장 발표 준비 (학생 글쓰기 + AI 질문 피드백, 구글 로그인 또는 번호·이름 입장, Supabase Edge Function `growth-tutor` = `growth/function.ts`) | `growth/index.html` |
@@ -66,7 +67,6 @@
 | 🛠️ 업무 도구 | PDF 분할기 | `Pdf-splitter.html` |
 | 🛠️ 업무 도구 | 도면 천막 배치 도구 (운동장 도면 위에 천막 배치) | `운동장천막배치.html` |
 | 🛠️ 업무 도구 | 학생 식권 생성기 (A4 한 장 8개 인쇄) | `쿠폰생성.html` |
-| 🛠️ 업무 도구 | 성 수업 진행판 (교육연극 80분 수업 진행 + 녹음·단계 기록) | `castle-class.html` |
 
 ---
 
