@@ -28,6 +28,11 @@
       <button id="startMock" class="mock-btn" style="font-size:14px;padding:12px 16px">🧪 모의실험 모드로 시작</button>
     </div>
   </div>
+  <div id="liveNow" class="hide" style="margin-top:10px;padding:12px;border:2px solid #f59e0b;border-radius:12px;background:rgba(245,158,11,.12)">
+    <b>⚠️ 지금 수업방(HC302)이 이미 열려 있어요.</b> <span id="liveNowInfo"></span>
+    <div class="hint">열려 있는 동안 학생들이 로그인하면 「수업 화면 공유 중」이 뜹니다. 수업 중이 아니라면 종료해 주세요.</div>
+    <div class="row" style="gap:8px;margin-top:6px"><button id="liveNowGo" class="primary">▶ 열려 있는 수업방으로 들어가기</button><button id="liveNowEnd" class="danger">⏹ 수업방 종료</button></div>
+  </div>
   <div id="setupMsg" class="status"></div>
 
   <!-- ## [다중 교사/비밀번호 설정 - 일단 묵혀둠]
@@ -267,7 +272,17 @@
     $('rcPanel').classList.remove('hide');rcStart();
     $('coachAdmin').classList.remove('hide');
     loadExams();loadCoach();
-    if(room){$('active').classList.remove('hide')}else{$('setup').classList.remove('hide')}
+    if(room){$('active').classList.remove('hide')}else{$('setup').classList.remove('hide');liveCheck()}
+  }
+  // 로그인했을 때 이미 열려 있는 수업방이 있는지 확인해서 알려 준다
+  async function liveCheck(){
+    const box=$('liveNow');box.classList.add('hide');
+    try{
+      const d=await rpc('classroom_admin_list',{p_code:'',p_room:'HC302'});
+      const n=(d&&d.students||[]).length,on=(d&&d.students||[]).filter(x=>x.online).length;
+      $('liveNowInfo').textContent='(학생 '+n+'명 접속 기록, 지금 화면에 연결된 학생 '+on+'명)';
+      box.classList.remove('hide');
+    }catch(_){/* room not found = 열려 있는 방 없음 */}
   }
 
   async function rpc(name,args){
@@ -865,6 +880,11 @@
     }
   };
 
+  $('liveNowGo').onclick=()=>{code='';$('liveNow').classList.add('hide');openRoom('HC302',false)};
+  $('liveNowEnd').onclick=async()=>{
+    if(!confirm('열려 있는 수업방을 종료할까요? 학생들의 「수업 화면 공유 중」 표시가 사라집니다.'))return;
+    try{await rpc('classroom_admin_end',{p_code:'',p_room:'HC302'});$('liveNow').classList.add('hide');msg('수업방을 종료했습니다.')}catch(e){msg('종료하지 못했습니다: '+(e.message||e))}
+  };
   $('refresh').onclick=pull;
   $('copy').onclick=async()=>{
     const u=new URL('student.html',location.href);
