@@ -664,11 +664,15 @@ function swShrink(file){return new Promise((res,rej)=>{
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);let q=.7,d=c.toDataURL('image/jpeg',q);while(d.length*0.75>190000&&q>.3){q-=.1;d=c.toDataURL('image/jpeg',q)}res(d)};
   img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('photo'))};img.src=u})}
 function swPhotoInput(){
-  const wrap=el('div'),inp=el('input');inp.type='file';inp.accept='image/*';inp.setAttribute('capture','environment');inp.setAttribute('aria-label','물건 사진');
-  const pv=el('img');pv.style.cssText='display:none;max-height:140px;object-fit:contain';pv.alt='';
-  wrap.append(el('div','sw-m','📷 물건만 찍어요. 얼굴·이름표·교복은 나오지 않게!'),inp,pv);
+  const wrap=el('div'),pv=el('img');pv.style.cssText='display:none;max-height:140px;object-fit:contain';pv.alt='';
+  const mk=(cam)=>{const inp=el('input');inp.type='file';inp.accept='image/*';if(cam)inp.setAttribute('capture','environment');inp.style.display='none';inp.setAttribute('aria-label',cam?'사진 찍기':'갤러리에서 고르기');
+    inp.onchange=async()=>{if(!inp.files[0])return;wrap.data=null;pv.style.display='none';try{const d=await swShrink(inp.files[0]);wrap.data=d;pv.src=d;pv.style.display='block'}catch(e){wrap.data=null}inp.value=''};return inp};
+  const cam=mk(true),gal=mk(false);
+  const b1=el('button','sw-btn','📷 사진 찍기');b1.type='button';b1.onclick=()=>cam.click();
+  const b2=el('button','sw-btn ghost','🖼️ 갤러리에서 고르기');b2.type='button';b2.onclick=()=>gal.click();
+  const row=el('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:4px 0';row.append(b1,b2,cam,gal);
+  wrap.append(el('div','sw-m','📷 물건만 찍어요. 얼굴·이름표·교복은 나오지 않게!'),row,pv);
   wrap.data=null;
-  inp.onchange=async()=>{wrap.data=null;pv.style.display='none';if(!inp.files[0])return;try{const d=await swShrink(inp.files[0]);wrap.data=d;pv.src=d;pv.style.display='block'}catch(e){wrap.data=null}};
   return wrap}
 function swLeft(iso){const ms=new Date(iso)-Date.now();if(ms<=0)return '기한이 끝났어요';const h=Math.floor(ms/3600000);return h>=24?'남은 시간 '+Math.floor(h/24)+'일 '+(h%24)+'시간':'남은 시간 '+h+'시간 '+Math.floor(ms%3600000/60000)+'분'}
 async function talkSwapUI(body){
