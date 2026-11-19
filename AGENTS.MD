@@ -839,6 +839,9 @@
 - 학생 화면(school.html): `timeClosed`일 때 "지금은 닫혀 있어요. 방과후(오후 2시~7시)에 열려요." 문구(`TIME_MSG`)를 보여 준다. 시간을 바꾸면 이 문구의 시각도 같이 고쳐야 한다.
 - 시험은 가짜 서버로 `timeClosed` 응답 때 문구·입력 막힘만 확인했다. 실제 서버 시각 판단은 확인하지 못했다.
 
+### 수업 연결 표시 (2026-11-19)
+- `classroom/monitor.js`: 수업이 열려 있지 않을 때 뜨는 「수업 연결 안 됨」·「지금은 수업이 열려 있지 않아요」 표시줄은 school.html(`QUIET_IDLE`)에서는 숨긴다. 다른 학생 페이지에서는 그대로 보인다. 수업 중 끊김·선생님이 내보냄 안내는 school.html에서도 그대로 보인다.
+
 ### 2026-11-19 추가: 열린 수업방 안내 · 교사 메뉴(I-18)
 - classroom/teacher.html: 교사 로그인 직후 `liveCheck()`가 `classroom_admin_list`(열린 방이 없으면 'room not found' 오류)로 HC302가 열려 있는지 확인 → `#liveNow` 상자(들어가기 / 종료). DB 변경 없음.
 - education.html: 하단 `#teacherBar`(「🧑‍🏫 교사 관리 화면」→ classroom/teacher.html)는 `sessionStorage st_s`에 `teacher:true`가 있을 때만 보임.

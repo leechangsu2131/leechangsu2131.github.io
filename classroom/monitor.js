@@ -128,7 +128,7 @@
         try{localStorage.setItem(seenKey,String(Date.now()))}catch(_){}
         refresh();
       };
-      talk.onclick=()=>{if(/\/school\.html$/.test(location.pathname)){location.hash='talk'}else location.href='/school.html#talk'};
+      talk.onclick=()=>{if(/\/school(\.html)?\/?$/.test(location.pathname)){location.hash='talk'}else location.href='/school.html#talk'};
       hide.onclick=()=>{
         try{localStorage.setItem('st_hide',hidden()?'0':'1')}catch(_){}
         box.classList.remove('open');refresh();
@@ -197,6 +197,7 @@
     const ok=document.createElement('button');ok.type='button';ok.textContent='확인';ok.style.cssText='border:0;border-radius:10px;padding:9px 16px;background:#e5e7eb;color:#111;font:inherit;font-weight:700;cursor:pointer';ok.onclick=()=>{noticeEl&&noticeEl.remove();noticeEl=null};row.append(ok);
     noticeEl.append(row);document.body.appendChild(noticeEl);
   }
+  const QUIET_IDLE=/\/school(\.html)?\/?$/.test(location.pathname);   // 학교 페이지: 수업이 열려 있지 않을 때의 대기 표시는 숨긴다(끊김·내보내기 안내는 그대로)
   function main(){
   if(booted)return;
   let cfg=readCfg();
@@ -678,7 +679,7 @@
   function rejoin(){
     try{sessionStorage.removeItem('cls_kicked')}catch(_){}
     clearInterval(retryTimer);retryTimer=setInterval(tryJoin,12000);
-    tryJoin().then(()=>{if(!booted)showChip('⚪ 지금은 수업이 열려 있지 않아요',null)});
+    tryJoin().then(()=>{if(!booted&&!QUIET_IDLE)showChip('⚪ 지금은 수업이 열려 있지 않아요',null)});
   }
   dropHook=(reason)=>{
     booted=false;
@@ -698,6 +699,7 @@
   setTimeout(()=>{
     if(booted||!readLogin()||/\/school-tool\/|\/classroom\/teacher\.html/.test(location.pathname))return;
     let kicked=false;try{kicked=!!sessionStorage.getItem('cls_kicked')}catch(_){}
+    if(!kicked&&QUIET_IDLE)return;   // school.html 은 수업이 없을 때 '연결 안 됨'을 보여 주지 않는다
     showChip(kicked?'⛔ 수업에서 나갔어요 (눌러서 다시 들어가기)':'⚪ 수업 연결 안 됨',kicked?rejoin:null);
   },9000);
   // 화면으로 돌아오거나 다시 눌렀을 때 바로 확인(그 사이 수업이 열렸을 수 있다)
