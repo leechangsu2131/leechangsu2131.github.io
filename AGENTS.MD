@@ -10,7 +10,7 @@
 - **기술 스택:** 순수 HTML / Vanilla CSS / Vanilla JS (단일 파일 구조)
 - **아키텍처:** 정적 웹사이트 (Static Site) — 별도 서버/DB 없이 브라우저에서 완결
 - **데이터 저장:** LocalStorage 기반 (일부 페이지는 Supabase 연동)
-- **허브:** `index.html` → 팝업 메뉴를 통해 모든 하위 페이지로 연결
+- **허브:** `index.html`(첫 화면: 교육 / 기타 / 교사 메뉴 3칸) → 교육은 `education.html`, 교육 밖의 도구(투자·업무·마음 체크·운동·PDF 분할 등)는 `etc.html`(기타)로 연결. 새 비교육 페이지는 `etc.html`에 링크를 넣는다.
 
 ---
 
@@ -866,3 +866,6 @@
 
 ### 2026-11-19 추가: 모이자 시간(I-19)
 - school-tool `meet_` 블록: `createClosed` = 한국 시간 기준 평일 13:40~20:00, 주말(토·일) 08:00~20:00 밖이면 true. `meet_create`만 막음(`create_closed`). `meet_list` 응답에 `createClosed`를 포함하고, school.html은 안내(`MEET_MSG`)를 띄우고 「모임 만들기」를 비활성화. 비밀값 `ST_OPEN_HOURS`(14-19)는 이야기방·1:1에만 적용.
+
+### 🏠 첫 화면 정리 (2026-11-19)
+- `index.html`에서 투자·업무·마음/몸 칸을 빼고 「교육 · 기타 · 교사 메뉴」만 남겼다. 투자(`investment-dashboard`, `investstr`, `PETER`, `dcfdamodaran`, `dcf`, `narrative_dcf`, 체크리스트)·업무(`운동장천막배치`, `쿠폰생성`)·마음/몸/도구(`resetmind`, `fight`, `exercise`, `Pdf-splitter`)는 새 `etc.html`에 같은 디자인으로 옮겼다. 파일 주소는 그대로라 즐겨찾기·다른 링크는 영향 없다. 교사 메뉴는 첫 화면에 남겨 두었다(옮기려면 `index.html`의 `#teacher` 칸을 `etc.html`로 옮기면 된다).

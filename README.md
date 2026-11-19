@@ -9,7 +9,7 @@ https://homepage-53dd99.gitlab.io/
 
 ## 구조
 
-- **정적 사이트**: 순수 HTML / CSS / JS, 페이지마다 파일 하나(빌드 도구 없음). 허브는 `index.html`, 교육 도구 모음은 `education.html`.
+- **정적 사이트**: 순수 HTML / CSS / JS, 페이지마다 파일 하나(빌드 도구 없음). 허브는 `index.html`(교육·기타·교사 메뉴 3칸), 교육 도구 모음은 `education.html`, 투자·업무·마음/운동 등 교육 밖 도구는 `etc.html`(기타).
 - **백엔드(Supabase)**: 학생 기록·설정이 필요한 페이지만 하나의 공용 Supabase 프로젝트를 씁니다. 화면에는 공개용(publishable) 키만 넣고, 서비스 키와 AI 키는 Edge Function 비밀값에만 둡니다.
 - **서버리스 API(Vercel)**: `api/*.js` 는 학교정보(시간표·급식·학사일정) 조회용입니다.
 
@@ -20,7 +20,7 @@ https://homepage-53dd99.gitlab.io/
 | 교육 허브 | `education.html` (교육 도구 목록) |
 | 수업 연습 | `multiply.html`, `DEVIDE.HTML`, `fraction*.html`, `onedraw.html` 등 |
 | 분수 놀이 | `분수_놀이터.html`(허브)와 `분수_*.html` 놀이 앱 9개 — 가게놀이·징검다리·모둠릴레이·대결·빙고대결·수직선사냥·짝맞추기·손가락축구·순위표 |
-| 업무 도구 | `Pdf-splitter.html`, `운동장천막배치.html`, `쿠폰생성.html` (index.html 의 "업무" 칸) |
+| 업무 도구 | `Pdf-splitter.html`, `운동장천막배치.html`, `쿠폰생성.html` (etc.html 의 "업무" 칸) |
 | 평가 | `tests/index.html` (단원평가), `tests/notebook_*.html` (오답노트) |
 | 수업 진행판 | `castle-class.html` — 성 수업(교육연극) 진행 + 녹음·단계 기록 (index.html 의 "교육" 칸, 학생용 교육 도구 모음에는 없음) |
 | 성장 발표 | `growth/index.html` — 학생 글쓰기 + AI 선생님 질문 피드백 |
