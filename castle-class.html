@@ -360,13 +360,18 @@ function startLoop(){
   tid=setInterval(function(){tick(false);},500);
 }
 
+/* 화면 켜짐 유지: 화면이 꺼지거나 다른 앱에 다녀오면 브라우저가 잠금을 풀므로, 풀릴 때 비워 두고 돌아오면 다시 요청한다 */
+function keepAwake(){
+  try{if(navigator.wakeLock&&!wake&&!ended){navigator.wakeLock.request('screen').then(function(w){wake=w;w.addEventListener('release',function(){if(wake===w)wake=null;});}).catch(function(){});}}catch(e){}
+}
+
 function onTimer(){
   if(!started){
     started=true;paused=false;elapsed=START[cur]*60000;stepEl=0;
     drift=0;startLoop();
     $('tbtn').textContent='일시정지';
     beginLog();
-    try{if(navigator.wakeLock){navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){});}}catch(e){}
+    keepAwake();
     tick(true);
     return;
   }
@@ -379,7 +384,7 @@ function onTimer(){
 
 document.addEventListener('visibilitychange',function(){
   if(started&&!ended){mark(document.visibilityState==='visible'?'show':'hide');if(document.visibilityState==='visible')recCheck();}
-  if(document.visibilityState==='visible'&&started){last=Date.now();try{if(navigator.wakeLock&&!wake){navigator.wakeLock.request('screen').then(function(w){wake=w;wake.addEventListener('release',function(){wake=null;});}).catch(function(){});}}catch(e){}}
+  if(document.visibilityState==='visible'&&started){last=Date.now();keepAwake();}
 });
 
 $('prev').addEventListener('click',function(){goto(cur-1);});
