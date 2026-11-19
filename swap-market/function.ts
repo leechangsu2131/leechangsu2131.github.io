@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
   if (!ALLOW_ANY && origin && !ALLOW_LIST.includes(origin)) return json({ error: "forbidden_origin" }, 403, origin);
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["list", "post", "offer", "choose", "reopen", "plan", "agree", "done", "cancel", "t_list", "t_hide", "t_delete", "t_export", "t_purge"].includes(body.action) ? body.action : "";
+  const action = ["list", "post", "offer", "choose", "reopen", "plan", "agree", "done", "praise", "temp", "cancel", "t_list", "t_hide", "t_delete", "t_export", "t_purge"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
   if (tooMany("ip:" + ip, 400)) return json({ error: "too_many_attempts" }, 429, origin);
@@ -164,6 +164,17 @@ Deno.serve(async (req) => {
     return it;
   }
 
+  // 매너온도: 모이자(st_meetup_praise)와 바꾸자(st_swap_praise)에서 받은 칭찬을 합친다. 36.5℃에서 시작, 칭찬 1개당 +0.5, 내려가지 않는다.
+  const PRAISE = ["thanks", "fun", "kind", "rule", "lead"];
+  async function myTemp() {
+    const { count: a } = await sb.from("st_meetup_praise").select("id", { count: "exact", head: true }).eq("to_id", me!.id);
+    const { count: b } = await sb.from("st_swap_praise").select("id", { count: "exact", head: true }).eq("to_id", me!.id);
+    const n = (a ?? 0) + (b ?? 0);
+    return { temp: Math.min(99.9, Math.round((36.5 + 0.5 * n) * 10) / 10), count: n, swap_count: b ?? 0 };
+  }
+
+  if (action === "temp") return json({ ok: true, ...(await myTemp()) }, 200, origin);   // 모이자 화면이 바꾸자에서 받은 칭찬 수를 더할 때 쓴다
+
   if (action === "list") {
     if (Math.random() < 0.05) {   // 안전장치: 30일 지난 글은 사진까지 자동 정리
       const old = new Date(now - 30 * 24 * 3600 * 1000).toISOString();
@@ -175,6 +186,9 @@ Deno.serve(async (req) => {
     const nm = new Map((mates ?? []).map((m: any) => [m.id, m]));
     const vis = (items ?? []).filter((i: any) => i.status !== "closed");
     const urls = await signUrls(vis.flatMap((i: any) => [i.photo_path, ...(i.st_swap_offers ?? []).filter((o: any) => o.from_id === me.id || i.owner_id === me.id).map((o: any) => o.photo_path)]));
+    const doneIds = vis.filter((i: any) => i.status === "done").map((i: any) => i.id);
+    const { data: myPr } = doneIds.length ? await sb.from("st_swap_praise").select("item_id,tag").eq("from_id", me.id).in("item_id", doneIds) : { data: [] };
+    const prMap = new Map((myPr ?? []).map((x: any) => [x.item_id, x.tag]));
     const out = vis.map((i: any) => {
       const mine = i.owner_id === me.id;
       const offers = (i.st_swap_offers ?? []).filter((o: any) => !o.hidden);
@@ -188,10 +202,10 @@ Deno.serve(async (req) => {
         open: i.status === "open" && new Date(i.ends_at).getTime() > now, status: i.status, mine, owner: o?.number ?? 0, owner_name: o?.name ?? "",
         offer_count: offers.length,
         offers: mine ? offers.map(shape) : [], my_offer: myOffer ? shape(myOffer) : null,
-        deal: inDeal ? { with_num: mine ? (nm.get(chosen.from_id)?.number ?? 0) : (o?.number ?? 0), with_name: mine ? (nm.get(chosen.from_id)?.name ?? "") : (o?.name ?? ""), give: chosen.give, place: i.place, slot: i.slot, plan_by_me: i.plan_by === me.id, plan_ok: i.plan_ok, my_done: mine ? i.owner_done : i.offerer_done, other_done: mine ? i.offerer_done : i.owner_done } : null,
+        deal: inDeal ? { with_num: mine ? (nm.get(chosen.from_id)?.number ?? 0) : (o?.number ?? 0), with_name: mine ? (nm.get(chosen.from_id)?.name ?? "") : (o?.name ?? ""), give: chosen.give, place: i.place, slot: i.slot, plan_by_me: i.plan_by === me.id, plan_ok: i.plan_ok, my_done: mine ? i.owner_done : i.offerer_done, other_done: mine ? i.offerer_done : i.owner_done, my_tag: prMap.get(i.id) ?? "" } : null,
       };
     });
-    return json({ ok: true, me: me.number, items: out }, 200, origin);
+    return json({ ok: true, me: me.number, items: out, ...(await myTemp()) }, 200, origin);
   }
 
   if (action === "post") {
@@ -263,6 +277,17 @@ Deno.serve(async (req) => {
   if (!it.chosen_offer_id || it.status === "closed") return json({ error: "no_deal" }, 400, origin);
   const { data: co } = await sb.from("st_swap_offers").select("id,from_id").eq("id", it.chosen_offer_id).maybeSingle();
   if (!co || (!mine && co.from_id !== me.id)) return json({ error: "forbidden" }, 403, origin);
+  if (action === "praise") {
+    // 바꾸기가 끝난 뒤, 바꾼 친구에게 고마운 마음 남기기(하나 더 고르면 바뀜). 온도는 올라가기만 한다.
+    const tag = String(body.tag ?? "");
+    if (it.status !== "done") return json({ error: "not_done" }, 400, origin);
+    if (!PRAISE.includes(tag)) return json({ error: "bad_input" }, 400, origin);
+    const to = mine ? co.from_id : it.owner_id;
+    if (!to || to === me.id) return json({ error: "bad_input" }, 400, origin);
+    const { error } = await sb.from("st_swap_praise").upsert({ item_id: it.id, from_id: me.id, to_id: to, tag }, { onConflict: "item_id,from_id,to_id" });
+    if (error) return json({ error: "save_failed" }, 500, origin);
+    return json({ ok: true, ...(await myTemp()) }, 200, origin);
+  }
   if (action === "plan") {
     if (it.status !== "matched") return json({ error: "no_deal" }, 400, origin);
     const place = String(body.place ?? ""), slot = String(body.slot ?? "");
