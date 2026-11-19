@@ -58,7 +58,7 @@ https://homepage-53dd99.gitlab.io/
 ## 배포
 
 - GitHub `main` 에 올리면 GitHub Pages 와 Vercel 이 자동 배포합니다.
-- GitLab 주소는 저장소의 `Upload_to_GitLab.bat` 로 따로 올리는 방식입니다. GitHub 에만 올리면 GitLab 쪽에는 반영되지 않을 수 있으니 확인해 주세요.
+- GitLab 주소도 GitHub `main` 에 올리면 GitHub Actions(`.github/workflows/mirror_to_gitlab.yml`)가 자동으로 옮겨 올립니다. 자동 올리기가 실패했을 때만 `Upload_to_GitLab.bat` 를 씁니다.
 
 ## 작업할 때 지킬 점
 

@@ -25,4 +25,4 @@
 - `git push` — `main`에 올리면 GitHub Pages·Vercel에 **바로 배포되어 학생들이 쓰게 된다.** 커밋은 `main`에 바로 해도 된다.
 - Supabase SQL 실행(테이블·함수·권한 변경), Storage 만들기, 비밀값 변경.
 - 파일·페이지 삭제.
-- GitLab 반영은 `Upload_to_GitLab.bat`을 따로 실행해야 한다는 점을 배포 뒤에 알려 준다.
+- GitLab은 `main`에 push하면 GitHub Actions(`.github/workflows/mirror_to_gitlab.yml`)가 자동으로 올린다. `Upload_to_GitLab.bat`은 자동 올리기가 실패했을 때만 쓴다.
