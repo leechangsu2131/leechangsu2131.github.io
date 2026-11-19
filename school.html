@@ -225,6 +225,12 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .rv-tags button[aria-pressed="true"]{background:#f59e0b;border-color:#f59e0b;color:#fff}
 .rv-worry{border-top:2px dashed #cbd5e1;padding-top:8px;display:grid;gap:6px}.rv-worry select{min-height:46px;font-size:16px;border:2px solid #cbd5e1;border-radius:12px;padding:6px}
 .rv-worry .rv-tags button{border-color:#cbd5e1;background:#f8fafc}
+.sw-hero{background:linear-gradient(135deg,#bbf7d0,#bae6fd);border-radius:16px;padding:12px 14px;display:grid;gap:4px;margin:8px 0}.sw-hero b{font-size:20px}.sw-hero span{font-size:14px;color:#44403c}
+.sw-card{border:2px solid #e2e8f0;border-radius:16px;padding:10px;display:grid;gap:6px;background:#fff;margin:8px 0}.sw-card img{width:100%;max-height:260px;object-fit:contain;background:#f1f5f9;border-radius:12px}
+.sw-card h3{margin:0;font-size:18px}.sw-m{font-size:14px;color:#57534e}.sw-want{background:#ecfeff;border-radius:10px;padding:6px 10px;font-weight:700}
+.sw-off{border:2px dashed #94a3b8;border-radius:12px;padding:8px;display:grid;gap:4px}.sw-card input,.sw-card textarea,.sw-card select,.sw-form input,.sw-form textarea,.sw-form select{font:inherit;font-size:16px;min-height:44px;padding:6px 10px;border:2px solid #cbd5e1;border-radius:12px;width:100%;box-sizing:border-box}
+.sw-form{border:2px solid #86efac;border-radius:16px;padding:10px;display:grid;gap:8px;background:#f0fdf4;margin:8px 0}.sw-btn{min-height:46px;border-radius:12px;border:2px solid #16a34a;background:#16a34a;color:#fff;font-weight:800;font-size:16px;padding:6px 14px;cursor:pointer}.sw-btn.ghost{background:#fff;color:#166534}
+.sw-deal{background:#fef9c3;border:2px solid #facc15;border-radius:12px;padding:8px;display:grid;gap:6px}.sw-ok{color:#b91c1c;font-weight:700;font-size:14px}
 .meet-lab{font-size:14px;font-weight:800;color:#64748b;margin-top:4px}
 .meet-quick{display:flex;flex-wrap:wrap;gap:6px}
 .meet-quick button{min-height:44px;padding:6px 12px;border-radius:999px;border:2px solid #fcd34d;background:#fffbeb;font-size:15px;font-weight:800;cursor:pointer}
@@ -437,7 +443,7 @@ function talkOpen(){
   }
   talkView=talkView||'all'; talkPeer=null;
   box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방</b><span class="n-updated" id="talkMe"></span></div>'
-   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button></div>'
+   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button></div>'
    +'<div id="talkBody"></div>';
   $('#talkMe').textContent=s.num+'번 '+(s.name||'');
   $$('#talkSeg button').forEach(b=>b.onclick=()=>{talkView=b.dataset.v;talkPeer=null;talkRender()});
@@ -447,7 +453,7 @@ function talkRender(){
   talkStop(); talkLast='';
   $$('#talkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===talkView));
   const body=$('#talkBody'); if(!body) return;
-  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
+  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
 }
 function talkForm(onSend,ph){
   const f=document.createElement('form');f.className='talk-form';
@@ -639,6 +645,117 @@ async function meetReviewOpen(m){
     wt.append(b)});
   w.append(wt);sheet.append(w);
   const done=el('button','meet-join','다 했어요');done.type='button';done.onclick=x.onclick;sheet.append(done);
+}
+
+/* ---------- 🔁 바꾸자(물물장터): 돈 없이 안 쓰는 물건끼리 바꾸기. 서버 swap-market ---------- */
+const SW_ERR={no_money:'돈 이야기는 쓸 수 없어요. 물건으로만 바꿔요.',blocked_content:'주소·이메일·전화번호는 쓸 수 없어요.',too_many_posts:'오늘은 더 올릴 수 없어요.',too_many_open:'올려 둔 물건이 3개예요. 바꾼 뒤에 더 올려요.',too_many_offers:'오늘은 제안을 더 할 수 없어요.',bad_photo:'사진을 다시 찍어 주세요.',closed:'이미 끝났어요.',own_item:'내 물건이에요.',already_chosen:'이미 정해졌어요.',not_approved:'선생님이 승인한 뒤에 쓸 수 있어요.',login_required:'로그인이 필요해요.',bad_input:'빈칸을 확인해 주세요.',too_many_attempts:'잠깐 쉬었다가 해요.'};
+const SW_PLACE={classroom:'🏫 교실',hall:'🚪 복도',library:'📚 도서관',yard:'🌳 운동장 쉼터'};
+const SW_SLOT={break:'⏰ 쉬는 시간',after_lunch:'🍚 점심 먹고 난 뒤',afterschool_in:'🎒 방과후 학교 안에서(끝나기 전)'};
+async function swCall(body){
+  const who=await stWho(); if(!who||!who.jwt) return {status:401,data:{error:'login_required'}};
+  const r=await fetch(ST_URL+'/functions/v1/swap-market',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:who.jwt,...body})});
+  let d=null;try{d=await r.json()}catch(e){} return {status:r.status,data:d||{}};
+}
+// 사진을 작게 줄인 JPEG 로(가로세로 640px, 200KB 이하). 줄이는 과정에서 위치 정보 등은 사라진다.
+function swShrink(file){return new Promise((res,rej)=>{
+  const img=new Image(),u=URL.createObjectURL(file);
+  img.onload=()=>{URL.revokeObjectURL(u);const k=Math.min(1,640/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);let q=.7,d=c.toDataURL('image/jpeg',q);while(d.length*0.75>190000&&q>.3){q-=.1;d=c.toDataURL('image/jpeg',q)}res(d)};
+  img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('photo'))};img.src=u})}
+function swPhotoInput(){
+  const wrap=el('div'),inp=el('input');inp.type='file';inp.accept='image/*';inp.setAttribute('capture','environment');inp.setAttribute('aria-label','물건 사진');
+  const pv=el('img');pv.style.cssText='display:none;max-height:140px;object-fit:contain';pv.alt='';
+  wrap.append(el('div','sw-m','📷 물건만 찍어요. 얼굴·이름표·교복은 나오지 않게!'),inp,pv);
+  wrap.data=null;
+  inp.onchange=async()=>{wrap.data=null;pv.style.display='none';if(!inp.files[0])return;try{const d=await swShrink(inp.files[0]);wrap.data=d;pv.src=d;pv.style.display='block'}catch(e){wrap.data=null}};
+  return wrap}
+function swLeft(iso){const ms=new Date(iso)-Date.now();if(ms<=0)return '기한이 끝났어요';const h=Math.floor(ms/3600000);return h>=24?'남은 시간 '+Math.floor(h/24)+'일 '+(h%24)+'시간':'남은 시간 '+h+'시간 '+Math.floor(ms%3600000/60000)+'분'}
+async function talkSwapUI(body){
+  body.textContent='';
+  const hero=el('div','sw-hero');hero.append(el('b','','🔁 바꾸자 (물물장터)'),el('span','','안 쓰는 물건을 올리고, 바꾸고 싶은 걸 알려 줘요. 돈은 안 돼요! 바꾸는 건 학교 안에서만, 선생님이 볼 수 있어요.'));
+  const top=el('div'),msg=el('div','talk-msg'),list=el('div');
+  const newB=el('button','sw-btn','＋ 내 물건 올리기');newB.type='button';const refB=el('button','sw-btn ghost','🔄 새로고침');refB.type='button';
+  const bar=el('div');bar.style.cssText='display:flex;gap:8px;flex-wrap:wrap';bar.append(newB,refB);
+  const formBox=el('div');body.append(hero,bar,formBox,msg,list);
+  const say=t=>{msg.textContent=t||''};
+  const err=r=>SW_ERR[(r.data||{}).error]||'잠시 뒤에 다시 해 보세요.';
+  async function act(b,payload,after){b.disabled=true;say('');const r=await swCall(payload);b.disabled=false;if(r.status!==200){say(err(r));return false}if(after)after(r.data);load();return true}
+  newB.onclick=()=>{
+    formBox.textContent='';const f=el('div','sw-form');
+    const t=el('input');t.maxLength=30;t.placeholder='무슨 물건이에요? (예: 새 색연필)';
+    const bd=el('textarea');bd.maxLength=150;bd.rows=2;bd.placeholder='설명 (예: 두 번만 썼어요)';
+    const w=el('input');w.maxLength=80;w.placeholder='바꾸고 싶은 것 (예: 스티커, 책 한 권)';
+    const dy=el('select');[[1,'1일 동안'],[2,'2일 동안'],[3,'3일 동안'],[7,'일주일 동안']].forEach(([v,x])=>{const o=el('option','',x);o.value=v;dy.append(o)});dy.value='3';
+    const ph=swPhotoInput();const go=el('button','sw-btn','올리기');go.type='button';const cx=el('button','sw-btn ghost','닫기');cx.type='button';cx.onclick=()=>{formBox.textContent=''};
+    go.onclick=()=>{if(!t.value.trim()||!w.value.trim()){say('물건 이름과 바꾸고 싶은 것을 써요.');return}act(go,{action:'post',title:t.value,body:bd.value,want:w.value,days:Number(dy.value),photo:ph.data||undefined},()=>{formBox.textContent=''})};
+    f.append(el('b','','🧺 내 물건 올리기'),t,bd,w,el('div','sw-m','얼마 동안 받을까요?'),dy,ph,go,cx);formBox.append(f);t.focus();
+  };
+  refB.onclick=()=>load();
+  async function load(){
+    const r=await swCall({action:'list'});
+    if(r.status!==200){list.textContent='';say(r.data&&r.data.error==='not_approved'?SW_ERR.not_approved:(r.data&&r.data.error==='login_required'?SW_ERR.login_required:'불러오지 못했어요.'));return}
+    say('');list.textContent='';const items=r.data.items||[];
+    if(!items.length){list.append(el('div','talk-msg','아직 올라온 물건이 없어요. 첫 번째로 올려 봐요!'));return}
+    items.forEach(it=>list.append(swCard(it)));
+  }
+  function swCard(it){
+    const c=el('div','sw-card');
+    if(it.photo){const im=el('img');im.src=it.photo;im.alt=it.title;im.loading='lazy';c.append(im)}
+    c.append(el('h3','',it.title+(it.mine?' (내 물건)':'')));
+    if(it.body)c.append(el('div','sw-m',it.body));
+    c.append(el('div','sw-want','🔁 바꾸고 싶은 것: '+it.want),el('div','sw-m',(it.mine?'':it.owner+'번 '+it.owner_name+' · ')+(it.status==='done'?'✅ 바꾸기 끝!':it.open?swLeft(it.ends):(it.status==='matched'?'친구를 정했어요':'제안 받기가 끝났어요'))+' · 제안 '+it.offer_count+'개'));
+    if(it.mine){
+      if(it.status==='open'||it.status==='matched'){
+        (it.offers||[]).forEach(o=>{
+          const d=el('div','sw-off');d.append(el('b','',o.from+'번 '+o.from_name+'의 제안'+(o.chosen?' ✅ 정했어요':'')),el('div','',o.give));if(o.note)d.append(el('div','sw-m',o.note));
+          if(o.photo){const im=el('img');im.src=o.photo;im.alt=o.give;d.append(im)}
+          if(!o.chosen&&it.status==='open'){const b=el('button','sw-btn','이 친구와 바꿀래요');b.type='button';b.onclick=()=>{if(confirm(o.from+'번 '+o.from_name+'와 바꿀까요?'))act(b,{action:'choose',id:it.id,offer_id:o.id})};d.append(b)}
+          c.append(d)});
+        if(!(it.offers||[]).length)c.append(el('div','sw-m','아직 제안이 없어요. 제안은 나와 선생님만 볼 수 있어요.'));
+      }
+      const row=el('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+      if(it.status==='matched'){const b=el('button','sw-btn ghost','다른 친구 다시 고르기');b.type='button';b.onclick=()=>act(b,{action:'reopen',id:it.id});row.append(b)}
+      if(it.status!=='done'){const b=el('button','sw-btn ghost','🗑 올린 글 닫기');b.type='button';b.onclick=()=>{if(confirm('이 글을 닫을까요?'))act(b,{action:'cancel',id:it.id})};row.append(b)}
+      c.append(row);
+    }else if(it.open){
+      const mo=it.my_offer;
+      if(mo){const d=el('div','sw-off');d.append(el('b','','내 제안: '+mo.give+(mo.chosen?' ✅ 뽑혔어요!':'')));if(mo.note)d.append(el('div','sw-m',mo.note));c.append(d)}
+      if(!mo||!mo.chosen){
+        const g=el('input');g.maxLength=60;g.placeholder='나는 이런 걸 줄 수 있어요 (예: 스티커 5장)';g.value=mo?mo.give:'';
+        const n=el('textarea');n.rows=2;n.maxLength=150;n.placeholder='한마디 (예: 새것이에요, 바꿀래요?)';n.value=mo?mo.note:'';
+        const ph=swPhotoInput();const b=el('button','sw-btn',mo?'제안 고치기':'🙋 이렇게 바꿀래요');b.type='button';
+        b.onclick=()=>{if(!g.value.trim()){say('줄 수 있는 물건을 써요.');return}act(b,{action:'offer',id:it.id,give:g.value,note:n.value,photo:ph.data||undefined})};
+        c.append(el('div','sw-m','제안은 올린 친구와 선생님만 볼 수 있어요.'),g,n,ph,b);
+      }
+    }
+    if(it.deal)c.append(swDeal(it));
+    return c;
+  }
+  function swDeal(it){
+    const d=it.deal,box=el('div','sw-deal');
+    box.append(el('b','','🤝 '+d.with_num+'번 '+d.with_name+'와 바꾸기'),el('div','sw-m','받는 물건: '+(it.mine?d.give:it.title)));
+    if(!d.place){
+      box.append(el('div','sw-m','학교 안에서 만날 시간과 장소를 골라요.'));
+    }else{
+      box.append(el('div','',(SW_SLOT[d.slot]||'')+' · '+(SW_PLACE[d.place]||'')));
+      if(!d.plan_ok){
+        if(d.plan_by_me)box.append(el('div','sw-m','친구가 OK 하면 정해져요.'));
+        else{const b=el('button','sw-btn','👍 좋아요, 그때 만나요');b.type='button';b.onclick=()=>act(b,{action:'agree',id:it.id});box.append(b)}
+      }
+    }
+    if(it.status==='matched'&&!d.plan_ok){
+      const pl=el('select'),sl=el('select');Object.entries(SW_PLACE).forEach(([k,v])=>{const o=el('option','',v);o.value=k;pl.append(o)});Object.entries(SW_SLOT).forEach(([k,v])=>{const o=el('option','',v);o.value=k;sl.append(o)});
+      if(d.place){pl.value=d.place;sl.value=d.slot}
+      const b=el('button','sw-btn ghost',d.place?'다시 제안하기':'이 시간·장소로 해요');b.type='button';b.onclick=()=>act(b,{action:'plan',id:it.id,place:pl.value,slot:sl.value});box.append(sl,pl,b);
+    }
+    if(d.plan_ok&&it.status==='matched'){
+      if(d.my_done)box.append(el('div','sw-m','나는 "바꿨어요"를 눌렀어요. 친구도 누르면 끝!'));
+      else{const b=el('button','sw-btn','✅ 바꿨어요');b.type='button';b.onclick=()=>act(b,{action:'done',id:it.id});box.append(b)}
+      box.append(el('div','sw-ok','약속 시간에 학교 안에서만 바꿔요. 어려우면 선생님께 말해요.'));
+    }
+    return box;
+  }
+  load();
 }
 function meetPaint(){
   const list=$('#meetList'); if(!list) return; if(document.querySelector('.rpt-panel')) return; list.textContent='';

@@ -111,6 +111,13 @@
     <div id="rcThread" class="rc-thread"></div>
     <div class="rc-row"><textarea id="rcReply" maxlength="500" placeholder="이 학생에게만 보내요."></textarea><button id="rcReplySend" class="primary">보내기</button></div>
   </div>
+  <details id="rcSwap" style="margin-top:12px">
+    <summary style="font-weight:700;cursor:pointer">🔁 물물장터 관리 <span id="rcSwapN" class="muted"></span></summary>
+    <div class="hint">학생들이 school.html 「이야기방 → 바꾸자」에서 올린 물건입니다. 돈 거래는 서버에서 막고, 바꾸는 약속은 학교 안 시간·장소만 고를 수 있어요. 곤란한 글은 숨기거나 지울 수 있어요. 일주일쯤 모이면 「한 주 기록 저장」으로 파일을 받은 뒤 「기록 모두 지우기」를 누르면 글·제안·사진이 서버에서 함께 지워져요(사진은 이때까지만 서버에 있어요).</div>
+    <div class="row" style="gap:8px;margin:6px 0"><button id="rcSwapRef">🔄 새로고침</button><button id="rcSwapSave">💾 한 주 기록 저장</button><button id="rcSwapPurge">🧹 기록 모두 지우기</button></div>
+    <div id="rcSwapMsg" class="muted"></div>
+    <div id="rcSwapList" class="rc-thread" style="max-height:420px"></div>
+  </details>
   <details id="rcChat" style="margin-top:12px">
     <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span> <span id="rcRptN" style="color:#b91c1c;font-weight:800"></span></summary>
     <div id="rcRptBox" style="display:none;margin:8px 0;padding:10px;border:2px solid #fb923c;border-radius:12px;background:#fff7ed">
@@ -518,6 +525,58 @@
       rcChatRows=rows||[];rcChatLocked=!!(st&&st[0]&&st[0].locked);rcDmRows=dms||[];rcDmLocked=!!(st&&st[0]&&st[0].dm_locked);rcMeetRows=mts||[];rcMeetLocked=!!(st&&st[0]&&st[0].meetup_locked);rcChatDraw();rcMeetDraw();
     }catch(_){}
   }
+  // ---- 물물장터 관리(swap-market 함수, 교사 계정) ----
+  const SW_STATUS={open:'받는 중',matched:'친구 정함',done:'바꿈 끝',closed:'닫힘'};
+  const SW_P={classroom:'교실',hall:'복도',library:'도서관',yard:'운동장 쉼터'},SW_S={break:'쉬는 시간',after_lunch:'점심 후',afterschool_in:'방과후 학교 안'};
+  let rcSwapRows=[];
+  async function swapCall(body){
+    const token=await freshToken();
+    const r=await fetch(U+'/functions/v1/swap-market',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:token,...body})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(d.error||('HTTP '+r.status));
+    return d;
+  }
+  function swapDraw(){
+    $('rcSwapN').textContent=rcSwapRows.length?'('+rcSwapRows.length+'개)':'';
+    const box=$('rcSwapList');box.replaceChildren();
+    if(!rcSwapRows.length){const p=document.createElement('div');p.className='muted';p.textContent='아직 올라온 물건이 없어요.';box.append(p);return}
+    rcSwapRows.forEach(it=>{
+      const d=document.createElement('div');d.className='rc-acc';
+      const w=document.createElement('div');w.className='who';
+      w.textContent=it.owner+' · '+it.title+(it.body?' ('+it.body+')':'')+' → 원하는 것: '+it.want+' · '+(SW_STATUS[it.status]||it.status)+(it.hidden?' · (숨김)':'')+' · '+rcFmt(it.created)+(it.place?' · 약속 '+(SW_S[it.slot]||'')+' '+(SW_P[it.place]||''):'');
+      if(it.hidden)w.style.opacity='.5';
+      d.append(w);
+      if(it.photo){const im=document.createElement('img');im.src=it.photo;im.alt=it.title;im.style.cssText='max-width:120px;max-height:120px;display:block;margin:4px 0';d.append(im)}
+      (it.offers||[]).forEach(o=>{const l=document.createElement('div');l.className='muted';l.textContent='  ↳ '+o.from+': '+o.give+(o.note?' ('+o.note+')':'')+(o.chosen?' ✅ 정함':'')+(o.has_photo?' 📷':'');d.append(l)});
+      const a=document.createElement('button');a.textContent=it.hidden?'보이기':'숨기기';
+      const x=document.createElement('button');x.textContent='삭제';
+      a.onclick=async()=>{a.disabled=true;try{await swapCall({action:'t_hide',id:it.id,hidden:!it.hidden});it.hidden=!it.hidden;swapDraw()}catch(_){a.disabled=false}};
+      x.onclick=async()=>{if(!confirm('이 글과 제안, 사진을 지울까요? 되돌릴 수 없어요.'))return;x.disabled=true;try{await swapCall({action:'t_delete',id:it.id});rcSwapRows=rcSwapRows.filter(r=>r.id!==it.id);swapDraw()}catch(_){x.disabled=false}};
+      d.append(a,x);box.append(d);
+    });
+  }
+  async function swapLoad(){
+    if(!$('rcSwap').open)return;
+    try{const d=await swapCall({action:'t_list'});rcSwapRows=d.items||[];$('rcSwapMsg').textContent='';swapDraw()}catch(e){$('rcSwapMsg').textContent='불러오지 못했어요. ('+e.message+')'}
+  }
+  $('rcSwap').addEventListener('toggle',swapLoad);
+  $('rcSwapRef').onclick=swapLoad;
+  $('rcSwapSave').onclick=async()=>{
+    try{
+      const d=await swapCall({action:'t_export'});
+      const lines=['\uFEFF물건,올린 학생,설명,원하는 것,상태,올린 때,기한,약속,제안(학생: 줄 것 / 한마디)'];
+      const q=t=>'"'+String(t==null?'':t).replace(/"/g,'""')+'"';
+      (d.items||[]).forEach(it=>lines.push([it.title,it.owner,it.body,it.want,SW_STATUS[it.status]||it.status,it.created,it.ends,it.place?(SW_S[it.slot]||'')+' '+(SW_P[it.place]||''):'',(it.offers||[]).map(o=>o.from+': '+o.give+(o.note?' / '+o.note:'')+(o.chosen?' [정함]':'')).join(' | ')].map(q).join(',')));
+      const blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='물물장터_기록_'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+      $('rcSwapMsg').textContent='기록 '+(d.items||[]).length+'건을 파일로 저장했어요(사진은 파일에 들어가지 않아요). 확인한 뒤 「기록 모두 지우기」를 눌러요.';
+    }catch(e){$('rcSwapMsg').textContent='저장하지 못했어요. ('+e.message+')'}
+  };
+  $('rcSwapPurge').onclick=async()=>{
+    if(!confirm('물물장터의 글·제안·사진을 모두 지울까요?\n먼저 「한 주 기록 저장」으로 파일을 받아 두었는지 확인해요. 되돌릴 수 없어요.'))return;
+    if(!confirm('정말 모두 지울까요?'))return;
+    try{const d=await swapCall({action:'t_purge'});rcSwapRows=[];swapDraw();$('rcSwapMsg').textContent='글 '+d.deleted+'건과 사진을 서버에서 지웠어요.'}catch(e){$('rcSwapMsg').textContent='지우지 못했어요. ('+e.message+')'}
+  };
   $('rcChat').addEventListener('toggle',rcChatLoad);
   $('rcDmLock').onclick=async()=>{
     if(!rcCls)return;const b=$('rcDmLock');b.disabled=true;
