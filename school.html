@@ -425,8 +425,9 @@ async function stCall(body){
   let d=null; try{d=await r.json()}catch(e){}
   return {status:r.status,data:d||{}};
 }
+const MEET_MSG='모임 만들기는 평일 오후 1시 40분~8시, 주말 아침 8시~저녁 8시에 할 수 있어요. 모임 구경은 언제든지 돼요.';
 const TIME_MSG='지금은 닫혀 있어요. 방과후(오후 2시~7시)에 열려요.';
-const TALK_ERR={blocked_content:'주소·이메일·전화번호는 올릴 수 없어요.',too_fast:'조금 천천히 보내요.',too_many_messages:'잠깐 쉬었다가 보내요.',duplicate:'같은 말은 또 보내지 않아요.',chat_locked:'지금은 이야기방이 닫혀 있어요.',no_student:'그 친구를 찾지 못했어요.',empty:'내용을 써 주세요.',bad_input:'고르는 칸을 모두 골라 주세요.',too_many_open:'열어 둔 모임이 이미 2개예요.',full:'자리가 다 찼어요.',ended:'이미 끝난 모임이에요.',is_host:'내가 만든 모임이에요.',no_meetup:'모임이 없어졌어요.'};
+const TALK_ERR={create_closed:'지금은 모임을 만들 수 없어요. 평일 오후 1시 40분~8시, 주말 아침 8시~저녁 8시에 만들 수 있어요.',blocked_content:'주소·이메일·전화번호는 올릴 수 없어요.',too_fast:'조금 천천히 보내요.',too_many_messages:'잠깐 쉬었다가 보내요.',duplicate:'같은 말은 또 보내지 않아요.',chat_locked:'지금은 이야기방이 닫혀 있어요.',no_student:'그 친구를 찾지 못했어요.',empty:'내용을 써 주세요.',bad_input:'고르는 칸을 모두 골라 주세요.',too_many_open:'열어 둔 모임이 이미 2개예요.',full:'자리가 다 찼어요.',ended:'이미 끝난 모임이에요.',is_host:'내가 만든 모임이에요.',no_meetup:'모임이 없어졌어요.'};
 let talkTimer=0, talkBusy=false, talkLast='', talkView='all', talkPeer=null;
 function talkStop(){clearInterval(talkTimer);talkTimer=0}
 function talkOpen(){
@@ -608,7 +609,7 @@ async function meetLoad(){
   const r=await stCall({action:'meet_list'}); if(!$('#meetList')) return;
   if(r.status!==200){ if(r.status===401||r.status===403){$('#talkErr').textContent='다시 로그인해 주세요.';talkStop()} return; }
   meetTemp=typeof r.data.temp==='number'?{temp:r.data.temp,count:r.data.count||0,tags:r.data.tags||{}}:null;
-  meetData=r.data.meetups||[]; $('#meetLock').style.display=r.data.locked?'block':'none'; $('#meetLock').textContent=r.data.timeClosed?TIME_MSG:'지금은 모임판이 닫혀 있어요.'; $('#meetNew').disabled=!!r.data.locked;
+  meetData=r.data.meetups||[]; $('#meetLock').style.display=(r.data.locked||r.data.createClosed)?'block':'none'; $('#meetLock').textContent=r.data.locked?'지금은 모임판이 닫혀 있어요.':MEET_MSG; $('#meetNew').disabled=!!(r.data.locked||r.data.createClosed);
   meetPaint();
   if(swapN===null)swCall({action:'temp'}).then(q=>{if(q.status===200&&typeof q.data.swap_count==='number'){swapN=q.data.swap_count;tempPaint()}}).catch(()=>{});   // 번호+이름 입장(로그인 없음)은 바꾸자를 쓸 수 없어 0으로 둔다
 }

@@ -863,3 +863,6 @@
 - classroom/teacher.html: 교사 로그인 직후 `liveCheck()`가 `classroom_admin_list`(열린 방이 없으면 'room not found' 오류)로 HC302가 열려 있는지 확인 → `#liveNow` 상자(들어가기 / 종료). DB 변경 없음.
 - education.html: 하단 `#teacherBar`(「🧑‍🏫 교사 관리 화면」→ classroom/teacher.html)는 `sessionStorage st_s`에 `teacher:true`가 있을 때만 보임.
 - 열린 수업방 자동 종료 시간(현재 8시간)을 줄일지는 선생님 결정 대기.
+
+### 2026-11-19 추가: 모이자 시간(I-19)
+- school-tool `meet_` 블록: `createClosed` = 한국 시간 기준 평일 13:40~20:00, 주말(토·일) 08:00~20:00 밖이면 true. `meet_create`만 막음(`create_closed`). `meet_list` 응답에 `createClosed`를 포함하고, school.html은 안내(`MEET_MSG`)를 띄우고 「모임 만들기」를 비활성화. 비밀값 `ST_OPEN_HOURS`(14-19)는 이야기방·1:1에만 적용.

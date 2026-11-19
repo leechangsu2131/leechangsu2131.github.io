@@ -194,7 +194,10 @@ Deno.serve(async (req) => {
     const PLACES = ["ground", "school_lib", "playground", "town_lib"];                       // 미리 정한 공공장소만(집·주소 없음)
     const ACTS: Record<string, string[]> = { play: ["tag", "ball", "board", "jump", "draw", "talk"], study: ["homework", "read", "math", "write"] };
     const { data: setg } = await sb.from("st_chat_settings").select("meetup_locked").eq("class_id", st.class_id).maybeSingle();
-    const locked = !!setg?.meetup_locked || timeClosed;
+    // 모임판: 보는 건 항상 가능. 모임 만들기는 평일 13:40~20:00, 주말 08:00~20:00(한국 시간)에만 가능
+    const kst = new Date(Date.now() + 9 * 3600_000), kmin = kst.getUTCHours() * 60 + kst.getUTCMinutes(), weekend = kst.getUTCDay() === 0 || kst.getUTCDay() === 6;
+    const createClosed = !(kmin >= (weekend ? 8 * 60 : 13 * 60 + 40) && kmin < 20 * 60);
+    const locked = !!setg?.meetup_locked;
     const now = new Date();
     const PRAISE = ["thanks", "fun", "kind", "rule", "lead"];
     const CONCERN = ["rule", "words", "absent", "other"];
@@ -220,7 +223,7 @@ Deno.serve(async (req) => {
           people: ids.map((i) => ({ num: byId.get(i)?.number ?? 0, name: byId.get(i)?.name ?? "" })) };
       });
       const shown = list.filter((m) => !m.ended || m.review || now.getTime() - new Date(m.until).getTime() <= 30 * 60 * 1000);
-      return json({ ok: true, locked, timeClosed, me: st.number, meetups: shown, ...(await myTemp()) }, 200, origin);
+      return json({ ok: true, locked, createClosed, me: st.number, meetups: shown, ...(await myTemp()) }, 200, origin);
     }
     // ---------- 모임 뒤 매너온도: 칭찬 스티커(온도 오름)와 '불편했어요'(선생님에게만, 점수 아님) ----------
     if (action === "meet_review" || action === "meet_praise" || action === "meet_concern") {
@@ -256,6 +259,7 @@ Deno.serve(async (req) => {
       return json({ ok: true }, 200, origin);
     }
     if (locked) return json({ error: "chat_locked" }, 403, origin);
+    if (action === "meet_create" && createClosed) return json({ error: "create_closed" }, 403, origin);
     if (action === "meet_create") {
       const kind = String(body.kind ?? "");
       const activity = String(body.activity ?? "");
