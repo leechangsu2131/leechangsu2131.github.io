@@ -131,6 +131,13 @@
     <div id="rcSwapMsg" class="muted"></div>
     <div id="rcSwapList" class="rc-thread" style="max-height:420px"></div>
   </details>
+  <details id="rcPrac" style="margin-top:12px">
+    <summary style="font-weight:700;cursor:pointer">🌱 덕목 실천 확인 <span id="rcPracN" class="muted"></span></summary>
+    <div class="hint">학생들이 school.html 「이야기방 → 🌱 실천」에서 올린 하루 한 장 카드입니다(최근 2주). 올리면 경험치는 바로 임시로 들어가고, 여기서 「모두 확인」을 누르면 확정돼요. 곤란한 글은 「다시 써 보기」를 누르면 그 카드의 경험치가 취소되고 학생이 다시 올릴 수 있어요. 점수는 경험치에만 들어가고 도덕 평가·매너온도와는 관계없어요.</div>
+    <div class="row" style="gap:8px;margin:6px 0;flex-wrap:wrap"><span id="rcPracWeek" class="muted"></span><select id="rcPracSel"></select><button id="rcPracSet">이번 주 덕목으로 정하기</button><button id="rcPracRef">🔄 새로고침</button><button id="rcPracAll">✅ 대기 카드 모두 확인</button></div>
+    <div id="rcPracMsg" class="muted"></div>
+    <div id="rcPracList" class="rc-thread" style="max-height:420px"></div>
+  </details>
   <details id="rcChat" style="margin-top:12px">
     <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span> <span id="rcRptN" style="color:#b91c1c;font-weight:800"></span></summary>
     <div id="rcRptBox" style="display:none;margin:8px 0;padding:10px;border:2px solid #fb923c;border-radius:12px;background:#fff7ed">
@@ -627,6 +634,52 @@
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='온라인게시판_기록_'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
       $('rcBdMsg').textContent='글 '+(d.posts||[]).length+'개와 댓글을 파일로 저장했어요(사진은 파일에 들어가지 않아요).';
     }catch(e){$('rcBdMsg').textContent='저장하지 못했어요. ('+e.message+')'}
+  };
+  // ---- 덕목 실천 확인(practice-hub 함수, 교사 계정) ----
+  let rcPrac={cards:[],virtues:[],virtue:'',week_start:''};
+  async function pracCall(body){
+    const token=await freshToken();
+    const r=await fetch(U+'/functions/v1/practice-hub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:token,...body})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(d.error||('HTTP '+r.status));
+    return d;
+  }
+  function pracDraw(){
+    const vn=id=>{const v=rcPrac.virtues.find(x=>x.id===id);return v?v.emoji+' '+v.name:id};
+    const sel=$('rcPracSel');
+    if(!sel.options.length)rcPrac.virtues.forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=v.emoji+' '+v.name;sel.append(o)});
+    sel.value=rcPrac.virtue;
+    $('rcPracWeek').textContent=rcPrac.week_start?(rcPrac.week_start.slice(5).replace('-','/')+' 주 덕목: '+vn(rcPrac.virtue)):'';
+    const pend=rcPrac.cards.filter(c=>c.status==='pending');
+    $('rcPracN').textContent=pend.length?'(확인 기다림 '+pend.length+'장)':'';
+    const box=$('rcPracList');box.replaceChildren();
+    if(!rcPrac.cards.length){const p=document.createElement('div');p.className='muted';p.textContent='아직 올라온 카드가 없어요.';box.append(p);return}
+    const ST={pending:'⏳ 확인 기다림',ok:'✅ 확인함',redo:'↩ 다시 쓰는 중'};
+    rcPrac.cards.forEach(c=>{
+      const d=document.createElement('div');d.className='rc-acc';
+      const w=document.createElement('div');w.className='who';
+      w.textContent=c.num+'번 '+c.name+' · '+c.day.slice(5).replace('-','/')+' · '+vn(c.virtue)+' · '+[c.choice,c.note].filter(Boolean).join(' / ')+' · '+(ST[c.status]||c.status);
+      if(c.status!=='pending')w.style.opacity='.6';
+      d.append(w);
+      if(c.status==='pending'){
+        const r=document.createElement('button');r.textContent='다시 써 보기';
+        r.onclick=async()=>{r.disabled=true;try{await pracCall({action:'t_redo',id:c.id});c.status='redo';pracDraw()}catch(e){r.disabled=false;$('rcPracMsg').textContent='처리하지 못했어요. ('+e.message+')'}};
+        d.append(r);
+      }
+      box.append(d);
+    });
+  }
+  async function pracLoad(){
+    if(!$('rcPrac').open)return;
+    try{const d=await pracCall({action:'t_list'});rcPrac=d;$('rcPracMsg').textContent='';pracDraw()}catch(e){$('rcPracMsg').textContent='불러오지 못했어요. ('+e.message+')'}
+  }
+  $('rcPrac').addEventListener('toggle',pracLoad);
+  $('rcPracRef').onclick=pracLoad;
+  $('rcPracSet').onclick=async()=>{try{const d=await pracCall({action:'t_set',virtue:$('rcPracSel').value});rcPrac.virtue=d.virtue;pracDraw();$('rcPracMsg').textContent='이번 주 덕목을 바꿨어요.'}catch(e){$('rcPracMsg').textContent='바꾸지 못했어요. ('+e.message+')'}};
+  $('rcPracAll').onclick=async()=>{
+    const ids=rcPrac.cards.filter(c=>c.status==='pending').map(c=>c.id);
+    if(!ids.length){$('rcPracMsg').textContent='확인할 카드가 없어요.';return}
+    try{const d=await pracCall({action:'t_confirm',ids});rcPrac.cards.forEach(c=>{if(ids.includes(c.id))c.status='ok'});pracDraw();$('rcPracMsg').textContent=d.changed+'장을 확인했어요.'}catch(e){$('rcPracMsg').textContent='처리하지 못했어요. ('+e.message+')'}
   };
   // ---- 물물장터 관리(swap-market 함수, 교사 계정) ----
   const SW_STATUS={open:'받는 중',matched:'친구 정함',done:'바꿈 끝',closed:'닫힘'};
