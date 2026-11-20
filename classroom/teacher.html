@@ -116,6 +116,14 @@
     <div id="rcThread" class="rc-thread"></div>
     <div class="rc-row"><textarea id="rcReply" maxlength="500" placeholder="이 학생에게만 보내요."></textarea><button id="rcReplySend" class="primary">보내기</button></div>
   </div>
+  <details id="rcBoard" style="margin-top:12px">
+    <summary style="font-weight:700;cursor:pointer">📮 온라인 게시판 관리 <span id="rcBoardN" class="muted"></span></summary>
+    <div class="hint">학생 화면은 <a href="../board.html" target="_blank">board.html</a> 입니다(3-2 매체 단원 「온라인 상황에서 글을 써요」 실습). 글은 바로 공개되고, 곤란한 글·댓글은 여기서 숨기거나 지울 수 있어요. 별명으로 쓴 글도 여기서는 실명이 보여요. 글감을 새로 만들거나 닫을 수 있어요(닫으면 읽기만 가능).</div>
+    <div class="row" style="gap:8px;margin:6px 0;flex-wrap:wrap"><input id="rcBdTitle" maxlength="40" placeholder="새 글감 (예: 나의 주말 이야기)" style="flex:1;min-width:160px"><input id="rcBdGuide" maxlength="200" placeholder="안내 말(선택)" style="flex:2;min-width:160px"><button id="rcBdAdd">＋ 글감 만들기</button></div>
+    <div class="row" style="gap:8px;margin:6px 0;flex-wrap:wrap"><select id="rcBdSel"></select><button id="rcBdRef">🔄 새로고침</button><button id="rcBdToggle">🔒 글감 열기/닫기</button><button id="rcBdDelTopic">🗑 글감 지우기</button><button id="rcBdSave">💾 기록 저장(CSV)</button></div>
+    <div id="rcBdMsg" class="muted"></div>
+    <div id="rcBdList" class="rc-thread" style="max-height:480px"></div>
+  </details>
   <details id="rcSwap" style="margin-top:12px">
     <summary style="font-weight:700;cursor:pointer">🔁 물물장터 관리 <span id="rcSwapN" class="muted"></span></summary>
     <div class="hint">학생들이 school.html 「이야기방 → 바꾸자」에서 올린 물건입니다. 돈 거래는 서버에서 막고, 바꾸는 약속은 학교 안 시간·장소만 고를 수 있어요. 곤란한 글은 숨기거나 지울 수 있어요. 일주일쯤 모이면 「한 주 기록 저장」으로 파일을 받은 뒤 「기록 모두 지우기」를 누르면 글·제안·사진이 서버에서 함께 지워져요(사진은 이때까지만 서버에 있어요).</div>
@@ -540,6 +548,86 @@
       rcChatRows=rows||[];rcChatLocked=!!(st&&st[0]&&st[0].locked);rcDmRows=dms||[];rcDmLocked=!!(st&&st[0]&&st[0].dm_locked);rcMeetRows=mts||[];rcMeetLocked=!!(st&&st[0]&&st[0].meetup_locked);rcChatDraw();rcMeetDraw();
     }catch(_){}
   }
+  // ---- 온라인 게시판 관리(board-post 함수, 교사 계정) ----
+  let bdTopics=[],bdPosts=[];
+  async function bdCall(body){
+    const token=await freshToken();
+    const r=await fetch(U+'/functions/v1/board-post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:token,...body})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(d.error||('HTTP '+r.status));
+    return d;
+  }
+  const BD_KIND={question:'질문',praise:'칭찬',thanks:'감사',story:'경험'};
+  function bdDraw(){
+    $('rcBoardN').textContent=bdPosts.length?'(글 '+bdPosts.length+'개)':'';
+    const box=$('rcBdList');box.replaceChildren();
+    if(!bdPosts.length){const p=document.createElement('div');p.className='muted';p.textContent='이 글감에는 아직 글이 없어요.';box.append(p);return}
+    bdPosts.forEach(it=>{
+      const d=document.createElement('div');d.className='rc-acc';
+      const w=document.createElement('div');w.className='who';
+      w.textContent=it.author+' ('+it.shown_as+') · '+it.title+' · ♥'+it.likes+' · '+rcFmt(it.created)+(it.hidden?' · (숨김)':'');
+      if(it.hidden)w.style.opacity='.5';d.append(w);
+      const b=document.createElement('div');b.className='muted';b.textContent=it.body+(it.emojis?'  '+it.emojis:'');d.append(b);
+      if(it.photo){const im=document.createElement('img');im.src=it.photo;im.alt=it.title;im.style.cssText='max-width:140px;max-height:140px;display:block;margin:4px 0';d.append(im)}
+      it.comments.forEach(c=>{
+        const l=document.createElement('div');l.className='muted';l.textContent='  ↳ ['+(BD_KIND[c.kind]||'')+'] '+c.author+' ('+c.shown_as+'): '+c.body+(c.hidden?' (숨김)':'')+' ';
+        const h=document.createElement('button');h.textContent=c.hidden?'보이기':'숨기기';
+        const x=document.createElement('button');x.textContent='삭제';
+        h.onclick=async()=>{h.disabled=true;try{await bdCall({action:'t_hide',kind:'comment',id:c.id,hidden:!c.hidden});c.hidden=!c.hidden;bdDraw()}catch(_){h.disabled=false}};
+        x.onclick=async()=>{if(!confirm('이 댓글을 지울까요?'))return;try{await bdCall({action:'t_delete',kind:'comment',id:c.id});it.comments=it.comments.filter(z=>z.id!==c.id);bdDraw()}catch(_){}};
+        l.append(h,x);d.append(l);
+      });
+      const a=document.createElement('button');a.textContent=it.hidden?'글 보이기':'글 숨기기';
+      const x=document.createElement('button');x.textContent='글 삭제';
+      a.onclick=async()=>{a.disabled=true;try{await bdCall({action:'t_hide',kind:'post',id:it.id,hidden:!it.hidden});it.hidden=!it.hidden;bdDraw()}catch(_){a.disabled=false}};
+      x.onclick=async()=>{if(!confirm('이 글과 댓글, 사진을 지울까요? 되돌릴 수 없어요.'))return;try{await bdCall({action:'t_delete',kind:'post',id:it.id});bdPosts=bdPosts.filter(z=>z.id!==it.id);bdDraw()}catch(_){}};
+      d.append(a,x);box.append(d);
+    });
+  }
+  async function bdLoad(keepSel){
+    if(!$('rcBoard').open)return;
+    try{
+      const t=await bdCall({action:'t_topics'});bdTopics=t.topics||[];
+      const sel=$('rcBdSel'),cur=keepSel?sel.value:'';sel.replaceChildren();
+      const all=document.createElement('option');all.value='';all.textContent='모든 글감';sel.append(all);
+      bdTopics.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=(x.open?'':'🔒 ')+x.title;sel.append(o)});
+      if(cur)sel.value=cur;
+      const d=await bdCall({action:'t_list',topic_id:sel.value||undefined});
+      bdPosts=d.posts||[];$('rcBdMsg').textContent='';bdDraw();
+    }catch(e){$('rcBdMsg').textContent='불러오지 못했어요. ('+e.message+')'}
+  }
+  $('rcBoard').addEventListener('toggle',()=>bdLoad(false));
+  $('rcBdRef').onclick=()=>bdLoad(true);
+  $('rcBdSel').onchange=()=>bdLoad(true);
+  $('rcBdAdd').onclick=async()=>{
+    const title=$('rcBdTitle').value.trim();if(!title){$('rcBdMsg').textContent='글감 이름을 적어 주세요.';return}
+    try{await bdCall({action:'t_topic_add',title,guide:$('rcBdGuide').value.trim()});$('rcBdTitle').value='';$('rcBdGuide').value='';await bdLoad(true);$('rcBdMsg').textContent='글감을 만들었어요.'}catch(e){$('rcBdMsg').textContent='만들지 못했어요. ('+e.message+')'}
+  };
+  $('rcBdToggle').onclick=async()=>{
+    const id=$('rcBdSel').value;if(!id){$('rcBdMsg').textContent='위에서 글감을 하나 골라 주세요.';return}
+    const t=bdTopics.find(x=>x.id===id);
+    try{await bdCall({action:'t_topic_set',id,open:!t.open});await bdLoad(true);$('rcBdMsg').textContent=t.open?'글감을 닫았어요(읽기만 가능).':'글감을 열었어요.'}catch(e){$('rcBdMsg').textContent='바꾸지 못했어요. ('+e.message+')'}
+  };
+  $('rcBdDelTopic').onclick=async()=>{
+    const id=$('rcBdSel').value;if(!id){$('rcBdMsg').textContent='위에서 글감을 하나 골라 주세요.';return}
+    if(!confirm('이 글감의 모든 글·댓글·사진이 지워져요. 먼저 「기록 저장」을 했나요? 되돌릴 수 없어요.'))return;
+    if(!confirm('정말 지울까요?'))return;
+    try{await bdCall({action:'t_topic_delete',id});$('rcBdSel').value='';await bdLoad(false);$('rcBdMsg').textContent='글감을 지웠어요.'}catch(e){$('rcBdMsg').textContent='지우지 못했어요. ('+e.message+')'}
+  };
+  $('rcBdSave').onclick=async()=>{
+    try{
+      const d=await bdCall({action:'t_export',topic_id:$('rcBdSel').value||undefined});
+      const q=t=>'"'+String(t==null?'':t).replace(/"/g,'""')+'"';
+      const lines=['\uFEFF종류,글감,글쓴이(실명),보인 이름,제목/댓글,내용,공감,숨김,쓴 때'];
+      (d.posts||[]).forEach(p=>{
+        lines.push(['글',p.topic,p.author,p.shown_as,p.title,p.body+(p.emojis?' '+p.emojis:''),p.likes,p.hidden?'숨김':'',p.created].map(q).join(','));
+        p.comments.forEach(c=>lines.push(['댓글('+(BD_KIND[c.kind]||'')+')',p.topic,c.author,c.shown_as,'↳ '+p.title,c.body,'',c.hidden?'숨김':'',c.created].map(q).join(',')));
+      });
+      const blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='온라인게시판_기록_'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+      $('rcBdMsg').textContent='글 '+(d.posts||[]).length+'개와 댓글을 파일로 저장했어요(사진은 파일에 들어가지 않아요).';
+    }catch(e){$('rcBdMsg').textContent='저장하지 못했어요. ('+e.message+')'}
+  };
   // ---- 물물장터 관리(swap-market 함수, 교사 계정) ----
   const SW_STATUS={open:'받는 중',matched:'친구 정함',done:'바꿈 끝',closed:'닫힘'};
   const SW_P={classroom:'교실',hall:'복도',library:'도서관',yard:'운동장 쉼터'},SW_S={break:'쉬는 시간',after_lunch:'점심 후',afterschool_in:'방과후 학교 안'};

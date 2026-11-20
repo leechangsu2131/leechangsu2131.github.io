@@ -896,3 +896,11 @@
 
 ### 2026-11-20 추가: GitHub → GitLab 자동 미러(I-20)
 - `.github/workflows/mirror_to_gitlab.yml`: main push 때(또는 수동) `git push --force` 로 gitlab.com/changsu423/homepage 의 main 을 GitHub 와 같게 맞춤. 비밀값 `GITLAB_TOKEN`(GitHub Secrets). GitHub 가 기준, 한 방향.
+
+### 2026-11-20 추가: 학급 온라인 게시판 board.html (I-21)
+- **목적:** 3-2 국어 매체 단원 「온라인 상황에서 글을 써요」(디지털·미디어 역량, 매체 활용 윤리: 초상권·개인정보 보호, 표현 양식 선택, 댓글·공감) 실습·연계.
+- **화면(board.html):** 글감(주제) 칩 → 글 목록(제목·글쓴이·글씨 크기/색·그림말·사진·♥ 공감·댓글). 글쓰기 시트: 이름(내 이름/별명), 제목, 내용(500자), 글씨 크기(보통/크게), 색 6가지, 그림말 16가지(8개까지), 사진(📷 찍기/🖼️ 갤러리, 640px·200KB JPEG), 사진이 있으면 「초상권·개인정보 확인」 체크 필수, 미리 보기. 내 글 「✏️ 고쳐 쓰기」·지우기, 댓글은 종류(질문·칭찬·감사·나의 경험) 고르기. 20초마다 새로고침. 로그인은 school-tool 과 같은 `sessionStorage st_s`(교사 계정은 안내 후 교사 화면으로).
+- **서버(board-post/function.ts):** 학생 `topics·list·post·edit·delete·comment·uncomment·like`, 교사 `t_topics·t_topic_add·t_topic_set·t_topic_delete·t_list·t_hide·t_delete·t_export`. 글 바로 공개, `BLOCKED`(전화·이메일·주소) 차단, 별명은 반 친구 실명 포함 불가, 하루 글 10·댓글 60, 닫힌 글감은 읽기만, 내 글 ♥ 불가. 기본 글감 「자유롭게 쓰기」는 자동 생성. 30일 지난 사진은 가끔 자동 정리.
+- **DB(board-post/schema.sql):** `bd_topics`, `bd_posts`, `bd_comments`, `bd_likes`(RLS, anon 없음, 교사 정책 `gt_is_teacher()`), 비공개 보관함 `board-photos`(JPEG 300KB).
+- **교사 화면:** classroom/teacher.html 「📮 온라인 게시판 관리」 — 글감 만들기·열기/닫기·지우기, 글·댓글 숨기기/삭제(별명 글도 실명 표시), CSV 저장(사진 제외).
+- **상태:** 파일·모의시험(서버 30개, 화면 시나리오) 완료, DB·함수 반영과 push 는 선생님 허락 대기.

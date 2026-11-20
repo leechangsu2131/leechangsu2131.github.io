@@ -141,7 +141,7 @@ async function tick(){
   }
 }
 function start(){
-  const nx=store.get('st_next');if(['education.html','growth/index.html','school.html#talk','분수_순위표.html'].includes(nx)){
+  const nx=store.get('st_next');if(['education.html','board.html','growth/index.html','school.html#talk','분수_순위표.html'].includes(nx)){
     store.del('st_next');
     // 다른 페이지로 가기 전에 '접속했어요'를 한 번 알린다(최대 2.5초만 기다림). 이후는 각 페이지의 monitor.js 가 이어서 알린다.
     Promise.race([call({action:'ping',visible:true}).catch(()=>{}),new Promise(r=>setTimeout(r,2500))]).then(()=>{location.href='../'+nx});
@@ -189,7 +189,7 @@ async function afterLogin(){
     if(r.teacher){ // 교사 계정: 학생 신청 대신 둘러보기로 들어간다(번호 없이 로그인만 유지)
       session={...session,teacher:true};store.set('st_s',JSON.stringify(session));
       const nx=store.get('st_next');store.del('st_next');
-      location.href='../'+(['education.html','school.html#talk','분수_순위표.html'].includes(nx)?nx:'education.html');return}
+      location.href='../'+(['education.html','board.html','school.html#talk','분수_순위표.html'].includes(nx)?nx:'education.html');return}
     if(r.approved){session={...session,num:r.number,name:r.name};store.set('st_s',JSON.stringify(session));start()}
     else if(r.pending){show('pending');$('#pendErr').textContent=''}
     else if(r.need_request){$('#reqWho').textContent=r.name?`${r.name} 님, 내 번호를 알려 줘요.`:'내 번호를 알려 줘요.';$('#reqNum').value='';$('#reqOk').checked=false;$('#reqErr').textContent='';show('request')}

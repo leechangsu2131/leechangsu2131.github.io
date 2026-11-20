@@ -28,6 +28,7 @@ https://homepage-53dd99.gitlab.io/
 | 학생 캐릭터 | `school.html` 이야기방 「🧙 캐릭터」 탭 — 조합형 캐릭터 만들기(`shared/char.js`, 서버 `char-hub`) |
 | 교사 관리 | `classroom/teacher.html` — 수업 화면 모니터링, 단원평가 공개 설정, 그림책 코치 설정, 교실 연결 |
 | 수업 활동 | `classroom/activity/` — 수업방에서 주관식·객관식·영상 활동 띄우기, 수업 흐름 저장/불러오기, 큰 화면, CSV (교사 화면 "📋 수업 활동" 칸, 설명은 `classroom/README.md` 6번) |
+| 온라인 게시판 | `board.html` — 3-2 매체 단원 실습(글감별 글·댓글·♥, 실명/별명, 사진 초상권 확인). 서버 `board-post`, 교사 관리는 교사 화면 「📮 온라인 게시판 관리」 |
 | 학교정보 | `school.html` (시간표·급식·학사일정) |
 | 게임·사회 | `games/`, `yut/`, `oldlife.html` |
 | 투자·기타 | `dcf*.html`, `investment-dashboard.html`, `exercise.html`, `Pdf-splitter.html` 등 |
@@ -49,6 +50,7 @@ https://homepage-53dd99.gitlab.io/
 |---|---|
 | `growth-tutor` | 성장 발표 AI 피드백(Gemini 우선, 실패 시 Groq) |
 | `school-tool` | 교실 연결(접속 현황·메시지). 소스: `school-tool/function.ts` |
+| `board-post` | 학급 온라인 게시판(글·댓글·공감·사진). 소스: `board-post/function.ts`, DB: `board-post/schema.sql` |
 | `unit-test-tutor` | 오답노트(분수 기본4) AI 튜터 대화. 소스: `tests/tutor-function.ts` |
 
 - 두 함수는 `GT_ALLOW_ORIGIN` 비밀값에 적힌 주소에서 온 요청만 받습니다. **학생이 접속하는 주소를 모두 쉼표로 넣어야 합니다.** 예: `https://school-api-alpha-gules.vercel.app,https://leechangsu2131.github.io,https://homepage-53dd99.gitlab.io`
