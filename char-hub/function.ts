@@ -1,7 +1,7 @@
 // Supabase Edge Function: char-hub (학생 캐릭터: 조합형으로 만들고 저장, 우리 반 친구들 캐릭터 보기)
 // 캐릭터는 그림 파일이 아니라 숫자 조합 코드(몸·색·눈·입·모자·꾸밈)로만 저장한다. 사진·외부 이미지는 받지 않는다.
 // - 학생 확인: 구글 로그인(jwt)으로 승인된 학생(st_accounts)만. 번호+이름 입장은 쓸 수 없다(swap-market과 같은 한계).
-// - 매너온도 38℃ 이상이면 특별 모자·꾸밈을 고를 수 있다(온도는 모이자+바꾸자 칭찬 합계, school-tool·swap-market과 같은 계산).
+// - 매너온도 38℃에 한 번 닿으면 특별 모자·꾸밈이 영구 해금된다(st_unlock). 온도 계산은 DB 함수 st_manner 한 곳(최근 28일 칭찬 기준).
 // - 교사: t_list(전체 보기) / t_hide(숨기기·되돌리기). 숨긴 캐릭터는 친구들에게 기본 얼굴 대신 빈 칸으로 보인다.
 // - verify_jwt=false 로 배포하고 함수 안에서 방어: 로그인 확인, Origin 확인, 입력 검사, 횟수 제한.
 // 비밀값: GT_ALLOW_ORIGIN(필수, 쉼표로 여러 주소)
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["get", "save", "list", "t_list", "t_hide"].includes(body.action) ? body.action : "";
+  const action = ["get", "me", "save", "list", "t_list", "t_hide"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
   if (tooMany("ip:" + ip, 400)) return json({ error: "too_many_attempts" }, 429, origin);
@@ -118,18 +118,29 @@ Deno.serve(async (req) => {
   if (!me) return json({ error: "no_student" }, 403, origin);
   if (tooMany("st:" + me.id, 120)) return json({ error: "too_many_attempts" }, 429, origin);
 
-  // 매너온도(모이자+바꾸자 칭찬 합계). 36.5℃에서 시작, 칭찬 1개당 +0.5, 내려가지 않는다.
+  // 매너온도: 규칙은 DB 함수 st_manner 한 곳(최근 28일·같은 친구 2개까지·올라갈수록 덜 오름·36.5℃ 하한).
   async function myTemp() {
-    const { count: a } = await sb.from("st_meetup_praise").select("id", { count: "exact", head: true }).eq("to_id", me!.id);
-    const { count: b } = await sb.from("st_swap_praise").select("id", { count: "exact", head: true }).eq("to_id", me!.id);
-    const n = (a ?? 0) + (b ?? 0);
-    return { temp: Math.min(99.9, Math.round((36.5 + 0.5 * n) * 10) / 10), count: n };
+    const { data } = await sb.rpc("st_manner", { p_student: me!.id });
+    // deno-lint-ignore no-explicit-any
+    const m = (data ?? {}) as any;
+    return { temp: Number(m.temp ?? 36.5), count: Number(m.count ?? 0), total: Number(m.total ?? 0) };
+  }
+  // 특별 꾸미기: 한 번 38℃에 닿으면 st_unlock 에 남아 온도가 내려가도 계속 쓴다.
+  async function specialOpen(temp: number) {
+    const { data: u } = await sb.from("st_unlock").select("key").eq("student_id", me!.id).eq("key", "special_char").maybeSingle();
+    if (u) return true;
+    if (temp < SPECIAL_TEMP) return false;
+    await sb.from("st_unlock").upsert({ student_id: me!.id, key: "special_char" }, { onConflict: "student_id,key", ignoreDuplicates: true });
+    return true;
   }
 
   if (action === "get") {
     const { data: r } = await sb.from("st_char").select("parts,hidden").eq("student_id", me.id).maybeSingle();
-    return json({ ok: true, me: me.number, mine: r?.parts ?? null, hidden: !!r?.hidden, special_temp: SPECIAL_TEMP, special: SPECIAL, ...(await myTemp()) }, 200, origin);
+    const t = await myTemp();
+    return json({ ok: true, me: me.number, mine: r?.parts ?? null, hidden: !!r?.hidden, special_temp: SPECIAL_TEMP, special: SPECIAL, special_open: await specialOpen(t.temp), ...t }, 200, origin);
   }
+
+  if (action === "me") return json({ ok: true, me: me.number, ...(await myTemp()) }, 200, origin);
 
   if (action === "save") {
     const parts = cleanParts(body.parts);
@@ -137,7 +148,7 @@ Deno.serve(async (req) => {
     const usesSpecial = Object.entries(SPECIAL).some(([k, list]) => list.includes(parts[k]));
     if (usesSpecial) {
       const t = await myTemp();
-      if (t.temp < SPECIAL_TEMP) return json({ error: "special_locked" }, 403, origin);
+      if (!(await specialOpen(t.temp))) return json({ error: "special_locked" }, 403, origin);
     }
     const { error } = await sb.from("st_char").upsert({ student_id: me.id, parts, updated_at: new Date().toISOString() }, { onConflict: "student_id" });
     if (error) return json({ error: "save_failed" }, 500, origin);

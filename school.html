@@ -522,8 +522,7 @@ const MEET_PLACES=[['ground','🏫 화천초 운동장'],['school_lib','📚 학
 const MEET_ACTS={play:[['ball','⚽ 공놀이'],['tag','🏃 술래잡기'],['jump','🪢 줄넘기'],['board','🎲 보드게임'],['draw','🎨 그림 그리기'],['talk','💬 이야기하기']],
   study:[['homework','📝 숙제 같이 하기'],['read','📖 책 읽기'],['math','➕ 수학 문제'],['write','✏️ 글쓰기']]};
 const MEET_QUICK=[['play','ball','ground',60,4],['play','tag','ground',30,6],['play','jump','playground',30,4],['study','homework','school_lib',60,3],['study','read','school_lib',60,3],['play','talk','playground',30,3]];
-let meetForm=null, meetFilter='all', meetRev=null, meetTemp=null, swapN=null;   // swapN: 바꾸자에서 받은 칭찬 수(매너온도는 모이자+바꾸자 합계)
-const tempOf=n=>Math.min(99.9,Math.round((36.5+0.5*n)*10)/10);
+let meetForm=null, meetFilter='all', meetRev=null, meetTemp=null;   // 매너온도는 서버 한 곳(DB 함수 st_manner: 모이자+바꾸자, 최근 4주)에서 계산해 온다
 const fmtT=d=>new Date(d).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
 const WD_K=['일','월','화','수','목','금','토'];
 function meetDays(){            // 오늘부터 일주일(7일)
@@ -610,10 +609,10 @@ async function meetLoad(){
   if(curTab!=='talk') return;
   const r=await stCall({action:'meet_list'}); if(!$('#meetList')) return;
   if(r.status!==200){ if(r.status===401||r.status===403){$('#talkErr').textContent='다시 로그인해 주세요.';talkStop()} return; }
-  meetTemp=typeof r.data.temp==='number'?{temp:r.data.temp,count:r.data.count||0,tags:r.data.tags||{}}:null;
+  meetTemp=null;   // 온도는 아래에서 char-hub 로 따로 가져온다(school-tool 의 값은 모임 칭찬만 센 옛 계산이라 쓰지 않는다)
   meetData=r.data.meetups||[]; $('#meetLock').style.display=(r.data.locked||r.data.createClosed)?'block':'none'; $('#meetLock').textContent=r.data.locked?'지금은 모임판이 닫혀 있어요.':MEET_MSG; $('#meetNew').disabled=!!(r.data.locked||r.data.createClosed);
   meetPaint();
-  if(swapN===null)swCall({action:'temp'}).then(q=>{if(q.status===200&&typeof q.data.swap_count==='number'){swapN=q.data.swap_count;tempPaint()}}).catch(()=>{});   // 번호+이름 입장(로그인 없음)은 바꾸자를 쓸 수 없어 0으로 둔다
+  chCall({action:'me'}).then(q=>{if(q.status===200&&typeof q.data.temp==='number'){meetTemp={temp:q.data.temp,count:q.data.count||0};tempPaint()}}).catch(()=>{});   // 번호+이름 입장(로그인 없음)은 온도를 보여 주지 않는다
 }
 const RV_PRAISE=[['thanks','😊 고마웠어요'],['fun','🎉 같이 놀아서 즐거웠어요'],['kind','💛 친절했어요'],['rule','🤝 약속을 잘 지켰어요'],['lead','🌟 잘 이끌어 줬어요']];
 const RV_WORRY=[['rule','약속을 안 지켰어요'],['words','말이 기분 나빴어요'],['absent','약속에 안 나왔어요'],['other','다른 일이 있었어요']];
@@ -621,8 +620,7 @@ function tempPaint(){
   const t=$('#meetTemp'); if(!t) return;
   if(!meetTemp){t.style.display='none';return}
   t.style.display='flex';t.textContent='';
-  const n=meetTemp.count+(swapN||0);
-  t.append(el('span','','🌡️ 내 매너온도'),el('b','',tempOf(n).toFixed(1)+'℃'),el('small','','받은 칭찬 '+n+'개 (모이자·바꾸자 합계) · 나만 볼 수 있어요'));
+  t.append(el('span','','🌡️ 내 매너온도'),el('b','',meetTemp.temp.toFixed(1)+'℃'),el('small','','최근 4주 받은 칭찬 '+meetTemp.count+'개 (모이자·바꾸자) · 나만 볼 수 있어요'));
 }
 async function meetReviewOpen(m){
   meetRev=m; const box=$('#meetFormBox'); box.textContent=''; $('#meetNew').style.display='none';
@@ -685,7 +683,7 @@ async function talkSwapUI(body){
   body.textContent='';
   const hero=el('div','sw-hero');hero.append(el('b','','🔁 바꾸자 (물물장터)'),el('span','','안 쓰는 물건을 올리고, 바꾸고 싶은 걸 알려 줘요. 돈은 안 돼요! 바꾸는 건 학교 안에서만, 선생님이 볼 수 있어요.'));
   const top=el('div'),msg=el('div','talk-msg'),list=el('div'),tempBox=el('div','meet-temp');tempBox.style.display='none';
-  const tempShow=d=>{if(!d||typeof d.temp!=='number')return;if(typeof d.swap_count==='number')swapN=d.swap_count;tempBox.style.display='flex';tempBox.textContent='';tempBox.append(el('span','','🌡️ 내 매너온도'),el('b','',d.temp.toFixed(1)+'℃'),el('small','','받은 칭찬 '+d.count+'개 (모이자·바꾸자 합계) · 나만 볼 수 있어요'))};
+  const tempShow=d=>{if(!d||typeof d.temp!=='number')return;tempBox.style.display='flex';tempBox.textContent='';tempBox.append(el('span','','🌡️ 내 매너온도'),el('b','',d.temp.toFixed(1)+'℃'),el('small','','최근 4주 받은 칭찬 '+d.count+'개 (모이자·바꾸자) · 나만 볼 수 있어요'))};
   const newB=el('button','sw-btn','＋ 내 물건 올리기');newB.type='button';const refB=el('button','sw-btn ghost','🔄 새로고침');refB.type='button';
   const bar=el('div');bar.style.cssText='display:flex;gap:8px;flex-wrap:wrap';bar.append(newB,refB);
   const formBox=el('div');body.append(hero,tempBox,bar,formBox,msg,list);
@@ -924,12 +922,12 @@ async function talkCharUI(body){
   const r=await chCall({action:'get'});
   if(r.status===401&&r.data.error==='login_required'){box.append(el('p','talk-rule','구글로 로그인한 친구만 캐릭터를 만들 수 있어요.'));return}
   if(r.status!==200){msg.textContent='불러오지 못했어요. 잠시 뒤에 다시 해 보세요.';return}
-  const d=r.data, A=window.CharArt, sp=new Set();
+  const d=r.data, A=window.CharArt, sp=new Set();   // d.special_open: 38℃에 한 번 닿으면 영구 해금
   Object.entries(d.special||{}).forEach(([k,l])=>l.forEach(i=>sp.add(k+i)));
-  const open=d.temp>=d.special_temp;
+  const open=!!d.special_open;
   let cur=A.normalize(d.mine||{b:0,c:3,e:0,m:0,h:0,a:0}); let dirty=!d.mine;
   const prev=el('div','ch-prev'), pv=el('div'), info=el('div');
-  info.append(el('b','','🌡️ 내 매너온도 '+d.temp.toFixed(1)+'℃'),el('div','sw-m',open?'✨ 특별 모자와 꾸미기를 쓸 수 있어요!':'✨ 매너온도가 '+d.special_temp+'℃가 되면 특별 모자와 꾸미기가 열려요. 칭찬을 받으면 올라가요.'));
+  info.append(el('b','','🌡️ 내 매너온도 '+d.temp.toFixed(1)+'℃'),el('div','sw-m',open?'✨ 특별 모자와 꾸미기가 열려 있어요! 한 번 열린 건 계속 쓸 수 있어요.':'✨ 매너온도가 '+d.special_temp+'℃가 되면 특별 모자와 꾸미기가 열려요. 최근 4주 동안 칭찬을 받으면 올라가요.'));
   prev.append(pv,info);
   const draw=()=>{pv.textContent='';pv.append(A.svg(cur,96))};
   const rows=el('div');

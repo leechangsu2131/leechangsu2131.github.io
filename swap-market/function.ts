@@ -164,16 +164,16 @@ Deno.serve(async (req) => {
     return it;
   }
 
-  // 매너온도: 모이자(st_meetup_praise)와 바꾸자(st_swap_praise)에서 받은 칭찬을 합친다. 36.5℃에서 시작, 칭찬 1개당 +0.5, 내려가지 않는다.
+  // 매너온도: 계산 규칙은 DB 함수 st_manner 한 곳에만 있다(최근 28일·같은 친구 2개까지·올라갈수록 덜 오름·36.5℃ 하한).
   const PRAISE = ["thanks", "fun", "kind", "rule", "lead"];
   async function myTemp() {
-    const { count: a } = await sb.from("st_meetup_praise").select("id", { count: "exact", head: true }).eq("to_id", me!.id);
-    const { count: b } = await sb.from("st_swap_praise").select("id", { count: "exact", head: true }).eq("to_id", me!.id);
-    const n = (a ?? 0) + (b ?? 0);
-    return { temp: Math.min(99.9, Math.round((36.5 + 0.5 * n) * 10) / 10), count: n, swap_count: b ?? 0 };
+    const { data } = await sb.rpc("st_manner", { p_student: me!.id });
+    // deno-lint-ignore no-explicit-any
+    const m = (data ?? {}) as any;
+    return { temp: Number(m.temp ?? 36.5), count: Number(m.count ?? 0), total: Number(m.total ?? 0) };
   }
 
-  if (action === "temp") return json({ ok: true, ...(await myTemp()) }, 200, origin);   // 모이자 화면이 바꾸자에서 받은 칭찬 수를 더할 때 쓴다
+  if (action === "temp") return json({ ok: true, ...(await myTemp()) }, 200, origin);   // 모이자·바꾸자 화면이 내 매너온도를 가져갈 때 쓴다
 
   if (action === "list") {
     if (Math.random() < 0.05) {   // 안전장치: 30일 지난 글은 사진까지 자동 정리
