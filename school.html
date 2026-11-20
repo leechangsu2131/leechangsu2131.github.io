@@ -144,9 +144,23 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .n-item-meta{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
 
 /* 우리 반 이야기방 */
-.talk-seg{display:flex;gap:6px;margin:0 0 10px}
-.talk-seg button{flex:1;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 6px;font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.talk-seg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.talk-seg button{flex:1 1 auto;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 6px;font:inherit;font-weight:800;font-size:14px;cursor:pointer}
 .talk-seg button.on{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* 🏫 라운지 */
+.lg-room{position:relative;width:100%;aspect-ratio:5/3;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#f1dcb4;touch-action:manipulation;user-select:none;-webkit-user-select:none;cursor:pointer}
+.lg-room>svg.lg-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.lg-p{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);pointer-events:none;transition-property:left,top;transition-timing-function:linear}
+.lg-p .lg-av{width:44px;height:44px;display:block;filter:drop-shadow(0 3px 2px rgba(80,40,0,.25))}
+.lg-p .lg-dot{width:40px;height:40px;border-radius:50%;background:#fff;border:2px solid #e5ebe4;display:grid;place-items:center;font-size:22px}
+.lg-nm{margin-top:1px;font-size:11px;font-weight:800;background:rgba(255,255,255,.92);border-radius:99px;padding:1px 7px;white-space:nowrap;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.lg-p.me .lg-nm{background:var(--green);color:#fff}
+.lg-say{max-width:150px;margin-bottom:3px;background:#fff;border:1px solid #d9d2bd;border-radius:12px;padding:4px 8px;font-size:12px;font-weight:700;line-height:1.35;word-break:break-all;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.lg-bar{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:700}
+.lg-pad{display:flex;justify-content:center;gap:6px;margin:8px 0 2px}
+.lg-pad button{border:1px solid var(--line);background:#fff;border-radius:12px;width:48px;height:42px;font-size:18px;cursor:pointer;font-weight:800}
+.lg-closed{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:rgba(251,247,237,.9);font-weight:800;padding:20px;z-index:2000}
 .dm-badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#dc2626;color:#fff;font:700 11px/18px system-ui;font-style:normal;text-align:center;margin-left:4px}
 .who-list{display:flex;flex-direction:column;gap:6px}
 .who-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;text-align:left;font:inherit;font-size:15px;width:100%}
@@ -432,7 +446,7 @@ const MEET_MSG='모임 만들기는 평일 오후 1시 40분~8시, 주말 아침
 const TIME_MSG='지금은 닫혀 있어요. 방과후(오후 2시~7시)에 열려요.';
 const TALK_ERR={create_closed:'지금은 모임을 만들 수 없어요. 평일 오후 1시 40분~8시, 주말 아침 8시~저녁 8시에 만들 수 있어요.',blocked_content:'주소·이메일·전화번호는 올릴 수 없어요.',too_fast:'조금 천천히 보내요.',too_many_messages:'잠깐 쉬었다가 보내요.',duplicate:'같은 말은 또 보내지 않아요.',chat_locked:'지금은 이야기방이 닫혀 있어요.',no_student:'그 친구를 찾지 못했어요.',empty:'내용을 써 주세요.',bad_input:'고르는 칸을 모두 골라 주세요.',too_many_open:'열어 둔 모임이 이미 2개예요.',full:'자리가 다 찼어요.',ended:'이미 끝난 모임이에요.',is_host:'내가 만든 모임이에요.',no_meetup:'모임이 없어졌어요.'};
 let talkTimer=0, talkBusy=false, talkLast='', talkView='all', talkPeer=null;
-function talkStop(){clearInterval(talkTimer);talkTimer=0}
+function talkStop(){clearInterval(talkTimer);talkTimer=0;if(typeof loungeLeave==='function')loungeLeave()}
 function talkOpen(){
   const box=$('#talkBox'), s=stRead();
   talkStop();
@@ -448,7 +462,7 @@ function talkOpen(){
   }
   talkView=talkView||'all'; talkPeer=null;
   box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방</b><span class="n-updated" id="talkMe"></span></div>'
-   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button><button type="button" data-v="char">🧙 캐릭터</button><button type="button" data-v="prac">🌱 실천</button></div>'
+   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button><button type="button" data-v="char">🧙 캐릭터</button><button type="button" data-v="prac">🌱 실천</button><button type="button" data-v="lounge">🏫 라운지</button></div>'
    +'<div id="talkBody"></div>';
   $('#talkMe').textContent=s.num+'번 '+(s.name||'');
   $$('#talkSeg button').forEach(b=>b.onclick=()=>{talkView=b.dataset.v;talkPeer=null;talkRender()});
@@ -458,7 +472,7 @@ function talkRender(){
   talkStop(); talkLast='';
   $$('#talkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===talkView));
   const body=$('#talkBody'); if(!body) return;
-  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkView==='char') talkCharUI(body); else if(talkView==='prac') talkPracUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
+  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkView==='char') talkCharUI(body); else if(talkView==='lounge') talkLoungeUI(body); else if(talkView==='prac') talkPracUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
 }
 function talkForm(onSend,ph){
   const f=document.createElement('form');f.className='talk-form';
@@ -478,6 +492,113 @@ function talkAllUI(body){
    +'<div class="talk-list" id="talkList" aria-live="polite"></div><div id="talkFormBox"></div><div class="talk-msg" id="talkErr"></div>';
   $('#talkFormBox').append(talkForm(async t=>{const r=await stCall({action:'chat_send',body:t});if(r.status===200){await talkLoad(true);return true}$('#talkErr').textContent=talkErrText(r);return false},'친구들에게 하고 싶은 말'));
   talkLoad(true); talkTimer=setInterval(()=>{if(!document.hidden)talkLoad(false)},5000);
+}
+
+/* ---------- 🏫 라운지: 교실 모양 방에서 캐릭터가 걸어다니며 말풍선으로 이야기해요. 서버 school-tool(lounge_sync). 말은 전체방 글로 남아요 ---------- */
+const LG={on:false,busy:false,x:0,y:0,sent:null,beat:0,els:new Map(),room:null,layer:null,closed:null,count:null,key:null,last:0};
+const LG_FLOOR={x0:50,x1:950,y0:360,y1:575};   // 걸을 수 있는 바닥(방 안 좌표 1000×600)
+function loungeRoomSVG(){
+  let b='';
+  const cols=['#b9503f','#3f7ab9','#e0b13a','#5a9a5a','#8a5aa0','#d9822b','#4aa3a3'];
+  for(let r=0;r<4;r++){const y=110+r*52; b+='<rect x="38" y="'+(y+40)+'" width="132" height="6" fill="#6e4520"/>'; let x=44; for(let k=0;k<9;k++){const w=9+((k*7+r*3)%6), h=26+((k*5+r*2)%14); b+='<rect x="'+x+'" y="'+(y+40-h)+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+cols[(k+r*2)%cols.length]+'"/>'; x+=w+2; if(x>160)break}}
+  let sh='<rect x="30" y="90" width="148" height="236" rx="6" fill="#8a5a2b"/><rect x="38" y="98" width="132" height="220" fill="#5e3b19"/>'+b;
+  const rshelf='<g transform="translate(1000 0) scale(-1 1)">'+sh+'</g>';
+  const win=(cx)=>'<path d="M'+(cx-62)+' 262V150a62 62 0 0 1 124 0V262Z" fill="url(#lgSky)" stroke="#8a5a2b" stroke-width="9"/><path d="M'+cx+' 88V262M'+(cx-62)+' 190H'+(cx+62)+'" stroke="#8a5a2b" stroke-width="6"/><ellipse cx="'+(cx-18)+'" cy="160" rx="22" ry="9" fill="#fff" opacity=".8"/>';
+  const plant=(x,y)=>'<path d="M'+(x-22)+' '+y+'h44l-6 42h-32z" fill="#c8793c"/><ellipse cx="'+x+'" cy="'+(y-14)+'" rx="12" ry="30" fill="#4a9a52" transform="rotate(-24 '+x+' '+y+')"/><ellipse cx="'+x+'" cy="'+(y-18)+'" rx="12" ry="34" fill="#5fb465"/><ellipse cx="'+x+'" cy="'+(y-14)+'" rx="12" ry="30" fill="#3f8a48" transform="rotate(24 '+x+' '+y+')"/>';
+  const lamp=(x)=>'<path d="M'+x+' 34V70" stroke="#5e3b19" stroke-width="3"/><path d="M'+(x-22)+' 92a22 22 0 0 1 44 0z" fill="#e8b84a"/><circle cx="'+x+'" cy="94" r="46" fill="url(#lgGlow)"/>';
+  const sofa=(x,c,d)=>'<rect x="'+x+'" y="262" width="200" height="86" rx="22" fill="'+c+'"/><rect x="'+(x+14)+'" y="244" width="172" height="52" rx="20" fill="'+c+'"/><rect x="'+(x+14)+'" y="286" width="172" height="44" rx="14" fill="'+d+'" opacity=".35"/><rect x="'+(x-8)+'" y="282" width="34" height="66" rx="16" fill="'+c+'"/><rect x="'+(x+174)+'" y="282" width="34" height="66" rx="16" fill="'+c+'"/>';
+  let planks='';[392,430,474,522,576].forEach(y=>planks+='<path d="M0 '+y+'H1000" stroke="rgba(110,60,15,.2)" stroke-width="2"/>');
+  for(let r=0;r<5;r++){const y=[330,392,430,474,522][r], h=[62,38,44,48,54][r]; for(let x=((r*137)%190);x<1000;x+=190)planks+='<path d="M'+x+' '+y+'v'+h+'" stroke="rgba(110,60,15,.14)" stroke-width="2"/>'}
+  return '<svg class="lg-bg" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="lgWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8e6c6"/><stop offset="1" stop-color="#efcf98"/></linearGradient><linearGradient id="lgFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9b475"/><stop offset="1" stop-color="#cf8f50"/></linearGradient><linearGradient id="lgSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6dcff"/><stop offset="1" stop-color="#e8f6ff"/></linearGradient><radialGradient id="lgGlow"><stop offset="0" stop-color="#fff3b0" stop-opacity=".75"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></radialGradient></defs>'
+   +'<rect width="1000" height="340" fill="url(#lgWall)"/><rect y="330" width="1000" height="270" fill="url(#lgFloor)"/>'+planks
+   +'<rect width="1000" height="34" fill="#8a5a2b"/><rect y="326" width="1000" height="10" fill="#8a5a2b" opacity=".55"/>'
+   +win(340)+win(500)+win(660)+sh+rshelf
+   +lamp(250)+lamp(500)+lamp(750)
+   +sofa(60,'#9b6b8f','#5e3a55')+sofa(740,'#e39aa0','#a85c66')
+   +plant(236,300)+plant(764,300)
+   +'<ellipse cx="500" cy="478" rx="270" ry="66" fill="#e07a6b" opacity=".5"/><ellipse cx="500" cy="478" rx="236" ry="50" fill="none" stroke="#fdf1dc" stroke-width="4" opacity=".75"/></svg>';
+}
+function loungeDur(dx,dy){return Math.max(250,Math.min(2600,Math.hypot(dx,dy)*4.2))}   // 1000칸에 약 4초
+function loungeClamp(x,y){return [Math.round(Math.max(LG_FLOOR.x0,Math.min(LG_FLOOR.x1,x))),Math.round(Math.max(LG_FLOOR.y0,Math.min(LG_FLOOR.y1,y)))]}
+function loungePlace(el,x,y,ms){el.style.transitionDuration=(ms||0)+'ms';el.style.left=(x/10)+'%';el.style.top=(y/6)+'%';el.style.zIndex=String(Math.round(y))}
+function loungeEl(pp){
+  const el=document.createElement('div');el.className='lg-p'+(pp.mine?' me':'');
+  const say=document.createElement('div');say.className='lg-say';say.style.display='none';
+  const av=chAvatar(pp.num,44); let hasAv=!!av;
+  const body=av||(()=>{const d=document.createElement('div');d.className='lg-dot';d.textContent='🙂';return d})();
+  if(av)av.classList.add('lg-av');
+  const nm=document.createElement('div');nm.className='lg-nm';nm.textContent=pp.num+'번 '+pp.name;
+  el.append(say,body,nm); return {el,say,body,hasAv,x:null,y:null};
+}
+function loungeApply(list){
+  const layer=LG.layer; if(!layer) return;
+  const seen=new Set();
+  list.forEach(pp=>{
+    seen.add(pp.num);
+    let o=LG.els.get(pp.num);
+    if(!o){o=loungeEl(pp);LG.els.set(pp.num,o);layer.append(o.el)}
+    else if(!o.hasAv&&chMap[String(pp.num)]){const av=chAvatar(pp.num,44);if(av){av.classList.add('lg-av');o.body.replaceWith(av);o.body=av;o.hasAv=true}}
+    if(pp.mine){ if(o.x===null){o.x=LG.x;o.y=LG.y;loungePlace(o.el,LG.x,LG.y,0)} }   // 내 위치는 내 화면이 정한다
+    else{
+      const [x,y]=[pp.x,pp.y];
+      if(o.x===null){loungePlace(o.el,x,y,0)} else if(o.x!==x||o.y!==y){loungePlace(o.el,x,y,loungeDur(x-o.x,y-o.y))}
+      o.x=x;o.y=y;
+    }
+    const show=pp.say&&pp.age<9; o.say.style.display=show?'block':'none'; if(show)o.say.textContent=pp.say;
+  });
+  for(const [num,o] of [...LG.els]) if(!seen.has(num)){o.el.remove();LG.els.delete(num)}
+  if(LG.count)LG.count.textContent='🏫 지금 라운지에 '+list.length+'명';
+}
+async function loungeSync(force){
+  if(!LG.on||LG.busy||curTab!=='talk'||talkView!=='lounge') return;
+  if(!force&&document.hidden) return;
+  LG.busy=true;
+  try{
+    const moved=!LG.sent||LG.sent[0]!==LG.x||LG.sent[1]!==LG.y, beat=Date.now()-LG.beat>6000;
+    const body={action:'lounge_sync'}; if(moved||beat){body.x=LG.x;body.y=LG.y}
+    const r=await stCall(body);
+    if(!LG.on) return;
+    if(r.status!==200){ if(r.status===401||r.status===403){$('#talkErr')&&($('#talkErr').textContent='다시 로그인해 주세요.');talkStop()} return; }
+    if(body.x!==undefined){LG.sent=[body.x,body.y];LG.beat=Date.now()}
+    const d=r.data;
+    if(LG.closed){LG.closed.style.display=d.locked?'grid':'none'; LG.closed.textContent=d.timeClosed?TIME_MSG:'지금은 이야기방이 닫혀 있어요. 선생님이 열면 다시 만날 수 있어요.'}
+    const inp=$('#talkIn'),sb=$('#talkSend'); if(inp)inp.disabled=!!d.locked; if(sb)sb.disabled=!!d.locked;
+    loungeApply(d.locked?[]:(d.people||[]));
+  }catch(e){}finally{LG.busy=false}
+}
+function loungeMove(x,y){
+  if(!LG.on) return;
+  const [nx,ny]=loungeClamp(x,y), o=LG.els.get(LG.me);
+  if(o){loungePlace(o.el,nx,ny,loungeDur(nx-LG.x,ny-LG.y));o.x=nx;o.y=ny}
+  LG.x=nx;LG.y=ny;
+  if(Date.now()-LG.last>600){LG.last=Date.now();loungeSync(true)}
+}
+function loungeKey(e){
+  if(!LG.on||curTab!=='talk'||talkView!=='lounge') return;
+  const t=document.activeElement&&document.activeElement.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+  const m={ArrowLeft:[-60,0],ArrowRight:[60,0],ArrowUp:[0,-45],ArrowDown:[0,45],a:[-60,0],d:[60,0],w:[0,-45],s:[0,45]}[e.key]; if(!m) return;
+  e.preventDefault(); loungeMove(LG.x+m[0],LG.y+m[1]);
+}
+function loungeLeave(){
+  if(!LG.on) return; LG.on=false;
+  if(LG.key){document.removeEventListener('keydown',LG.key);LG.key=null}
+  LG.els.clear();LG.room=LG.layer=LG.closed=LG.count=null;LG.sent=null;LG.beat=0;
+  stCall({action:'lounge_sync',leave:true}).catch(()=>{});
+}
+function talkLoungeUI(body){
+  body.innerHTML='<p class="talk-rule">교실 라운지예요. 바닥을 누르면 걸어가요. 이야기하면 말풍선이 떠요. 말은 전체방에도 남고 <b>선생님이 볼 수 있어요.</b> 기분 좋은 말만 써요.</p>'
+   +'<div class="lg-bar"><span id="lgCount">🏫 라운지에 들어가는 중…</span><span>방향키·WASD도 돼요</span></div>'
+   +'<div class="lg-room" id="lgRoom">'+loungeRoomSVG()+'<div id="lgLayer"></div><div class="lg-closed" id="lgClosed"></div></div>'
+   +'<div class="lg-pad" id="lgPad"><button type="button" data-d="-1,0" aria-label="왼쪽">◀</button><button type="button" data-d="0,-1" aria-label="위">▲</button><button type="button" data-d="0,1" aria-label="아래">▼</button><button type="button" data-d="1,0" aria-label="오른쪽">▶</button></div>'
+   +'<div id="talkFormBox" style="margin-top:8px"></div><div class="talk-msg" id="talkErr"></div>';
+  const s=stRead(); LG.me=s&&s.num||0;
+  LG.on=true; LG.els=new Map(); LG.room=$('#lgRoom'); LG.layer=$('#lgLayer'); LG.closed=$('#lgClosed'); LG.count=$('#lgCount'); LG.sent=null; LG.beat=0;
+  const sp=loungeClamp(300+Math.random()*400,430+Math.random()*120); LG.x=Math.round(sp[0]); LG.y=Math.round(sp[1]);
+  LG.room.onclick=e=>{const r=LG.room.getBoundingClientRect(); loungeMove((e.clientX-r.left)/r.width*1000,(e.clientY-r.top)/r.height*600)};
+  $$('#lgPad button').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const [dx,dy]=b.dataset.d.split(',').map(Number);loungeMove(LG.x+dx*70,LG.y+dy*50)});
+  LG.key=loungeKey; document.addEventListener('keydown',LG.key);
+  $('#talkFormBox').append(talkForm(async t=>{const r=await stCall({action:'chat_send',body:t});if(r.status===200){loungeSync(true);return true}$('#talkErr').textContent=talkErrText(r);return false},'말풍선으로 보여 줄 말'));
+  chEnsure().then(()=>loungeSync(true)); loungeSync(true); talkTimer=setInterval(()=>loungeSync(false),2500);
 }
 /* ---- 🚩 신고: 곤란한 글·모임을 선생님께만 알린다(상대는 몰라요) ---- */
 const RPT_REASONS=[['words','😣 말이 불편해요'],['scary','😨 무서워요'],['private','🔒 개인정보가 있어요'],['other','❓ 다른 일이에요']];

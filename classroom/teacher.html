@@ -139,7 +139,7 @@
     <div id="rcPracList" class="rc-thread" style="max-height:420px"></div>
   </details>
   <details id="rcChat" style="margin-top:12px">
-    <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span> <span id="rcRptN" style="color:#b91c1c;font-weight:800"></span></summary>
+    <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span> <span id="rcRptN" style="color:#b91c1c;font-weight:800"></span> <span id="rcLoungeN" class="muted"></span></summary>
     <div id="rcRptBox" style="display:none;margin:8px 0;padding:10px;border:2px solid #fb923c;border-radius:12px;background:#fff7ed">
       <div style="font-weight:800">🚩 학생이 알려 준 것 <span id="rcRptSub" class="muted"></span></div>
       <div class="hint">신고한 학생은 상대에게 알려지지 않아요. 확인한 뒤 「확인함」을 누르면 목록에서 빠져요. 「글 숨기기」는 그 글(모임)을 학생 화면에서 가려요.</div>
@@ -412,7 +412,7 @@
       rcAccs=ac||[];
       rcPres={};(p||[]).forEach(x=>rcPres[x.student_id]=x);rcMsgs=m||[];
       if(rcSel&&rcMsgs.some(x=>x.student_id===rcSel&&x.direction==='to_teacher'&&!x.read_at))rcOpen(rcSel);
-      rcDraw();rcDrawAcc();rcDrawThread();rcChatLoad();rcRptLoad();$('rcMsg').textContent='';
+      rcDraw();rcDrawAcc();rcDrawThread();rcChatLoad();rcRptLoad();rcLoungeLoad();$('rcMsg').textContent='';
     }catch(e){if(e.message!=='unauthorized')$('rcMsg').textContent='교실 연결 정보를 불러오지 못했어요.'}
   }
   // ---- 🚩 학생 신고(st_reports): 이야기방·1:1·모임에서 학생이 선생님께만 알린 것 ----
@@ -440,6 +440,17 @@
       }catch(_){hide.disabled=false}};
       d.append(w,ok,hide);box.append(d);
     });
+  }
+  // 🏫 라운지: 지금(15초 안에 신호가 있는) 라운지에 있는 학생을 요약줄에 보여 준다
+  async function rcLoungeLoad(){
+    if(!rcCls||!$('rcLoungeN'))return;
+    try{
+      const since=new Date(Date.now()-15000).toISOString();
+      const rows=await rcApi('st_lounge?select=student_id&class_id=eq.'+rcCls.id+'&updated_at=gte.'+encodeURIComponent(since)+'&limit=60',{headers:{Prefer:''}})||[];
+      const nm={};(rcStudents||[]).forEach(x=>nm[x.id]=x.number+'번 '+x.name);
+      const names=rows.map(r=>nm[r.student_id]).filter(Boolean);
+      $('rcLoungeN').textContent=names.length?'🏫 라운지 '+names.length+'명 ('+names.join(', ')+')':'';
+    }catch(e){}
   }
   async function rcRptLoad(){
     if(!rcCls)return;

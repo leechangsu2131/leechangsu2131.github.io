@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel", "meet_review", "meet_praise", "meet_concern", "report_send"].includes(body.action) ? body.action : "";
+  const action = ["hello", "ping", "send", "account", "request", "chat_list", "chat_send", "who_list", "dm_list", "dm_send", "meet_list", "meet_create", "meet_join", "meet_cancel", "meet_review", "meet_praise", "meet_concern", "report_send", "lounge_sync"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
 
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
@@ -131,6 +131,34 @@ Deno.serve(async (req) => {
       .eq("number", num).eq("name_key", key).eq("gt_classes.active", true).limit(1);
     st = (found?.[0] as Student) ?? null;
     if (!st) return fail("not_found");
+  }
+
+  // ---------- 🏫 라운지: 교실 모양 방에서 캐릭터가 걸어다닌다. 위치(x 0~1000, y 0~1000)만 저장하고, 말은 전체방 글(st_chat)이 말풍선으로 보인다 ----------
+  if (action === "lounge_sync") {
+    if (body.leave === true) { await sb.from("st_lounge").delete().eq("student_id", st.id); return json({ ok: true }, 200, origin); }
+    const { data: lset } = await sb.from("st_chat_settings").select("locked").eq("class_id", st.class_id).maybeSingle();
+    const lLocked = !!lset?.locked || timeClosed;     // 전체방이 닫혀 있거나 방과후 시간이 아니면 라운지도 닫힌다
+    if (lLocked) { await sb.from("st_lounge").delete().eq("student_id", st.id); return json({ ok: true, locked: true, timeClosed, me: st.number, people: [] }, 200, origin); }
+    const lx = Math.round(Number(body.x)), ly = Math.round(Number(body.y));
+    if (Number.isFinite(lx) && Number.isFinite(ly)) {
+      await sb.from("st_lounge").upsert({ student_id: st.id, class_id: st.class_id, x: Math.min(1000, Math.max(0, lx)), y: Math.min(1000, Math.max(0, ly)), updated_at: new Date().toISOString() });
+    }
+    const near = new Date(Date.now() - 15000).toISOString();       // 15초 안에 신호가 있던 친구만 보인다
+    const sayFrom = new Date(Date.now() - 12000).toISOString();
+    const [{ data: lrows }, { data: lchat }, { data: lmates }] = await Promise.all([
+      sb.from("st_lounge").select("student_id,x,y").eq("class_id", st.class_id).gte("updated_at", near).limit(60),
+      sb.from("st_chat").select("student_id,body,created_at").eq("class_id", st.class_id).eq("hidden", false).gte("created_at", sayFrom).order("created_at", { ascending: false }).limit(40),
+      sb.from("gt_students").select("id,number,name").eq("class_id", st.class_id),
+    ]);
+    const lbyId = new Map(((lmates ?? []) as any[]).map((m) => [m.id, m]));
+    const lsay = new Map<string, { body: string; age: number }>();
+    for (const c of (lchat ?? []) as any[]) if (!lsay.has(c.student_id)) lsay.set(c.student_id, { body: String(c.body ?? ""), age: Math.round((Date.now() - new Date(c.created_at).getTime()) / 1000) });
+    const people = ((lrows ?? []) as any[]).map((r) => {
+      const m: any = lbyId.get(r.student_id); if (!m) return null;
+      const sy = lsay.get(r.student_id);
+      return { num: m.number, name: m.name, x: r.x, y: r.y, mine: r.student_id === st!.id, say: sy?.body ?? "", age: sy?.age ?? 999 };
+    }).filter(Boolean);
+    return json({ ok: true, locked: false, timeClosed: false, me: st.number, people }, 200, origin);
   }
 
   // ---------- 신고: 곤란한 글·모임을 선생님께만 알린다(상대에게는 알려지지 않음) ----------
