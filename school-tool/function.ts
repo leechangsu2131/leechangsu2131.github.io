@@ -42,11 +42,12 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405, origin);
   if (!ALLOW_ANY && origin && !ALLOW_LIST.includes(origin)) return json({ error: "forbidden_origin" }, 403, origin);
 
-  // 이야기방·1:1·모임판은 방과후 시간대(한국 시간)에만 열린다. 비밀값 ST_OPEN_HOURS="14-19"(시작시-끝시), "off"면 항상 열림
-  const OH = (Deno.env.get("ST_OPEN_HOURS") ?? "14-19").trim();
-  const kstHour = (new Date().getUTCHours() + 9) % 24;
-  const [ohA, ohB] = OH.split("-").map(Number);
-  const timeClosed = OH !== "off" && Number.isFinite(ohA) && Number.isFinite(ohB) && !(kstHour >= ohA && kstHour < ohB);
+  // 시간대 제한(이야기방·1:1·라운지·모이자 만들기). 2026-11-21 사용자 요청으로 전부 풀었다(TIME_LIMITS=false).
+  // 다시 켜려면 TIME_LIMITS 를 true 로 바꾸고 배포한다: 평일 13:40~20:00, 주말(토·일) 08:00~20:00(한국 시간)에만 열린다. 켠 상태에서도 비밀값 ST_OPEN_HOURS="off" 이면 열려 있다.
+  const TIME_LIMITS = false;
+  const kstNow = new Date(Date.now() + 9 * 3600_000), kstMin = kstNow.getUTCHours() * 60 + kstNow.getUTCMinutes(), kstWeekend = kstNow.getUTCDay() === 0 || kstNow.getUTCDay() === 6;
+  const outOfHours = !(kstMin >= (kstWeekend ? 8 * 60 : 13 * 60 + 40) && kstMin < 20 * 60);
+  const timeClosed = TIME_LIMITS && (Deno.env.get("ST_OPEN_HOURS") ?? "").trim() !== "off" && outOfHours;
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
@@ -222,9 +223,8 @@ Deno.serve(async (req) => {
     const PLACES = ["ground", "school_lib", "playground", "town_lib"];                       // 미리 정한 공공장소만(집·주소 없음)
     const ACTS: Record<string, string[]> = { play: ["tag", "ball", "board", "jump", "draw", "talk"], study: ["homework", "read", "math", "write"] };
     const { data: setg } = await sb.from("st_chat_settings").select("meetup_locked").eq("class_id", st.class_id).maybeSingle();
-    // 모임판: 보는 건 항상 가능. 모임 만들기는 평일 13:40~20:00, 주말 08:00~20:00(한국 시간)에만 가능
-    const kst = new Date(Date.now() + 9 * 3600_000), kmin = kst.getUTCHours() * 60 + kst.getUTCMinutes(), weekend = kst.getUTCDay() === 0 || kst.getUTCDay() === 6;
-    const createClosed = !(kmin >= (weekend ? 8 * 60 : 13 * 60 + 40) && kmin < 20 * 60);
+    // 모임판: 보는 건 항상 가능. 모임 만들기 시간 제한은 지금 풀려 있다(TIME_LIMITS)
+    const createClosed = TIME_LIMITS && outOfHours;     // 시간대 제한을 풀어 둔 동안은 항상 false
     const locked = !!setg?.meetup_locked;
     const now = new Date();
     const PRAISE = ["thanks", "fun", "kind", "rule", "lead"];
