@@ -11,6 +11,7 @@
 - 폴더 안의 `README.md`(예: `classroom/README.md`)가 있으면 그 폴더 작업 전에 읽는다.
 
 ## 작업 규칙
+- **`main`에는 묻지 않고 바로 commit하고 push한다**(2026-11-20 사용자 허락). 올리기 전에 `git pull --rebase`로 합치고, 충돌하면 상대 변경을 지우지 않는다. `main`에 올리면 GitHub Pages·Vercel에 바로 배포되어 학생들이 쓰게 되므로, 올리기 전에 시험하고 끝낼 때 무엇을 올렸는지 알린다.
 - 순수 HTML/CSS/JS, 페이지마다 파일 하나. 빌드 도구·새 라이브러리를 들이지 않는다.
 - 새 페이지를 만들면 `AGENTS.MD` 목차와 해당 영역에 한 줄씩 추가한다. 큰 변경은 `AGENTS.MD`의 해당 절도 고친다.
 - 사용자 입력은 `textContent`로 출력한다(`innerHTML` 금지).
@@ -22,7 +23,6 @@
 - 배포 주소에 직접 접속할 수 없으면 Playwright + 가짜 서버 응답으로 시험한다. 그렇게 확인한 항목은 🧪 로 표시하고, 사용자가 실제로 확인하면 ✅ 로 바꾼다.
 
 ## 반드시 사용자에게 먼저 묻는 것
-- `git push` — `main`에 올리면 GitHub Pages·Vercel에 **바로 배포되어 학생들이 쓰게 된다.** 커밋은 `main`에 바로 해도 된다.
 - Supabase SQL 실행(테이블·함수·권한 변경), Storage 만들기, 비밀값 변경.
 - 파일·페이지 삭제.
 - GitLab은 `main`에 push하면 GitHub Actions(`.github/workflows/mirror_to_gitlab.yml`)가 자동으로 올린다. `Upload_to_GitLab.bat`은 자동 올리기가 실패했을 때만 쓴다.
