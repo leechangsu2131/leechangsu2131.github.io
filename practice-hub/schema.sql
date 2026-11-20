@@ -24,3 +24,8 @@ revoke all on public.st_virtue_week from anon, authenticated;
 revoke all on public.st_practice from anon, authenticated;
 create policy st_virtue_week_teacher on public.st_virtue_week for select to authenticated using (public.gt_is_teacher());
 create policy st_practice_teacher on public.st_practice for select to authenticated using (public.gt_is_teacher());
+
+-- 우리 반 함께 모으기(2026-11-21 적용): 주마다 교사가 정하는 학급 목표(장 수)와 보상 글(40자). 없으면 목표 20장·보상 없음.
+alter table public.st_virtue_week
+  add column if not exists goal int not null default 20 check (goal between 1 and 500),
+  add column if not exists reward text not null default '' check (char_length(reward) <= 40);

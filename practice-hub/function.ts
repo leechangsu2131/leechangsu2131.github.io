@@ -3,7 +3,8 @@
 // - 올리면 경험치 +2를 바로 임시로 주고(st_xp_add, 하루 20점 상한), 교사가 「다시 써 보기」를 하면 그 경험치를 취소(void)한다.
 // - 주간 미션: 이번 주 덕목으로 별 3개(서로 다른 날 3장)를 모으면 +5(주 1회).
 // - 점수는 경험치에만 들어간다. 매너온도에는 넣지 않고, 도덕 교과 평가와도 관계없다.
-// - 교사: t_list(확인 대기) / t_confirm(모두 확인) / t_redo(다시 써 보기) / t_set(이번 주 덕목 고르기).
+// - 우리 반 함께 모으기: 이번 주 반 전체 카드 수가 교사가 정한 목표(기본 20장)를 채우면 교사가 정한 보상(글자 40자)이 열린다. 보상은 교사가 직접 주고, 점수는 따로 없다.
+// - 교사: t_list(확인 대기) / t_confirm(모두 확인) / t_redo(다시 써 보기) / t_set(이번 주 덕목 고르기) / t_goal(학급 목표·보상 정하기).
 // - 글은 한 줄(100자)만, 전화번호·주소·이메일·링크는 막는다. 사진은 아직 받지 않는다(다음 단계).
 // - verify_jwt=false 로 배포하고 함수 안에서 방어: 로그인 확인, Origin 확인, 입력 검사, 횟수 제한.
 // 비밀값: GT_ALLOW_ORIGIN(필수, 쉼표로 여러 주소)
@@ -58,6 +59,16 @@ async function weekVirtue(ws: string): Promise<string> {
   const n = Math.floor((new Date(ws + "T00:00:00Z").getTime() - new Date("2026-01-05T00:00:00Z").getTime()) / (7 * 86400000));   // 지정이 없으면 순서대로
   return ROTATION[((n % ROTATION.length) + ROTATION.length) % ROTATION.length];
 }
+// 우리 반 함께 모으기: 이번 주 반 전체 카드 수(확인 대기·확인함, 「다시 써 보기」 제외)와 교사가 정한 목표·보상. 이름·번호는 보내지 않는다.
+async function weekGoal(ws: string): Promise<{ goal: number; reward: string }> {
+  const { data } = await sb.from("st_virtue_week").select("goal,reward").eq("week_start", ws).maybeSingle();
+  return { goal: Number(data?.goal ?? 20), reward: String(data?.reward ?? "") };
+}
+async function classCount(ids: string[], ws: string): Promise<number> {
+  if (!ids.length) return 0;
+  const { count } = await sb.from("st_practice").select("id", { count: "exact", head: true }).in("student_id", ids).gte("day", ws).neq("status", "redo");
+  return count ?? 0;
+}
 async function addXp(student: string, kind: string, ref: string, xp: number) {
   await sb.rpc("st_xp_add", { p_student: student, p_kind: kind, p_ref: ref, p_xp: xp, p_day_cap: DAY_CAP });
 }
@@ -97,7 +108,7 @@ Deno.serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["get", "submit", "t_list", "t_confirm", "t_redo", "t_set"].includes(body.action) ? body.action : "";
+  const action = ["get", "submit", "t_list", "t_confirm", "t_redo", "t_set", "t_goal"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
   if (tooMany("ip:" + ip, 400)) return json({ error: "too_many_attempts" }, 429, origin);
@@ -118,6 +129,12 @@ Deno.serve(async (req) => {
       const { error } = await sb.from("st_virtue_week").upsert({ week_start: ws, virtue: v, set_at: new Date().toISOString() }, { onConflict: "week_start" });
       return error ? json({ error: "save_failed" }, 500, origin) : json({ ok: true, virtue: v }, 200, origin);
     }
+    if (action === "t_goal") {
+      const goal = Math.round(Number(body.goal)), reward = clean(body.reward, 40);
+      if (!(goal >= 1 && goal <= 500) || BLOCKED.test(reward)) return json({ error: "bad_input" }, 400, origin);
+      const { error } = await sb.from("st_virtue_week").upsert({ week_start: ws, virtue: await weekVirtue(ws), goal, reward, set_at: new Date().toISOString() }, { onConflict: "week_start" });
+      return error ? json({ error: "save_failed" }, 500, origin) : json({ ok: true, goal, reward }, 200, origin);
+    }
     if (action === "t_confirm" || action === "t_redo") {
       const list = (Array.isArray(body.ids) ? body.ids : [body.id]).map((x: unknown) => String(x ?? "")).filter(Boolean).slice(0, 200);
       if (!list.length) return json({ error: "bad_input" }, 400, origin);
@@ -132,7 +149,7 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     const nm = new Map((mates ?? []).map((m: any) => [m.id, m]));
     return json({
-      ok: true, week_start: ws, virtue: await weekVirtue(ws), virtues: VIRTUES.map((v) => ({ id: v.id, name: v.name, emoji: v.emoji })),
+      ok: true, week_start: ws, virtue: await weekVirtue(ws), ...(await weekGoal(ws)), class_count: await classCount(ids, ws), virtues: VIRTUES.map((v) => ({ id: v.id, name: v.name, emoji: v.emoji })),
       // deno-lint-ignore no-explicit-any
       cards: (rows ?? []).map((r: any) => ({ id: r.id, num: nm.get(r.student_id)?.number ?? 0, name: nm.get(r.student_id)?.name ?? "", virtue: r.virtue, day: r.day, choice: r.choice, note: r.note, status: r.status })),
     }, 200, origin);
@@ -156,7 +173,10 @@ Deno.serve(async (req) => {
     const stars = new Set(live.map((c: { day: string }) => c.day)).size;
     // deno-lint-ignore no-explicit-any
     const todayCard = (cards ?? []).find((c: any) => c.day === today) ?? null;
-    return { ok: true, me: me!.number, week_start: ws, virtue, goal: STAR_GOAL, stars, cards: cards ?? [], today: todayCard ? { status: todayCard.status } : null };
+    const { data: mates } = await sb.from("gt_students").select("id").eq("class_id", me!.class_id);
+    const cg = await weekGoal(ws);
+    const klass = { count: await classCount((mates ?? []).map((m: { id: string }) => m.id), ws), goal: cg.goal, reward: cg.reward };
+    return { ok: true, me: me!.number, week_start: ws, virtue, goal: STAR_GOAL, stars, cards: cards ?? [], today: todayCard ? { status: todayCard.status } : null, klass };
   }
 
   if (action === "get") return json(await state(), 200, origin);
