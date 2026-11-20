@@ -903,4 +903,4 @@
 - **서버(board-post/function.ts):** 학생 `topics·list·post·edit·delete·comment·uncomment·like`, 교사 `t_topics·t_topic_add·t_topic_set·t_topic_delete·t_list·t_hide·t_delete·t_export`. 글 바로 공개, `BLOCKED`(전화·이메일·주소) 차단, 별명은 반 친구 실명 포함 불가, 하루 글 10·댓글 60, 닫힌 글감은 읽기만, 내 글 ♥ 불가. 기본 글감 「자유롭게 쓰기」는 자동 생성. 30일 지난 사진은 가끔 자동 정리.
 - **DB(board-post/schema.sql):** `bd_topics`, `bd_posts`, `bd_comments`, `bd_likes`(RLS, anon 없음, 교사 정책 `gt_is_teacher()`), 비공개 보관함 `board-photos`(JPEG 300KB).
 - **교사 화면:** classroom/teacher.html 「📮 온라인 게시판 관리」 — 글감 만들기·열기/닫기·지우기, 글·댓글 숨기기/삭제(별명 글도 실명 표시), CSV 저장(사진 제외).
-- **상태:** 파일·모의시험(서버 30개, 화면 시나리오) 완료, DB·함수 반영과 push 는 선생님 허락 대기.
+- **상태:** DB·함수(v1) 반영과 push 완료, 모의시험(서버 30개, 화면 시나리오)만 통과 — 실제 연결은 선생님 확인 대기(🧪).
