@@ -78,7 +78,7 @@ label.l{display:block;font-weight:800;margin:12px 0 4px;font-size:16px}
 </div></header>
 <main>
   <div id="login" hidden>
-    <div class="post"><h2>먼저 로그인해요</h2><p>우리 반 친구로 로그인해야 게시판을 쓸 수 있어요.</p><button class="btn" id="goLogin" type="button">로그인하러 가기</button></div>
+    <div class="post"><h2>먼저 로그인해요</h2><p>구글 계정으로 로그인해야 게시판을 쓸 수 있어요.</p><button class="btn" id="goLogin" type="button">🔑 구글로 로그인하기</button></div>
   </div>
   <div id="teacherNote" hidden>
     <div class="msg" style="display:block;background:#e8f0ff;color:#1d4ed8">🧑‍🏫 선생님 화면이에요. 별명 글도 실명이 보이고, 글·댓글을 숨기거나 지울 수 있어요. 글감 만들기·닫기는 <a href="classroom/teacher.html">교사 관리 화면</a>에서 해요.</div>
@@ -331,7 +331,12 @@ async function start(){
   if(!TM)$('fab').onclick=()=>openForm(null);
   timer=setInterval(()=>{if(!formOpen&&!document.hidden)load()},20000);
 }
-$('goLogin').onclick=()=>{try{sessionStorage.setItem('st_next','board.html')}catch(e){}location.href='school-tool/index.html'};
+// 게시판은 구글 로그인이 필요하므로, 중간 로그인 화면 없이 바로 구글 계정 선택으로 간다(돌아오면 school-tool 이 이 페이지로 되돌려 보낸다).
+$('goLogin').onclick=()=>{
+  try{sessionStorage.setItem('st_next','board.html')}catch(e){}
+  const back=new URL('school-tool/index.html',location.href).href;
+  location.href=ST_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(back)+'&prompt=select_account';
+};
 start();
 </script>
 </body>
