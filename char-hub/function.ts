@@ -125,6 +125,13 @@ Deno.serve(async (req) => {
     const m = (data ?? {}) as any;
     return { temp: Number(m.temp ?? 36.5), count: Number(m.count ?? 0), total: Number(m.total ?? 0) };
   }
+  // 경험치·레벨: DB 함수 st_level(누적, 내려가지 않음). 하루 상한·중복 방지는 st_xp_add 가 한다.
+  async function myLevel() {
+    const { data } = await sb.rpc("st_level", { p_student: me!.id });
+    // deno-lint-ignore no-explicit-any
+    const m = (data ?? {}) as any;
+    return { xp: Number(m.xp ?? 0), level: Number(m.level ?? 1), xp_from: Number(m.from ?? 0), xp_to: Number(m.to ?? 10) };
+  }
   // 특별 꾸미기: 한 번 38℃에 닿으면 st_unlock 에 남아 온도가 내려가도 계속 쓴다.
   async function specialOpen(temp: number) {
     const { data: u } = await sb.from("st_unlock").select("key").eq("student_id", me!.id).eq("key", "special_char").maybeSingle();
@@ -137,10 +144,10 @@ Deno.serve(async (req) => {
   if (action === "get") {
     const { data: r } = await sb.from("st_char").select("parts,hidden").eq("student_id", me.id).maybeSingle();
     const t = await myTemp();
-    return json({ ok: true, me: me.number, mine: r?.parts ?? null, hidden: !!r?.hidden, special_temp: SPECIAL_TEMP, special: SPECIAL, special_open: await specialOpen(t.temp), ...t }, 200, origin);
+    return json({ ok: true, me: me.number, mine: r?.parts ?? null, hidden: !!r?.hidden, special_temp: SPECIAL_TEMP, special: SPECIAL, special_open: await specialOpen(t.temp), ...t, ...(await myLevel()) }, 200, origin);
   }
 
-  if (action === "me") return json({ ok: true, me: me.number, ...(await myTemp()) }, 200, origin);
+  if (action === "me") return json({ ok: true, me: me.number, ...(await myTemp()), ...(await myLevel()) }, 200, origin);
 
   if (action === "save") {
     const parts = cleanParts(body.parts);
@@ -152,7 +159,8 @@ Deno.serve(async (req) => {
     }
     const { error } = await sb.from("st_char").upsert({ student_id: me.id, parts, updated_at: new Date().toISOString() }, { onConflict: "student_id" });
     if (error) return json({ error: "save_failed" }, 500, origin);
-    return json({ ok: true }, 200, origin);
+    await sb.rpc("st_xp_add", { p_student: me.id, p_kind: "char_first", p_ref: "", p_xp: 3, p_day_cap: 20 });   // 처음 한 번만(중복 방지)
+    return json({ ok: true, ...(await myLevel()) }, 200, origin);
   }
 
   // list: 우리 반 친구들의 캐릭터(번호 → 조합 코드). 숨긴 것은 빼고 보낸다.

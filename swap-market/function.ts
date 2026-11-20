@@ -173,6 +173,10 @@ Deno.serve(async (req) => {
     return { temp: Number(m.temp ?? 36.5), count: Number(m.count ?? 0), total: Number(m.total ?? 0) };
   }
 
+  async function addXp(student: string, kind: string, ref: string, xp: number) {
+    await sb.rpc("st_xp_add", { p_student: student, p_kind: kind, p_ref: ref, p_xp: xp, p_day_cap: 20 });   // 같은 종류+대상은 한 번만, 하루 20점까지
+  }
+
   if (action === "temp") return json({ ok: true, ...(await myTemp()) }, 200, origin);   // 모이자·바꾸자 화면이 내 매너온도를 가져갈 때 쓴다
 
   if (action === "list") {
@@ -286,6 +290,7 @@ Deno.serve(async (req) => {
     if (!to || to === me.id) return json({ error: "bad_input" }, 400, origin);
     const { error } = await sb.from("st_swap_praise").upsert({ item_id: it.id, from_id: me.id, to_id: to, tag }, { onConflict: "item_id,from_id,to_id" });
     if (error) return json({ error: "save_failed" }, 500, origin);
+    await addXp(me.id, "swap_praise", it.id, 1);
     return json({ ok: true, ...(await myTemp()) }, 200, origin);
   }
   if (action === "plan") {
@@ -306,5 +311,6 @@ Deno.serve(async (req) => {
   const both = mine ? it.offerer_done : it.owner_done;
   if (both) upd.status = "done";
   await sb.from("st_swap_items").update(upd).eq("id", it.id);
+  if (both) { await addXp(co.from_id, "swap_done", it.id, 5); await addXp(it.owner_id, "swap_done", it.id, 5); }   // 바꾸기가 끝나면 두 친구 모두
   return json({ ok: true, done: !!both }, 200, origin);
 });
