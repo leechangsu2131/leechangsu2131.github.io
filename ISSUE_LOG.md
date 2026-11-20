@@ -44,9 +44,9 @@
 ### 2026-11-20 · I-24 유튜브 영상 모음(만들어만 두고 연결하지 않음)  🧪
 - 요청: 학생이 유튜브에 올린 영상의 주소만 나누고, 유튜브의 썸네일을 빌려와 골라 보고, 쇼츠처럼 넘겨 보는 기능. 만 13세 미만 학생에게 유튜브를 시키는 것은 부담이라 **기능은 만들어 두되 어디에도 연결하지 않기로 함**.
 - 만든 것: `board-videos.html`(주소 직접 입력해야 열림, 검색 제외 표시). 썸네일 목록·눌러서 보기(`youtube-nocookie.com` 퍼가기, 관련 영상 최소화)·쇼츠처럼 넘겨 보기(화면에 오는 한 개만 재생)·영상 나누기(주소+한마디+실명/별명+얼굴·개인정보·보호자 허락 확인 체크 필수)·내 영상은 「선생님 확인 중」 표시·♥. 교사 모드: 승인/숨기기/삭제, 「영상 모음 열기/닫기」 스위치.
-- 서버: `board-post/function.ts` 에 `v_list·v_add·v_like·v_delete`, `t_v_list·t_v_approve·t_v_hide·t_v_delete·t_v_enable` 추가(저장소에만 있고 **아직 배포 안 함**). 주소는 youtube.com/youtu.be 만, 영상 번호 11자만 저장, oEmbed 로 실제 있는 영상인지 확인, 선생님이 승인해야 보임, 기본값은 닫힘(`bd_settings.videos_enabled=false`).
-- DB: `board-post/schema_videos.sql`(`bd_settings`, `bd_videos`, `bd_video_likes`, RLS·교사 정책) — **아직 실행 안 함**(선생님 허락 필요).
-- 연결하지 않은 곳: board.html, school.html, education.html, 교사 화면 메뉴 어디에도 링크 없음. 켜려면 ① SQL 실행 ② board-post 다시 배포 ③ 교사가 `board-videos.html` 에서 「열기」 ④ 필요한 곳에 링크 추가.
+- 서버: `board-post/function.ts` 에 `v_list·v_add·v_like·v_delete`, `t_v_list·t_v_approve·t_v_hide·t_v_delete·t_v_enable` 추가(2026-11-21 `board-post` v2 로 **배포함**, 비밀값·JWT 설정 그대로). 주소는 youtube.com/youtu.be 만, 영상 번호 11자만 저장, oEmbed 로 실제 있는 영상인지 확인, 선생님이 승인해야 보임, 기본값은 닫힘(`bd_settings.videos_enabled=false`).
+- DB: `board-post/schema_videos.sql`(`bd_settings`, `bd_videos`, `bd_video_likes`, RLS·교사 정책) — **2026-11-21 실행함**(표 3개 만들어짐, RLS 켬, anon 권한 없음 확인). 영상 모음은 아직 닫힘 상태(`videos_enabled` 기본 false).
+- 연결하지 않은 곳(선생님 결정: 해 두되 메뉴 링크만 달지 않기): board.html, school.html, education.html, 교사 화면 메뉴 어디에도 링크 없음. 켜려면 ① 교사가 `board-videos.html` 주소로 들어가 「영상 모음 열기」 ② 필요한 곳에 링크 추가(①②는 SQL·배포는 이미 끝남).
 - 켜기 전에 할 일: `privacy.html` 에 「썸네일·영상 재생 때 접속 정보가 구글(유튜브)로 전달됨」 안내 추가, 학교·보호자 동의 정리.
 - 틱톡은 퍼가기·썸네일 방식이 마땅치 않고 연령 문제가 더 커서 일부러 지원하지 않음.
 - 확인: 서버 모의 시험 30개, 화면 시나리오(닫힘/학생/쇼츠/올리기/교사 스위치) 통과. 실제 서버·유튜브 연결은 시험 못 함.
