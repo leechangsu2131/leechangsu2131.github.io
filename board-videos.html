@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>우리 반 영상 모음</title>
+<style>
+:root{--bg:#f4f8ff;--ink:#1f2937;--muted:#6b7280;--line:#dbe4f3;--blue:#2563eb;--blue-d:#1d4ed8;--soft:#e8f0ff;--pink:#ec4899;--warn:#b45309}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",system-ui,sans-serif;font-size:18px;line-height:1.5;padding-bottom:90px}
+a{color:var(--blue-d)}
+header{background:linear-gradient(135deg,#f472b6,#7c3aed);color:#fff;padding:16px}
+header .in{max-width:900px;margin:auto}
+header h1{margin:0;font-size:23px}
+header p{margin:4px 0 0;font-size:15px;opacity:.95}
+header a{color:#fff;font-weight:700;font-size:15px;text-decoration:none}
+main{max-width:900px;margin:auto;padding:14px}
+.btn{border:0;border-radius:14px;padding:11px 16px;font-size:16px;font-weight:800;cursor:pointer;background:var(--blue);color:#fff;min-height:46px}
+.btn.ghost{background:var(--soft);color:var(--blue-d)}
+.btn.small{padding:7px 12px;min-height:38px;font-size:14px;border-radius:11px}
+.msg{padding:10px 14px;border-radius:12px;background:#fff7ed;color:var(--warn);margin:10px 0;font-weight:700;font-size:16px}
+.msg:empty{display:none}
+.top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.thumb{position:relative;display:block;width:100%;border:0;padding:0;background:#111;cursor:pointer;aspect-ratio:16/9}
+.thumb.short{aspect-ratio:9/12}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.thumb .tag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:99px;font-size:12px;padding:2px 9px;font-weight:700}
+.card .b{padding:10px 12px}
+.card h3{margin:0 0 2px;font-size:16px;line-height:1.35}
+.meta{color:var(--muted);font-size:13px}
+.note{font-size:15px;margin:4px 0}
+.pending{display:inline-block;background:#fff7ed;color:var(--warn);border-radius:99px;padding:1px 9px;font-size:12px;font-weight:800;margin:2px 0}
+.like{border:2px solid #fbcfe8;background:#fff;color:var(--pink);border-radius:99px;padding:5px 12px;font-size:15px;font-weight:800;cursor:pointer;min-height:38px}
+.like[aria-pressed=true]{background:#fdf2f8;border-color:var(--pink)}
+.empty{text-align:center;color:var(--muted);padding:34px 10px}
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(15,23,42,.6);display:flex;align-items:flex-end;justify-content:center}
+.sheet>div{background:#fff;width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px 26px}
+.sheet h3{margin:0 0 8px;font-size:20px}
+label.l{display:block;font-weight:800;margin:12px 0 4px;font-size:16px}
+input[type=text],input[type=url]{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:17px;font-family:inherit}
+.radio{display:flex;gap:14px;flex-wrap:wrap}.radio label{display:flex;gap:6px;align-items:center;font-weight:700}
+.rule{background:#fff7ed;border:2px solid #fed7aa;border-radius:12px;padding:10px 12px;margin:10px 0;font-size:15px}
+.rule label{display:flex;gap:10px;align-items:flex-start;font-weight:700}
+.rule input{width:24px;height:24px;flex:none;margin-top:2px}
+.hint{color:var(--muted);font-size:14px}
+.player{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column}
+.player .bar{display:flex;gap:8px;align-items:center;padding:8px 10px;color:#fff}
+.player .bar .t{flex:1;font-weight:700;font-size:15px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.player .bar button{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:12px;font-size:18px;padding:8px 14px;cursor:pointer;min-height:44px}
+.player .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.player iframe{border:0;width:100%;height:100%;max-width:960px;background:#000}
+.shorts{flex:1;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
+.slide{height:100%;min-height:calc(100dvh - 60px);scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center;position:relative;padding:6px 0}
+.slide .box{height:min(100%,calc(100dvh - 76px));aspect-ratio:9/16;max-width:100%;background:#111;position:relative;border-radius:14px;overflow:hidden}
+.slide .box iframe,.slide .box img{width:100%;height:100%;border:0;object-fit:cover;display:block}
+.slide .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 14px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:14px;pointer-events:none}
+.slide .side{position:absolute;right:max(6px,calc(50% - 25dvh - 62px));bottom:90px;display:flex;flex-direction:column;gap:10px}
+.slide .side .like{background:rgba(255,255,255,.92)}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <a href="board.html">← 게시판</a>
+  <h1>📺 우리 반 영상 모음</h1>
+  <p>유튜브에 올린 영상의 주소를 나누고, 썸네일을 골라 볼 수 있어요. 선생님이 확인한 영상만 보여요.</p>
+</div></header>
+<main>
+  <div id="login" hidden><div class="card"><div class="b"><h3>먼저 로그인해요</h3><p>구글 계정으로 로그인해야 볼 수 있어요.</p><button class="btn" id="goLogin" type="button">🔑 구글로 로그인하기</button></div></div></div>
+  <div id="app" hidden>
+    <div class="msg" id="tmsg" style="display:block;background:#e8f0ff;color:#1d4ed8" hidden></div>
+    <div class="top">
+      <button class="btn" id="addBtn" type="button">➕ 영상 주소 나누기</button>
+      <button class="btn ghost" id="shortsBtn" type="button">📱 쇼츠처럼 넘겨 보기</button>
+      <button class="btn ghost" id="enBtn" type="button" hidden></button>
+    </div>
+    <div class="msg" id="msg" role="status"></div>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" hidden></div>
+  </div>
+</main>
+<div id="sheet" class="sheet" hidden><div id="sheetBox"></div></div>
+<div id="player" class="player" hidden></div>
+
+<script>
+const ST_URL='https://erzdvlcbjneabxqwnwfy.supabase.co', ST_KEY='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const ERR={bad_video:'유튜브 영상 주소가 아니에요. 유튜브 앱의 「공유 → 링크 복사」 주소를 붙여 넣어요.',video_not_found:'이 영상을 찾을 수 없거나 퍼 오기가 막혀 있어요. 「일부 공개」나 「공개」로 올린 영상이어야 해요.',video_check_failed:'영상을 확인하지 못했어요. 잠시 뒤에 다시 해 보세요.',duplicate_video:'이미 올라온 영상이에요.',blocked_content:'전화번호·이메일·주소는 쓸 수 없어요.',nick_required:'별명을 적어 주세요.',nick_is_name:'친구 이름이 들어간 별명은 쓸 수 없어요.',confirm_required:'확인에 체크해 주세요.',too_fast:'조금 천천히 해요.',too_many_posts:'오늘은 더 올릴 수 없어요.',own_post:'내 영상에는 ♥를 누를 수 없어요.',login_required:'다시 로그인해 주세요.',session_expired:'다시 로그인해 주세요.',not_approved:'아직 승인되지 않았어요. 선생님께 물어보세요.'};
+let TM=false,enabled=false,videos=[],myNick='';
+try{myNick=localStorage.getItem('bd_nick')||''}catch(e){}
+function readSession(){try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(e){return null}}
+async function jwt(){
+  let s=readSession();if(!s||!s.access)return null;
+  if(Date.now()>(s.exp||0)-60000){
+    s=readSession();
+    if(Date.now()>(s.exp||0)-60000){
+      const r=await fetch(ST_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:ST_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh})});
+      const j=await r.json().catch(()=>({}));if(!r.ok||!j.access_token)return null;
+      s={...s,access:j.access_token,refresh:j.refresh_token||s.refresh,exp:Date.now()+(j.expires_in||3600)*1000};
+      try{sessionStorage.setItem('st_s',JSON.stringify(s))}catch(e){}
+    }
+  }
+  return s.access;
+}
+async function call(body){
+  const t=await jwt();if(!t)return{status:401,data:{error:'login_required'}};
+  let r;try{r=await fetch(ST_URL+'/functions/v1/board-post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:t,...body})})}catch(e){return{status:0,data:{error:'network'}}}
+  let d=null;try{d=await r.json()}catch(e){}return{status:r.status,data:d||{}};
+}
+const say=t=>{$('msg').textContent=t||''};
+const errText=r=>ERR[(r.data||{}).error]||'잠시 뒤에 다시 해 보세요.';
+const thumbUrl=v=>'https://i.ytimg.com/vi/'+encodeURIComponent(v.yt)+'/hqdefault.jpg';
+const embedUrl=v=>'https://www.youtube-nocookie.com/embed/'+encodeURIComponent(v.yt)+'?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+
+async function load(){
+  const r=await call({action:TM?'t_v_list':'v_list'});
+  if(r.status!==200){if(r.status===401||r.status===403){showLogin();return}say(errText(r));return}
+  enabled=!!r.data.enabled;videos=r.data.videos||[];draw();
+}
+function draw(){
+  const g=$('grid');g.textContent='';
+  $('enBtn').hidden=!TM;if(TM)$('enBtn').textContent=enabled?'🔒 영상 모음 닫기(학생에게 숨김)':'🔓 영상 모음 열기';
+  $('addBtn').hidden=TM||!enabled;$('shortsBtn').hidden=!enabled&&!TM;
+  const emp=$('empty');
+  if(!enabled&&!TM){emp.hidden=false;emp.textContent='영상 모음은 아직 열리지 않았어요.';$('shortsBtn').hidden=true;return}
+  if(!enabled&&TM)$('tmsg').textContent='🧑‍🏫 영상 모음이 닫혀 있어서 학생에게는 보이지 않아요. 위 버튼으로 열 수 있어요.';
+  else if(TM)$('tmsg').textContent='🧑‍🏫 선생님 화면: 확인 전 영상은 「승인」을 눌러야 학생에게 보여요. 별명으로 올린 영상도 실명이 보여요.';
+  $('tmsg').hidden=!TM;
+  if(!videos.length){emp.hidden=false;emp.textContent='아직 영상이 없어요.';return}
+  emp.hidden=true;
+  videos.forEach(v=>g.append(card(v)));
+}
+function card(v){
+  const c=el('div','card');if(v.hidden)c.style.opacity='.5';
+  const t=el('button','thumb'+(v.kind==='short'?' short':''));t.type='button';t.setAttribute('aria-label',(v.title||'영상')+' 재생');
+  const im=el('img');im.src=thumbUrl(v);im.alt='';im.loading='lazy';im.referrerPolicy='no-referrer';
+  t.append(im,el('span','play','▶'));if(v.kind==='short')t.append(el('span','tag','쇼츠'));
+  t.onclick=()=>openPlayer([v],0);
+  const b=el('div','b');
+  b.append(el('h3','',v.title||'(제목 없음)'));
+  b.append(el('div','meta',TM?v.author+' ('+v.shown_as+')':v.author));
+  if(v.note)b.append(el('div','note',v.note));
+  if(!v.approved)b.append(el('div','pending','선생님 확인 중'));
+  if(v.hidden)b.append(el('div','pending','숨김'));
+  const bar=el('div');bar.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center';
+  const lk=el('button','like','♥ '+v.likes);lk.type='button';lk.setAttribute('aria-pressed',String(!!v.liked));
+  if(TM||v.mine||!v.approved)lk.disabled=true;
+  lk.onclick=async()=>{lk.disabled=true;const r=await call({action:'v_like',id:v.id});if(r.status!==200){say(errText(r));lk.disabled=false;return}say('');load()};
+  bar.append(lk);
+  if(TM){
+    const ap=el('button','btn small',v.approved?'승인 취소':'✅ 승인');ap.type='button';ap.onclick=async()=>{const r=await call({action:'t_v_approve',id:v.id,approved:!v.approved});if(r.status===200)load()};
+    const hd=el('button','btn ghost small',v.hidden?'보이기':'숨기기');hd.type='button';hd.onclick=async()=>{const r=await call({action:'t_v_hide',id:v.id,hidden:!v.hidden});if(r.status===200)load()};
+    const dl=el('button','btn ghost small','삭제');dl.type='button';dl.onclick=async()=>{if(!confirm('이 영상을 목록에서 지울까요?'))return;const r=await call({action:'t_v_delete',id:v.id});if(r.status===200)load()};
+    bar.append(ap,hd,dl);
+  }else if(v.mine){
+    const dl=el('button','btn ghost small','지우기');dl.type='button';dl.onclick=async()=>{if(!confirm('내 영상 주소를 목록에서 지울까요?(유튜브 영상은 그대로예요)'))return;const r=await call({action:'v_delete',id:v.id});if(r.status===200)load()};
+    bar.append(dl);
+  }
+  b.append(bar);c.append(t,b);return c;
+}
+
+// ---- 재생: 한 개 / 쇼츠처럼 넘기기(지금 보는 것만 재생) ----
+function closePlayer(){const p=$('player');p.hidden=true;p.textContent=''}
+function topBar(title,onClose){
+  const bar=el('div','bar');const t=el('div','t',title);const x=el('button','','✕ 닫기');x.type='button';x.onclick=onClose;bar.append(t,x);return bar;
+}
+function openPlayer(list,idx){
+  const p=$('player');p.textContent='';p.hidden=false;
+  const v=list[idx];
+  p.append(topBar(v.title||'영상',closePlayer));
+  const st=el('div','stage');const f=el('iframe');f.src=embedUrl(v);f.title=v.title||'영상';f.allow='autoplay; encrypted-media; fullscreen';f.allowFullscreen=true;f.referrerPolicy='strict-origin-when-cross-origin';st.append(f);p.append(st);
+}
+function openShorts(){
+  const list=videos.filter(v=>v.approved&&!v.hidden);
+  if(!list.length){say('넘겨 볼 영상이 아직 없어요.');return}
+  const p=$('player');p.textContent='';p.hidden=false;
+  p.append(topBar('📱 쇼츠처럼 넘겨 보기 · 위아래로 밀어요',closePlayer));
+  const sc=el('div','shorts');p.append(sc);
+  const slides=list.map(v=>{
+    const s=el('div','slide');const box=el('div','box');
+    const im=el('img');im.src=thumbUrl(v);im.alt='';im.referrerPolicy='no-referrer';box.append(im);
+    const cap=el('div','cap');cap.append(el('b','',v.title||''),el('div','',v.author+(v.note?' · '+v.note:'')));box.append(cap);
+    const side=el('div','side');
+    const lk=el('button','like','♥ '+v.likes);lk.type='button';lk.setAttribute('aria-pressed',String(!!v.liked));if(TM||v.mine)lk.disabled=true;
+    lk.onclick=async()=>{lk.disabled=true;const r=await call({action:'v_like',id:v.id});if(r.status===200){v.liked=r.data.liked;v.likes+=r.data.liked?1:-1;lk.textContent='♥ '+v.likes;lk.setAttribute('aria-pressed',String(v.liked))}lk.disabled=false};
+    side.append(lk);
+    s.append(box,side);s._box=box;s._v=v;sc.append(s);return s;
+  });
+  // 화면 가운데 오는 한 칸만 영상 재생, 나머지는 썸네일
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{
+    const s=e.target,box=s._box;
+    if(e.isIntersecting&&e.intersectionRatio>0.6){
+      if(!box.querySelector('iframe')){const f=el('iframe');f.src=embedUrl(s._v);f.title=s._v.title||'영상';f.allow='autoplay; encrypted-media; fullscreen';f.referrerPolicy='strict-origin-when-cross-origin';box.prepend(f);const im=box.querySelector('img');if(im)im.hidden=true}
+    }else{const f=box.querySelector('iframe');if(f){f.remove();const im=box.querySelector('img');if(im)im.hidden=false}}
+  })},{root:sc,threshold:[0,0.6]});
+  slides.forEach(s=>io.observe(s));
+}
+
+// ---- 영상 주소 나누기 ----
+function openAdd(){
+  const box=$('sheetBox');box.textContent='';
+  box.append(el('h3','','➕ 영상 주소 나누기'));
+  box.append(el('div','hint','유튜브에 올린 영상의 「공유 → 링크 복사」 주소를 붙여 넣어요. 선생님이 확인하면 친구들에게 보여요.'));
+  box.append(el('label','l','영상 주소'));
+  const u=el('input');u.type='url';u.placeholder='https://youtu.be/…';u.maxLength=300;box.append(u);
+  box.append(el('label','l','한마디 (100자까지, 선택)'));
+  const n=el('input');n.type='text';n.maxLength=100;box.append(n);
+  box.append(el('label','l','올린 사람 이름'));
+  const rd=el('div','radio');let asNick=false;
+  const r1=el('label'),i1=el('input');i1.type='radio';i1.name='nm';i1.checked=true;r1.append(i1,document.createTextNode('내 이름'));
+  const r2=el('label'),i2=el('input');i2.type='radio';i2.name='nm';r2.append(i2,document.createTextNode('별명'));rd.append(r1,r2);box.append(rd);
+  const nk=el('input');nk.type='text';nk.maxLength=10;nk.placeholder='별명(10자까지)';nk.value=myNick;nk.style.cssText='display:none;margin-top:6px';box.append(nk);
+  i1.onchange=i2.onchange=()=>{asNick=i2.checked;nk.style.display=asNick?'':'none'};
+  const rule=el('div','rule');const rl=el('label'),rc=el('input');rc.type='checkbox';
+  rl.append(rc,el('span','','내가 확인했어요: 영상에 내 얼굴·이름·학교·전화번호·집 주소가 나오지 않아요. 다른 사람이 나온다면 그 사람(어린이는 보호자)의 허락을 받았어요. 유튜브는 보호자와 함께 쓰고 있어요.'));
+  rule.append(rl);box.append(rule);
+  const err=el('div','msg');box.append(err);
+  const act=el('div');act.style.cssText='display:flex;gap:8px;margin-top:10px';
+  const ok=el('button','btn','올리기');ok.type='button';const no=el('button','btn ghost','닫기');no.type='button';act.append(ok,no);box.append(act);
+  const close=()=>{$('sheet').hidden=true};no.onclick=close;
+  ok.onclick=async()=>{
+    err.textContent='';
+    if(!u.value.trim()){err.textContent=ERR.bad_video;return}
+    if(!rc.checked){err.textContent=ERR.confirm_required;return}
+    if(asNick&&!nk.value.trim()){err.textContent=ERR.nick_required;return}
+    ok.disabled=true;
+    const r=await call({action:'v_add',url:u.value,note:n.value,confirm:true,as:asNick?'nick':'real',nick:nk.value});
+    ok.disabled=false;
+    if(r.status!==200){err.textContent=errText(r);return}
+    if(asNick){myNick=nk.value.trim();try{localStorage.setItem('bd_nick',myNick)}catch(e){}}
+    close();say('올렸어요! 선생님이 확인하면 친구들에게 보여요.');load();
+  };
+  $('sheet').hidden=false;
+}
+function showLogin(){$('app').hidden=true;$('login').hidden=false}
+async function start(){
+  const s=readSession();
+  if(!s||!s.access){showLogin();return}
+  TM=!!s.teacher;$('login').hidden=true;$('app').hidden=false;
+  $('addBtn').onclick=openAdd;$('shortsBtn').onclick=openShorts;
+  $('enBtn').onclick=async()=>{const r=await call({action:'t_v_enable',enabled:!enabled});if(r.status===200)load();else say(errText(r))};
+  await load();
+}
+$('goLogin').onclick=()=>{
+  try{sessionStorage.setItem('st_next','board-videos.html')}catch(e){}
+  location.href=ST_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(new URL('school-tool/index.html',location.href).href)+'&prompt=select_account';
+};
+start();
+</script>
+</body>
+</html>

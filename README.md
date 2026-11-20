@@ -31,6 +31,7 @@ https://homepage-53dd99.gitlab.io/
 | 교사 관리 | `classroom/teacher.html` — 수업 화면 모니터링, 단원평가 공개 설정, 그림책 코치 설정, 교실 연결 |
 | 수업 활동 | `classroom/activity/` — 수업방에서 주관식·객관식·영상 활동 띄우기, 수업 흐름 저장/불러오기, 큰 화면, CSV (교사 화면 "📋 수업 활동" 칸, 설명은 `classroom/README.md` 6번) |
 | 온라인 게시판 | `board.html` — 3-2 매체 단원 실습(글감별 글·댓글·♥, 실명/별명, 사진 초상권 확인). 서버 `board-post`, 교사 관리는 교사 화면 「📮 온라인 게시판 관리」 |
+| 영상 모음(미연결) | `board-videos.html` — 유튜브 영상 주소 나누기·썸네일·쇼츠식 넘겨 보기. 만 13세 미만 문제로 만들어만 두고 어느 메뉴에도 연결하지 않음(기본 닫힘, 설명은 `ISSUE_LOG.md` I-24) |
 | 방과후 우리반 | `school.html` — 방과후에 쓰는 것을 모두 여기에 둔다(이야기방·모이자·바꾸자·캐릭터·게임·시간표·급식·학사일정) |
 | 게임·사회 | `games/`, `yut/`, `oldlife.html` |
 | 투자·기타 | `dcf*.html`, `investment-dashboard.html`, `exercise.html`, `Pdf-splitter.html` 등 |

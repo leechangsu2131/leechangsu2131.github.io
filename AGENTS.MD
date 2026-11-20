@@ -937,6 +937,12 @@
 - **교사 화면:** classroom/teacher.html 「📮 온라인 게시판 관리」 — 글감 만들기·열기/닫기·지우기, 글·댓글 숨기기/삭제(별명 글도 실명 표시), CSV 저장(사진 제외).
 - **상태:** DB·함수(v1) 반영과 push 완료, 모의시험(서버 30개, 화면 시나리오)만 통과 — 실제 연결은 선생님 확인 대기(🧪).
 
+### 2026-11-20 추가: 유튜브 영상 모음 board-videos.html (I-24, 연결 안 함)
+- 학생이 유튜브에 올린 영상의 **주소만** 저장하고, 썸네일(`i.ytimg.com`)을 보여 주며, 누르면 `youtube-nocookie.com` 퍼가기로 재생, 「쇼츠처럼 넘겨 보기」(스크롤 스냅, 화면에 오는 한 개만 iframe)를 제공. 어느 화면에서도 링크하지 않았고 주소를 직접 입력해야 열림. 기본 닫힘.
+- 서버(board-post/function.ts): 학생 `v_list·v_add·v_like·v_delete`, 교사 `t_v_list·t_v_approve·t_v_hide·t_v_delete·t_v_enable`. 나누기는 `confirm:true` 필요, 하루 5개·10분 3개, 중복 차단, 선생님 승인 후 공개.
+- DB: `board-post/schema_videos.sql`(미실행) — `bd_settings`, `bd_videos`, `bd_video_likes`.
+- 켜는 순서·주의는 `ISSUE_LOG.md` I-24. 틱톡은 지원하지 않음.
+
 ### 2026-11-20 추가: 게시판 메뉴·교사 보기(I-22)
 - school.html 아래 탭 줄에 「📮 게시판」(`data-tab="board"`)이 있고, 누르면 `board.html` 로 이동(패널 없음). 교사 계정으로 열면 board.html 은 `TM`(교사 모드): `t_topics`/`t_list` 로 글을 읽고 별명 글도 실명 표시, `t_hide`/`t_delete` 버튼. 글쓰기·댓글·♥ 는 숨김.
 

@@ -85,6 +85,35 @@ async function removePhotos(paths: (string | null)[]) {
   for (let i = 0; i < real.length; i += 100) await sb.storage.from(BUCKET).remove(real.slice(i, i + 100));
 }
 
+
+// 유튜브 주소 → 영상 번호(11글자). youtube.com(watch·shorts·embed)와 youtu.be 만 받는다.
+function ytParse(u: unknown): { id: string; kind: "video" | "short" } | null {
+  let url: URL;
+  try { url = new URL(String(u ?? "").trim().slice(0, 300)); } catch { return null; }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  const host = url.hostname.toLowerCase().replace(/^(www|m)\./, "");
+  let id = "", kind: "video" | "short" = "video";
+  if (host === "youtu.be") id = url.pathname.split("/")[1] ?? "";
+  else if (host === "youtube.com") {
+    const seg = url.pathname.split("/").filter(Boolean);
+    if (seg[0] === "watch") id = url.searchParams.get("v") ?? "";
+    else if (seg[0] === "shorts") { id = seg[1] ?? ""; kind = "short"; }
+    else if (seg[0] === "embed") id = seg[1] ?? "";
+  } else return null;
+  return /^[A-Za-z0-9_-]{11}$/.test(id) ? { id, kind } : null;
+}
+// 유튜브에 그 영상이 있고 퍼 와서 볼 수 있는지 확인(제목도 가져옴). 비공개·삭제·퍼가기 금지 영상은 못 쓴다.
+async function ytCheck(id: string): Promise<{ ok: true; title: string } | { ok: false; reason: "not_found" | "check_failed" }> {
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
+  try {
+    const r = await fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent("https://www.youtube.com/watch?v=" + id), { signal: ctl.signal });
+    if (r.status === 401 || r.status === 403 || r.status === 404) return { ok: false, reason: "not_found" };
+    if (!r.ok) return { ok: false, reason: "check_failed" };
+    const j = await r.json();
+    return { ok: true, title: clean(j.title, 100) };
+  } catch { return { ok: false, reason: "check_failed" }; } finally { clearTimeout(t); }
+}
+
 const EMOJIS = ["😀","😢","😮","😍","😡","😴","👍","👏","🎉","❤️","⭐","🎂","🎆","😋","🙏","💪"];   // 그림말(미리 정한 것만)
 const COLORS = ["black", "red", "blue", "green", "purple", "orange"];
 const KINDS = ["question", "praise", "thanks", "story"];
@@ -99,7 +128,7 @@ Deno.serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["topics", "list", "post", "edit", "delete", "comment", "uncomment", "like", "t_topics", "t_topic_add", "t_topic_set", "t_topic_delete", "t_list", "t_hide", "t_delete", "t_export"].includes(body.action) ? body.action : "";
+  const action = ["topics", "list", "post", "edit", "delete", "comment", "uncomment", "like", "t_topics", "t_topic_add", "t_topic_set", "t_topic_delete", "t_list", "t_hide", "t_delete", "t_export", "v_list", "v_add", "v_like", "v_delete", "t_v_list", "t_v_approve", "t_v_hide", "t_v_delete", "t_v_enable"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
   if (tooMany("ip:" + ip, 400)) return json({ error: "too_many_attempts" }, 429, origin);
@@ -153,6 +182,25 @@ Deno.serve(async (req) => {
       await sb.from(table).delete().eq("id", id).eq("class_id", classId);
       return json({ ok: true }, 200, origin);
     }
+    if (action.startsWith("t_v_")) {
+      if (action === "t_v_enable") {
+        await sb.from("bd_settings").upsert({ class_id: classId, videos_enabled: body.enabled === true });
+        return json({ ok: true, enabled: body.enabled === true }, 200, origin);
+      }
+      if (action === "t_v_approve" || action === "t_v_hide" || action === "t_v_delete") {
+        const id = String(body.id ?? "");
+        if (action === "t_v_delete") await sb.from("bd_videos").delete().eq("id", id).eq("class_id", classId);
+        else await sb.from("bd_videos").update(action === "t_v_approve" ? { approved: body.approved !== false } : { hidden: body.hidden !== false }).eq("id", id).eq("class_id", classId);
+        return json({ ok: true }, 200, origin);
+      }
+      // t_v_list: 확인 전·숨긴 영상까지, 실명으로
+      const { data: st } = await sb.from("bd_settings").select("videos_enabled").eq("class_id", classId).maybeSingle();
+      const { data: vs } = await sb.from("bd_videos").select("*, bd_video_likes(student_id)").eq("class_id", classId).order("created_at", { ascending: false }).limit(200);
+      const { data: mates } = await sb.from("gt_students").select("id,number,name").eq("class_id", classId);
+      const nm = new Map((mates ?? []).map((m) => [m.id, names(m)]));
+      // deno-lint-ignore no-explicit-any
+      return json({ ok: true, enabled: !!st?.videos_enabled, videos: (vs ?? []).map((v: any) => ({ id: v.id, yt: v.yt_id, kind: v.kind, title: v.title, note: v.note, author: nm.get(v.author_id) ?? "?", shown_as: v.show_real ? "실명" : "별명 " + v.nick, approved: v.approved, hidden: v.hidden, likes: (v.bd_video_likes ?? []).length, created: v.created_at })) }, 200, origin);
+    }
     // t_list / t_export: 숨긴 글까지, 실명으로
     let q = sb.from("bd_posts").select("*, bd_comments(*), bd_likes(student_id)").eq("class_id", classId).order("created_at", { ascending: false }).limit(300);
     if (body.topic_id) q = q.eq("topic_id", String(body.topic_id));
@@ -205,6 +253,56 @@ Deno.serve(async (req) => {
     return { show_real: false, nick };
   }
   const shownName = (p: { author_id: string; show_real: boolean; nick: string }, nm: Map<string, string>) => (p.show_real ? nm.get(p.author_id) ?? "" : p.nick);
+
+  // ---------- 영상 모음(유튜브 링크만) ----------
+  if (action.startsWith("v_")) {
+    const { data: st } = await sb.from("bd_settings").select("videos_enabled").eq("class_id", me.class_id).maybeSingle();
+    if (!st?.videos_enabled) return json({ ok: true, enabled: false, videos: [] }, 200, origin);
+    if (action === "v_list") {
+      const { data: vs } = await sb.from("bd_videos").select("*, bd_video_likes(student_id)").eq("class_id", me.class_id).eq("hidden", false).order("created_at", { ascending: false }).limit(100);
+      const { data: mates } = await sb.from("gt_students").select("id,name").eq("class_id", me.class_id);
+      const nm = new Map((mates ?? []).map((m) => [m.id, m.name as string]));
+      // 승인된 영상 + 내가 올린 확인 전 영상만 보인다
+      // deno-lint-ignore no-explicit-any
+      const list = (vs ?? []).filter((v: any) => v.approved || v.author_id === me.id).map((v: any) => ({
+        id: v.id, yt: v.yt_id, kind: v.kind, title: v.title, note: v.note, author: v.show_real ? nm.get(v.author_id) ?? "" : v.nick, mine: v.author_id === me.id, approved: v.approved,
+        likes: (v.bd_video_likes ?? []).length, liked: (v.bd_video_likes ?? []).some((l: { student_id: string }) => l.student_id === me.id), created: v.created_at,
+      }));
+      return json({ ok: true, enabled: true, videos: list }, 200, origin);
+    }
+    if (action === "v_add") {
+      if (body.confirm !== true) return json({ error: "confirm_required" }, 400, origin);
+      const y = ytParse(body.url);
+      if (!y) return json({ error: "bad_video" }, 400, origin);
+      const note = clean(body.note, 100);
+      if (note && BLOCKED.test(note)) return json({ error: "blocked_content" }, 400, origin);
+      const nameRes = await pickName();
+      if (typeof nameRes === "string") return json({ error: nameRes }, 400, origin);
+      if (tooMany("bdv:" + me.id, 3)) return json({ error: "too_fast" }, 429, origin);
+      const { count: dayN } = await sb.from("bd_videos").select("id", { count: "exact", head: true }).eq("author_id", me.id).gte("created_at", dayAgo);
+      if ((dayN ?? 0) >= 5) return json({ error: "too_many_posts" }, 429, origin);
+      const { data: dup } = await sb.from("bd_videos").select("id").eq("class_id", me.class_id).eq("yt_id", y.id).maybeSingle();
+      if (dup) return json({ error: "duplicate_video" }, 400, origin);
+      const chk = await ytCheck(y.id);
+      if (!chk.ok) return json({ error: chk.reason === "not_found" ? "video_not_found" : "video_check_failed" }, chk.reason === "not_found" ? 400 : 502, origin);
+      const { error } = await sb.from("bd_videos").insert({ class_id: me.class_id, author_id: me.id, ...nameRes, yt_id: y.id, kind: y.kind, title: chk.title, note, approved: false });
+      return error ? json({ error: "save_failed" }, 500, origin) : json({ ok: true, pending: true }, 200, origin);
+    }
+    if (action === "v_delete") {
+      const { data: v } = await sb.from("bd_videos").select("id,author_id").eq("id", String(body.id ?? "")).eq("class_id", me.class_id).maybeSingle();
+      if (!v || v.author_id !== me.id) return json({ error: "forbidden" }, 403, origin);
+      await sb.from("bd_videos").delete().eq("id", v.id);
+      return json({ ok: true }, 200, origin);
+    }
+    // v_like
+    const { data: v } = await sb.from("bd_videos").select("id,author_id,approved,hidden").eq("id", String(body.id ?? "")).eq("class_id", me.class_id).maybeSingle();
+    if (!v || v.hidden || !v.approved) return json({ error: "no_post" }, 404, origin);
+    if (v.author_id === me.id) return json({ error: "own_post" }, 400, origin);
+    const { data: had } = await sb.from("bd_video_likes").select("video_id").eq("video_id", v.id).eq("student_id", me.id).maybeSingle();
+    if (had) { await sb.from("bd_video_likes").delete().eq("video_id", v.id).eq("student_id", me.id); return json({ ok: true, liked: false }, 200, origin); }
+    await sb.from("bd_video_likes").insert({ video_id: v.id, student_id: me.id });
+    return json({ ok: true, liked: true }, 200, origin);
+  }
 
   if (action === "topics") return json({ ok: true, me: me.number, topics: await topicList() }, 200, origin);
 
