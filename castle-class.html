@@ -459,6 +459,29 @@ function idbLoad(cb){
     }catch(e){cb(null);}
   });
 }
+function idbLoadAll(cb){
+  idbOpen(function(db){
+    if(!db)return cb([]);
+    try{
+      var by={};var rq=db.transaction('chunks','readonly').objectStore('chunks').openCursor();
+      rq.onsuccess=function(){var c=rq.result;if(c){var r=c.value;(by[r.sid]=by[r.sid]||[]).push(r);c.continue();}else{
+        var list=Object.keys(by).map(function(k){var a=by[k].sort(function(x,y){return x.seq-y.seq;});return {sid:a[0].sid,mime:a[0].mime,blobs:a.map(function(r){return r.blob;})};});
+        list.sort(function(a,b){return b.sid-a.sid;});cb(list);
+      }};
+      rq.onerror=function(){cb([]);};
+    }catch(e){cb([]);}
+  });
+}
+/* 한 수업(sid)의 조각만 지운다. 다른 수업의 녹음은 남긴다 */
+function idbDelSid(sid,cb){
+  idbOpen(function(db){
+    if(!db)return cb&&cb();
+    try{var t=db.transaction('chunks','readwrite');var rq=t.objectStore('chunks').openCursor();
+      rq.onsuccess=function(){var c=rq.result;if(c){if(c.value.sid===sid)c.delete();c.continue();}};
+      t.oncomplete=function(){cb&&cb();};t.onerror=function(){cb&&cb();};
+    }catch(e){cb&&cb();}
+  });
+}
 function idbClear(cb){idbOpen(function(db){if(!db)return cb&&cb();try{var t=db.transaction('chunks','readwrite');t.objectStore('chunks').clear();t.oncomplete=function(){cb&&cb();};}catch(e){cb&&cb();}});}
 function saveLog(){try{localStorage.setItem('castle-log',JSON.stringify(LOG));}catch(e){}}
 
@@ -607,7 +630,7 @@ function openResult(blob,L,sourceNote){
   h+='<div class="acts"><button class="btn pri" id="cp" type="button">기록 복사</button><a class="btn" id="dlt" href="#" download="'+'성수업_'+stamp+'_기록.txt">기록 저장(.txt)</a></div>';
   h+='<div class="hint"><b>분석할 때:</b> 녹음 파일을 클로바 노트에 올려 전사한 뒤, 이 기록의 [mm:ss]와 전사 시각을 맞춰 활동별로 나누세요.</div>';
   h+='<div class="notice">학생 목소리가 담긴 파일입니다. 소리는 이 기기에서만 처리되고 서버로 보내지 않았어요. 학교 지침에 맞게 보관하고, 분석이 끝나면 지우세요.</div>';
-  h+='<div class="acts"><button class="btn" id="wipe" type="button">이 기기에서 임시 녹음 지우기</button></div>';
+  h+='<div class="acts"><button class="btn" id="wipe" type="button">이 기기에서 이 녹음 지우기</button></div>';
   $('rbody').innerHTML=h;
   var text=buildLog(L);
   $('logta').value=text;
@@ -621,7 +644,7 @@ function openResult(blob,L,sourceNote){
     var ok=function(){$('cp').textContent='복사했어요';setTimeout(function(){$('cp').textContent='기록 복사';},1500);};
     try{navigator.clipboard.writeText(ta.value).then(ok).catch(function(){ta.select();document.execCommand('copy');ok();});}catch(e){ta.select();try{document.execCommand('copy');ok();}catch(e2){}}
   };
-  $('wipe').onclick=function(){var b=$('wipe');if(b.getAttribute('data-ask')!=='1'){b.setAttribute('data-ask','1');b.textContent='정말 지울까요? 한 번 더 누르세요';return;}idbClear(function(){try{localStorage.removeItem('castle-log');}catch(e){}b.textContent='지웠어요(저장한 파일은 그대로)';b.disabled=true;});};
+  $('wipe').onclick=function(){var b=$('wipe');if(b.getAttribute('data-ask')!=='1'){b.setAttribute('data-ask','1');b.textContent='정말 지울까요? 한 번 더 누르세요';return;}idbDelSid(L.sid,function(){try{var LS=JSON.parse(localStorage.getItem('castle-log')||'null');if(LS&&LS.sid===L.sid)localStorage.removeItem('castle-log');}catch(e){}b.textContent='이 녹음을 지웠어요(저장한 파일은 그대로)';b.disabled=true;});};
   rsheet(true);
 }
 function rsheet(open){var s=$('rsheet');s.classList.toggle('open',open);s.setAttribute('aria-hidden',open?'false':'true');}
@@ -653,17 +676,28 @@ window.addEventListener('beforeunload',function(e){if(REC.on&&!ended){e.preventD
 /* 시작 전 안내 + 지난 녹음 복구 */
 (function(){
   var rn=$('rnotice');
-  rn.innerHTML='<div class="notice"><b>녹음 + 단계 기록.</b> “수업 시작”을 누르면 마이크 허용을 물어요. 허용하면 수업 내내 녹음하고, 단계를 넘길 때마다 시각을 적어 둡니다. 소리는 이 기기에서만 처리돼요. 수업 중에는 화면을 켜 둔 채 두세요(잠기면 녹음이 끊길 수 있어요). <b>클로바 노트도 함께 켜 두는 걸 권해요.</b><br>학생 목소리를 녹음하는 것이니 학교 지침과 동의 여부를 먼저 확인하세요.</div>';
-  idbLoad(function(r){
-    if(!r||started)return;
-    var sec='';var blob=new Blob(r.blobs,{type:r.mime});
-    var L=null;try{L=JSON.parse(localStorage.getItem('castle-log')||'null');}catch(e){}
-    if(!L||L.sid!==r.sid)L={sid:r.sid,classStart:r.sid,recStart:r.sid,mime:r.mime,ext:/mp4/.test(r.mime)?'m4a':(/ogg/.test(r.mime)?'ogg':'webm'),marks:[]};
+  rn.innerHTML='<div class="notice"><b>녹음 + 단계 기록.</b> “수업 시작”을 누르면 마이크 허용을 물어요. 허용하면 수업 내내 녹음하고, 단계를 넘길 때마다 시각을 적어 둡니다. 소리는 이 기기에서만 처리돼요. 수업 중에는 화면을 켜 둔 채 두세요(잠기면 녹음이 끊길 수 있어요). <b>녹음 앱은 하나만 쓰세요.</b> 안드로이드는 두 앱이 동시에 마이크를 쓰면 한쪽이 녹음되지 않아요. 사진·동영상을 찍으면 카메라가 마이크를 가져가 녹음이 끊길 수 있으니, 사진은 다른 기기로 찍어요.<br>학생 목소리를 녹음하는 것이니 학교 지침과 동의 여부를 먼저 확인하세요.</div>';
+  idbLoadAll(function(list){
+    if(!list.length||started)return;
+    var LS=null;try{LS=JSON.parse(localStorage.getItem('castle-log')||'null');}catch(e){}
     var box=document.createElement('div');box.className='notice bad';
-    box.innerHTML='<b>지난 녹음이 이 기기에 남아 있어요</b> ('+(blob.size/1048576).toFixed(1)+'MB)<div class="row"><button class="btn pri" type="button" id="rcv">열어서 저장</button><button class="btn" type="button" id="rdel">지우기</button></div>';
+    var t=document.createElement('b');t.textContent='지난 녹음이 이 기기에 '+list.length+'개 남아 있어요';box.appendChild(t);
+    list.forEach(function(r){
+      var blob=new Blob(r.blobs,{type:r.mime});var d=new Date(r.sid);
+      var row=document.createElement('div');row.className='row';row.style.cssText='align-items:center;margin-top:8px';
+      var sp=document.createElement('span');sp.textContent=(d.getMonth()+1)+'/'+d.getDate()+' '+two(d.getHours())+':'+two(d.getMinutes())+' 시작 · '+(blob.size/1048576).toFixed(1)+'MB';
+      var b=document.createElement('button');b.className='btn pri';b.type='button';b.textContent='열어서 저장';
+      b.onclick=function(){
+        var L=(LS&&LS.sid===r.sid)?LS:{sid:r.sid,classStart:r.sid,recStart:r.sid,mime:r.mime,ext:/mp4/.test(r.mime)?'m4a':(/ogg/.test(r.mime)?'ogg':'webm'),marks:[]};
+        openResult(blob,L,'지난 녹음을 불러왔어요.');
+      };
+      row.appendChild(sp);row.appendChild(b);box.appendChild(row);
+    });
+    var dr=document.createElement('div');dr.className='row';dr.style.marginTop='10px';
+    var del=document.createElement('button');del.className='btn';del.type='button';del.textContent='모두 지우기';
+    del.onclick=function(){if(del.getAttribute('data-ask')!=='1'){del.setAttribute('data-ask','1');del.textContent='정말 모두 지울까요? 한 번 더 누르세요';return;}idbClear(function(){try{localStorage.removeItem('castle-log');}catch(e){}box.remove();});};
+    dr.appendChild(del);box.appendChild(dr);
     rn.insertBefore(box,rn.firstChild);
-    $('rcv').onclick=function(){openResult(blob,L,'지난 수업에서 남은 녹음을 불러왔어요.');};
-    $('rdel').onclick=function(){idbClear(function(){try{localStorage.removeItem('castle-log');}catch(e){}box.remove();});};
   });
 })();
 
