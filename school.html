@@ -265,6 +265,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
     <button role="tab" data-tab="notice" aria-selected="false"><span class="ic">📢</span>공지</button>
     <button role="tab" data-tab="talk" aria-selected="false"><span class="ic">💬</span>이야기방</button>
     <button role="tab" data-tab="game" aria-selected="false"><span class="ic">🎮</span>게임</button>
+    <button role="tab" data-tab="board" aria-selected="false"><span class="ic">📮</span>게시판</button>
     <button role="tab" data-tab="school" aria-selected="false"><span class="ic">🏫</span>학교정보</button>
   </nav>
 
@@ -379,7 +380,7 @@ if(LOCK_CLASS){                                   // 학급 고정이면 선택 
 let curTab='timetable';
 function showTab(t){curTab=t;$$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));
   if(t==='timetable')loadTimetable(); if(t==='meal')loadMeal(); if(t==='schedule')loadSchedule(); if(t==='notice')loadNotices(); if(t==='school')loadSchool(); if(t==='game')gameOpen(); if(t==='talk')talkOpen(); else talkStop(); window.scrollTo({top:0})}
-$$('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+$$('#tabs button').forEach(b=>b.onclick=()=>{if(b.dataset.tab==='board'){location.href='board.html';return}showTab(b.dataset.tab)});
 
 
 /* ===== 🎮 친구들이 만든 게임 (방과후 하루 30분 합계, shared/after-budget.js) ===== */

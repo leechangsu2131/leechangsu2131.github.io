@@ -926,3 +926,6 @@
 - **DB(board-post/schema.sql):** `bd_topics`, `bd_posts`, `bd_comments`, `bd_likes`(RLS, anon 없음, 교사 정책 `gt_is_teacher()`), 비공개 보관함 `board-photos`(JPEG 300KB).
 - **교사 화면:** classroom/teacher.html 「📮 온라인 게시판 관리」 — 글감 만들기·열기/닫기·지우기, 글·댓글 숨기기/삭제(별명 글도 실명 표시), CSV 저장(사진 제외).
 - **상태:** DB·함수(v1) 반영과 push 완료, 모의시험(서버 30개, 화면 시나리오)만 통과 — 실제 연결은 선생님 확인 대기(🧪).
+
+### 2026-11-20 추가: 게시판 메뉴·교사 보기(I-22)
+- school.html 아래 탭 줄에 「📮 게시판」(`data-tab="board"`)이 있고, 누르면 `board.html` 로 이동(패널 없음). 교사 계정으로 열면 board.html 은 `TM`(교사 모드): `t_topics`/`t_list` 로 글을 읽고 별명 글도 실명 표시, `t_hide`/`t_delete` 버튼. 글쓰기·댓글·♥ 는 숨김.

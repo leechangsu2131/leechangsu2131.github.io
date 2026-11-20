@@ -81,7 +81,7 @@ label.l{display:block;font-weight:800;margin:12px 0 4px;font-size:16px}
     <div class="post"><h2>먼저 로그인해요</h2><p>우리 반 친구로 로그인해야 게시판을 쓸 수 있어요.</p><button class="btn" id="goLogin" type="button">로그인하러 가기</button></div>
   </div>
   <div id="teacherNote" hidden>
-    <div class="post"><h2>선생님 계정이에요</h2><p>게시판은 학생 화면이에요. 글감 만들기·숨기기·삭제는 교사 관리 화면에서 해요.</p><a class="btn" href="classroom/teacher.html" style="display:inline-block;text-decoration:none">🧑‍🏫 교사 관리 화면</a></div>
+    <div class="msg" style="display:block;background:#e8f0ff;color:#1d4ed8">🧑‍🏫 선생님 화면이에요. 별명 글도 실명이 보이고, 글·댓글을 숨기거나 지울 수 있어요. 글감 만들기·닫기는 <a href="classroom/teacher.html">교사 관리 화면</a>에서 해요.</div>
   </div>
   <div id="app" hidden>
     <div class="chips" id="topics" role="tablist" aria-label="글감"></div>
@@ -102,7 +102,7 @@ const EMOJIS=['😀','😢','😮','😍','😡','😴','👍','👏','🎉','�
 const KINDS=[['question','🙋 질문'],['praise','👏 칭찬'],['thanks','🙏 감사'],['story','💭 나의 경험']];
 const KIND_NAME=Object.fromEntries(KINDS.map(k=>[k[0],k[1].slice(2).trim()]));
 const ERR={blocked_content:'전화번호·이메일·주소는 쓸 수 없어요. 나를 알아볼 수 있는 정보는 지켜요!',empty:'제목과 내용을 써 주세요.',nick_required:'별명을 적어 주세요.',nick_is_name:'친구 이름이 들어간 별명은 쓸 수 없어요.',bad_photo:'사진을 올리지 못했어요. 다른 사진으로 해 보세요.',too_fast:'조금 천천히 해요.',too_many_posts:'오늘은 더 쓸 수 없어요. 내일 또 써요.',topic_closed:'이 글감은 닫혔어요.',own_post:'내 글에는 ♥를 누를 수 없어요.',forbidden:'내가 쓴 것만 고칠 수 있어요.',login_required:'다시 로그인해 주세요.',session_expired:'다시 로그인해 주세요.',not_approved:'아직 승인되지 않았어요. 선생님께 물어보세요.'};
-let session=null,topic=null,topics=[],posts=[],formOpen=false,timer=null;
+let TM=false,session=null,topic=null,topics=[],posts=[],formOpen=false,timer=null;
 let myNick='';try{myNick=localStorage.getItem('bd_nick')||''}catch(e){}
 
 function readSession(){try{return JSON.parse(sessionStorage.getItem('st_s')||'null')}catch(e){return null}}
@@ -141,7 +141,20 @@ function paintText(box,p){
   box.textContent=p.body;
 }
 
+async function loadTeacher(){
+  const t=await call({action:'t_topics'});
+  if(t.status!==200){say(errText(t));return}
+  topics=(t.data.topics||[]).slice().reverse();
+  if(!topics.length){posts=[];topic=null;drawTopics();drawFeed();return}
+  if(!topic||!topics.some(x=>x.id===topic.id))topic=topics[0];else topic=topics.find(x=>x.id===topic.id);
+  const l=await call({action:'t_list',topic_id:topic.id});
+  if(l.status!==200){say(errText(l));return}
+  posts=(l.data.posts||[]).map(p=>({id:p.id,author:p.author+' ('+p.shown_as+')',mine:false,hidden:p.hidden,title:p.title,body:p.body,size:p.size,color:p.color,emojis:p.emojis,photo:p.photo,created:p.created,edited:p.edited,likes:p.likes,liked:false,
+    comments:p.comments.map(c=>({id:c.id,author:c.author+' ('+c.shown_as+')',mine:false,hidden:c.hidden,kind:c.kind,body:c.body,created:c.created}))}));
+  drawTopics();drawFeed();
+}
 async function load(keep){
+  if(TM)return loadTeacher();
   const r=await call({action:'list',topic_id:topic&&topic.id});
   if(r.status!==200){if(r.status===401||r.status===403){showLogin();return}say(errText(r));return}
   topics=r.data.topics||[];topic=r.data.topic;posts=r.data.posts||[];
@@ -151,7 +164,7 @@ function drawTopics(){
   const box=$('topics');box.textContent='';
   topics.forEach(t=>{const b=el('button','chip',(t.open?'':'🔒 ')+t.title);b.type='button';b.setAttribute('aria-pressed',String(topic&&t.id===topic.id));b.onclick=()=>{topic=t;say('');load()};box.append(b)});
   $('guide').textContent=topic?(topic.guide||'친구들과 나누고 싶은 이야기를 써 보세요.')+(topic.open?'':' (이 글감은 닫혀서 읽기만 할 수 있어요.)'):'';
-  $('fab').hidden=!topic||!topic.open;
+  $('fab').hidden=TM||!topic||!topic.open;
 }
 function drawFeed(){
   if(formOpen)return;
@@ -161,7 +174,8 @@ function drawFeed(){
 }
 function card(p){
   const c=el('article','post');
-  c.append(el('h2','',p.title));
+  c.append(el('h2','',p.title+(p.hidden?' (숨김)':'')));
+  if(p.hidden)c.style.opacity='.55';
   c.append(el('div','meta',p.author+' · '+ago(p.created)+(p.edited?' · 고쳐 썼어요':'')));
   const tx=el('div');paintText(tx,p);c.append(tx);
   if(p.emojis)c.append(el('div','emo',p.emojis));
@@ -169,8 +183,15 @@ function card(p){
   const bar=el('div','bar');
   const lk=el('button','like','♥ 공감 '+p.likes);lk.type='button';lk.setAttribute('aria-pressed',String(p.liked));
   lk.onclick=async()=>{lk.disabled=true;const r=await call({action:'like',post_id:p.id});lk.disabled=false;if(r.status!==200){say(errText(r));return}say('');load()};
-  if(p.mine)lk.disabled=true;
+  if(p.mine||TM)lk.disabled=true;
   bar.append(lk);
+  if(TM){
+    const hb=el('button','btn ghost small',p.hidden?'글 보이기':'글 숨기기');hb.type='button';
+    hb.onclick=async()=>{const r=await call({action:'t_hide',kind:'post',id:p.id,hidden:!p.hidden});if(r.status===200)load()};
+    const db=el('button','btn ghost small','🗑 글 삭제');db.type='button';
+    db.onclick=async()=>{if(!confirm('이 글과 댓글, 사진을 지울까요? 되돌릴 수 없어요.'))return;const r=await call({action:'t_delete',kind:'post',id:p.id});if(r.status===200)load()};
+    bar.append(hb,db);
+  }
   if(p.mine){
     const ed=el('button','btn ghost small','✏️ 고쳐 쓰기');ed.type='button';ed.onclick=()=>openForm(p);
     const dl=el('button','btn ghost small','🗑 지우기');dl.type='button';dl.onclick=async()=>{if(!confirm('이 글을 지울까요? 댓글도 함께 지워져요.'))return;const r=await call({action:'delete',id:p.id});if(r.status!==200){say(errText(r));return}say('');load()};
@@ -181,10 +202,13 @@ function card(p){
   p.comments.forEach(m=>{
     const d=el('div','cmt');d.append(el('b','k',KIND_NAME[m.kind]||''));d.append(document.createTextNode(m.body));
     const w=el('span','w',' — '+m.author+' · '+ago(m.created));d.append(w);
+    if(TM){const hb=el('button','',m.hidden?'보이기':'숨기기');hb.type='button';hb.onclick=async()=>{const r=await call({action:'t_hide',kind:'comment',id:m.id,hidden:!m.hidden});if(r.status===200)load()};
+      const dx=el('button','','삭제');dx.type='button';dx.onclick=async()=>{if(!confirm('이 댓글을 지울까요?'))return;const r=await call({action:'t_delete',kind:'comment',id:m.id});if(r.status===200)load()};
+      d.append(document.createTextNode(' '),hb,document.createTextNode(' '),dx);if(m.hidden)d.style.opacity='.5'}
     if(m.mine){const x=el('button','','지우기');x.type='button';x.onclick=async()=>{const r=await call({action:'uncomment',id:m.id});if(r.status===200)load()};d.append(document.createTextNode(' '),x)}
     cm.append(d);
   });
-  if(topic&&topic.open)cm.append(commentBox(p));
+  if(!TM&&topic&&topic.open)cm.append(commentBox(p));
   c.append(cm);
   return c;
 }
@@ -300,11 +324,11 @@ function showLogin(){
 }
 async function start(){
   const s=readSession();
-  if(!s||(!s.access&&!s.teacher)){showLogin();return}
-  if(s.teacher){$('teacherNote').hidden=false;return}
+  if(!s||!s.access){showLogin();return}
+  if(s.teacher){TM=true;$('teacherNote').hidden=false}
   $('login').hidden=true;$('app').hidden=false;
   await load();
-  $('fab').onclick=()=>openForm(null);
+  if(!TM)$('fab').onclick=()=>openForm(null);
   timer=setInterval(()=>{if(!formOpen&&!document.hidden)load()},20000);
 }
 $('goLogin').onclick=()=>{try{sessionStorage.setItem('st_next','board.html')}catch(e){}location.href='school-tool/index.html'};
