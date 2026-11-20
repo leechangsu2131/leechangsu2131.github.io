@@ -1,13 +1,164 @@
 {
   "school": "화천초등학교",
   "school_url": "https://school.gyo6.net/hc/main.do?sysId=hc",
-  "updated_at": "2026-11-19 11:53:07 KST",
+  "updated_at": "2026-11-20 11:45:33 KST",
   "boards": [
     {
       "board_id": "notice",
       "board_name": "공지사항",
-      "error": "<urlopen error _ssl.c:1001: The handshake operation timed out>",
-      "posts": []
+      "source_url": "https://school.gyo6.net/hc/na/ntt/selectNttList.do?mi=10219054&bbsId=20006608",
+      "posts": [
+        {
+          "post_id": "notice:17023571",
+          "ntt_sn": "17023571",
+          "category": "통합공지",
+          "title": "2026년 AI·디지털교육 축제 개최",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17023571",
+          "posted_at": "2026-11-11",
+          "author": "학**",
+          "views": "39176"
+        },
+        {
+          "post_id": "notice:17007383",
+          "ntt_sn": "17007383",
+          "category": "통합공지",
+          "title": "2026년 하반기 가족주말발명교실 참가 신청 안내(2차)",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007383",
+          "posted_at": "2026-10-28",
+          "author": "학**",
+          "views": "101121"
+        },
+        {
+          "post_id": "notice:16990219",
+          "ntt_sn": "16990219",
+          "category": "통합공지",
+          "title": "2026년 제1회 경북 학생 발명ㆍAI 창작 영상 공모전 참가 안내(변경안내)",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16990219",
+          "posted_at": "2026-10-13",
+          "author": "학**",
+          "views": "93068"
+        },
+        {
+          "post_id": "notice:16925596",
+          "ntt_sn": "16925596",
+          "category": "공지",
+          "title": "화천초등학교 학교규칙, 학생생활규정 제개정 결과 공포",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16925596",
+          "posted_at": "2026-07-24",
+          "author": "강**",
+          "views": "117"
+        },
+        {
+          "post_id": "notice:16875770",
+          "ntt_sn": "16875770",
+          "category": "공지",
+          "title": "학교장허가 교외체험학습 신청서 작성 방법 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=16875770",
+          "posted_at": "2026-06-08",
+          "author": "강**",
+          "views": "143"
+        },
+        {
+          "post_id": "notice:17031198",
+          "ntt_sn": "17031198",
+          "category": "134",
+          "title": "2027학년도 산대초 지역공동영재학급(창의융합) 영재교육대상자(2026학년도 현재 4~5학년) 추가 선발 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17031198",
+          "posted_at": "2026-11-19",
+          "author": "백**",
+          "views": "30"
+        },
+        {
+          "post_id": "notice:17030777",
+          "ntt_sn": "17030777",
+          "category": "133",
+          "title": "온동네 돌봄 주말 가족 프로그램 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17030777",
+          "posted_at": "2026-11-18",
+          "author": "김**",
+          "views": "41"
+        },
+        {
+          "post_id": "notice:17030318",
+          "ntt_sn": "17030318",
+          "category": "132",
+          "title": "경북 앵커 U- 온동네 초등돌봄교육사업단-페스타 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17030318",
+          "posted_at": "2026-11-18",
+          "author": "김**",
+          "views": "47"
+        },
+        {
+          "post_id": "notice:17030212",
+          "ntt_sn": "17030212",
+          "category": "131",
+          "title": "2027학년도 경주교육지원청부설영재교육원 영재교육대상자(현5~6학년) 추가 선발 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17030212",
+          "posted_at": "2026-11-18",
+          "author": "백**",
+          "views": "47"
+        },
+        {
+          "post_id": "notice:17024033",
+          "ntt_sn": "17024033",
+          "category": "130",
+          "title": "2026학년도 배움터지킴이 위촉 공고",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17024033",
+          "posted_at": "2026-11-11",
+          "author": "이**",
+          "views": "82"
+        },
+        {
+          "post_id": "notice:17020416",
+          "ntt_sn": "17020416",
+          "category": "129",
+          "title": "수능기간 공중협박예방 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17020416",
+          "posted_at": "2026-11-08",
+          "author": "강**",
+          "views": "61"
+        },
+        {
+          "post_id": "notice:17017298",
+          "ntt_sn": "17017298",
+          "category": "128",
+          "title": "어린이 인플루엔자 국가예방접종 지원사업 집중접종기간 운영 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17017298",
+          "posted_at": "2026-11-04",
+          "author": "권**",
+          "views": "74"
+        },
+        {
+          "post_id": "notice:17015819",
+          "ntt_sn": "17015819",
+          "category": "127",
+          "title": "2026 단석도서관 교육프로그램 수강생 모집",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17015819",
+          "posted_at": "2026-11-03",
+          "author": "이**",
+          "views": "82"
+        },
+        {
+          "post_id": "notice:17009037",
+          "ntt_sn": "17009037",
+          "category": "126",
+          "title": "2027 모화초 지역공동영재학급 영재교육대상자 선발 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17009037",
+          "posted_at": "2026-10-29",
+          "author": "백**",
+          "views": "82"
+        },
+        {
+          "post_id": "notice:17007100",
+          "ntt_sn": "17007100",
+          "category": "125",
+          "title": "2027 월성초 지역공동영재학급 영재교육대상자 선발 안내",
+          "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219054&bbsId=20006608&nttSn=17007100",
+          "posted_at": "2026-10-27",
+          "author": "백**",
+          "views": "76"
+        }
+      ]
     },
     {
       "board_id": "letter",
@@ -22,7 +173,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17030025",
           "posted_at": "2026-11-18",
           "author": "학**",
-          "views": "2022"
+          "views": "3382"
         },
         {
           "post_id": "letter:17007383",
@@ -32,7 +183,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17007383",
           "posted_at": "2026-10-28",
           "author": "학**",
-          "views": "99348"
+          "views": "101121"
         },
         {
           "post_id": "letter:16999816",
@@ -42,7 +193,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16999816",
           "posted_at": "2026-10-21",
           "author": "학**",
-          "views": "46422"
+          "views": "47140"
         },
         {
           "post_id": "letter:16996942",
@@ -52,7 +203,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16996942",
           "posted_at": "2026-10-20",
           "author": "학**",
-          "views": "3879"
+          "views": "3920"
         },
         {
           "post_id": "letter:16990219",
@@ -62,7 +213,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16990219",
           "posted_at": "2026-10-13",
           "author": "학**",
-          "views": "91629"
+          "views": "93068"
         },
         {
           "post_id": "letter:16982036",
@@ -72,7 +223,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16982036",
           "posted_at": "2026-10-02",
           "author": "학**",
-          "views": "56707"
+          "views": "57401"
         },
         {
           "post_id": "letter:16945049",
@@ -82,7 +233,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16945049",
           "posted_at": "2026-08-27",
           "author": "학**",
-          "views": "28456"
+          "views": "29154"
         },
         {
           "post_id": "letter:16907957",
@@ -92,7 +243,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16907957",
           "posted_at": "2026-07-07",
           "author": "학**",
-          "views": "96504"
+          "views": "97200"
         },
         {
           "post_id": "letter:16852614",
@@ -102,7 +253,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=16852614",
           "posted_at": "2026-05-15",
           "author": "학**",
-          "views": "107057"
+          "views": "107746"
         },
         {
           "post_id": "letter:17029444",
@@ -112,7 +263,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17029444",
           "posted_at": "2026-11-17",
           "author": "권**",
-          "views": "43"
+          "views": "57"
         },
         {
           "post_id": "letter:17028802",
@@ -122,7 +273,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17028802",
           "posted_at": "2026-11-17",
           "author": "권**",
-          "views": "55"
+          "views": "69"
         },
         {
           "post_id": "letter:17027968",
@@ -132,7 +283,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17027968",
           "posted_at": "2026-11-16",
           "author": "이**",
-          "views": "61"
+          "views": "71"
         },
         {
           "post_id": "letter:17020632",
@@ -142,7 +293,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17020632",
           "posted_at": "2026-11-09",
           "author": "김**",
-          "views": "191"
+          "views": "194"
         },
         {
           "post_id": "letter:17020517",
@@ -152,7 +303,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17020517",
           "posted_at": "2026-11-09",
           "author": "권**",
-          "views": "79"
+          "views": "82"
         },
         {
           "post_id": "letter:17018350",
@@ -162,7 +313,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17018350",
           "posted_at": "2026-11-05",
           "author": "화**",
-          "views": "82"
+          "views": "84"
         },
         {
           "post_id": "letter:17018148",
@@ -172,7 +323,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17018148",
           "posted_at": "2026-11-05",
           "author": "권**",
-          "views": "86"
+          "views": "87"
         },
         {
           "post_id": "letter:17017524",
@@ -182,7 +333,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17017524",
           "posted_at": "2026-11-04",
           "author": "화**",
-          "views": "81"
+          "views": "84"
         },
         {
           "post_id": "letter:17017511",
@@ -192,7 +343,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17017511",
           "posted_at": "2026-11-04",
           "author": "문**",
-          "views": "86"
+          "views": "87"
         },
         {
           "post_id": "letter:17014992",
@@ -202,7 +353,7 @@
           "url": "https://school.gyo6.net/hc/na/ntt/selectNttInfo.do?mi=10219055&bbsId=20006609&nttSn=17014992",
           "posted_at": "2026-11-02",
           "author": "김**",
-          "views": "78"
+          "views": "79"
         }
       ]
     }
