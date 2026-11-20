@@ -502,6 +502,7 @@ function reportBtn(kind,id,host){
 function whereText(k){return (window.__stWhere&&k)?window.__stWhere.label(k):''}
 async function whoLoad(){
   const r=await stCall({action:'who_list'}); const box=$('#whoList'); if(!box||r.status!==200) return;
+  await chEnsure().catch(()=>{});
   const fr=r.data.friends||[]; box.replaceChildren();
   const on=fr.filter(f=>f.online); $('#whoSum').textContent='지금 접속 중 '+on.length+'명';
   fr.forEach(f=>{
@@ -509,7 +510,7 @@ async function whoLoad(){
     const dot=document.createElement('span');dot.className='who-dot'+(f.online?(f.active?' g':' o'):'');
     const nm=document.createElement('span');nm.className='who-nm';nm.textContent=f.num+'번 '+f.name+(f.mine?' (나)':'');
     const wh=document.createElement('span');wh.className='who-wh';wh.textContent=f.online?(whereText(f.where)||(f.mine?'':'')):'';
-    d.append(dot,nm,wh);
+    const wav=chAvatar(f.num,24); if(wav) d.append(dot,wav,nm,wh); else d.append(dot,nm,wh);
     if(!f.mine){const b=document.createElement('button');b.type='button';b.textContent='✉️';b.setAttribute('aria-label',f.num+'번에게 1:1 메시지');b.onclick=()=>{talkView='dm';talkPeer={num:f.num,name:f.name};talkRender()};d.append(b)}
     box.append(d);
   });
@@ -609,6 +610,7 @@ async function meetAct(action,id){
 async function meetLoad(){
   if(curTab!=='talk') return;
   const r=await stCall({action:'meet_list'}); if(!$('#meetList')) return;
+  await chEnsure().catch(()=>{});
   if(r.status!==200){ if(r.status===401||r.status===403){$('#talkErr').textContent='다시 로그인해 주세요.';talkStop()} return; }
   meetTemp=null;   // 온도는 아래에서 char-hub 로 따로 가져온다(school-tool 의 값은 모임 칭찬만 센 옛 계산이라 쓰지 않는다)
   meetData=r.data.meetups||[]; $('#meetLock').style.display=(r.data.locked||r.data.createClosed)?'block':'none'; $('#meetLock').textContent=r.data.locked?'지금은 모임판이 닫혀 있어요.':MEET_MSG; $('#meetNew').disabled=!!(r.data.locked||r.data.createClosed);
@@ -703,7 +705,7 @@ async function talkSwapUI(body){
   };
   refB.onclick=()=>load();
   async function load(){
-    const r=await swCall({action:'list'});
+    const r=await swCall({action:'list'}); await chEnsure().catch(()=>{});
     if(r.status!==200){list.textContent='';say(r.data&&r.data.error==='not_approved'?SW_ERR.not_approved:(r.data&&r.data.error==='login_required'?SW_ERR.login_required:'불러오지 못했어요.'));return}
     say('');list.textContent='';tempShow(r.data);const items=r.data.items||[];
     if(!items.length){list.append(el('div','talk-msg','아직 올라온 물건이 없어요. 첫 번째로 올려 봐요!'));return}
@@ -714,7 +716,7 @@ async function talkSwapUI(body){
     if(it.photo){const im=el('img');im.src=it.photo;im.alt=it.title;im.loading='lazy';c.append(im)}
     c.append(el('h3','',it.title+(it.mine?' (내 물건)':'')));
     if(it.body)c.append(el('div','sw-m',it.body));
-    c.append(el('div','sw-want','🔁 바꾸고 싶은 것: '+it.want),el('div','sw-m',(it.mine?'':it.owner+'번 '+it.owner_name+' · ')+(it.status==='done'?'✅ 바꾸기 끝!':it.open?swLeft(it.ends):(it.status==='matched'?'친구를 정했어요':'제안 받기가 끝났어요'))+' · 제안 '+it.offer_count+'개'));
+    c.append(el('div','sw-want','🔁 바꾸고 싶은 것: '+it.want),(()=>{const d=el('div','sw-m');const av=it.mine?null:chAvatar(it.owner,20);if(av)d.append(av);d.append(document.createTextNode((it.mine?'':it.owner+'번 '+it.owner_name+' · ')+(it.status==='done'?'✅ 바꾸기 끝!':it.open?swLeft(it.ends):(it.status==='matched'?'친구를 정했어요':'제안 받기가 끝났어요'))+' · 제안 '+it.offer_count+'개'));return d})());
     if(it.mine){
       if(it.status==='open'||it.status==='matched'){
         (it.offers||[]).forEach(o=>{
@@ -798,7 +800,7 @@ function meetPaint(){
     if(m.note)c.append(el('div','meet-note','“'+m.note+'”'));
     const bar=el('div','meet-bar'),fill=el('i');fill.style.width=Math.min(100,m.people.length/m.max*100)+'%';bar.append(fill);
     const who=el('div','meet-who'),av=el('div','meet-av');
-    m.people.slice(0,5).forEach(p=>{const a=el('span','',String(p.num));a.title=p.num+'번 '+p.name;av.append(a)});
+    m.people.slice(0,5).forEach(p=>{const cav=chAvatar(p.num,22);const a=cav||el('span','',String(p.num));a.title=p.num+'번 '+p.name;av.append(a)});
     if(m.people.length>5)av.append(el('span','more','+'+(m.people.length-5)));
     who.append(av,el('span','meet-cnt',m.people.length+' / '+m.max+'명'));
     c.append(bar,who,el('div','meet-names','모인 친구: '+m.people.map(p=>p.name).join(', ')));
