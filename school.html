@@ -229,7 +229,7 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .sw-card{border:2px solid #e2e8f0;border-radius:16px;padding:10px;display:grid;gap:6px;background:#fff;margin:8px 0}.sw-card img{width:100%;max-height:260px;object-fit:contain;background:#f1f5f9;border-radius:12px}
 .sw-card h3{margin:0;font-size:18px}.sw-m{font-size:14px;color:#57534e}.sw-want{background:#ecfeff;border-radius:10px;padding:6px 10px;font-weight:700}
 .sw-off{border:2px dashed #94a3b8;border-radius:12px;padding:8px;display:grid;gap:4px}.sw-card input,.sw-card textarea,.sw-card select,.sw-form input,.sw-form textarea,.sw-form select{font:inherit;font-size:16px;min-height:44px;padding:6px 10px;border:2px solid #cbd5e1;border-radius:12px;width:100%;box-sizing:border-box}
-.sw-form{border:2px solid #86efac;border-radius:16px;padding:10px;display:grid;gap:8px;background:#f0fdf4;margin:8px 0}.sw-btn{min-height:46px;border-radius:12px;border:2px solid #16a34a;background:#16a34a;color:#fff;font-weight:800;font-size:16px;padding:6px 14px;cursor:pointer}.sw-btn.ghost{background:#fff;color:#166534}.ch-av{vertical-align:middle;margin-right:4px}.ch-opt{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.ch-opt button{min-height:40px;padding:4px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;font:inherit;cursor:pointer}.ch-opt button[aria-pressed=true]{border-color:#15803d;background:#dcfce7}.ch-opt button:disabled{opacity:.45;cursor:not-allowed}.ch-prev{display:flex;align-items:center;gap:12px;margin:6px 0}.ch-xp{margin:2px 0 6px}.ch-xpbar{height:12px;border-radius:8px;background:#e5e7eb;overflow:hidden;min-width:140px}.ch-xpbar i{display:block;height:100%;background:#f59e0b}.ch-xp small{color:#555}
+.sw-form{border:2px solid #86efac;border-radius:16px;padding:10px;display:grid;gap:8px;background:#f0fdf4;margin:8px 0}.sw-btn{min-height:46px;border-radius:12px;border:2px solid #16a34a;background:#16a34a;color:#fff;font-weight:800;font-size:16px;padding:6px 14px;cursor:pointer}.sw-btn.ghost{background:#fff;color:#166534}.ch-av{vertical-align:middle;margin-right:4px}.ch-opt{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.ch-opt button{min-height:40px;padding:4px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;font:inherit;cursor:pointer}.ch-opt button[aria-pressed=true]{border-color:#15803d;background:#dcfce7}.ch-opt button:disabled{opacity:.45;cursor:not-allowed}.pc-head{font-size:18px;margin:6px 0}.pc-emoji{font-size:26px;vertical-align:middle}.pc-stars{font-size:26px;margin:4px 0 8px}.pc-stars small{font-size:14px;color:#555}.pc-in{width:100%;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:6px 10px;font:inherit;box-sizing:border-box}.pc-done{background:#dcfce7;border-radius:12px;padding:10px;font-weight:700}.pc-list{margin-top:10px}.pc-row{padding:6px 0;border-bottom:1px solid var(--line)}.pc-row small{color:#666}.ch-prev{display:flex;align-items:center;gap:12px;margin:6px 0}.ch-xp{margin:2px 0 6px}.ch-xpbar{height:12px;border-radius:8px;background:#e5e7eb;overflow:hidden;min-width:140px}.ch-xpbar i{display:block;height:100%;background:#f59e0b}.ch-xp small{color:#555}
 .sw-btn.ghost[aria-pressed=true]{background:#dcfce7;border-color:#15803d;color:#14532d}
 .sw-deal{background:#fef9c3;border:2px solid #facc15;border-radius:12px;padding:8px;display:grid;gap:6px}.sw-ok{color:#b91c1c;font-weight:700;font-size:14px}
 .meet-lab{font-size:14px;font-weight:800;color:#64748b;margin-top:4px}
@@ -448,7 +448,7 @@ function talkOpen(){
   }
   talkView=talkView||'all'; talkPeer=null;
   box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방</b><span class="n-updated" id="talkMe"></span></div>'
-   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button><button type="button" data-v="char">🧙 캐릭터</button></div>'
+   +'<div class="talk-seg" id="talkSeg"><button type="button" data-v="all">📢 전체방</button><button type="button" data-v="dm">✉️ 1:1 <i id="dmBadge" class="dm-badge" style="display:none"></i></button><button type="button" data-v="who">🟢 접속 중</button><button type="button" data-v="meet">🎈 모이자</button><button type="button" data-v="swap">🔁 바꾸자</button><button type="button" data-v="char">🧙 캐릭터</button><button type="button" data-v="prac">🌱 실천</button></div>'
    +'<div id="talkBody"></div>';
   $('#talkMe').textContent=s.num+'번 '+(s.name||'');
   $$('#talkSeg button').forEach(b=>b.onclick=()=>{talkView=b.dataset.v;talkPeer=null;talkRender()});
@@ -458,7 +458,7 @@ function talkRender(){
   talkStop(); talkLast='';
   $$('#talkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===talkView));
   const body=$('#talkBody'); if(!body) return;
-  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkView==='char') talkCharUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
+  if(talkView==='all') talkAllUI(body); else if(talkView==='who') talkWhoUI(body); else if(talkView==='meet') talkMeetUI(body); else if(talkView==='swap') talkSwapUI(body); else if(talkView==='char') talkCharUI(body); else if(talkView==='prac') talkPracUI(body); else if(talkPeer) talkThreadUI(body); else talkDmListUI(body);
 }
 function talkForm(onSend,ph){
   const f=document.createElement('form');f.className='talk-form';
@@ -894,6 +894,54 @@ async function talkLoad(force){
   }catch(e){}finally{talkBusy=false}
 }
 
+/* ---------- 🌱 실천(도덕 덕목 카드): 이번 주 덕목으로 하루 한 장, 별 3개 모으기. 서버 practice-hub. 경험치에만 들어가고 평가·매너온도와는 관계없어요 ---------- */
+async function pcCall(body){
+  const who=await stWho(); if(!who||!who.jwt) return {status:401,data:{error:'login_required'}};
+  const r=await fetch(ST_URL+'/functions/v1/practice-hub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:who.jwt,...body})});
+  let d=null;try{d=await r.json()}catch(e){} return {status:r.status,data:d||{}};
+}
+const PC_ERR={already_today:'오늘 카드는 이미 올렸어요. 내일 또 해 봐요!',blocked_content:'전화번호·주소·이메일·링크는 쓸 수 없어요.',bad_input:'고르거나 써 주세요.',too_many_attempts:'잠깐 쉬었다가 다시 해 보세요.'};
+async function talkPracUI(body){
+  body.textContent='';
+  const msg=el('div','talk-msg'), box=el('div');
+  body.append(el('p','talk-rule','이번 주 덕목을 하루에 한 장 실천 카드로 남겨요. 별 3개를 모으면 보너스 경험치! 경험치에만 들어가고 도덕 평가나 매너온도와는 관계없어요. 하지 못한 날도 괜찮아요.'),box,msg);
+  const r=await pcCall({action:'get'});
+  if(r.status===401){box.append(el('p','talk-rule','구글로 로그인한 친구만 실천 카드를 쓸 수 있어요.'));return}
+  if(r.status!==200){msg.textContent='불러오지 못했어요. 잠시 뒤에 다시 해 보세요.';return}
+  paintPrac(box,msg,r.data);
+}
+function paintPrac(box,msg,d){
+  box.textContent=''; msg.textContent='';
+  const v=d.virtue, head=el('div','pc-head'); head.append(el('span','pc-emoji',v.emoji),el('b','',' 이번 주 덕목: '+v.name));
+  const stars=el('div','pc-stars'); for(let i=0;i<d.goal;i++) stars.append(el('span',i<d.stars?'on':'', i<d.stars?'⭐':'☆'));
+  stars.append(el('small','',d.stars>=d.goal?' 이번 주 미션 완료! 🎉':' 별 '+d.goal+'개 모으기 ('+d.stars+'/'+d.goal+')'));
+  box.append(head,stars);
+  const t=d.today, redo=t&&t.status==='redo';
+  if(t&&!redo){box.append(el('p','pc-done','✅ 오늘 카드를 올렸어요. 선생님이 모아서 확인해요.'));}
+  else{
+    const form=el('div','sw-form');
+    if(redo) form.append(el('p','sw-m','선생님이 다시 써 보자고 했어요. 한 줄을 고쳐서 다시 올려 봐요.'));
+    form.append(el('b','',v.ask));
+    let pick='';
+    if(v.options.length){
+      const opts=el('div','ch-opt');
+      v.options.forEach(o=>{const b=el('button','',o);b.type='button';b.setAttribute('aria-pressed','false');b.onclick=()=>{pick=o;[...opts.children].forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'))};opts.append(b)});
+      form.append(opts);
+    }
+    const inp=document.createElement('input'); inp.maxLength=100; inp.placeholder=v.note; inp.className='pc-in'; form.append(inp);
+    const btn=el('button','sw-btn','🌱 오늘 카드 올리기'); btn.type='button';
+    btn.onclick=async()=>{
+      btn.disabled=true; msg.textContent='';
+      const q=await pcCall({action:'submit',choice:pick,note:inp.value});
+      btn.disabled=false;
+      if(q.status!==200){msg.textContent=PC_ERR[q.data.error]||'올리지 못했어요. 잠시 뒤에 다시 해 보세요.';return}
+      paintPrac(box,msg,q.data); msg.textContent='✅ 올렸어요! 경험치 +2';
+    };
+    form.append(btn); box.append(form);
+  }
+  const done=(d.cards||[]).filter(c=>c.status!=='redo'); 
+  if(done.length){const l=el('div','pc-list'); done.forEach(c=>{const row=el('div','pc-row'); row.append(el('b','',c.day.slice(5).replace('-','/')+' '),el('span','',[c.choice,c.note].filter(Boolean).join(' · ')||'했어요'),el('small','',c.status==='ok'?' ✅ 확인':' ⏳ 확인 기다리는 중')); l.append(row)}); box.append(l)}
+}
 /* ---------- 🧙 캐릭터(조합형): 몸·색·눈·입·모자·꾸밈을 골라 만들고 저장. 서버 char-hub. 조합 코드만 저장해요(사진·그림 파일 없음) ---------- */
 let chMap={}, chAt=0, chBusy=null;
 async function chCall(body){
