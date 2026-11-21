@@ -455,14 +455,57 @@ const TIME_MSG='지금은 닫혀 있어요. 평일 오후 1시 40분~8시, 주�
 const TALK_ERR={create_closed:'지금은 모임을 만들 수 없어요. 평일 오후 1시 40분~8시, 주말 아침 8시~저녁 8시에 만들 수 있어요.',blocked_content:'주소·이메일·전화번호는 올릴 수 없어요.',too_fast:'조금 천천히 보내요.',too_many_messages:'잠깐 쉬었다가 보내요.',duplicate:'같은 말은 또 보내지 않아요.',chat_locked:'지금은 이야기방이 닫혀 있어요.',no_student:'그 친구를 찾지 못했어요.',empty:'내용을 써 주세요.',bad_input:'고르는 칸을 모두 골라 주세요.',too_many_open:'열어 둔 모임이 이미 2개예요.',full:'자리가 다 찼어요.',ended:'이미 끝난 모임이에요.',is_host:'내가 만든 모임이에요.',no_meetup:'모임이 없어졌어요.'};
 let talkTimer=0, talkBusy=false, talkLast='', talkView='all', talkPeer=null;
 function talkStop(){clearInterval(talkTimer);talkTimer=0;if(typeof loungeLeave==='function')loungeLeave()}
+/* ---- 선생님 계정: 이야기방 구경 모드(읽기만. 교사 화면과 같은 읽기 권한을 쓰고, 보내기·캐릭터는 없음) ---- */
+async function talkTeacherToken(s){
+  if(!s.access) return null;
+  if(Date.now()>(s.exp||0)-60000&&s.refresh){
+    const r=await fetch(ST_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:ST_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh})});
+    const j=await r.json().catch(()=>({})); if(!r.ok||!j.access_token) return null;
+    s={...s,access:j.access_token,refresh:j.refresh_token||s.refresh,exp:Date.now()+(j.expires_in||3600)*1000};
+    try{sessionStorage.setItem('st_s',JSON.stringify(s))}catch(e){}
+  }
+  return s.access;
+}
+async function talkTeacherGet(s,path){
+  const t=await talkTeacherToken(stRead()||s); if(!t) throw new Error('login');
+  const r=await fetch(ST_URL+'/rest/v1/'+path,{headers:{apikey:ST_KEY,Authorization:'Bearer '+t}});
+  if(!r.ok) throw new Error('http'+r.status); return r.json();
+}
+function talkTeacherUI(box,s){
+  box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방 (구경)</b></div>'
+   +'<p class="talk-rule">선생님 계정이라 <b>읽기만</b> 할 수 있어요. 글 쓰기·캐릭터는 학생 로그인으로 해요. 숨기기·삭제·잠금은 교사 화면에서 해요.</p>'
+   +'<div class="lg-bar"><span id="tcRooms">라운지 현황을 불러오는 중…</span></div><div class="talk-rule" id="tcDoing" style="margin:0 0 8px"></div>'
+   +'<div class="talk-list" id="tcList"></div><button type="button" id="talkT" style="margin-top:10px">교사 화면으로 가기</button>';
+  $('#talkT').onclick=()=>{location.href='classroom/teacher.html'};
+  let cls=null, names=new Map();
+  const load=async()=>{
+    if(document.hidden&&cls) return;
+    try{
+      if(!cls){
+        const c=await talkTeacherGet(s,'gt_classes?select=id&active=eq.true&limit=1'); if(!c[0]){$('#tcRooms').textContent='사용 중인 학급이 없어요.';return}
+        cls=c[0].id;
+        (await talkTeacherGet(s,'gt_students?select=id,number,name&class_id=eq.'+cls)).forEach(m=>names.set(m.id,m));
+      }
+      const since=new Date(Date.now()-15000).toISOString();
+      const [lg,ch]=await Promise.all([
+        talkTeacherGet(s,'st_lounge?select=student_id,room,doing&class_id=eq.'+cls+'&updated_at=gte.'+encodeURIComponent(since)+'&limit=80'),
+        talkTeacherGet(s,'st_chat?select=student_id,body,created_at&class_id=eq.'+cls+'&hidden=eq.false&order=created_at.desc&limit=40')]);
+      const cnt={lobby:0,math:0,game:0}, doers=[];
+      lg.forEach(r=>{if(r.room in cnt)cnt[r.room]++; const m=names.get(r.student_id); if(r.doing&&m)doers.push(loungeDoingEmoji(r.doing)+' '+m.number+'번 '+m.name)});
+      $('#tcRooms').textContent=Object.keys(LG_ROOMS).map(k=>LG_ROOMS[k].emoji+' '+LG_ROOMS[k].name+' '+cnt[k]+'명').join(' · ');
+      $('#tcDoing').textContent=doers.length?'지금 하는 중: '+doers.join(', '):'';
+      const list=$('#tcList'); list.replaceChildren();
+      ch.slice().reverse().forEach(r=>{const m=names.get(r.student_id); const d=document.createElement('div'); d.className='talk-msg-row';
+        const b=document.createElement('b'); b.textContent=(m?m.number+'번 '+m.name:'?')+'  '; const t=document.createElement('span'); t.textContent=r.body; d.append(b,t); list.append(d)});
+      if(!ch.length){const e=document.createElement('p');e.className='talk-rule';e.textContent='아직 글이 없어요.';list.append(e)}
+    }catch(e){$('#tcRooms')&&($('#tcRooms').textContent='불러오지 못했어요. 교사 화면에서 다시 로그인해 주세요.')}
+  };
+  load(); talkTimer=setInterval(load,5000);
+}
 function talkOpen(){
   const box=$('#talkBox'), s=stRead();
   talkStop();
-  if(s&&s.teacher&&!s.num){
-    box.innerHTML='<div class="talk-login"><div style="font-size:40px">💬</div><b>우리 반 이야기방</b><p class="talk-rule">선생님 계정으로 들어왔어요.<br>이야기방은 학생 전용이에요. 숨기기·삭제·잠금은 교사 화면에서 해요.</p><button type="button" id="talkT">교사 화면으로 가기</button></div>';
-    $('#talkT').onclick=()=>{location.href='classroom/teacher.html'};
-    return;
-  }
+  if(s&&s.teacher&&!s.num){ talkTeacherUI(box,s); return; }
   if(!s||!s.num){
     box.innerHTML='<div class="talk-login"><div style="font-size:40px">💬</div><b>우리 반 이야기방</b><p class="talk-rule">우리 반 친구들만 들어올 수 있어요.<br>로그인하면 이야기할 수 있어요.</p><button type="button" id="talkGo">🔑 로그인하러 가기</button></div>';
     $('#talkGo').onclick=()=>{try{sessionStorage.setItem('st_next','school.html#talk')}catch(e){} location.href='school-tool/index.html'};
