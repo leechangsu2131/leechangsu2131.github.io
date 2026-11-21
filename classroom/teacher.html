@@ -139,6 +139,12 @@
     <div id="rcPracMsg" class="muted"></div>
     <div id="rcPracList" class="rc-thread" style="max-height:420px"></div>
   </details>
+  <details id="rcSubj" style="margin-top:12px">
+    <summary style="font-weight:700;cursor:pointer">📚 과목별 레벨·맞춤 도전</summary>
+    <div class="hint">수학(분수 학습 앱 점수)·국어(글쓰기 연습 미션 1회 20점)로 학생마다 과목 레벨을 보여 줍니다. 아래에서 학생마다 <b>이번 주 도전 과목과 목표 점수</b>를 정하면 그 학생 화면(캐릭터 탭)에 "선생님이 정한 도전"이 뜨고, 목표를 채우면 경험치 +10을 받아요. 도전은 반 모두에게 하나씩 주는 걸 권해요(못하는 친구만 티 나지 않게). 레벨·점수는 학생 본인과 선생님만 봐요.</div>
+    <div class="row" style="gap:8px;margin:6px 0;flex-wrap:wrap"><button id="rcSubjRef">🔄 새로고침</button><button id="rcSubjSave">💾 도전 저장</button><span id="rcSubjMsg" class="muted"></span></div>
+    <div id="rcSubjList" style="max-height:480px;overflow:auto"></div>
+  </details>
   <details id="rcChat" style="margin-top:12px">
     <summary style="font-weight:700;cursor:pointer">💬 우리 반 이야기방 관리 <span id="rcChatN" class="muted"></span> <span id="rcRptN" style="color:#b91c1c;font-weight:800"></span> <span id="rcLoungeN" class="muted"></span></summary>
     <div id="rcRptBox" style="display:none;margin:8px 0;padding:10px;border:2px solid #fb923c;border-radius:12px;background:#fff7ed">
@@ -695,6 +701,42 @@
     const ids=rcPrac.cards.filter(c=>c.status==='pending').map(c=>c.id);
     if(!ids.length){$('rcPracMsg').textContent='확인할 카드가 없어요.';return}
     try{const d=await pracCall({action:'t_confirm',ids});rcPrac.cards.forEach(c=>{if(ids.includes(c.id))c.status='ok'});pracDraw();$('rcPracMsg').textContent=d.changed+'장을 확인했어요.'}catch(e){$('rcPracMsg').textContent='처리하지 못했어요. ('+e.message+')'}
+  };
+  // ---- 과목별 레벨·맞춤 도전(char-hub 함수, 교사 계정) ----
+  let rcSubj=null;
+  async function chubCall(body){
+    const token=await freshToken();
+    const r=await fetch(U+'/functions/v1/char-hub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jwt:token,...body})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(d.error||('HTTP '+r.status));
+    return d;
+  }
+  function subjDraw(){
+    const box=$('rcSubjList');box.replaceChildren();
+    if(!rcSubj)return;
+    rcSubj.students.forEach(st=>{
+      const row=document.createElement('div');row.className='rc-acc';row.dataset.num=st.num;
+      const w=document.createElement('div');w.className='who';
+      w.textContent=st.num+'번 '+st.name+' · '+st.subjects.map(s=>s.emoji+s.name+' Lv.'+s.level+'(이번 주 +'+s.week+')').join(' · ');
+      const sel=document.createElement('select');sel.className='sj-sel';
+      [['none','도전 없음']].concat(rcSubj.subjects.map(s=>[s.id,s.emoji+' '+s.name])).forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;sel.append(o)});
+      sel.value=st.focus?st.focus.subject:'none';
+      const tg=document.createElement('input');tg.type='number';tg.min='10';tg.max='3000';tg.className='sj-tg';tg.style.width='80px';tg.placeholder='목표 점수';tg.value=st.focus?st.focus.target:'';
+      const nt=document.createElement('input');nt.className='sj-nt';nt.maxLength=40;nt.placeholder='한 마디(예: 분수 연습 해 보자)';nt.style.minWidth='160px';nt.value=st.focus?st.focus.note:'';
+      row.append(w,sel,tg,nt);box.append(row);
+    });
+  }
+  async function subjLoad(){
+    if(!$('rcSubj').open)return;
+    try{rcSubj=await chubCall({action:'t_subjects'});$('rcSubjMsg').textContent='';subjDraw()}catch(e){$('rcSubjMsg').textContent='불러오지 못했어요. ('+e.message+')'}
+  }
+  $('rcSubj').addEventListener('toggle',subjLoad);
+  $('rcSubjRef').onclick=subjLoad;
+  $('rcSubjSave').onclick=async()=>{
+    const items=[...document.querySelectorAll('#rcSubjList .rc-acc')].map(r=>({num:Number(r.dataset.num),subject:r.querySelector('.sj-sel').value,target:Number(r.querySelector('.sj-tg').value),note:r.querySelector('.sj-nt').value}));
+    const bad=items.find(i=>i.subject!=='none'&&!(i.target>=10&&i.target<=3000));
+    if(bad){$('rcSubjMsg').textContent=bad.num+'번: 목표 점수를 10~3000 사이로 적어 주세요.';return}
+    try{await chubCall({action:'t_focus',items});$('rcSubjMsg').textContent='저장했어요.';await subjLoad()}catch(e){$('rcSubjMsg').textContent='저장하지 못했어요. ('+e.message+')'}
   };
   // ---- 물물장터 관리(swap-market 함수, 교사 계정) ----
   const SW_STATUS={open:'받는 중',matched:'친구 정함',done:'바꿈 끝',closed:'닫힘'};

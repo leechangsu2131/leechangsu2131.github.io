@@ -13,6 +13,22 @@ const ALLOW_ANY = ALLOW_LIST.includes("*");
 const SIZE = { b: 5, c: 10, e: 8, m: 6, h: 10, a: 6 } as const;
 const SPECIAL: Record<string, number[]> = { h: [8, 9], a: [5] };
 const SPECIAL_TEMP = 38;
+// 과목별 레벨: 수학(분수 학습 앱 경험치)·국어(글쓰기 연습 미션 1회 20점). 점수는 DB 함수 st_subject_xp 가 번호+이름으로 묶어 준다.
+// 레벨 n 은 누적 점수 50·n·(n-1) 이상(2레벨 100, 3레벨 300, 4레벨 600 …, 최대 20레벨). 레벨·점수는 본인과 교사만 본다.
+const SUBJECTS: Record<string, { name: string; emoji: string }> = { math: { name: "수학", emoji: "➗" }, korean: { name: "국어", emoji: "📖" } };
+const FOCUS_XP = 10;   // 이번 주 맞춤 도전을 채우면 주는 경험치(주 1회)
+function subLevel(xp: number) {
+  const lv = Math.max(1, Math.min(20, Math.floor((1 + Math.sqrt(1 + 0.08 * xp)) / 2)));
+  return { level: lv, from: 50 * lv * (lv - 1), to: lv >= 20 ? 50 * lv * (lv - 1) : 50 * (lv + 1) * lv };
+}
+function kstWeekStart(): string {
+  const d = new Date(Date.now() + 9 * 3600 * 1000); d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d.toISOString().slice(0, 10);   // 한국 시간 이번 주 월요일
+}
+// deno-lint-ignore no-explicit-any
+function shapeSubjects(r: any) {
+  return Object.keys(SUBJECTS).map((id) => { const x = Number(r?.[id]?.xp ?? 0); return { id, ...SUBJECTS[id], xp: x, week: Number(r?.[id]?.week ?? 0), ...subLevel(x) }; });
+}
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 const tokenCache = new Map<string, { uid: string; email: string; teacher: boolean; exp: number }>();
 const hits = new Map<string, number[]>();
@@ -80,7 +96,7 @@ Deno.serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400, origin); }
-  const action = ["get", "me", "save", "list", "t_list", "t_hide"].includes(body.action) ? body.action : "";
+  const action = ["get", "me", "save", "list", "subjects", "t_list", "t_hide", "t_subjects", "t_focus"].includes(body.action) ? body.action : "";
   if (!action) return json({ error: "bad_action" }, 400, origin);
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim().slice(0, 64);
   if (tooMany("ip:" + ip, 400)) return json({ error: "too_many_attempts" }, 429, origin);
@@ -100,6 +116,35 @@ Deno.serve(async (req) => {
       if (!m) return json({ error: "no_student" }, 404, origin);
       const { error } = await sb.from("st_char").update({ hidden: body.hidden !== false }).eq("student_id", m.id);
       return error ? json({ error: "save_failed" }, 500, origin) : json({ ok: true }, 200, origin);
+    }
+    if (action === "t_subjects") {
+      const ws = kstWeekStart();
+      const { data: fs } = await sb.from("st_focus").select("student_id,subject,target,note").eq("week_start", ws).in("student_id", (mates ?? []).map((m: { id: string }) => m.id));
+      // deno-lint-ignore no-explicit-any
+      const fby = new Map((fs ?? []).map((f: any) => [f.student_id, f]));
+      // deno-lint-ignore no-explicit-any
+      const students = await Promise.all((mates ?? []).map(async (m: any) => {
+        const { data } = await sb.rpc("st_subject_xp", { p_student: m.id, p_since: ws });
+        const f = fby.get(m.id);
+        return { num: m.number, name: m.name, subjects: shapeSubjects(data), focus: f ? { subject: f.subject, target: f.target, note: f.note } : null };
+      }));
+      return json({ ok: true, week_start: ws, subjects: Object.keys(SUBJECTS).map((id) => ({ id, ...SUBJECTS[id] })), students }, 200, origin);
+    }
+    if (action === "t_focus") {
+      const ws = kstWeekStart();
+      const items = Array.isArray(body.items) ? body.items.slice(0, 60) : [];
+      if (!items.length) return json({ error: "bad_input" }, 400, origin);
+      for (const it of items) {
+        // deno-lint-ignore no-explicit-any
+        const m = (mates ?? []).find((x: any) => x.number === Number(it?.num));
+        if (!m) return json({ error: "no_student" }, 404, origin);
+        if (it.subject === "none") { await sb.from("st_focus").delete().eq("student_id", m.id).eq("week_start", ws); continue; }
+        const target = Math.round(Number(it.target)), note = String(it.note ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
+        if (!SUBJECTS[it.subject] || !(target >= 10 && target <= 3000) || /https?:|www\.|@|0\d{1,2}[-.\s]?\d{3,4}[-.\s]?\d{4}/i.test(note)) return json({ error: "bad_input" }, 400, origin);
+        const { error } = await sb.from("st_focus").upsert({ student_id: m.id, week_start: ws, subject: it.subject, target, note, set_at: new Date().toISOString() }, { onConflict: "student_id,week_start" });
+        if (error) return json({ error: "save_failed" }, 500, origin);
+      }
+      return json({ ok: true }, 200, origin);
     }
     // deno-lint-ignore no-explicit-any
     const { data: rows } = await sb.from("st_char").select("student_id,parts,hidden,updated_at").in("student_id", (mates ?? []).map((m: any) => m.id));
@@ -145,6 +190,20 @@ Deno.serve(async (req) => {
     const { data: r } = await sb.from("st_char").select("parts,hidden").eq("student_id", me.id).maybeSingle();
     const t = await myTemp();
     return json({ ok: true, me: me.number, mine: r?.parts ?? null, hidden: !!r?.hidden, special_temp: SPECIAL_TEMP, special: SPECIAL, special_open: await specialOpen(t.temp), ...t, ...(await myLevel()) }, 200, origin);
+  }
+
+  if (action === "subjects") {
+    const ws = kstWeekStart();
+    const { data } = await sb.rpc("st_subject_xp", { p_student: me.id, p_since: ws });
+    const { data: f } = await sb.from("st_focus").select("subject,target,note").eq("student_id", me.id).eq("week_start", ws).maybeSingle();
+    const subjects = shapeSubjects(data);
+    let focus = null;
+    if (f && SUBJECTS[f.subject]) {
+      const wk = subjects.find((x) => x.id === f.subject)?.week ?? 0, done = wk >= f.target;
+      if (done) await sb.rpc("st_xp_add", { p_student: me.id, p_kind: "focus", p_ref: ws + ":" + f.subject, p_xp: FOCUS_XP, p_day_cap: 20 });   // 주 1회(중복 방지)
+      focus = { subject: f.subject, name: SUBJECTS[f.subject].name, emoji: SUBJECTS[f.subject].emoji, target: f.target, note: f.note, week: wk, done };
+    }
+    return json({ ok: true, me: me.number, week_start: ws, subjects, focus, ...(await myLevel()) }, 200, origin);
   }
 
   if (action === "me") return json({ ok: true, me: me.number, ...(await myTemp()), ...(await myLevel()) }, 200, origin);
