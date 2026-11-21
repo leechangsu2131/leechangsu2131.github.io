@@ -5,6 +5,7 @@
    - 서버가 거절(401·403·429)하면 이 페이지에서는 더 보내지 않는다(잘못된 입력 잠금이 반 전체에 걸리는 것을 막기 위해). */
 (()=>{
   'use strict';
+  if(window.self!==window.top&&/[?&]embed=1/.test(location.search))return;   // 라운지 연습 구역 안에 열린 화면: 겉 화면(school.html)이 교실 연결을 맡는다
   try{
     if(/\/school-tool\/(index\.html)?$/.test(location.pathname))return;
     const U='https://erzdvlcbjneabxqwnwfy.supabase.co',K='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
@@ -155,6 +156,7 @@
    자동으로 입장하고(수업 코드 HC302), 수업이 없으면 30초마다 조용히 다시 확인한다. */
 (()=>{
   'use strict';
+  if(window.self!==window.top&&/[?&]embed=1/.test(location.search))return;   // 라운지 연습 구역 안에 열린 화면: 겉 화면(school.html)이 교실 연결을 맡는다
   const U0='https://erzdvlcbjneabxqwnwfy.supabase.co',K0='sb_publishable_29w26VjvhHwI5O6iKOXTwA_sSTKUhfz';
   const SELF=(document.currentScript&&document.currentScript.src)||'';   // 같은 폴더의 모듈(activity/)을 찾는 기준
   let booted=false,retryTimer=0,dropHook=null;

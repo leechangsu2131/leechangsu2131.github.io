@@ -149,6 +149,14 @@ details.al-set summary{cursor:pointer;font-weight:700;font-size:14px;color:var(-
 .talk-seg button.on{background:var(--green);color:#fff;border-color:var(--green)}
 
 /* 🏫 라운지 */
+
+/* 🏫 라운지: 연습 구역 */
+.lg-zone{display:none;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 0;padding:10px 12px;border-radius:14px;background:#fff7e0;border:2px solid #f2c14e;font-weight:800}
+.lg-zone button{border:0;background:var(--green);color:#fff;border-radius:12px;padding:10px 16px;font-size:16px;font-weight:900;cursor:pointer;white-space:nowrap}
+.lg-ov{position:fixed;inset:0;z-index:9500;background:#fff;display:none;flex-direction:column}
+.lg-ovbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--green);color:#fff;font-weight:900}
+.lg-ovbar button{border:0;background:#fff;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:15px;font-weight:900;cursor:pointer}
+.lg-ov iframe{flex:1;width:100%;border:0;background:#fff}
 .lg-room{position:relative;width:100%;aspect-ratio:5/3;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#f1dcb4;touch-action:manipulation;user-select:none;-webkit-user-select:none;cursor:pointer}
 .lg-room>svg.lg-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .lg-p{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);pointer-events:none;transition-property:left,top;transition-timing-function:linear}
@@ -496,7 +504,20 @@ function talkAllUI(body){
 
 /* ---------- 🏫 라운지: 교실 모양 방에서 캐릭터가 걸어다니며 말풍선으로 이야기해요. 서버 school-tool(lounge_sync). 말은 전체방 글로 남아요 ---------- */
 const LG={on:false,busy:false,x:0,y:0,sent:null,beat:0,els:new Map(),room:null,layer:null,closed:null,count:null,key:null,last:0};
-const LG_FLOOR={x0:50,x1:950,y0:360,y1:575};   // 걸을 수 있는 바닥(방 안 좌표 1000×600)
+const LG_FLOOR={x0:50,x1:950,y0:360,y1:575};
+// 연습 구역: 바닥의 둥근 자리에 서면 「들어가기」가 나타나고, 누르면 연습 앱이 라운지 안에서 열린다(친구에게는 이름 앞에 구역 아이콘이 보인다)
+const LG_ZONES=[
+  {id:'mul',emoji:'✖️',name:'곱셈 연습',url:'multiply.html',cx:170,cy:405,col:'#ffd9a8'},
+  {id:'div',emoji:'➗',name:'나눗셈 연습',url:'DEVIDE.HTML',cx:390,cy:405,col:'#c9e7ff'},
+  {id:'fra',emoji:'🍰',name:'분수 연습',url:'fraction-practice.html',cx:610,cy:405,col:'#ffd0dc'},
+  {id:'frb',emoji:'🥧',name:'분수 조작판',url:'fraction.html',cx:830,cy:405,col:'#d6f0c2'}
+];
+const LG_ZRX=80,LG_ZRY=30;
+function loungeZoneOf(x,y){return LG_ZONES.find(z=>((x-z.cx)/LG_ZRX)**2+((y-z.cy)/LG_ZRY)**2<=1)||null}
+function loungePadsSVG(){
+  return LG_ZONES.map(z=>'<g><ellipse cx="'+z.cx+'" cy="'+(z.cy+6)+'" rx="'+(LG_ZRX+6)+'" ry="'+(LG_ZRY+6)+'" fill="rgba(90,50,10,.18)"/><ellipse cx="'+z.cx+'" cy="'+z.cy+'" rx="'+LG_ZRX+'" ry="'+LG_ZRY+'" fill="'+z.col+'" stroke="#fff" stroke-width="5"/><text x="'+z.cx+'" y="'+(z.cy+10)+'" font-size="30" text-anchor="middle">'+z.emoji+'</text><text x="'+z.cx+'" y="'+(z.cy+LG_ZRY+30)+'" font-size="21" font-weight="800" text-anchor="middle" fill="#5b3a12" stroke="#fff6e0" stroke-width="4" paint-order="stroke">'+z.name+'</text></g>').join('');
+}
+   // 걸을 수 있는 바닥(방 안 좌표 1000×600)
 function loungeRoomSVG(){
   let b='';
   const cols=['#b9503f','#3f7ab9','#e0b13a','#5a9a5a','#8a5aa0','#d9822b','#4aa3a3'];
@@ -516,7 +537,7 @@ function loungeRoomSVG(){
    +lamp(250)+lamp(500)+lamp(750)
    +sofa(60,'#9b6b8f','#5e3a55')+sofa(740,'#e39aa0','#a85c66')
    +plant(236,300)+plant(764,300)
-   +'<ellipse cx="500" cy="478" rx="270" ry="66" fill="#e07a6b" opacity=".5"/><ellipse cx="500" cy="478" rx="236" ry="50" fill="none" stroke="#fdf1dc" stroke-width="4" opacity=".75"/></svg>';
+   +'<ellipse cx="500" cy="478" rx="270" ry="66" fill="#e07a6b" opacity=".5"/><ellipse cx="500" cy="478" rx="236" ry="50" fill="none" stroke="#fdf1dc" stroke-width="4" opacity=".75"/>'+loungePadsSVG()+'</svg>';
 }
 function loungeDur(dx,dy){return Math.max(250,Math.min(2600,Math.hypot(dx,dy)*4.2))}   // 1000칸에 약 4초
 function loungeClamp(x,y){return [Math.round(Math.max(LG_FLOOR.x0,Math.min(LG_FLOOR.x1,x))),Math.round(Math.max(LG_FLOOR.y0,Math.min(LG_FLOOR.y1,y)))]}
@@ -528,7 +549,7 @@ function loungeEl(pp){
   const body=av||(()=>{const d=document.createElement('div');d.className='lg-dot';d.textContent='🙂';return d})();
   if(av)av.classList.add('lg-av');
   const nm=document.createElement('div');nm.className='lg-nm';nm.textContent=pp.num+'번 '+pp.name;
-  el.append(say,body,nm); return {el,say,body,hasAv,x:null,y:null};
+  el.append(say,body,nm); return {el,say,body,nm,base:pp.num+'번 '+pp.name,hasAv,x:null,y:null};
 }
 function loungeApply(list){
   const layer=LG.layer; if(!layer) return;
@@ -544,6 +565,7 @@ function loungeApply(list){
       if(o.x===null){loungePlace(o.el,x,y,0)} else if(o.x!==x||o.y!==y){loungePlace(o.el,x,y,loungeDur(x-o.x,y-o.y))}
       o.x=x;o.y=y;
     }
+    const zz=loungeZoneOf(pp.mine?LG.x:pp.x,pp.mine?LG.y:pp.y); o.nm.textContent=(zz?zz.emoji+' ':'')+o.base;
     const show=pp.say&&pp.age<9; o.say.style.display=show?'block':'none'; if(show)o.say.textContent=pp.say;
   });
   for(const [num,o] of [...LG.els]) if(!seen.has(num)){o.el.remove();LG.els.delete(num)}
@@ -568,13 +590,38 @@ async function loungeSync(force){
 }
 function loungeMove(x,y){
   if(!LG.on) return;
-  const [nx,ny]=loungeClamp(x,y), o=LG.els.get(LG.me);
-  if(o){loungePlace(o.el,nx,ny,loungeDur(nx-LG.x,ny-LG.y));o.x=nx;o.y=ny}
-  LG.x=nx;LG.y=ny;
+  const [nx,ny]=loungeClamp(x,y), o=LG.els.get(LG.me), dur=loungeDur(nx-LG.x,ny-LG.y);
+  if(o){loungePlace(o.el,nx,ny,dur);o.x=nx;o.y=ny}
+  LG.x=nx;LG.y=ny; loungeZoneBar(dur);
   if(Date.now()-LG.last>600){LG.last=Date.now();loungeSync(true)}
 }
+
+function loungeZoneBar(delay){
+  clearTimeout(LG.zt);
+  const bar=$('#lgZone'); if(!bar) return;
+  bar.style.display='none';
+  LG.zt=setTimeout(()=>{
+    const b=$('#lgZone'); if(!b||!LG.on) return;
+    const z=loungeZoneOf(LG.x,LG.y); if(!z){b.style.display='none';return}
+    b.replaceChildren();
+    const t=document.createElement('span'); t.textContent=z.emoji+' '+z.name+' 구역이에요';
+    const go=document.createElement('button'); go.type='button'; go.textContent='들어가기';
+    go.onclick=()=>loungePractice(z);
+    b.append(t,go); b.style.display='flex';
+  },Math.max(0,delay||0)+80);
+}
+function loungePractice(z){
+  const ov=$('#lgOv'),fr=$('#lgFrame'); if(!ov||!fr) return;
+  $('#lgOvT').textContent=z.emoji+' '+z.name;
+  fr.src=z.url+(z.url.includes('?')?'&':'?')+'embed=1&from=school';
+  ov.style.display='flex'; LG.ov=true;
+}
+function loungePracticeClose(){
+  const ov=$('#lgOv'),fr=$('#lgFrame'); if(!ov) return;
+  ov.style.display='none'; if(fr)fr.src='about:blank'; LG.ov=false;
+}
 function loungeKey(e){
-  if(!LG.on||curTab!=='talk'||talkView!=='lounge') return;
+  if(!LG.on||LG.ov||curTab!=='talk'||talkView!=='lounge') return;
   const t=document.activeElement&&document.activeElement.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
   const m={ArrowLeft:[-60,0],ArrowRight:[60,0],ArrowUp:[0,-45],ArrowDown:[0,45],a:[-60,0],d:[60,0],w:[0,-45],s:[0,45]}[e.key]; if(!m) return;
   e.preventDefault(); loungeMove(LG.x+m[0],LG.y+m[1]);
@@ -586,17 +633,20 @@ function loungeLeave(){
   stCall({action:'lounge_sync',leave:true}).catch(()=>{});
 }
 function talkLoungeUI(body){
-  body.innerHTML='<p class="talk-rule">교실 라운지예요. 바닥을 누르면 걸어가요. 이야기하면 말풍선이 떠요. 말은 전체방에도 남고 <b>선생님이 볼 수 있어요.</b> 기분 좋은 말만 써요.</p>'
+  body.innerHTML='<p class="talk-rule">교실 라운지예요. 바닥을 누르면 걸어가요. 동그란 <b>연습 구역</b>에 서면 곱셈·나눗셈·분수를 연습할 수 있어요. 이야기하면 말풍선이 떠요. 말은 전체방에도 남고 <b>선생님이 볼 수 있어요.</b> 기분 좋은 말만 써요.</p>'
    +'<div class="lg-bar"><span id="lgCount">🏫 라운지에 들어가는 중…</span><span>방향키·WASD도 돼요</span></div>'
    +'<div class="lg-room" id="lgRoom">'+loungeRoomSVG()+'<div id="lgLayer"></div><div class="lg-closed" id="lgClosed"></div></div>'
+   +'<div class="lg-zone" id="lgZone"></div>'
    +'<div class="lg-pad" id="lgPad"><button type="button" data-d="-1,0" aria-label="왼쪽">◀</button><button type="button" data-d="0,-1" aria-label="위">▲</button><button type="button" data-d="0,1" aria-label="아래">▼</button><button type="button" data-d="1,0" aria-label="오른쪽">▶</button></div>'
-   +'<div id="talkFormBox" style="margin-top:8px"></div><div class="talk-msg" id="talkErr"></div>';
+   +'<div id="talkFormBox" style="margin-top:8px"></div><div class="talk-msg" id="talkErr"></div>'
+   +'<div class="lg-ov" id="lgOv"><div class="lg-ovbar"><span id="lgOvT"></span><button type="button" id="lgOvX">✕ 나가기</button></div><iframe id="lgFrame" title="연습"></iframe></div>';
   const s=stRead(); LG.me=s&&s.num||0;
   LG.on=true; LG.els=new Map(); LG.room=$('#lgRoom'); LG.layer=$('#lgLayer'); LG.closed=$('#lgClosed'); LG.count=$('#lgCount'); LG.sent=null; LG.beat=0;
   const sp=loungeClamp(300+Math.random()*400,430+Math.random()*120); LG.x=Math.round(sp[0]); LG.y=Math.round(sp[1]);
   LG.room.onclick=e=>{const r=LG.room.getBoundingClientRect(); loungeMove((e.clientX-r.left)/r.width*1000,(e.clientY-r.top)/r.height*600)};
   $$('#lgPad button').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const [dx,dy]=b.dataset.d.split(',').map(Number);loungeMove(LG.x+dx*70,LG.y+dy*50)});
   LG.key=loungeKey; document.addEventListener('keydown',LG.key);
+  LG.ov=false; $('#lgOvX').onclick=loungePracticeClose;
   $('#talkFormBox').append(talkForm(async t=>{const r=await stCall({action:'chat_send',body:t});if(r.status===200){loungeSync(true);return true}$('#talkErr').textContent=talkErrText(r);return false},'말풍선으로 보여 줄 말'));
   chEnsure().then(()=>loungeSync(true)); loungeSync(true); talkTimer=setInterval(()=>loungeSync(false),2500);
 }

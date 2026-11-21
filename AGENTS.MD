@@ -963,3 +963,10 @@
 - 서버 `school-tool/function.ts` 맨 위 `const TIME_LIMITS = false;` 한 줄로 켜고 끈다. `true`로 바꾸고 배포하면 평일 13:40~20:00, 주말 08:00~20:00(한국 시간)에만 열린다(그때도 비밀값 `ST_OPEN_HOURS=off`면 열림). 위의 「방과후 시간대 열기·닫기」「라운지」「모이자 만들기 시간 제한」 설명 중 시간표 관련 내용은 이 스위치가 꺼진 동안은 적용되지 않는다.
 - 화면(school.html)의 안내 문구(`TIME_MSG`, `MEET_MSG`)는 서버가 닫힘을 알릴 때만 보이므로 그대로 두었다.
 - 게임 하루 30분(`after-budget.js`)은 시간대가 아니라 **사용량** 제한이라 이번에 건드리지 않았다.
+
+### 🏫 라운지 연습 구역 (2026-11-21)
+- 라운지 바닥에 둥근 연습 자리 4곳: ✖️곱셈(`multiply.html`)·➗나눗셈(`DEVIDE.HTML`)·🍰분수 연습(`fraction-practice.html`)·🥧분수 조작판(`fraction.html`). `school.html`의 `LG_ZONES`.
+- 자리에 서면 「들어가기」 바 → 전체 화면 연습 창(iframe, `?embed=1&from=school`). ✕ 나가기로 돌아옴. 연습 중에도 라운지 위치 신호는 계속 가고 화살표 이동만 멈춘다.
+- 친구 이름표 앞에 구역 아이콘(좌표로 계산, 서버 변경 없음).
+- `classroom/monitor.js`: iframe 안 + `embed=1`이면 교실 연결 UI·접속 표시를 만들지 않는다(겉 화면이 담당).
+- 상태: 🧪 가짜 서버 시험(`zone_test`)만 통과. 실제 기기 확인 ⏳.
