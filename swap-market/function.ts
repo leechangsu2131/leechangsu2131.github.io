@@ -177,6 +177,15 @@ Deno.serve(async (req) => {
     await sb.rpc("st_xp_add", { p_student: student, p_kind: kind, p_ref: ref, p_xp: xp, p_day_cap: 20 });   // 같은 종류+대상은 한 번만, 하루 20점까지
   }
 
+  // 보호자 동의: 교사가 「동의 받은 학생만 쓰기」를 켠 기능은 동의가 표시된 학생만 쓸 수 있다(consent/schema.sql). 확인에 실패하면 막는다.
+  async function consentState(kind: "swap" | "video") {
+    const { data: rule, error: e1 } = await sb.from("st_consent_rules").select("required").eq("class_id", me!.class_id).eq("kind", kind).maybeSingle();
+    if (e1) return { required: true, agreed: false };
+    if (!rule?.required) return { required: false, agreed: true };
+    const { data: c, error: e2 } = await sb.from("st_consents").select("agreed").eq("student_id", me!.id).eq("kind", kind).maybeSingle();
+    return { required: true, agreed: !e2 && !!c?.agreed };
+  }
+  if (action === "post" || action === "offer") { if (!(await consentState("swap")).agreed) return json({ error: "consent_required" }, 403, origin); }
   if (action === "temp") return json({ ok: true, ...(await myTemp()) }, 200, origin);   // 모이자·바꾸자 화면이 내 매너온도를 가져갈 때 쓴다
 
   if (action === "list") {
@@ -209,7 +218,7 @@ Deno.serve(async (req) => {
         deal: inDeal ? { with_num: mine ? (nm.get(chosen.from_id)?.number ?? 0) : (o?.number ?? 0), with_name: mine ? (nm.get(chosen.from_id)?.name ?? "") : (o?.name ?? ""), give: chosen.give, place: i.place, slot: i.slot, plan_by_me: i.plan_by === me.id, plan_ok: i.plan_ok, my_done: mine ? i.owner_done : i.offerer_done, other_done: mine ? i.offerer_done : i.owner_done, my_tag: prMap.get(i.id) ?? "" } : null,
       };
     });
-    return json({ ok: true, me: me.number, items: out, ...(await myTemp()) }, 200, origin);
+    return json({ ok: true, me: me.number, items: out, consent: await consentState("swap"), ...(await myTemp()) }, 200, origin);
   }
 
   if (action === "post") {

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>보호자 동의서</title>
+<style>
+:root{--ink:#111827;--muted:#4b5563;--line:#9ca3af;--blue:#2563eb}
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f7;color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;font-size:15px;line-height:1.6}
+.tools{max-width:820px;margin:12px auto;padding:0 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tools label{font-weight:700;display:flex;gap:6px;align-items:center}
+.tools button{border:0;background:var(--blue);color:#fff;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:800;cursor:pointer}
+.tools .hint{width:100%;color:var(--muted);font-size:13px;margin:0}
+.paper{max-width:820px;margin:0 auto 20px;background:#fff;padding:26px 32px;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+h1{text-align:center;font-size:24px;margin:0 0 4px}
+.sub{text-align:center;color:var(--muted);margin:0 0 14px}
+.lead{margin:0 0 10px}
+.sec{border:1.5px solid var(--ink);border-radius:6px;margin:12px 0;padding:10px 14px;break-inside:avoid}
+.sec h2{font-size:17px;margin:0 0 4px}
+.sec ul{margin:4px 0 8px;padding-left:20px}
+.sec li{margin:1px 0}
+.ck{display:flex;gap:26px;margin-top:6px;font-weight:800;font-size:16px}
+.box{display:inline-block;width:17px;height:17px;border:2px solid var(--ink);vertical-align:-3px;margin-right:6px}
+.sign{margin-top:14px;border-top:2px solid var(--ink);padding-top:12px;break-inside:avoid}
+.row{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;align-items:flex-end}
+.fld{flex:1;min-width:170px;display:flex;gap:6px;align-items:flex-end;font-weight:700}
+.fld i{flex:1;border-bottom:1.5px solid var(--ink);min-height:24px}
+.small{font-size:13px;color:var(--muted)}
+.end{text-align:center;font-weight:800;margin-top:14px;font-size:17px}
+@media print{
+  body{background:#fff;font-size:12.5px;line-height:1.5}
+  .tools{display:none}
+  .paper{box-shadow:none;margin:0;max-width:none;padding:0}
+  @page{size:A4;margin:14mm}
+}
+</style>
+</head>
+<body>
+<div class="tools">
+  <label><input type="checkbox" id="cSwap" checked> 🔁 물건 바꾸기(바꾸자)</label>
+  <label><input type="checkbox" id="cVideo"> 📺 영상 주소 나누기(유튜브)</label>
+  <button type="button" onclick="window.print()">🖨️ 인쇄하기</button>
+  <p class="hint">인쇄할 동의 항목만 골라요. 이 화면 위쪽 줄은 인쇄되지 않아요. 학생 이름·번호는 인쇄한 뒤 손으로 적어요(이 페이지에는 학생 정보가 없어요).</p>
+</div>
+<div class="paper">
+  <h1>보호자 동의서</h1>
+  <p class="sub">3학년 2반 · 우리 반 온라인 활동 안내</p>
+  <p class="lead">학부모님께. 우리 반에서 쓰는 온라인 활동 중, 아래 활동은 <b>보호자의 동의를 받은 학생만</b> 사용하려고 합니다. 내용을 읽어 보시고 항목마다 동의 여부를 고른 뒤 서명하여 담임교사에게 보내 주세요. 동의하지 않아도 학교 생활에 불이익은 없고, 다른 활동은 그대로 할 수 있습니다.</p>
+
+  <div class="sec" id="secSwap">
+    <h2>1. 🔁 물건 바꾸기 (우리 반 물물장터 「바꾸자」)</h2>
+    <ul>
+      <li>안 쓰는 물건을 올리고, 바꾸고 싶은 물건을 친구와 정하는 활동입니다. <b>돈 거래는 할 수 없고</b> 서버가 돈 이야기를 막습니다.</li>
+      <li>바꾸는 약속은 <b>학교 안</b>의 정해진 시간(쉬는 시간·점심 후·방과후 끝나기 전)과 장소(교실·복도·도서관·운동장 쉼터)에서만 합니다. 학교 밖에서 만나지 않습니다.</li>
+      <li>물건 사진은 올릴 수 있으며, 얼굴·이름표·교복이 나오지 않게 안내합니다. 사진은 작게 줄여 비공개로 보관하고, 같은 반 친구와 선생님만 볼 수 있으며, 늦어도 30일 안에 지웁니다.</li>
+      <li>주소·전화번호·이메일은 쓸 수 없습니다. 담임교사가 글과 제안을 볼 수 있고, 곤란한 글은 숨기거나 지울 수 있습니다.</li>
+      <li>친구에게 받은 칭찬으로 「매너온도」가 표시됩니다(교실 안 활동 기록).</li>
+      <li>보호자께서는 물건을 바꾸기 전에 자녀와 이야기를 나눠 주세요. 값나가는 물건, 위험한 물건, 친구에게 받은 선물은 올리지 않도록 지도해 주세요.</li>
+    </ul>
+    <div class="ck"><span><span class="box"></span>동의합니다</span><span><span class="box"></span>동의하지 않습니다</span></div>
+  </div>
+
+  <div class="sec" id="secVideo" hidden>
+    <h2>2. 📺 영상 주소 나누기 (유튜브 영상 모음)</h2>
+    <ul>
+      <li>학생이 <b>이미 유튜브에 올라 있는 영상의 주소(링크)</b>만 나눕니다. 학교 시스템에는 영상 파일을 올리지 않고, 영상 번호만 저장합니다.</li>
+      <li>썸네일(작은 그림)과 재생은 유튜브에서 가져옵니다. 이때 접속 정보(IP 주소 등)가 구글(유튜브)에 전달될 수 있습니다.</li>
+      <li>유튜브에는 어린이 이용에 대한 나이 기준이 있으므로, <b>보호자와 함께 보는 영상</b>만 나누도록 안내합니다. 어린이가 혼자 계정을 만들거나 영상을 올리지 않습니다.</li>
+      <li>영상에 <b>자녀·친구의 얼굴, 이름, 학교, 전화번호, 집 주소</b>가 나오지 않아야 하고, 다른 사람이 나오는 영상은 그 사람(어린이는 보호자)의 허락을 받은 것이어야 합니다.</li>
+      <li>올린 영상은 <b>담임교사가 확인(승인)한 뒤에만</b> 반 친구들에게 보이며, 곤란한 영상은 숨기거나 지울 수 있습니다. 이름은 실명 또는 별명 중에서 고르고, 담임교사는 둘 다 알 수 있습니다.</li>
+    </ul>
+    <div class="ck"><span><span class="box"></span>동의합니다</span><span><span class="box"></span>동의하지 않습니다</span></div>
+  </div>
+
+  <div class="sign">
+    <p class="small" style="margin:0 0 4px">· 동의는 언제든지 담임교사에게 말씀해 주시면 철회할 수 있습니다. · 이 동의서는 종이로만 받으며, 선생님은 「동의 받음」 여부만 학교 시스템에 표시합니다(서명·보호자 연락처는 저장하지 않습니다).</p>
+    <div class="row"><div class="fld">학생 번호·이름 <i></i></div><div class="fld">보호자 성명 <i></i> (서명)</div></div>
+    <div class="row"><div class="fld">학생과의 관계 <i></i></div><div class="fld">날짜 <i style="max-width:140px"></i> 년 &nbsp;&nbsp; 월 &nbsp;&nbsp; 일</div></div>
+    <div class="end">3학년 2반 담임교사 귀하</div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function sync(){
+  $('secSwap').hidden=!$('cSwap').checked;$('secVideo').hidden=!$('cVideo').checked;
+  // 번호는 보이는 항목 기준으로 다시 매김
+  let n=0;document.querySelectorAll('.sec').forEach(s=>{if(!s.hidden){n++;const h=s.querySelector('h2');h.textContent=h.textContent.replace(/^\d+\./,n+'.')}});
+}
+$('cSwap').onchange=$('cVideo').onchange=sync;sync();
+</script>
+</body>
+</html>

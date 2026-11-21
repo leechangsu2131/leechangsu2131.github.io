@@ -944,6 +944,12 @@
 - **교사 화면:** classroom/teacher.html 「📮 온라인 게시판 관리」 — 글감 만들기·열기/닫기·지우기, 글·댓글 숨기기/삭제(별명 글도 실명 표시), CSV 저장(사진 제외).
 - **상태:** DB·함수(v1) 반영과 push 완료, 모의시험(서버 30개, 화면 시나리오)만 통과 — 실제 연결은 선생님 확인 대기(🧪).
 
+### 2026-11-22 추가: 보호자 동의서 (I-25)
+- `parent-consent.html`: 인쇄용 동의서(항목 선택: 물건 바꾸기·영상 주소 나누기). 학생 정보 없음, `noindex`.
+- 교사 화면 「📝 보호자 동의 확인」(classroom/teacher.html): `st_consents`(학생·종류별 동의 여부·날짜), `st_consent_rules`(기능별 「동의 받은 학생만 쓰기」, 기본 꺼짐)를 교사 계정으로 직접 읽고 씀.
+- 서버: `swap-market` `post`·`offer`, `board-post` `v_add`·`v_like` 가 `consentState()` 로 확인 → `consent_required`. `list`/`v_list` 는 `consent:{required,agreed}` 를 돌려줌(school.html 바꾸자·board-videos.html 이 안내 표시).
+- DB: `consent/schema.sql`(미실행). 배포 전에는 이 확인 코드가 서버에 없으므로 기능은 지금처럼 동작.
+
 ### 2026-11-20 추가: 유튜브 영상 모음 board-videos.html (I-24, 연결 안 함)
 - 학생이 유튜브에 올린 영상의 **주소만** 저장하고, 썸네일(`i.ytimg.com`)을 보여 주며, 누르면 `youtube-nocookie.com` 퍼가기로 재생, 「쇼츠처럼 넘겨 보기」(스크롤 스냅, 화면에 오는 한 개만 iframe)를 제공. 어느 화면에서도 링크하지 않았고 주소를 직접 입력해야 열림. 기본 닫힘.
 - 서버(board-post/function.ts): 학생 `v_list·v_add·v_like·v_delete`, 교사 `t_v_list·t_v_approve·t_v_hide·t_v_delete·t_v_enable`. 나누기는 `confirm:true` 필요, 하루 5개·10분 3개, 중복 차단, 선생님 승인 후 공개.

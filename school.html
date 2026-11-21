@@ -827,7 +827,7 @@ async function meetReviewOpen(m){
 }
 
 /* ---------- 🔁 바꾸자(물물장터): 돈 없이 안 쓰는 물건끼리 바꾸기. 서버 swap-market ---------- */
-const SW_ERR={not_done:'바꾸기가 끝난 뒤에 칭찬을 남길 수 있어요.',no_money:'돈 이야기는 쓸 수 없어요. 물건으로만 바꿔요.',blocked_content:'주소·이메일·전화번호는 쓸 수 없어요.',too_many_posts:'오늘은 더 올릴 수 없어요.',too_many_open:'올려 둔 물건이 3개예요. 바꾼 뒤에 더 올려요.',too_many_offers:'오늘은 제안을 더 할 수 없어요.',bad_photo:'사진을 다시 찍어 주세요.',closed:'이미 끝났어요.',own_item:'내 물건이에요.',already_chosen:'이미 정해졌어요.',not_approved:'선생님이 승인한 뒤에 쓸 수 있어요.',login_required:'로그인이 필요해요.',bad_input:'빈칸을 확인해 주세요.',too_many_attempts:'잠깐 쉬었다가 해요.'};
+const SW_ERR={consent_required:'보호자 동의서를 선생님께 내야 쓸 수 있어요. 집에서 부모님께 물어봐요.',not_done:'바꾸기가 끝난 뒤에 칭찬을 남길 수 있어요.',no_money:'돈 이야기는 쓸 수 없어요. 물건으로만 바꿔요.',blocked_content:'주소·이메일·전화번호는 쓸 수 없어요.',too_many_posts:'오늘은 더 올릴 수 없어요.',too_many_open:'올려 둔 물건이 3개예요. 바꾼 뒤에 더 올려요.',too_many_offers:'오늘은 제안을 더 할 수 없어요.',bad_photo:'사진을 다시 찍어 주세요.',closed:'이미 끝났어요.',own_item:'내 물건이에요.',already_chosen:'이미 정해졌어요.',not_approved:'선생님이 승인한 뒤에 쓸 수 있어요.',login_required:'로그인이 필요해요.',bad_input:'빈칸을 확인해 주세요.',too_many_attempts:'잠깐 쉬었다가 해요.'};
 const SW_PLACE={classroom:'🏫 교실',hall:'🚪 복도',library:'📚 도서관',yard:'🌳 운동장 쉼터'};
 const SW_SLOT={break:'⏰ 쉬는 시간',after_lunch:'🍚 점심 먹고 난 뒤',afterschool_in:'🎒 방과후 학교 안에서(끝나기 전)'};
 async function swCall(body){
@@ -879,6 +879,8 @@ async function talkSwapUI(body){
     const r=await swCall({action:'list'}); await chEnsure().catch(()=>{});
     if(r.status!==200){list.textContent='';say(r.data&&r.data.error==='not_approved'?SW_ERR.not_approved:(r.data&&r.data.error==='login_required'?SW_ERR.login_required:'불러오지 못했어요.'));return}
     say('');list.textContent='';tempShow(r.data);const items=r.data.items||[];
+    newB.style.display=(r.data.consent&&!r.data.consent.agreed)?'none':'';
+    if(r.data.consent&&!r.data.consent.agreed){list.append(el('div','talk-msg','📝 물건을 올리거나 바꾸자고 하려면 보호자 동의서가 필요해요. 가정통신문(동의서)을 부모님께 보여 드리고, 서명해서 선생님께 내요. 그때까지는 구경만 할 수 있어요.'))}
     if(!items.length){list.append(el('div','talk-msg','아직 올라온 물건이 없어요. 첫 번째로 올려 봐요!'));return}
     items.forEach(it=>list.append(swCard(it)));
   }

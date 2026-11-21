@@ -124,6 +124,13 @@
     <div id="rcBdMsg" class="muted"></div>
     <div id="rcBdList" class="rc-thread" style="max-height:480px"></div>
   </details>
+  <details id="rcConsent" style="margin-top:12px">
+    <summary style="font-weight:700;cursor:pointer">📝 보호자 동의 확인 <span id="rcConN" class="muted"></span></summary>
+    <div class="hint">종이 동의서(<a href="../parent-consent.html" target="_blank">parent-consent.html</a> 인쇄)를 받은 학생에 「동의 받음」을 표시합니다. 서명·보호자 연락처는 저장하지 않고 받았는지만 표시해요. 아래 「동의 받은 학생만 쓰기」를 켜면 표시된 학생만 그 기능을 쓸 수 있어요(꺼 두면 지금처럼 모두 사용).</div>
+    <div class="row" style="gap:14px;margin:6px 0;flex-wrap:wrap"><label><input type="checkbox" id="rcConRuleSwap"> 🔁 물물장터: 동의 받은 학생만 쓰기</label><label><input type="checkbox" id="rcConRuleVideo"> 📺 영상 모음: 동의 받은 학생만 쓰기</label></div>
+    <div id="rcConMsg" class="muted"></div>
+    <div id="rcConList" class="rc-thread" style="max-height:480px"></div>
+  </details>
   <details id="rcSwap" style="margin-top:12px">
     <summary style="font-weight:700;cursor:pointer">🔁 물물장터 관리 <span id="rcSwapN" class="muted"></span></summary>
     <div class="hint">학생들이 school.html 「이야기방 → 바꾸자」에서 올린 물건입니다. 돈 거래는 서버에서 막고, 바꾸는 약속은 학교 안 시간·장소만 고를 수 있어요. 곤란한 글은 숨기거나 지울 수 있어요. 일주일쯤 모이면 「한 주 기록 저장」으로 파일을 받은 뒤 「기록 모두 지우기」를 누르면 글·제안·사진이 서버에서 함께 지워져요(사진은 이때까지만 서버에 있어요).</div>
@@ -738,6 +745,49 @@
     if(bad){$('rcSubjMsg').textContent=bad.num+'번: 목표 점수를 10~3000 사이로 적어 주세요.';return}
     try{await chubCall({action:'t_focus',items});$('rcSubjMsg').textContent='저장했어요.';await subjLoad()}catch(e){$('rcSubjMsg').textContent='저장하지 못했어요. ('+e.message+')'}
   };
+  // ---- 보호자 동의 확인(st_consents·st_consent_rules, 교사 계정으로 직접) ----
+  let rcConRules={},rcConRows={};
+  const rcConErr=e=>{$('rcConMsg').textContent=/does not exist|relation|42P01|PGRST205/.test(e.message)?'아직 준비되지 않았어요(consent/schema.sql 실행이 필요해요).':'저장하지 못했어요. ('+e.message.slice(0,60)+')'};
+  async function rcConUpsert(table,conflict,row){
+    await rcApi(table+'?on_conflict='+conflict,{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
+  }
+  function rcConDraw(){
+    $('rcConRuleSwap').checked=!!rcConRules.swap;$('rcConRuleVideo').checked=!!rcConRules.video;
+    const n=k=>rcStudents.filter(s=>(rcConRows[s.id]||{})[k]).length;
+    $('rcConN').textContent='(물물장터 '+n('swap')+'/'+rcStudents.length+' · 영상 '+n('video')+'/'+rcStudents.length+')';
+    const box=$('rcConList');box.replaceChildren();
+    rcStudents.forEach(s=>{
+      const d=document.createElement('div');d.className='rc-acc';d.style.cssText='display:flex;gap:14px;align-items:center;flex-wrap:wrap';
+      const w=document.createElement('b');w.textContent=s.number+'번 '+s.name;w.style.minWidth='110px';d.append(w);
+      [['swap','🔁 물물장터'],['video','📺 영상']].forEach(([k,label])=>{
+        const l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.checked=!!(rcConRows[s.id]||{})[k];
+        c.onchange=async()=>{c.disabled=true;try{await rcConUpsert('st_consents','student_id,kind',{student_id:s.id,kind:k,agreed:c.checked,signed_on:c.checked?new Date().toLocaleDateString('sv-SE'):null,noted_at:new Date().toISOString()});(rcConRows[s.id]=rcConRows[s.id]||{})[k]=c.checked;$('rcConMsg').textContent='';rcConDraw()}catch(e){c.checked=!c.checked;rcConErr(e)}c.disabled=false};
+        l.append(c,' '+label+' 동의 받음');l.style.cssText='display:flex;gap:4px;align-items:center';d.append(l);
+      });
+      box.append(d);
+    });
+  }
+  async function rcConLoad(){
+    try{
+      if(!rcCls||!rcStudents.length)await rcLoad();
+      if(!rcCls){$('rcConMsg').textContent='사용 중인 학급이 없어요.';return}
+      const [ru,cs]=await Promise.all([
+        rcApi('st_consent_rules?select=kind,required&class_id=eq.'+rcCls.id,{headers:{Prefer:''}}),
+        rcApi('st_consents?select=student_id,kind,agreed',{headers:{Prefer:''}})
+      ]);
+      rcConRules={};(ru||[]).forEach(r=>rcConRules[r.kind]=r.required);
+      rcConRows={};(cs||[]).forEach(r=>{(rcConRows[r.student_id]=rcConRows[r.student_id]||{})[r.kind]=r.agreed});
+      $('rcConMsg').textContent='';rcConDraw();
+    }catch(e){rcConErr(e)}
+  }
+  [['swap','rcConRuleSwap','물물장터'],['video','rcConRuleVideo','영상 모음']].forEach(([k,id,label])=>{
+    $(id).onchange=async()=>{
+      const on=$(id).checked;
+      if(on&&!confirm(label+': 이제 「동의 받음」이 표시된 학생만 쓸 수 있어요. 표시가 없는 학생은 구경만 할 수 있어요. 켤까요?')){$(id).checked=false;return}
+      try{await rcConUpsert('st_consent_rules','class_id,kind',{class_id:rcCls.id,kind:k,required:on});rcConRules[k]=on;$('rcConMsg').textContent=label+': '+(on?'동의 받은 학생만 쓰도록 켰어요.':'모두 쓸 수 있도록 껐어요.')}catch(e){$(id).checked=!on;rcConErr(e)}
+    };
+  });
+  $('rcConsent').addEventListener('toggle',()=>{if($('rcConsent').open)rcConLoad()});
   // ---- 물물장터 관리(swap-market 함수, 교사 계정) ----
   const SW_STATUS={open:'받는 중',matched:'친구 정함',done:'바꿈 끝',closed:'닫힘'};
   const SW_P={classroom:'교실',hall:'복도',library:'도서관',yard:'운동장 쉼터'},SW_S={break:'쉬는 시간',after_lunch:'점심 후',afterschool_in:'방과후 학교 안'};

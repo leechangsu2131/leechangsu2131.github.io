@@ -258,6 +258,16 @@ Deno.serve(async (req) => {
   if (action.startsWith("v_")) {
     const { data: st } = await sb.from("bd_settings").select("videos_enabled").eq("class_id", me.class_id).maybeSingle();
     if (!st?.videos_enabled) return json({ ok: true, enabled: false, videos: [] }, 200, origin);
+    // 보호자 동의: 교사가 「동의 받은 학생만 쓰기」를 켠 기능은 동의가 표시된 학생만 쓸 수 있다(consent/schema.sql). 확인에 실패하면 막는다.
+    async function consentState(kind: "swap" | "video") {
+      const { data: rule, error: e1 } = await sb.from("st_consent_rules").select("required").eq("class_id", me!.class_id).eq("kind", kind).maybeSingle();
+      if (e1) return { required: true, agreed: false };
+      if (!rule?.required) return { required: false, agreed: true };
+      const { data: c, error: e2 } = await sb.from("st_consents").select("agreed").eq("student_id", me!.id).eq("kind", kind).maybeSingle();
+      return { required: true, agreed: !e2 && !!c?.agreed };
+    }
+    const cons = await consentState("video");
+    if ((action === "v_add" || action === "v_like") && !cons.agreed) return json({ error: "consent_required" }, 403, origin);
     if (action === "v_list") {
       const { data: vs } = await sb.from("bd_videos").select("*, bd_video_likes(student_id)").eq("class_id", me.class_id).eq("hidden", false).order("created_at", { ascending: false }).limit(100);
       const { data: mates } = await sb.from("gt_students").select("id,name").eq("class_id", me.class_id);
@@ -268,7 +278,7 @@ Deno.serve(async (req) => {
         id: v.id, yt: v.yt_id, kind: v.kind, title: v.title, note: v.note, author: v.show_real ? nm.get(v.author_id) ?? "" : v.nick, mine: v.author_id === me.id, approved: v.approved,
         likes: (v.bd_video_likes ?? []).length, liked: (v.bd_video_likes ?? []).some((l: { student_id: string }) => l.student_id === me.id), created: v.created_at,
       }));
-      return json({ ok: true, enabled: true, videos: list }, 200, origin);
+      return json({ ok: true, enabled: true, consent: cons, videos: list }, 200, origin);
     }
     if (action === "v_add") {
       if (body.confirm !== true) return json({ error: "confirm_required" }, 400, origin);
