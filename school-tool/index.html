@@ -187,7 +187,7 @@ async function afterLogin(){
   try{
     const r=await call({action:'account'});
     if(r.teacher){ // 교사 계정: 학생 신청 대신 둘러보기로 들어간다(번호 없이 로그인만 유지)
-      session={...session,teacher:true};store.set('st_s',JSON.stringify(session));
+      session={...session,teacher:true,...(r.approved?{num:r.number,name:r.name}:{})};store.set('st_s',JSON.stringify(session));   // 「선생님」 자리가 있으면 학생처럼 번호도 같이 저장
       const nx=store.get('st_next');store.del('st_next');
       location.href='../'+(['education.html','board.html','school.html#talk','분수_순위표.html'].includes(nx)?nx:'education.html');return}
     if(r.approved){session={...session,num:r.number,name:r.name};store.set('st_s',JSON.stringify(session));start()}

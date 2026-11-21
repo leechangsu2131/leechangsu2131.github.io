@@ -471,7 +471,19 @@ async function talkTeacherGet(s,path){
   const r=await fetch(ST_URL+'/rest/v1/'+path,{headers:{apikey:ST_KEY,Authorization:'Bearer '+t}});
   if(!r.ok) throw new Error('http'+r.status); return r.json();
 }
-function talkTeacherUI(box,s){
+async function talkTeacherUI(box,s){
+  // 명단에 「선생님」 자리가 있으면 학생처럼 들어간다(서버가 account 로 알려 준다). 없으면 아래 구경 화면.
+  try{
+    const t=await talkTeacherToken(s);
+    if(t){
+      const r=await fetch(ST_URL+'/functions/v1/school-tool',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'account',jwt:t})});
+      const d=await r.json().catch(()=>({}));
+      if(r.ok&&d.approved&&d.number){
+        const cur=stRead()||s; try{sessionStorage.setItem('st_s',JSON.stringify({...cur,num:d.number,name:d.name}))}catch(e){}
+        talkOpen(); return;
+      }
+    }
+  }catch(e){}
   box.innerHTML='<div class="talk-top"><b>💬 우리 반 이야기방 (구경)</b></div>'
    +'<p class="talk-rule">선생님 계정이라 <b>읽기만</b> 할 수 있어요. 글 쓰기·캐릭터는 학생 로그인으로 해요. 숨기기·삭제·잠금은 교사 화면에서 해요.</p>'
    +'<div class="lg-bar"><span id="tcRooms">라운지 현황을 불러오는 중…</span></div><div class="talk-rule" id="tcDoing" style="margin:0 0 8px"></div>'

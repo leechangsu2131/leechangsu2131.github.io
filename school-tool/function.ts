@@ -94,7 +94,15 @@ Deno.serve(async (req) => {
   if (action === "account" || action === "request") {
     const g = await whoIs(body.jwt);
     if (!g) return fail("bad_login");
-    if (g.teacher) return json({ ok: true, teacher: true }, 200, origin);   // 교사 계정은 학생 신청 대상이 아니다
+    if (g.teacher) {
+      // 교사 계정: 명단에 「선생님」 자리(번호 59)를 만들어 승인해 둔 경우에는 학생처럼 입장한다. 없으면 구경만(teacher:true).
+      const tacc = await findAcc(g);
+      if (tacc && tacc.status === "approved") {
+        const { data: ts } = await sb.from("gt_students").select("id,number,name,gt_classes!inner(active)").eq("id", tacc.student_id).eq("gt_classes.active", true).maybeSingle();
+        if (ts) return json({ ok: true, teacher: true, approved: true, number: ts.number, name: ts.name }, 200, origin);
+      }
+      return json({ ok: true, teacher: true }, 200, origin);   // 학생 신청 대상이 아니다
+    }
     const acc = await findAcc(g);
     if (acc) {
       if (acc.status !== "approved") return json({ ok: true, pending: true }, 200, origin);
