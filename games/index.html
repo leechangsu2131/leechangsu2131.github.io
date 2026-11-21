@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add('embed')</script>
 <meta charset="UTF-8">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -77,6 +78,8 @@ input:focus,textarea:focus{outline:2px solid var(--purple);outline-offset:1px}
 @media(max-width:800px){.mbar{flex-wrap:wrap;gap:8px}.mbar b{flex:1 1 100%}.mbar span{display:none}.mbar button{white-space:nowrap;padding:7px 12px;font-size:13px}.mbody{flex-direction:column}.fb{width:auto;max-width:none;max-height:55vh;border-left:0;border-top:1px solid var(--line)}}
 footer{text-align:center;color:var(--sub);font-size:13px;padding:25px 0 12px}footer a{color:var(--ink);border-bottom:1px solid var(--line)}
 @media(max-width:700px){.wrap{padding:0 13px 45px}.row{grid-template-columns:1fr}.prompt{flex-direction:column}.panel{padding:17px}}
+/* 라운지 게임방 안에서 열릴 때(?embed=1)는 위아래 메뉴를 숨긴다 */
+html.embed nav,html.embed footer{display:none}
 </style>
 <script src="/shared/play-limit.js"></script>
 <script src="../shared/after-budget.js?v=2"></script>

@@ -140,26 +140,30 @@ Deno.serve(async (req) => {
     const { data: lset } = await sb.from("st_chat_settings").select("locked").eq("class_id", st.class_id).maybeSingle();
     const lLocked = !!lset?.locked || timeClosed;     // 전체방이 닫혀 있거나 방과후 시간이 아니면 라운지도 닫힌다
     if (lLocked) { await sb.from("st_lounge").delete().eq("student_id", st.id); return json({ ok: true, locked: true, timeClosed, me: st.number, people: [] }, 200, origin); }
+    const lroom = ["lobby", "math", "game"].includes(String(body.room)) ? String(body.room) : "lobby";   // 방: 로비·수학방·게임방
+    const ldoing = ["mul", "div", "fra", "frb", "game"].includes(String(body.doing)) ? String(body.doing) : "";   // 지금 하는 중(연습·게임)
     const lx = Math.round(Number(body.x)), ly = Math.round(Number(body.y));
     if (Number.isFinite(lx) && Number.isFinite(ly)) {
-      await sb.from("st_lounge").upsert({ student_id: st.id, class_id: st.class_id, x: Math.min(1000, Math.max(0, lx)), y: Math.min(1000, Math.max(0, ly)), updated_at: new Date().toISOString() });
+      await sb.from("st_lounge").upsert({ student_id: st.id, class_id: st.class_id, x: Math.min(1000, Math.max(0, lx)), y: Math.min(1000, Math.max(0, ly)), room: lroom, doing: ldoing, updated_at: new Date().toISOString() });
     }
     const near = new Date(Date.now() - 15000).toISOString();       // 15초 안에 신호가 있던 친구만 보인다
     const sayFrom = new Date(Date.now() - 12000).toISOString();
     const [{ data: lrows }, { data: lchat }, { data: lmates }] = await Promise.all([
-      sb.from("st_lounge").select("student_id,x,y").eq("class_id", st.class_id).gte("updated_at", near).limit(60),
+      sb.from("st_lounge").select("student_id,x,y,room,doing").eq("class_id", st.class_id).gte("updated_at", near).limit(80),
       sb.from("st_chat").select("student_id,body,created_at").eq("class_id", st.class_id).eq("hidden", false).gte("created_at", sayFrom).order("created_at", { ascending: false }).limit(40),
       sb.from("gt_students").select("id,number,name").eq("class_id", st.class_id),
     ]);
     const lbyId = new Map(((lmates ?? []) as any[]).map((m) => [m.id, m]));
     const lsay = new Map<string, { body: string; age: number }>();
     for (const c of (lchat ?? []) as any[]) if (!lsay.has(c.student_id)) lsay.set(c.student_id, { body: String(c.body ?? ""), age: Math.round((Date.now() - new Date(c.created_at).getTime()) / 1000) });
-    const people = ((lrows ?? []) as any[]).map((r) => {
+    const counts: Record<string, number> = { lobby: 0, math: 0, game: 0 };
+    for (const r of (lrows ?? []) as any[]) if (r.room in counts) counts[r.room]++;
+    const people = ((lrows ?? []) as any[]).filter((r) => r.room === lroom).map((r) => {
       const m: any = lbyId.get(r.student_id); if (!m) return null;
       const sy = lsay.get(r.student_id);
-      return { num: m.number, name: m.name, x: r.x, y: r.y, mine: r.student_id === st!.id, say: sy?.body ?? "", age: sy?.age ?? 999 };
+      return { num: m.number, name: m.name, x: r.x, y: r.y, doing: r.doing ?? "", mine: r.student_id === st!.id, say: sy?.body ?? "", age: sy?.age ?? 999 };
     }).filter(Boolean);
-    return json({ ok: true, locked: false, timeClosed: false, me: st.number, people }, 200, origin);
+    return json({ ok: true, locked: false, timeClosed: false, me: st.number, room: lroom, counts, people }, 200, origin);
   }
 
   // ---------- 신고: 곤란한 글·모임을 선생님께만 알린다(상대에게는 알려지지 않음) ----------

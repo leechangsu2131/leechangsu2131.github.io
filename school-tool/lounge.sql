@@ -13,3 +13,7 @@ revoke all on public.st_lounge from anon, authenticated;
 grant select on public.st_lounge to authenticated;
 drop policy if exists st_lounge_teacher on public.st_lounge;
 create policy st_lounge_teacher on public.st_lounge for select to authenticated using (public.gt_is_teacher());
+
+-- 방 나누기(2026-11-22): 로비·수학방·게임방, 그리고 지금 하는 중(연습·게임). 위치 표에 칸 두 개만 더한다.
+alter table public.st_lounge add column if not exists room text not null default 'lobby' check (room in ('lobby','math','game'));
+alter table public.st_lounge add column if not exists doing text not null default '' check (doing in ('','mul','div','fra','frb','game'));
