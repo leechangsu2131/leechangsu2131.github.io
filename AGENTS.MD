@@ -948,7 +948,7 @@
 - `parent-consent.html`: 인쇄용 동의서(항목 선택: 물건 바꾸기·영상 주소 나누기). 학생 정보 없음, `noindex`.
 - 교사 화면 「📝 보호자 동의 확인」(classroom/teacher.html): `st_consents`(학생·종류별 동의 여부·날짜), `st_consent_rules`(기능별 「동의 받은 학생만 쓰기」, 기본 꺼짐)를 교사 계정으로 직접 읽고 씀.
 - 서버: `swap-market` `post`·`offer`, `board-post` `v_add`·`v_like` 가 `consentState()` 로 확인 → `consent_required`. `list`/`v_list` 는 `consent:{required,agreed}` 를 돌려줌(school.html 바꾸자·board-videos.html 이 안내 표시).
-- DB: `consent/schema.sql`(미실행). 배포 전에는 이 확인 코드가 서버에 없으므로 기능은 지금처럼 동작.
+- DB: `consent/schema.sql`(2026-11-22 실행), 서버 `swap-market` v5·`board-post` v3 배포 완료. 스위치가 꺼져 있으면 모두 사용 가능(이전과 동일).
 
 ### 2026-11-20 추가: 유튜브 영상 모음 board-videos.html (I-24, 연결 안 함)
 - 학생이 유튜브에 올린 영상의 **주소만** 저장하고, 썸네일(`i.ytimg.com`)을 보여 주며, 누르면 `youtube-nocookie.com` 퍼가기로 재생, 「쇼츠처럼 넘겨 보기」(스크롤 스냅, 화면에 오는 한 개만 iframe)를 제공. 어느 화면에서도 링크하지 않았고 주소를 직접 입력해야 열림. 기본 닫힘.
