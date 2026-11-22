@@ -50,7 +50,7 @@
 | 📚 교육 | 두 자리 수 곱셈 연습 (EIS 적용판) | `두자리수_곱셈_연습_EIS적용.html` |
 | 📚 교육 | 두 자리 수 곱셈 연습 (시각 안내 v3, 구버전으로 보이는 복사본) | `multiply_visual_guided_v3_concept_corrected (1).html` |
 | 📚 교육 | 수학 분수(기본4) 단원평가·오답노트(AI 튜터 대화)·내 점수 확인 | `tests/student_math-3-2-4-basic4.html`, `tests/notebook_math-3-2-4-basic4.html`, `tests/score_math-3-2-4-basic4.html` |
-| 🏫 학교 | 학교정보 안내 (시간표·급식·학사일정·공지사항·가정통신문, NEIS API + GitHub Actions 매일 1회 크롤링) | `school.html`, `scripts/crawl_notices.py`, `data/notices.json`, `.github/workflows/crawl_notices.yml` |
+| 🏫 학교 | 학교정보 안내 (시간표·급식·학사일정·공지사항·가정통신문, NEIS API + GitLab 예약 파이프라인 매일 1회 크롤링) | `school.html`, `scripts/crawl_notices.py`, `data/notices.json`, `.gitlab-ci.yml` |
 | 🏫 교실 | 실시간 학생 화면 모니터링·페이지 제어 (Supabase RPC, 3초 화면 캡처) | `classroom/teacher.html`, `classroom/student.html`, `classroom/monitor.js`, `classroom/schema.sql` |
 | 🏫 교실 | 수업 활동 모듈(주관식·객관식·영상 링크·페이지 열기, 수업 흐름 저장/불러오기, 교사 큰 화면, CSV) | `classroom/activity/` |
 | 📚 교육 (3학년 사회) | 옛날 살아보기 (한 사람의 일생 체험) | `oldlife.html` |
@@ -734,7 +734,7 @@
   - 🍚 **급식:** 식단 및 알레르기 유발 물질 표시, 개인별 알레르기 설정(토글 칩) 하이라이트 경고
   - 📅 **학사일정:** 월별 학사일정 캘린더 및 휴업일/공휴일 시각화
   - 📢 **공지 (신규):** 학교 홈페이지(화천초등학교) 공지사항 및 가정통신문 자동 수집 피드
-    - **GitHub Actions (`.github/workflows/crawl_notices.yml`):** 매일 오전 7시 KST 정기 크롤링 (`scripts/crawl_notices.py`) 실행 -> `data/notices.json` 자동 갱신 및 Git 커밋
+    - **GitLab CI 예약 파이프라인 (`.gitlab-ci.yml`):** 매일 오전 7시 KST 정기 크롤링 (`scripts/crawl_notices.py`) 실행 -> `data/notices.json` 자동 갱신 및 Git 커밋
     - **스마트 UI:**
       - **실시간 검색창:** 제목·작성자 실시간 키워드 검색 및 원클릭 지우기(✕)
       - **게시판별 뱃지:** 전체/공지사항/가정통신문 칩 버튼에 게시글 수 동적 표시 (`전체 (36)`, `공지사항 (16)`, `가정통신문 (20)`)

@@ -1,3 +1,27 @@
+# GitLab CI: (1) 매일 한 번 학교 게시판 크롤링 → data/notices.json 갱신, (2) main 에 올라오면 GitLab Pages 배포.
+# 크롤링은 「예약 파이프라인(Schedule)」으로만 돈다: GitLab → Build → Pipeline schedules → New schedule (매일 07:00, 시간대 Seoul, 브랜치 main).
+# 필요한 CI 변수: CI_PUSH_TOKEN (프로젝트 액세스 토큰, 역할 Developer 이상, 권한 write_repository, Masked 체크)
+stages:
+  - crawl
+  - deploy
+
+crawl_notices:
+  stage: crawl
+  image: python:3.11
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  script:
+    - python scripts/crawl_notices.py
+    - git config user.email "gitlab-ci@users.noreply.gitlab.com"
+    - git config user.name "gitlab-ci"
+    - git add data/notices.json
+    - |
+      if git diff --staged --quiet; then
+        echo "공지 변경 없음"
+      else
+        git commit -m "chore(data): 학교 공지사항 자동 갱신"
+        git push "https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" HEAD:main
+      fi
 
 pages:
   stage: deploy
@@ -7,4 +31,4 @@ pages:
     - mv .public public
   pages: true
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE != "schedule"'

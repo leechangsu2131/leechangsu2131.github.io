@@ -41,6 +41,12 @@
 
 ## 해결한 이슈 (최신순)
 
+### 2026-11-22 · I-27 공지 크롤링을 GitLab 로 옮김  ⏳
+- 배경: 저장소를 GitLab 중심으로 옮기는 중이고, GitHub Actions 파일(`crawl_notices.yml`·`mirror_to_gitlab.yml`)이 지워져 학교 게시판(공지·가정통신문) 자동 갱신이 멈춰 있었음.
+- 한 것: `.gitlab-ci.yml` 에 `crawl_notices` 작업 추가(예약 파이프라인에서만 실행, `scripts/crawl_notices.py` 실행 후 `data/notices.json` 이 바뀌면 `main` 에 커밋·push → 이어서 Pages 배포).
+- 선생님이 할 일: ① GitLab 프로젝트 액세스 토큰(권한 write_repository, 역할 Developer 이상) 만들어 CI 변수 `CI_PUSH_TOKEN` 에 저장(Masked) ② Build → Pipeline schedules 에서 매일 07:00(Seoul, main) 예약 ③ 「지금 실행」으로 한 번 시험.
+- 확인: YAML 문법만 확인. GitLab 에서 실제로 돌려 보지 못함.
+
 ### 2026-11-22 · I-26 학교정보(급식·일정·시간표) 서버가 github.io 주소에서만 응답  🧪
 - 증상: 새 NEIS 값을 등록했는데도 급식·학사일정·시간표를 못 불러옴(GitLab·Vercel 주소로 접속할 때 특히).
 - 원인 후보: ① `api/*.js` 가 CORS(`Access-Control-Allow-Origin`)에 github.io 한 주소만 허용 → 다른 주소의 화면은 브라우저가 응답을 막음. ② 환경변수는 저장 후 다시 배포(Redeploy)해야 적용. ③ 인증키 문제.
