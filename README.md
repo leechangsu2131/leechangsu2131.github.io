@@ -23,6 +23,7 @@ https://homepage-53dd99.gitlab.io/
 | 업무 도구 | `Pdf-splitter.html`, `운동장천막배치.html`, `쿠폰생성.html` (etc.html 의 "업무" 칸) |
 | 평가 | `tests/index.html` (단원평가), `tests/notebook_*.html` (오답노트) |
 | 수업 진행판 | `castle-class.html` — 성 수업(교육연극) 진행 + 녹음·단계 기록 (index.html 의 "교육" 칸, 학생용 교육 도구 모음에는 없음) |
+| 수업 진행판(범용) | `lesson-board.html` + `lessons/` — 성 수업을 일반화. 어떤 수업이든 단계·시간·할 말·카드를 JSON으로 받아 같은 진행판(시계·늦음 표시·녹음·단계 기록)으로 씀. 새 수업은 화면에서 붙여 넣어 가져오기(설명 `lessons/README.md`) |
 | 성장 발표 | `growth/index.html` — 학생 글쓰기 + AI 선생님 질문 피드백 |
 | 교실 연결 | `school-tool/index.html` — 학생 접속 현황·공지·선생님↔학생 메시지 |
 | 학생 캐릭터 | `school.html` 이야기방 「🧙 캐릭터」 탭 — 조합형 캐릭터 만들기(`shared/char.js`, 서버 `char-hub`) |

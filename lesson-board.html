@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3B4DA3">
+<meta name="robots" content="noindex">
+<title>수업 진행판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 휴대폰 세로 화면 한 장에 단계 하나. 위는 시계와 진행 띠, 아래는 엄지로 누르는 이전·타이머·다음.
+   수업 내용(단계·시간·할 말·카드)은 lessons/*.js 데이터에서 읽는다. 이 파일에는 특정 수업의 글이 없다. */
+:root{
+  --font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --bg:#F3F5FA; --surface:#FFFFFF; --surface-2:#EAEEF8; --ink:#1D2340; --muted:#586080; --line:#D5DAEA;
+  --accent:#3B4DA3; --accent-ink:#FFFFFF; --accent-soft:#E1E6F7;
+  --warn:#7A4E00; --warn-soft:#FFF1CF; --warn-line:#E5C98A;
+  --keep:#8A2F3C; --keep-soft:#FBE6E9;
+  --ok:#2F7A5C; --ok-soft:#DDF1E8;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121626; --surface:#1C2137; --surface-2:#262C47; --ink:#EAEDF9; --muted:#A6ADCC; --line:#333A5C;
+    --accent:#94A3EE; --accent-ink:#121626; --accent-soft:#2A3262;
+    --warn:#F0CD82; --warn-soft:#3A3018; --warn-line:#6A5A2C;
+    --keep:#F2A9B4; --keep-soft:#40222A;
+    --ok:#74CBA4; --ok-soft:#1D3A2E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121626; --surface:#1C2137; --surface-2:#262C47; --ink:#EAEDF9; --muted:#A6ADCC; --line:#333A5C;
+  --accent:#94A3EE; --accent-ink:#121626; --accent-soft:#2A3262;
+  --warn:#F0CD82; --warn-soft:#3A3018; --warn-line:#6A5A2C;
+  --keep:#F2A9B4; --keep-soft:#40222A;
+  --ok:#74CBA4; --ok-soft:#1D3A2E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.65;
+  word-break:keep-all;overflow-wrap:break-word;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 118px;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.app{max-width:560px;margin:0 auto}
+button{font:inherit;color:inherit}
+
+/* 위쪽 고정: 단계 이름, 시계, 진행 띠 */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:10px 0 8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
+.row1{display:flex;align-items:center;gap:10px}
+.stepname{flex:1;min-width:0;font-size:17px;font-weight:700;line-height:1.3}
+.stepname small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.pill{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.row2{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.clock{font-size:34px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.clock small{font-size:13px;color:var(--muted);font-weight:400;margin-left:6px;letter-spacing:0}
+.clock.over{color:var(--warn)}
+.total{text-align:right;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.45}
+.drift{display:inline-block;margin-top:2px;padding:0 8px;border-radius:999px;font-size:12.5px;font-weight:500;background:var(--ok-soft);color:var(--ok)}
+.drift.late{background:var(--warn-soft);color:var(--warn)}
+.strip{display:flex;gap:2px;height:30px}
+.seg{border:0;padding:0;border-radius:6px;background:var(--surface-2);color:var(--muted);font-weight:700;font-size:12px;min-width:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.seg.past{background:var(--accent-soft);color:var(--accent)}
+.seg.cur{background:var(--accent);color:var(--accent-ink)}
+
+/* 본문 */
+main{padding-top:14px;display:flex;flex-direction:column;gap:12px;touch-action:pan-y}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:12.5px;font-weight:500;border-radius:999px;padding:1px 10px;background:var(--surface-2);color:var(--muted)}
+.badge.cut{background:var(--warn-soft);color:var(--warn)}
+.badge.keep{background:var(--keep-soft);color:var(--keep)}
+.alert{background:var(--warn-soft);border:1px dashed var(--warn-line);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14.5px}
+.beat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:opacity .15s}
+.beat.done{opacity:.42}
+.bhead{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bhead b{color:var(--accent);font-weight:700}
+.do{font-size:15px;color:var(--muted)}
+.say{font-size:19px;line-height:1.7;font-weight:500;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+.say+.say{margin-top:0}
+.tip{background:var(--warn-soft);border:1px dashed var(--warn-line);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14.5px}
+.tip b{font-weight:700}
+.picker{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.picker h3{margin:0;font-size:14px;color:var(--muted);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.card-out{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.card-out .l{font-size:12px;color:var(--muted)}
+.card-out .q{font-size:19px;font-weight:500;line-height:1.6}
+.card-out .a{font-size:15px}
+
+/* 아래 고정 막대 */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--bg);border-top:1px solid var(--line);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bar .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px}
+.big{height:60px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:17px;font-weight:700;cursor:pointer}
+.big.go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.big.timer{background:var(--surface-2)}
+.big:disabled{opacity:.35;cursor:default}
+button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 카드 서랍 */
+.sheet{position:fixed;inset:0;z-index:40;display:none}
+.sheet.open{display:block}
+.scrim{position:absolute;inset:0;background:rgba(10,12,24,.5)}
+.panel{position:absolute;left:0;right:0;bottom:0;max-height:86%;background:var(--bg);border-radius:18px 18px 0 0;display:flex;flex-direction:column;
+  padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel .in{max-width:560px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:10px;min-height:0}
+.ph{display:flex;justify-content:space-between;align-items:center}
+.ph h2{margin:0;font-size:17px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.list{overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:0}
+.it{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.it>button{width:100%;text-align:left;background:none;border:0;padding:10px 12px;font-size:16px;font-weight:500;cursor:pointer}
+.it .dt{padding:0 12px 12px;display:none;flex-direction:column;gap:8px}
+.it.open .dt{display:flex}
+.dt .l{font-size:12px;color:var(--muted)}
+.dt .v{font-size:16px}
+.dt .q{font-size:18px;font-weight:500}
+
+/* 녹음 표시줄 */
+.recbar{display:none;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.recbar.show{display:flex}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--keep);flex:none}
+.dot.live{animation:pulse 1.4s ease-in-out infinite}
+.dot.off{background:var(--muted);opacity:.5}
+@keyframes pulse{50%{opacity:.25}}
+.meter{flex:1;max-width:120px;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--ok);transition:width .12s}
+.recbar .msg{flex:1;min-width:0}
+.recbar .msg.bad{color:var(--keep);font-weight:700}
+.notice{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--muted)}
+.notice b{color:var(--ink)}
+.notice.bad{background:var(--keep-soft);border-color:transparent;color:var(--keep)}
+.notice.bad b{color:inherit}
+.notice.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.notice .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.notice ul{margin:6px 0 0;padding-left:20px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-size:14.5px;font-weight:500;cursor:pointer;white-space:nowrap;flex:none;text-decoration:none;color:var(--ink);display:inline-block}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.res h3{margin:6px 0 0;font-size:15px}
+.res audio{width:100%}
+.ta{width:100%;min-height:200px;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,"Noto Sans KR",monospace;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;word-break:normal}
+.res .hint,.hint{font-size:13.5px;color:var(--muted)}
+.res .acts,.acts{display:flex;gap:8px;flex-wrap:wrap}
+.pill.rec{border-color:var(--keep);color:var(--keep)}
+.rn{padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.rn:empty{display:none}
+.chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:15px;color:var(--ink);font-weight:500}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
+
+/* 수업 고르기 화면 */
+body.home{padding-block:0 28px}
+body.home .top,body.home .bar{display:none}
+.home-h{margin:18px 0 0;font-size:22px;line-height:1.3}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.lcard.last{border-color:var(--accent)}
+.lcard h2{margin:0;font-size:17px;line-height:1.35}
+.lcard .meta{font-size:13px;color:var(--muted)}
+.lcards{display:flex;flex-direction:column;gap:10px}
+.ta.imp{min-height:170px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script>
+/* 수업 등록 창구: lessons/*.js 가 registerLesson({...}) 를 부르면 아래 줄에 쌓이고, 본문 스크립트가 검사해서 쓴다 */
+window.LESSON_QUEUE=[];
+window.registerLesson=function(l){window.LESSON_QUEUE.push(l);};
+</script>
+</head>
+<body>
+
+<div class="app">
+  <div class="top" id="topbar">
+    <div class="row1">
+      <div class="stepname" id="sname"></div>
+      <button class="pill" id="star" type="button" hidden aria-label="이 순간 표시">★</button>
+      <button class="pill" id="open-cards" type="button" hidden></button>
+      <button class="pill rec" id="end" type="button" hidden>마침</button>
+    </div>
+    <div class="recbar" id="recbar"><span class="dot off" id="rdot"></span><span id="rtime">녹음 대기</span><span class="meter"><i id="rlev"></i></span><span class="msg" id="rmsg"></span></div>
+    <div class="row2">
+      <div class="clock" id="clock"><span id="ctime">00:00</span><small id="cunit"></small></div>
+      <div class="total"><span id="ttxt"></span><br><span class="drift" id="tdrift"></span></div>
+    </div>
+    <div class="strip" id="strip"></div>
+  </div>
+  <div class="rn" id="rnotice"></div>
+  <main id="main"></main>
+</div>
+
+<div class="bar" id="botbar"><div class="in">
+  <button class="big" id="prev" type="button">이전</button>
+  <button class="big timer" id="tbtn" type="button">수업 시작</button>
+  <button class="big go" id="next" type="button">다음</button>
+</div></div>
+
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="scrim" id="scrim"></div>
+  <div class="panel"><div class="in">
+    <div class="ph"><h2 id="ctitle">카드</h2><button class="pill" id="close-cards" type="button">닫기</button></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="list" id="list"></div>
+  </div></div>
+</div>
+
+<div class="sheet" id="rsheet" aria-hidden="true">
+  <div class="scrim" id="rscrim"></div>
+  <div class="panel"><div class="in res">
+    <div class="ph"><h2>수업 기록</h2><button class="pill" id="rclose" type="button">닫기</button></div>
+    <div class="list" id="rbody"></div>
+  </div></div>
+</div>
+
+<!-- 내장 수업: 새 수업 파일을 lessons/ 에 만들면 여기에 한 줄을 더한다 (설명: lessons/README.md) -->
+<script src="lessons/castle.js"></script>
+
+<script>
+(function(){
+"use strict";
+
+/* ===== 작은 도구: 수업 데이터에서 온 글은 전부 textContent 로만 화면에 넣는다 ===== */
+var $=function(id){return document.getElementById(id);};
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+/* **굵게** 와 줄바꿈(\n)만 알아듣는다. HTML 은 글자 그대로 보인다 */
+function rich(parent,text){
+  String(text==null?'':text).split('\n').forEach(function(line,li){
+    if(li)parent.appendChild(document.createElement('br'));
+    line.split('**').forEach(function(seg,i){
+      if(!seg)return;
+      if(i%2){var b=document.createElement('b');b.textContent=seg;parent.appendChild(b);}
+      else parent.appendChild(document.createTextNode(seg));
+    });
+  });
+  return parent;
+}
+function pad(n){return (n<10?'0':'')+n;}
+function two(n){return pad(n);}
+function fmt(ms){var s=Math.floor(Math.abs(ms)/1000);return pad(Math.floor(s/60))+':'+pad(s%60);}
+function fmtMin(m){return String(Math.round(m*10)/10);}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
+function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+function copyText(text,btn,label){
+  var ok=function(){btn.textContent='복사했어요';setTimeout(function(){btn.textContent=label;},1500);};
+  var fb=function(){
+    var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');ok();}catch(e){btn.textContent='복사 실패';}
+    ta.remove();
+  };
+  try{navigator.clipboard.writeText(text).then(ok).catch(fb);}catch(e){fb();}
+}
+function startsOf(steps){var out=[],acc=0;steps.forEach(function(s){out.push(acc);acc+=s.min;});return out;}
+
+/* ===== 수업 데이터 검사·정리 =====
+   내장 수업(lessons/*.js)과 가져온 수업을 같은 규칙으로 검사해, 엔진은 항상 정리된 한 가지 모양만 받는다.
+   형식 설명: lessons/README.md (아래 ASK_TEXT 의 요청문과 같은 내용) */
+var MAXSTR=3000,CUSTOM_PREFIX='lesson-custom-',MAX_CUSTOM=30;
+function txt(v,max){return (typeof v==='string'||typeof v==='number')?String(v).slice(0,max||MAXSTR):'';}
+function safeName(s){return String(s||'').replace(/[\\\/:*?"<>|\s]+/g,'').slice(0,20)||'수업';}
+function okId(s){return typeof s==='string'&&/^[a-z0-9][a-z0-9_-]{0,39}$/.test(s);}
+
+function normalizeLesson(raw,builtin){
+  var E=[];
+  function bad(m){if(E.length<10)E.push(m);}
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))return {errors:['맨 바깥이 { } 모양이 아니에요. 붙여 넣은 글이 JSON 하나인지 확인하세요.']};
+  var L={id:okId(raw.id)?raw.id:'',title:txt(raw.title,60),subtitle:txt(raw.subtitle,200),record:raw.record!==false,steps:[],cards:null,builtin:!!builtin,prefix:''};
+  if(!L.title)bad('title(수업 이름)이 비어 있어요');
+  L.fileLabel=safeName(raw.fileLabel||L.title);
+  L.logTitle=txt(raw.logTitle,80)||(L.title+' 기록');
+  L.legacyPrefix=(builtin&&typeof raw.legacyPrefix==='string'&&/^[a-z][a-z0-9-]{0,19}$/.test(raw.legacyPrefix))?raw.legacyPrefix:'';
+
+  if(raw.cards!=null){
+    var c=raw.cards;
+    if(typeof c!=='object'||Array.isArray(c))bad('cards 는 { } 모양이어야 해요');
+    else{
+      var fields=Array.isArray(c.fields)?c.fields.map(function(f){return txt(f,30);}).filter(Boolean):[];
+      if(!fields.length||fields.length>4)bad('cards.fields(칸 이름)는 1~4개예요');
+      var groups=[];
+      if(!Array.isArray(c.groups)||!c.groups.length||c.groups.length>12)bad('cards.groups(묶음)는 1~12개예요');
+      else c.groups.forEach(function(g,gi){
+        var w='cards.groups '+(gi+1)+': ';
+        if(!g||typeof g!=='object'||!Array.isArray(g.items)||!g.items.length){bad(w+'items(카드 목록)이 비어 있어요');return;}
+        if(g.items.length>60){bad(w+'카드는 60개까지예요');return;}
+        var items=[];
+        g.items.forEach(function(it,ii){
+          if(!Array.isArray(it)||!txt(it[0],40)){bad(w+(ii+1)+'번째 카드는 ["이름","칸1","칸2"] 모양이고 이름이 있어야 해요');return;}
+          if(it.length-1>fields.length){bad(w+'"'+txt(it[0],40)+'" 카드의 칸이 fields 보다 많아요');return;}
+          var row=[txt(it[0],40)];
+          for(var k=0;k<fields.length;k++)row.push(txt(it[k+1],600));
+          items.push(row);
+        });
+        groups.push({g:txt(g.g,30)||('묶음 '+(gi+1)),items:items});
+      });
+      var big=-1;
+      if(c.big!=null){
+        var bn=Number(c.big);
+        if(bn>=0&&Math.floor(bn)===bn&&bn<fields.length)big=bn;else bad('cards.big 은 크게 보일 칸 번호(0부터)예요');
+      }
+      L.cards={button:txt(c.button,12)||'카드',title:txt(c.title,30)||txt(c.button,12)||'카드',pick:txt(c.pick,60)||'카드를 고르세요',fields:fields,big:big,groups:groups};
+    }
+  }
+
+  if(!Array.isArray(raw.steps)||!raw.steps.length)bad('steps(단계 목록)가 비어 있어요');
+  else if(raw.steps.length>30)bad('단계는 30개까지예요');
+  else raw.steps.forEach(function(s,i){
+    var w='단계 '+(i+1)+': ';
+    if(!s||typeof s!=='object'||Array.isArray(s)){bad(w+'{ } 모양이 아니에요');return;}
+    var st={n:i+1,name:txt(s.name,40),tag:txt(s.tag,60),min:0,flag:'',beats:[],tip:txt(s.tip,1500),picker:-1};
+    if(!st.name)bad(w+'name(단계 이름)이 비어 있어요');
+    var min=Number(s.min);
+    if(!(min>0&&min<=240))bad(w+'min(분)은 0보다 크고 240 이하인 숫자여야 해요');else st.min=Math.round(min*10)/10;
+    var flag=s.flag==null?'':s.flag;
+    if(flag===''||flag==='cut'||flag==='keep')st.flag=flag;else bad(w+'flag 는 "keep"(줄이지 말 것), "cut"(줄여도 됨), ""(없음) 중 하나예요');
+    if(s.beats!=null&&!Array.isArray(s.beats))bad(w+'beats(활동 목록)는 [ ] 모양이어야 해요');
+    else if((s.beats||[]).length>30)bad(w+'활동(beats)은 30개까지예요');
+    else (s.beats||[]).forEach(function(b,bi){
+      var w2=w+'활동 '+(bi+1)+': ';
+      if(!b||typeof b!=='object'||Array.isArray(b)){bad(w2+'{ } 모양이 아니에요');return;}
+      var say=b.say==null?[]:(typeof b.say==='string'?[b.say]:b.say);
+      if(!Array.isArray(say)||say.length>20||say.some(function(x){return typeof x!=='string';})){bad(w2+'say 는 글 목록이어야 해요(말할 문장이 없으면 [])');return;}
+      st.beats.push({t:txt(b.t,60),do:txt(b.do,600),say:say.map(function(x){return x.slice(0,MAXSTR);})});
+    });
+    if(s.picker!=null){
+      var p=Number(s.picker);
+      if(!L.cards)bad(w+'picker 를 쓰려면 cards 가 있어야 해요');
+      else if(!(p>=0&&Math.floor(p)===p&&p<st.beats.length))bad(w+'picker 는 카드를 보여 줄 활동 번호(0부터)예요. 이 단계는 활동이 '+st.beats.length+'개예요');
+      else st.picker=p;
+    }
+    L.steps.push(st);
+  });
+  return E.length?{errors:E}:{lesson:L};
+}
+
+/* 가져온 수업을 저장·복사할 때 쓰는 "바깥 모양"(= 가져오기에 붙여 넣는 JSON) */
+function exportLesson(L){
+  var o={id:L.id,title:L.title,subtitle:L.subtitle,fileLabel:L.fileLabel,logTitle:L.logTitle,record:L.record,steps:L.steps.map(function(s){
+    var x={name:s.name,tag:s.tag,min:s.min,flag:s.flag,beats:s.beats.map(function(b){return {t:b.t,do:b.do,say:b.say.slice()};})};
+    if(s.tip)x.tip=s.tip;
+    if(s.picker>=0)x.picker=s.picker;
+    return x;
+  })};
+  if(L.cards){o.cards={button:L.cards.button,title:L.cards.title,pick:L.cards.pick,fields:L.cards.fields.slice(),groups:L.cards.groups.map(function(g){return {g:g.g,items:g.items.map(function(it){return it.slice();})};})};if(L.cards.big>=0)o.cards.big=L.cards.big;}
+  return o;
+}
+
+/* ===== 수업 목록: 내장(lessons/*.js) + 이 기기에 가져온 것 ===== */
+var BUILTIN=[],BUILTIN_BAD=[];
+(window.LESSON_QUEUE||[]).forEach(function(raw){
+  var r=normalizeLesson(raw,true);
+  if(!r.lesson||!r.lesson.id){BUILTIN_BAD.push((raw&&(raw.title||raw.id))||'이름 없음');return;}
+  if(BUILTIN.some(function(b){return b.id===r.lesson.id;}))return;
+  r.lesson.prefix=r.lesson.legacyPrefix||('lesson-'+r.lesson.id);
+  BUILTIN.push(r.lesson);
+});
+function loadCustom(){
+  var list=[],bad=0;
+  try{
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(!k||k.indexOf(CUSTOM_PREFIX)!==0)continue;
+      var id=k.slice(CUSTOM_PREFIX.length),raw=null;
+      try{raw=JSON.parse(localStorage.getItem(k));}catch(e){}
+      var r=okId(id)?normalizeLesson(raw,false):{errors:['x']};
+      if(r.lesson){r.lesson.id=id;r.lesson.prefix='lesson-'+id;list.push(r.lesson);}else bad++;
+    }
+  }catch(e){}
+  list.sort(function(a,b){return a.title<b.title?-1:1;});
+  return {list:list,bad:bad};
+}
+function allLessons(){return BUILTIN.concat(loadCustom().list);}
+function findLesson(id){var a=allLessons();for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
+
+/* 가져오기: 붙여 넣은 글 → 검사 → 이 기기에 저장 */
+function importLesson(text){
+  var t=String(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+  if(!t)return {errors:['붙여 넣은 글이 비어 있어요']};
+  if(t.length>200000)return {errors:['글이 너무 길어요(20만 자까지)']};
+  var raw;
+  try{raw=JSON.parse(t);}catch(e){return {errors:['JSON 으로 읽을 수 없어요('+e.message+'). 붙여 넣을 때 앞뒤에 설명 글이 섞이지 않았는지 확인하세요.']};}
+  var r=normalizeLesson(raw,false);
+  if(!r.lesson)return r;
+  var L=r.lesson,id=L.id||('c'+Date.now().toString(36));
+  if(BUILTIN.some(function(b){return b.id===id;}))id=(id+'-mine').slice(0,40);
+  var existing=lsGet(CUSTOM_PREFIX+id)!==null;
+  if(!existing&&loadCustom().list.length>=MAX_CUSTOM)return {errors:['가져온 수업이 '+MAX_CUSTOM+'개예요. 안 쓰는 수업을 먼저 지워 주세요.']};
+  L.id=id;L.prefix='lesson-'+id;
+  if(!lsSet(CUSTOM_PREFIX+id,JSON.stringify(exportLesson(L))))return {errors:['이 기기에 저장하지 못했어요(저장 공간이 부족하거나 비공개 창일 수 있어요).']};
+  return {lesson:L,replaced:existing};
+}
+
+/* "Claude에게 줄 요청문": 수업 계획을 이 형식으로 바꿔 달라고 할 때 그대로 붙여 넣는다 */
+var ASK_TEXT=[
+'아래 수업 계획(지도안)을 "수업 진행판" JSON 하나로 바꿔 줘. 설명이나 코드 블록 없이 JSON 만 보내 줘.',
+'',
+'[형식]',
+'- 맨 바깥: title(수업 이름, 필수), subtitle(한 줄 설명), fileLabel(저장 파일 이름 앞부분, 짧게), logTitle(기록 문서 제목), record(true/false: 처음에 녹음을 켤지), steps(단계 목록, 필수), cards(선택)',
+'- steps 의 각 단계: name(단계 이름), tag(작은 글씨로 붙일 활동 이름, 없으면 ""), min(배정 분, 숫자), flag("keep"=줄이지 말 것 / "cut"=시간이 밀리면 줄여도 됨 / ""=없음), beats(활동 목록), tip(선생님 참고 글, 선택), picker(카드를 보여 줄 활동 번호, 0부터, 선택)',
+'- beats 의 각 활동: t(시각·시간 표시, 예 "0:30 · 2분"), do(교사가 할 일), say(교사가 말할 문장 목록, 없으면 [])',
+'- cards(선택): button(버튼 이름), pick(고르기 안내 문구), fields(칸 이름 목록, 최대 4개), big(크게 보일 칸 번호, 0부터), groups(묶음 목록: {"g":"묶음 이름","items":[["카드 이름","칸1 내용","칸2 내용"]]})',
+'- 글 안에서 **이렇게** 쓰면 굵게, \\n 은 줄바꿈이야. HTML 태그는 쓰지 마.',
+'- 학생 이름·번호는 넣지 마.',
+'- 단계 min 을 모두 더해 수업 시간과 맞는지 확인하고, 안 맞으면 JSON 앞에 한 줄로 알려 줘.',
+'',
+'[수업 계획]',
+'(여기에 수업 계획을 붙여 넣기)'
+].join('\n');
+var TEMPLATE={id:'my-lesson',title:'새 수업 이름',subtitle:'학년·과목·한 줄 설명',fileLabel:'새수업',logTitle:'새 수업 기록',record:true,steps:[
+  {name:'도입',tag:'',min:10,flag:'',beats:[{t:'0:00 · 3분',do:'교사가 할 일',say:['교사가 말할 문장']}],tip:'참고 글(없으면 이 줄을 지워도 돼요)'},
+  {name:'활동',tag:'',min:25,flag:'keep',beats:[{t:'3분',do:'모둠 활동 안내',say:[]}]},
+  {name:'정리',tag:'',min:5,flag:'cut',beats:[]}
+]};
+
+/* ===== 임시 녹음 보관(IndexedDB): 새로고침·꺼짐 뒤에도 "지난 녹음"으로 꺼낼 수 있다.
+   저장소 이름 castle-rec 은 성 수업 때부터 쓰던 이름이라 그대로 둔다(바꾸면 남은 녹음이 안 보인다) ===== */
+var IDB=null;
+function idbOpen(cb){
+  if(IDB)return cb(IDB);
+  try{
+    var r=indexedDB.open('castle-rec',1);
+    r.onupgradeneeded=function(){r.result.createObjectStore('chunks',{autoIncrement:true});};
+    r.onsuccess=function(){IDB=r.result;cb(IDB);};
+    r.onerror=function(){cb(null);};
+  }catch(e){cb(null);}
+}
+function idbAdd(rec){idbOpen(function(db){if(!db)return;try{db.transaction('chunks','readwrite').objectStore('chunks').add(rec);}catch(e){}});}
+function idbLoadAll(cb){
+  idbOpen(function(db){
+    if(!db)return cb([]);
+    try{
+      var by={};var rq=db.transaction('chunks','readonly').objectStore('chunks').openCursor();
+      rq.onsuccess=function(){var c=rq.result;if(c){var r=c.value;(by[r.sid]=by[r.sid]||[]).push(r);c.continue();}else{
+        var list=Object.keys(by).map(function(k){var a=by[k].sort(function(x,y){return x.seq-y.seq;});return {sid:a[0].sid,mime:a[0].mime,lesson:a[0].lesson||'castle',blobs:a.map(function(r){return r.blob;})};});
+        list.sort(function(a,b){return b.sid-a.sid;});cb(list);
+      }};
+      rq.onerror=function(){cb([]);};
+    }catch(e){cb([]);}
+  });
+}
+/* 한 수업(sid)의 조각만 지운다. 다른 수업의 녹음은 남긴다 */
+function idbDelSid(sid,cb){
+  idbOpen(function(db){
+    if(!db)return cb&&cb();
+    try{var t=db.transaction('chunks','readwrite');var rq=t.objectStore('chunks').openCursor();
+      rq.onsuccess=function(){var c=rq.result;if(c){if(c.value.sid===sid)c.delete();c.continue();}};
+      t.oncomplete=function(){cb&&cb();};t.onerror=function(){cb&&cb();};
+    }catch(e){cb&&cb();}
+  });
+}
+function idbClear(cb){idbOpen(function(db){if(!db)return cb&&cb();try{var t=db.transaction('chunks','readwrite');t.objectStore('chunks').clear();t.oncomplete=function(){cb&&cb();};}catch(e){cb&&cb();}});}
+function logKeyFor(lessonId){var l=findLesson(lessonId||'castle');return l?l.prefix+'-log':null;}
+
+/* ===== 수업 기록 문서 + 결과 화면 ===== */
+function rel(at,base){var s=Math.max(0,Math.round((at-base)/1000));return '['+pad(Math.floor(s/60))+':'+pad(s%60)+']';}
+function buildLog(Lg,les){
+  var steps=les?les.steps:[],START=startsOf(steps);
+  var base=Lg.recStart||Lg.classStart,d=new Date(Lg.classStart);
+  var out=[];
+  out.push((les?les.logTitle:'수업 기록')+' '+d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate())+' '+two(d.getHours())+':'+two(d.getMinutes()));
+  out.push(Lg.recStart?'아래 [mm:ss]는 녹음 파일 시작(00:00)을 기준으로 한 시각입니다.':'녹음 없이 진행함. [mm:ss]는 수업 시작 기준입니다.');
+  out.push('');
+  var names={pause:'⏸ 일시정지',resume:'▶ 계속',star:'★ 표시',hide:'· 화면 이탈(녹음 끊김 주의)',show:'· 화면 복귀',end:'■ 마침',lost:'! 녹음 끊김',mute:'! 마이크 멈춤',unmute:'· 마이크 복귀',norec:'! 녹음 안 됨'};
+  var sums={};
+  Lg.marks.forEach(function(m){
+    if(m.k==='step'){
+      var s=steps[m.n-1];
+      out.push(rel(m.at,base)+' ▶ '+(s?m.n+' '+s.name+' 시작 (예정 '+fmtMin(START[m.n-1])+'–'+fmtMin(START[m.n-1]+s.min)+'분 지점, '+fmtMin(s.min)+'분 배정)':'단계 '+m.n+' 시작'));
+    }else if(m.k==='end')out.push(rel(m.at,base)+' '+names.end);
+    else out.push(rel(m.at,base)+' '+(names[m.k]||m.k)+(m.txt?' '+m.txt:''));
+  });
+  var marks=Lg.marks.filter(function(m){return m.k==='step'||m.k==='end';});
+  for(var i=0;i<marks.length-1;i++){
+    if(marks[i].k!=='step')continue;
+    var n=marks[i].n;sums[n]=(sums[n]||0)+(marks[i+1].at-marks[i].at);
+  }
+  out.push('');out.push('단계별 걸린 시간 (일시정지 포함)');
+  steps.forEach(function(s){
+    if(sums[s.n]!==undefined){var sec=Math.round(sums[s.n]/1000);out.push(s.n+' '+s.name+'  '+pad(Math.floor(sec/60))+':'+pad(sec%60)+'  (예정 '+fmtMin(s.min)+'분)');}
+  });
+  return out.join('\n');
+}
+function rsheet(open){var s=$('rsheet');s.classList.toggle('open',open);s.setAttribute('aria-hidden',open?'false':'true');}
+$('rclose').addEventListener('click',function(){rsheet(false);});
+$('rscrim').addEventListener('click',function(){rsheet(false);});
+
+var RES=null;
+function openResult(blob,Lg,note,les){
+  RES={blob:blob,L:Lg};
+  var d=new Date(Lg.classStart),stamp=d.getFullYear()+two(d.getMonth()+1)+two(d.getDate())+'_'+two(d.getHours())+two(d.getMinutes());
+  var base=(les?les.fileLabel:'수업')+'_'+stamp;
+  var fname=base+'.'+(Lg.ext||'webm');
+  var body=$('rbody');body.textContent='';
+  if(note)body.appendChild(rich(el('div','notice'),note));
+  if(blob&&blob.size){
+    var url=URL.createObjectURL(blob);
+    body.appendChild(el('h3',null,'녹음 ('+(blob.size/1048576).toFixed(1)+'MB)'));
+    var au=el('audio');au.controls=true;au.preload='metadata';au.src=url;body.appendChild(au);
+    var acts=el('div','acts');
+    var dl=el('a','btn pri','녹음 저장');dl.href=url;dl.setAttribute('download',fname);acts.appendChild(dl);
+    var shr=el('button','btn','공유 (클로바 노트 등)');shr.type='button';shr.hidden=true;acts.appendChild(shr);
+    body.appendChild(acts);
+    body.appendChild(el('div','hint','저장이 안 되고 재생 화면만 열리면 공유 버튼(또는 브라우저 메뉴의 “다운로드”)을 써 보세요.'));
+    if(navigator.canShare){
+      try{var f=new File([blob],fname,{type:blob.type||Lg.mime});if(navigator.canShare({files:[f]})){shr.hidden=false;shr.onclick=function(){navigator.share({files:[f],title:les?les.title:'수업 녹음'}).catch(function(){});};}}catch(e){}
+    }
+  }else if(Lg.recOff){
+    body.appendChild(el('div','notice','이번 수업은 녹음 없이 진행했어요. 아래 기록은 단계별 시간 기록으로 쓸 수 있어요.'));
+  }else{
+    body.appendChild(el('div','notice bad','저장된 녹음이 없습니다. 클로바 노트 녹음을 사용하세요. 아래 기록은 수업 시간표 기록으로만 쓸 수 있어요.'));
+  }
+  body.appendChild(el('h3',null,'단계 기록'));
+  var text=buildLog(Lg,les);
+  var ta=el('textarea','ta');ta.id='logta';ta.readOnly=true;ta.value=text;body.appendChild(ta);
+  var acts2=el('div','acts');
+  var cp=el('button','btn pri','기록 복사');cp.type='button';cp.id='cp';
+  cp.onclick=function(){copyText(ta.value,cp,'기록 복사');};
+  var dlt=el('a','btn','기록 저장(.txt)');dlt.href=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));dlt.setAttribute('download',base+'_기록.txt');
+  acts2.appendChild(cp);acts2.appendChild(dlt);body.appendChild(acts2);
+  body.appendChild(rich(el('div','hint'),'**분석할 때:** 녹음 파일을 클로바 노트에 올려 전사한 뒤, 이 기록의 [mm:ss]와 전사 시각을 맞춰 활동별로 나누세요.'));
+  if(blob&&blob.size)body.appendChild(el('div','notice','학생 목소리가 담긴 파일입니다. 소리는 이 기기에서만 처리되고 서버로 보내지 않았어요. 학교 지침에 맞게 보관하고, 분석이 끝나면 지우세요.'));
+  var acts3=el('div','acts');
+  var wipe=el('button','btn','이 기기에서 이 녹음 지우기');wipe.type='button';wipe.id='wipe';
+  wipe.onclick=function(){
+    if(wipe.getAttribute('data-ask')!=='1'){wipe.setAttribute('data-ask','1');wipe.textContent='정말 지울까요? 한 번 더 누르세요';return;}
+    idbDelSid(Lg.sid,function(){
+      var key=logKeyFor(Lg.lesson);
+      if(key){try{var LS=JSON.parse(lsGet(key)||'null');if(LS&&LS.sid===Lg.sid)lsDel(key);}catch(e){}}
+      wipe.textContent='이 녹음을 지웠어요(저장한 파일은 그대로)';wipe.disabled=true;
+    });
+  };
+  acts3.appendChild(wipe);body.appendChild(acts3);
+  rsheet(true);
+}
+
+/* 지난 녹음 복구 안내(수업 고르기 화면과 수업 화면에서 같이 쓴다) */
+function showRecovery(container,isStarted){
+  idbLoadAll(function(list){
+    if(!list.length||(isStarted&&isStarted()))return;
+    var box=el('div','notice bad');
+    box.appendChild(el('b',null,'지난 녹음이 이 기기에 '+list.length+'개 남아 있어요'));
+    list.forEach(function(r){
+      var blob=new Blob(r.blobs,{type:r.mime});var d=new Date(r.sid);
+      var les=findLesson(r.lesson);
+      var key=logKeyFor(r.lesson),LS=null;
+      if(key){try{LS=JSON.parse(lsGet(key)||'null');}catch(e){}}
+      var row=el('div','row');row.style.cssText='align-items:center;margin-top:8px';
+      row.appendChild(el('span',null,(d.getMonth()+1)+'/'+d.getDate()+' '+two(d.getHours())+':'+two(d.getMinutes())+' 시작 · '+(blob.size/1048576).toFixed(1)+'MB · '+(les?les.title:'지워진 수업')));
+      var b=el('button','btn pri','열어서 저장');b.type='button';
+      b.onclick=function(){
+        var Lg=(LS&&LS.sid===r.sid)?LS:{sid:r.sid,classStart:r.sid,recStart:r.sid,mime:r.mime,ext:/mp4/.test(r.mime)?'m4a':(/ogg/.test(r.mime)?'ogg':'webm'),marks:[]};
+        Lg.lesson=Lg.lesson||r.lesson;
+        openResult(blob,Lg,'지난 녹음을 불러왔어요.',les);
+      };
+      row.appendChild(b);box.appendChild(row);
+    });
+    var dr=el('div','row');dr.style.marginTop='10px';
+    var del=el('button','btn','모두 지우기');del.type='button';
+    del.onclick=function(){
+      if(del.getAttribute('data-ask')!=='1'){del.setAttribute('data-ask','1');del.textContent='정말 모두 지울까요? 한 번 더 누르세요';return;}
+      idbClear(function(){allLessons().forEach(function(l){lsDel(l.prefix+'-log');});box.remove();});
+    };
+    dr.appendChild(del);box.appendChild(dr);
+    container.insertBefore(box,container.firstChild);
+  });
+}
+
+/* ===== 수업 고르기 화면 ===== */
+function showHome(note,noteKind){
+  document.body.classList.add('home');
+  document.title='수업 진행판';
+  var m=$('main');m.textContent='';
+  m.appendChild(el('h1','home-h','수업 진행판'));
+  m.appendChild(el('div','notice','수업을 고르면 단계별 시간·할 말·카드가 나와요. “수업 시작”을 누르면 단계 기록(과 선택한 경우 녹음)이 남아요. 가져온 수업 내용은 이 기기 안에만 저장돼요.'));
+  var msg=el('div');m.appendChild(msg);
+  function say(t,kind){msg.textContent='';if(!t)return;var n=el('div','notice'+(kind?' '+kind:''));rich(n,t);msg.appendChild(n);}
+  say(note,noteKind);
+  if(BUILTIN_BAD.length)say('**내장 수업 데이터에 오류가 있어 못 읽은 수업:** '+BUILTIN_BAD.join(', '),'bad');
+  var rec=el('div');m.appendChild(rec);
+  var wrap=el('div','lcards');m.appendChild(wrap);
+
+  function renderList(){
+    wrap.textContent='';
+    var c=loadCustom(),all=BUILTIN.concat(c.list),last=lsGet('lesson-last');
+    all.sort(function(a,b){return (b.id===last?1:0)-(a.id===last?1:0);});
+    all.forEach(function(L){
+      var card=el('div','lcard'+(L.id===last?' last':''));
+      card.appendChild(el('h2',null,L.title));
+      if(L.subtitle)card.appendChild(el('div','meta',L.subtitle));
+      var tot=0;L.steps.forEach(function(s){tot+=s.min;});
+      card.appendChild(el('div','meta',L.steps.length+'단계 · '+fmtMin(tot)+'분 · '+(L.builtin?'기본 제공':'내가 가져온 수업')+(L.id===last?' · 마지막으로 연 수업':'')));
+      var acts=el('div','acts');
+      var open=el('a','btn pri','열기');open.href='lesson-board.html?lesson='+encodeURIComponent(L.id);acts.appendChild(open);
+      var cp=el('button','btn','JSON 복사');cp.type='button';cp.onclick=function(){copyText(JSON.stringify(exportLesson(L),null,1),cp,'JSON 복사');};acts.appendChild(cp);
+      if(!L.builtin){
+        var del=el('button','btn','지우기');del.type='button';
+        del.onclick=function(){
+          if(del.getAttribute('data-ask')!=='1'){del.setAttribute('data-ask','1');del.textContent='정말 지울까요?';return;}
+          lsDel(CUSTOM_PREFIX+L.id);lsDel(L.prefix+'-step');lsDel(L.prefix+'-log');lsDel(L.prefix+'-rec');
+          say('“'+L.title+'” 수업을 이 기기에서 지웠어요.');renderList();
+        };
+        acts.appendChild(del);
+      }
+      card.appendChild(acts);wrap.appendChild(card);
+    });
+    if(c.bad)wrap.appendChild(el('div','notice bad','저장된 가져온 수업 '+c.bad+'개를 읽지 못했어요(내용이 깨졌을 수 있어요).'));
+  }
+  renderList();
+
+  var addBtn=el('button','btn pri','＋ 새 수업 가져오기');addBtn.type='button';addBtn.style.alignSelf='flex-start';m.appendChild(addBtn);
+  var panel=el('div','picker');panel.hidden=true;m.appendChild(panel);
+  panel.appendChild(el('h3',null,'새 수업 가져오기'));
+  var how=el('div','hint');
+  how.appendChild(rich(el('div'),'**1.** [Claude에게 줄 요청문 복사]를 눌러 Claude 대화창에 붙여 넣고, 그 아래에 수업 계획(지도안)을 이어 붙이세요.'));
+  how.appendChild(rich(el('div'),'**2.** Claude가 보내 준 JSON 글을 아래 칸에 붙여 넣고 [가져오기]를 누르세요.'));
+  how.appendChild(rich(el('div'),'학생 이름·번호가 든 글은 붙이지 마세요.'));
+  panel.appendChild(how);
+  var pa=el('div','acts');
+  var askB=el('button','btn','Claude에게 줄 요청문 복사');askB.type='button';askB.onclick=function(){copyText(ASK_TEXT,askB,'Claude에게 줄 요청문 복사');};
+  var tplB=el('button','btn','빈 양식 복사');tplB.type='button';tplB.onclick=function(){copyText(JSON.stringify(TEMPLATE,null,1),tplB,'빈 양식 복사');};
+  pa.appendChild(askB);pa.appendChild(tplB);panel.appendChild(pa);
+  var ta=el('textarea','ta imp');ta.placeholder='여기에 JSON 을 붙여 넣으세요';ta.setAttribute('aria-label','수업 JSON');panel.appendChild(ta);
+  var errs=el('div');panel.appendChild(errs);
+  var go=el('button','btn pri','가져오기');go.type='button';go.style.alignSelf='flex-start';panel.appendChild(go);
+  go.onclick=function(){
+    errs.textContent='';
+    var r=importLesson(ta.value);
+    if(!r.lesson){
+      var box=el('div','notice bad');box.appendChild(el('b',null,'가져오지 못했어요. 아래를 고친 뒤 다시 눌러 주세요.'));
+      var ul=el('ul');r.errors.forEach(function(e){ul.appendChild(el('li',null,e));});box.appendChild(ul);errs.appendChild(box);return;
+    }
+    ta.value='';panel.hidden=true;addBtn.hidden=false;
+    say('“'+r.lesson.title+'” 수업을 '+(r.replaced?'같은 id의 기존 수업을 바꿔서 ':'')+'가져왔어요. 아래 목록에서 열 수 있어요.','ok');
+    renderList();window.scrollTo(0,0);
+  };
+  addBtn.onclick=function(){panel.hidden=false;addBtn.hidden=true;ta.focus();};
+  showRecovery(rec,null);
+}
+
+/* ===== 수업 화면(진행판) ===== */
+function startBoard(LESSON){
+  var STEPS=LESSON.steps,START=startsOf(STEPS),TOTAL=0;STEPS.forEach(function(s){TOTAL+=s.min;});
+  var K_STEP=LESSON.prefix+'-step',K_LOG=LESSON.prefix+'-log',K_REC=LESSON.prefix+'-rec';
+  var CARDS=LESSON.cards;
+  document.title=LESSON.title;
+  lsSet('lesson-last',LESSON.id);
+
+  var ended=false,cur=0,started=false,paused=false,elapsed=0,stepEl=0,last=0,drift=0,warned=false,tid=null,wake=null,done={},endArmed=null;
+  var sv=parseInt(lsGet(K_STEP),10);if(sv>=0&&sv<STEPS.length)cur=sv;
+
+  function cardOut(it,cls,bigCls){
+    var box=el('div',cls);
+    CARDS.fields.forEach(function(f,fi){
+      if(!it[fi+1])return;
+      box.appendChild(el('div','l',f));
+      box.appendChild(el('div',fi===CARDS.big?'q':bigCls,it[fi+1]));
+    });
+    return box;
+  }
+
+  function renderStrip(){
+    var s=$('strip');s.textContent='';
+    STEPS.forEach(function(st,i){
+      var b=el('button','seg'+(i<cur?' past':'')+(i===cur?' cur':''),String(st.n));
+      b.type='button';b.style.flex=String(st.min);b.setAttribute('data-i',String(i));
+      b.setAttribute('aria-label',st.n+' '+st.name+' '+fmtMin(st.min)+'분');
+      s.appendChild(b);
+    });
+  }
+
+  function renderStep(){
+    var s=STEPS[cur];
+    var sn=$('sname');sn.textContent=s.n+'/'+STEPS.length+' '+s.name;
+    sn.appendChild(el('small',null,(s.tag?s.tag+' · ':'')+fmtMin(s.min)+'분'));
+    var m=$('main');m.textContent='';
+    var bd=el('div','badges');
+    if(s.flag==='cut')bd.appendChild(el('span','badge cut','시간 밀리면 줄여도 됨'));
+    if(s.flag==='keep')bd.appendChild(el('span','badge keep','줄이지 말 것'));
+    bd.appendChild(el('span','badge','예정 '+fmtMin(START[cur])+'–'+fmtMin(START[cur]+s.min)+'분'));
+    m.appendChild(bd);
+    var al=el('div');al.id='alert';m.appendChild(al);
+    s.beats.forEach(function(b,bi){
+      var k=cur+'-'+bi;
+      var bt=el('div','beat'+(done[k]?' done':''));bt.setAttribute('data-k',k);
+      var hd=el('div','bhead');hd.appendChild(el('b',null,b.t));hd.appendChild(el('span',null,'눌러서 체크'));bt.appendChild(hd);
+      if(b.do)bt.appendChild(rich(el('div','do'),b.do));
+      b.say.forEach(function(x){bt.appendChild(rich(el('div','say'),x));});
+      m.appendChild(bt);
+      if(CARDS&&s.picker===bi){
+        var pk=el('div','picker');pk.appendChild(el('h3',null,CARDS.pick));
+        var chips=el('div','chips');chips.id='pk';
+        CARDS.groups.forEach(function(g,gi){g.items.forEach(function(it,ii){
+          var ch=el('button','chip',it[0]);ch.type='button';ch.setAttribute('data-g',String(gi));ch.setAttribute('data-i',String(ii));chips.appendChild(ch);
+        });});
+        pk.appendChild(chips);var out=el('div');out.id='pkout';pk.appendChild(out);m.appendChild(pk);
+      }
+    });
+    if(s.tip)m.appendChild(rich(el('div','tip'),s.tip));
+    renderStrip();
+    renderAlert();
+    $('prev').disabled=cur===0;
+    $('next').disabled=cur===STEPS.length-1;
+    $('next').textContent=cur===STEPS.length-1?'끝':'다음';
+    window.scrollTo(0,0);
+    lsSet(K_STEP,String(cur));
+  }
+
+  function renderAlert(){
+    var a=$('alert');if(!a)return;a.textContent='';
+    if(started&&drift>=3){
+      var cuts=[];
+      STEPS.forEach(function(s,i){if(i>cur&&s.flag==='cut')cuts.push(s.name+'('+fmtMin(s.min)+'분)');});
+      var box=el('div','alert');box.appendChild(el('b',null,'계획보다 '+Math.round(drift)+'분 늦었어요.'));
+      box.appendChild(document.createTextNode(cuts.length?' 줄일 것: '+cuts.join(' → '):' 이 단계에서 줄이세요.'));
+      a.appendChild(box);
+    }
+  }
+
+  function setDrift(){drift=elapsed/60000-START[cur];renderAlert();}
+
+  function goto(i){
+    if(i<0||i>=STEPS.length)return;
+    cur=i;stepEl=0;warned=false;
+    if(started)markStep();
+    setDrift();
+    renderStep();
+    tick(true);
+  }
+
+  function tick(force){
+    var now=Date.now();
+    if(started&&!paused&&tid!==null){var d=now-last;elapsed+=d;stepEl+=d;}
+    last=now;
+    recUI();
+    var s=STEPS[cur],plan=s.min*60000,rem=plan-stepEl;
+    var c=$('clock');
+    if(!started){$('ctime').textContent=fmt(plan);$('cunit').textContent='';c.className='clock';}
+    else{
+      c.className='clock'+(rem<0?' over':'');
+      $('ctime').textContent=(rem<0?'+':'')+fmt(rem);
+      $('cunit').textContent=rem<0?'시간 지남':'남음';
+      if(rem<0&&!warned){warned=true;try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}}
+    }
+    var label=!started?'시작 전':(Math.abs(drift)<1?'계획대로':(drift>0?'+'+Math.round(drift)+'분 늦음':Math.abs(Math.round(drift))+'분 빠름'));
+    $('ttxt').textContent='전체 '+fmt(elapsed)+' / '+fmt(TOTAL*60000);
+    var dr=$('tdrift');dr.textContent=label;dr.className='drift'+(started&&drift>=1?' late':'');
+  }
+
+  function startLoop(){
+    if(tid!==null)return;
+    last=Date.now();
+    tid=setInterval(function(){tick(false);},500);
+  }
+
+  /* 화면 켜짐 유지: 화면이 꺼지거나 다른 앱에 다녀오면 브라우저가 잠금을 풀므로, 풀릴 때 비워 두고 돌아오면 다시 요청한다 */
+  function keepAwake(){
+    try{if(navigator.wakeLock&&!wake&&!ended){navigator.wakeLock.request('screen').then(function(w){wake=w;w.addEventListener('release',function(){if(wake===w)wake=null;});}).catch(function(){});}}catch(e){}
+  }
+
+  function onTimer(){
+    if(!started){
+      var chk=$('recchk'),wantRec=chk?chk.checked:LESSON.record;
+      lsSet(K_REC,wantRec?'1':'0');
+      started=true;paused=false;elapsed=START[cur]*60000;stepEl=0;
+      drift=0;startLoop();
+      $('tbtn').textContent='일시정지';
+      beginLog(wantRec);
+      keepAwake();
+      tick(true);
+      return;
+    }
+    if(ended)return;
+    paused=!paused;
+    last=Date.now();
+    mark(paused?'pause':'resume');
+    $('tbtn').textContent=paused?'계속':'일시정지';
+  }
+
+  document.addEventListener('visibilitychange',function(){
+    if(started&&!ended){mark(document.visibilityState==='visible'?'show':'hide');if(document.visibilityState==='visible')recCheck();}
+    if(document.visibilityState==='visible'&&started){last=Date.now();keepAwake();}
+  });
+
+  $('prev').addEventListener('click',function(){goto(cur-1);});
+  $('next').addEventListener('click',function(){goto(cur+1);});
+  $('tbtn').addEventListener('click',onTimer);
+  $('strip').addEventListener('click',function(e){var b=e.target.closest('.seg');if(b)goto(parseInt(b.getAttribute('data-i'),10));});
+
+  $('main').addEventListener('click',function(e){
+    var chip=e.target.closest('.chip');
+    if(chip){
+      var g=parseInt(chip.getAttribute('data-g'),10),i=parseInt(chip.getAttribute('data-i'),10);
+      document.querySelectorAll('#pk .chip').forEach(function(c){c.classList.remove('on');});
+      chip.classList.add('on');
+      var po=$('pkout');po.textContent='';po.appendChild(cardOut(CARDS.groups[g].items[i],'card-out','a'));
+      return;
+    }
+    var bt=e.target.closest('.beat');
+    if(bt){var k=bt.getAttribute('data-k');done[k]=!done[k];bt.classList.toggle('done',!!done[k]);}
+  });
+
+  var sx=0,sy=0;
+  $('main').addEventListener('touchstart',function(e){var t=e.changedTouches[0];sx=t.clientX;sy=t.clientY;},{passive:true});
+  $('main').addEventListener('touchend',function(e){
+    var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.8){goto(cur+(dx<0?1:-1));}
+  },{passive:true});
+
+  /* 카드 서랍(수업에 cards 가 있을 때만) */
+  if(CARDS){
+    var oc=$('open-cards');oc.textContent=CARDS.button;oc.hidden=false;
+    $('ctitle').textContent=CARDS.title;
+    var tabG=0;
+    var renderTabs=function(){
+      var t=$('tabs');t.textContent='';
+      CARDS.groups.forEach(function(g,i){var b=el('button','chip'+(i===tabG?' on':''),g.g);b.type='button';b.setAttribute('data-t',String(i));t.appendChild(b);});
+      var l=$('list');l.textContent='';
+      CARDS.groups[tabG].items.forEach(function(it,i){
+        var row=el('div','it');row.setAttribute('data-i',String(i));
+        var hb=el('button',null,it[0]);hb.type='button';row.appendChild(hb);
+        var dt=cardOut(it,'dt','v');row.appendChild(dt);
+        l.appendChild(row);
+      });
+    };
+    var sheet=function(open){var s=$('sheet');s.classList.toggle('open',open);s.setAttribute('aria-hidden',open?'false':'true');if(open)renderTabs();};
+    oc.addEventListener('click',function(){sheet(true);});
+    $('close-cards').addEventListener('click',function(){sheet(false);});
+    $('scrim').addEventListener('click',function(){sheet(false);});
+    $('tabs').addEventListener('click',function(e){var b=e.target.closest('.chip');if(b){tabG=parseInt(b.getAttribute('data-t'),10);renderTabs();}});
+    $('list').addEventListener('click',function(e){var it=e.target.closest('.it');if(it&&e.target.closest('button'))it.classList.toggle('open');});
+  }
+
+  /* ===== 녹음 + 단계 표시 (소리는 이 기기 안에서만 처리되고 어디로도 전송되지 않는다) ===== */
+  var REC={mr:null,stream:null,ctx:null,an:null,mime:'',ext:'webm',chunks:[],sid:0,seq:0,on:false,lost:'',lv:0,quiet:0,lvTid:null};
+  var LOG={sid:0,lesson:LESSON.id,classStart:0,recStart:0,mime:'',ext:'webm',recOff:false,marks:[]};
+  function saveLog(){lsSet(K_LOG,JSON.stringify(LOG));}
+
+  function mark(k,t){
+    if(!LOG.classStart)return;
+    LOG.marks.push({at:Date.now(),k:k,n:k==='step'?STEPS[cur].n:0,txt:t||''});
+    saveLog();
+  }
+  function markStep(){mark('step');}
+  function beginLog(wantRec){
+    LOG={sid:Date.now(),lesson:LESSON.id,classStart:Date.now(),recStart:0,mime:'',ext:'webm',recOff:!wantRec,marks:[]};
+    REC.sid=LOG.sid;REC.seq=0;
+    $('star').hidden=false;$('end').hidden=false;
+    markStep();
+    $('rnotice').textContent='';
+    if(wantRec)startRec();
+  }
+
+  function recMsg(t,bad){var m=$('rmsg');m.textContent=t||'';m.className='msg'+(bad?' bad':'');}
+  function setRecBar(on){$('recbar').classList.add('show');var d=$('rdot');d.className='dot '+(on?'live':'off');}
+
+  function startRec(){
+    var bar=$('recbar');bar.classList.add('show');
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){
+      setRecBar(false);$('rtime').textContent='녹음 안 됨';recMsg('이 브라우저는 녹음을 지원하지 않아요. 클로바 노트를 따로 켜세요.',true);return;
+    }
+    try{var AC=window.AudioContext||window.webkitAudioContext;if(AC){REC.ctx=new AC();if(REC.ctx.resume)REC.ctx.resume();}}catch(e){REC.ctx=null;}
+    $('rtime').textContent='마이크 허용 대기';
+    navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:false,noiseSuppression:false,autoGainControl:true}}).then(function(st){
+      REC.stream=st;
+      var types=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'],mt='';
+      types.some(function(t){try{if(MediaRecorder.isTypeSupported(t)){mt=t;return true;}}catch(e){}return false;});
+      var mr;
+      try{mr=new MediaRecorder(st,mt?{mimeType:mt,audioBitsPerSecond:48000}:{});}catch(e){mr=new MediaRecorder(st);}
+      REC.mr=mr;REC.mime=mr.mimeType||mt||'audio/webm';
+      REC.ext=/mp4/.test(REC.mime)?'m4a':(/ogg/.test(REC.mime)?'ogg':'webm');
+      LOG.mime=REC.mime;LOG.ext=REC.ext;
+      mr.ondataavailable=function(e){
+        if(e.data&&e.data.size){REC.chunks.push(e.data);idbAdd({sid:REC.sid,seq:REC.seq++,mime:REC.mime,lesson:LESSON.id,blob:e.data});}
+      };
+      mr.onerror=function(){REC.lost='녹음 오류가 났어요';recMsg(REC.lost,true);};
+      mr.onstop=function(){if(REC.on&&!ended){REC.on=false;REC.lost='녹음이 멈췄어요';setRecBar(false);recMsg(REC.lost,true);}};
+      var tr=st.getAudioTracks()[0];
+      if(tr){
+        tr.onended=function(){REC.lost='마이크 연결이 끊겼어요';recMsg(REC.lost,true);mark('lost',REC.lost);};
+        tr.onmute=function(){recMsg('마이크가 잠시 멈췄어요(화면 잠금/앱 전환?)',true);mark('mute');};
+        tr.onunmute=function(){if(!REC.lost)recMsg('');mark('unmute');};
+      }
+      mr.start(5000);
+      LOG.recStart=Date.now();REC.on=true;saveLog();
+      setRecBar(true);
+      if(REC.ctx){
+        try{var src=REC.ctx.createMediaStreamSource(st);REC.an=REC.ctx.createAnalyser();REC.an.fftSize=512;src.connect(REC.an);
+          var buf=new Uint8Array(REC.an.fftSize);
+          REC.lvTid=setInterval(function(){
+            REC.an.getByteTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]-128)/128;if(v>m)m=v;}
+            REC.lv=m;$('rlev').style.width=Math.min(100,m*220)+'%';
+            if(m>0.02)REC.quiet=Date.now();
+          },150);REC.quiet=Date.now();
+        }catch(e){}
+      }
+    }).catch(function(err){
+      setRecBar(false);$('rtime').textContent='녹음 안 됨';
+      recMsg((err&&err.name==='NotAllowedError')?'마이크가 허용되지 않았어요. 진행판만 사용합니다. 클로바 노트를 따로 켜세요.':'마이크를 켤 수 없어요. 클로바 노트를 따로 켜세요.',true);
+      mark('norec');
+    });
+  }
+
+  function recUI(){
+    if(!REC.on||!LOG.recStart)return;
+    var sec=Math.floor((Date.now()-LOG.recStart)/1000);
+    $('rtime').textContent='REC '+fmt(sec*1000);
+    if(!REC.lost&&REC.ctx&&REC.quiet&&Date.now()-REC.quiet>120000)recMsg('2분째 소리가 거의 안 잡혀요. 마이크를 확인하세요.',true);
+    else if(!REC.lost&&$('rmsg').className.indexOf('bad')>-1&&REC.lv>0.02&&$('rmsg').textContent.indexOf('소리가')>-1)recMsg('');
+  }
+  function recCheck(){
+    if(!REC.mr)return;
+    var tr=REC.stream&&REC.stream.getAudioTracks()[0];
+    if(REC.mr.state==='inactive'||(tr&&tr.readyState==='ended')){
+      REC.lost='화면이 꺼진 사이 녹음이 끊겼을 수 있어요';recMsg(REC.lost,true);setRecBar(false);
+    }else if(REC.mr.state==='recording'){try{REC.mr.requestData();}catch(e){}}
+  }
+
+  function stopRec(cb){
+    clearInterval(REC.lvTid);
+    var fin=function(){
+      try{if(REC.stream)REC.stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+      try{if(REC.ctx&&REC.ctx.close)REC.ctx.close();}catch(e){}
+      REC.on=false;if(REC.mr)setRecBar(false);
+      cb();
+    };
+    if(REC.mr&&REC.mr.state!=='inactive'){
+      var done2=false;var go=function(){if(done2)return;done2=true;fin();};
+      REC.mr.onstop=go;try{REC.mr.stop();}catch(e){go();}
+      setTimeout(go,2500);
+    }else fin();
+  }
+
+  function endClass(){
+    mark('end');
+    ended=true;clearInterval(tid);tid=null;
+    $('tbtn').textContent='끝남';$('tbtn').disabled=true;$('star').hidden=true;
+    $('end').textContent='기록';
+    stopRec(function(){
+      var blob=REC.chunks.length?new Blob(REC.chunks,{type:REC.mime}):null;
+      openResult(blob,LOG,REC.lost?'**주의:** '+REC.lost+'. 녹음이 중간에 빠졌을 수 있어요.':'',LESSON);
+    });
+  }
+  $('end').addEventListener('click',function(){
+    if(ended){if(RES)rsheet(true);return;}
+    var b=$('end');
+    if(!endArmed){b.textContent='정말 마침?';endArmed=setTimeout(function(){endArmed=null;b.textContent='마침';},4000);return;}
+    clearTimeout(endArmed);endArmed=null;endClass();
+  });
+  $('star').addEventListener('click',function(){
+    mark('star');var b=$('star');b.textContent='✓';setTimeout(function(){b.textContent='★';},900);
+    try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  });
+  window.addEventListener('beforeunload',function(e){if(REC.on&&!ended){e.preventDefault();e.returnValue='';}});
+
+  /* 시작 전 안내 + 녹음 선택 + 지난 녹음 복구 */
+  (function(){
+    var rn=$('rnotice');
+    var top=el('div','row');top.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+    var back=el('a','btn','← 수업 목록');back.href='lesson-board.html';top.appendChild(back);
+    rn.appendChild(top);
+    if(LESSON.subtitle)rn.appendChild(el('div','notice',LESSON.subtitle));
+    var n=el('div','notice');
+    rich(n,'**녹음 + 단계 기록.** “수업 시작”을 누르면 단계를 넘길 때마다 시각을 적어 둡니다. 아래 칸을 켜 두면 마이크 허용을 물어보고 수업 내내 녹음해요. 소리는 이 기기에서만 처리돼요. 수업 중에는 화면을 켜 둔 채 두세요(잠기면 녹음이 끊길 수 있어요). **녹음 앱은 하나만 쓰세요.** 안드로이드는 두 앱이 동시에 마이크를 쓰면 한쪽이 녹음되지 않아요. 사진·동영상을 찍으면 카메라가 마이크를 가져가 녹음이 끊길 수 있으니, 사진은 다른 기기로 찍어요.\n학생 목소리를 녹음하는 것이니 학교 지침과 동의 여부를 먼저 확인하세요.');
+    var lab=el('label','chk');var cb=document.createElement('input');cb.type='checkbox';cb.id='recchk';
+    var saved=lsGet(K_REC);cb.checked=saved===null?LESSON.record:saved==='1';
+    lab.appendChild(cb);lab.appendChild(el('span',null,'이 수업을 녹음해요'));
+    n.appendChild(lab);
+    rn.appendChild(n);
+    showRecovery(rn,function(){return started;});
+  })();
+
+  renderStep();tick(true);
+}
+
+/* ===== 시작: 주소의 ?lesson=아이디 로 수업을 고른다. 없거나 모르는 아이디면 수업 고르기 화면 ===== */
+var want=null;
+try{want=new URLSearchParams(location.search).get('lesson');}catch(e){}
+if(want){
+  var L=findLesson(want);
+  if(L)startBoard(L);
+  else showHome('**“'+want.slice(0,40)+'” 수업을 찾을 수 없어요.** 이 기기에 가져오지 않은 수업이면 아래에서 가져오세요.','bad');
+}else showHome();
+})();
+</script>
+</body>
+</html>
