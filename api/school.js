@@ -1,7 +1,11 @@
 // Vercel Serverless Function: /api/school
 // NEIS 학교기본정보(schoolInfo)를 조회합니다.
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://leechangsu2131.github.io");
+  // 학생이 접속하는 세 주소(GitHub·Vercel·GitLab)에서 온 요청만 허용(GT_ALLOW_ORIGIN 과 같은 목록)
+  const ALLOWED = ["https://leechangsu2131.github.io", "https://school-api-alpha-gules.vercel.app", "https://homepage-53dd99.gitlab.io"];
+  const origin = req.headers.origin;
+  res.setHeader("Access-Control-Allow-Origin", ALLOWED.includes(origin) ? origin : ALLOWED[0]);
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET") {
